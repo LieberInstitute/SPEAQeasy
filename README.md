@@ -1,2 +1,1 @@
-# RNAsp
-# RNAsp
+# RNAseq-pipeline for Lieber Institute #
