@@ -12,6 +12,7 @@ RUN apt-get install -y -f libpython-dev
 RUN apt-get update --fix-missing
 RUN apt-get install -y -f libglib2.0-bin
 RUN apt-get install -y -f libglib2.0-dev
+RUN apt-get install -y -f libcairo2=1.15.10-1 --allow-downgrades
 RUN apt-get install -y \
     gdebi-core \
     pandoc \
@@ -35,6 +36,7 @@ RUN apt-get clean
 RUN apt-get update
 
 ######## Install R Base Packages ########
+RUN apt-get update
 RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/bioc/src/contrib/BiocInstaller_1.28.0.tar.gz',type='source',dependencies=TRUE)"
 
 RUN Rscript -e "install.packages(c('remotes','devtools','RColorBrewer','plyr'),repo='http://cran.rstudio.com/',dependencies=TRUE)"
@@ -45,8 +47,8 @@ RUN Rscript -e "install.packages('https://cran.r-project.org/src/contrib/getopt_
 ## RCurl: 1.95-4.10
 RUN Rscript -e "install.packages('https://cran.r-project.org/src/contrib/RCurl_1.95-4.10.tar.gz',type='source',dependencies=TRUE)"
 
-## XML: 3.98-1.9
-RUN Rscript -e "install.packages('https://cran.r-project.org/src/contrib/XML_3.98-1.9.tar.gz',type='source',dependencies=TRUE)"
+## XML: 3.98-1.10
+RUN Rscript -e "install.packages('https://cran.r-project.org/src/contrib/XML_3.98-1.10.tar.gz',type='source',dependencies=TRUE)"
 
 ## zlibbioc: 1.24.0
 RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/bioc/src/contrib/zlibbioc_1.24.0.tar.gz',type='source',dependencies=TRUE)"
@@ -72,8 +74,8 @@ RUN Rscript -e "install.packages('http://bioconductor.org/packages/release/data/
 ## GenomeInfoDb: 1.14.0
 RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/bioc/src/contrib/GenomeInfoDb_1.14.0.tar.gz',type='source',dependencies=TRUE)"
 
-## Genomic Ranges: 1.30.2
-RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/bioc/src/contrib/GenomicRanges_1.30.2.tar.gz',type='source',dependencies=TRUE)"
+## Genomic Ranges: 1.30.3
+RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/bioc/src/contrib/GenomicRanges_1.30.3.tar.gz',type='source',dependencies=TRUE)"
 
 ## lambda.r: 1.2
 RUN Rscript -e "install.packages('https://cran.r-project.org/src/contrib/lambda.r_1.2.tar.gz',type='source',dependencies=TRUE)"
@@ -117,8 +119,8 @@ RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/bioc
 ## Biobase: 2.38.0
 RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/bioc/src/contrib/Biobase_2.38.0.tar.gz',type='source',dependencies=TRUE)"
 
-## DBI: 0.7
-RUN Rscript -e "install.packages('https://cran.rstudio.com/src/contrib/DBI_0.7.tar.gz',type='source',dependencies=TRUE)"
+## DBI: 0.8
+RUN Rscript -e "install.packages('https://cran.rstudio.com/src/contrib/DBI_0.8.tar.gz',type='source',dependencies=TRUE)"
 
 ## bit: 1.1-12
 RUN Rscript -e "install.packages('https://cran.r-project.org/src/contrib/bit_1.1-12.tar.gz',type='source',dependencies=TRUE)"

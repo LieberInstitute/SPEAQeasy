@@ -20,7 +20,7 @@ ENV BIN /usr/local/bin
 WORKDIR $SRC
 RUN wget https://github.com/samtools/htslib/releases/download/1.3.2/htslib-1.3.2.tar.bz2 -O htslib.tar.bz2 && \
     tar -xjvf htslib.tar.bz2 && \
-    cd htslib-{version} && \
+    cd htslib-1.3.2 && \
     make && \
     make install && \
     cp -r * $BIN
@@ -35,7 +35,7 @@ RUN git clone https://github.com/dpryan79/libBigWig.git && \
 ### GSL Lib
 WORKDIR $SRC
 RUN wget ftp://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz && \
-    tar -xvzpf gsl-latest.tar.gz && \
+    tar -zxvf gsl-latest.tar.gz && \
     cd gsl* && \
     ./configure && \
     make && \

@@ -1,5 +1,4 @@
 #!/usr/bin/env nextflow
-
 /*
 vim: syntax=groovy
 -*- mode: groovy;-*-
@@ -64,18 +63,34 @@ def helpMessage() {
     Usage:
     The typical command for running the pipeline is as follows:
 
-    nextflow run main.nf --sample "single" --strand "unstranded" --reference "hg19" --test --merge
+    nextflow run main.nf --sample "single" --strand "unstranded" --reference "hg19" --merge --ercc --fullCov -profile standard
 
-    NOTES: The pipeline accepts single or paired end reads. These reads can be stranded or unstranded, and will accept the following combinations:
+    NOTES: The pipeline accepts single or paired end reads. These reads can be stranded or unstranded, and must follow the following naming structure:
+
+    merge: "*_read{1,2}.fastq.gz"
+    paired: "*_{1,2}.fastq.gz"
+
+    NOTE: File names can not have "." in the name due to the prefix functions in between process
 
     nextflow run main.nf {CORE} {OPTIONS}
          {CORE}:
-            --sample "single" --strand "unstranded" <- takes base file name "*"
-            --sample "single" --strand "forward"/"reverse" <- takes base file name "*"
-            --sample "paired" --strand "unstranded" <- assumes the paired file extension is "*_{1,2}"
-            --sample "paired" --strand "forward"/"reverse"/"dual" <- assumes the paired file extension is "*_{forward,reverse}"
+            --sample "single/paired"  --strand "forward"/"reverse/unstranded"
+              single <- reads files individually "*"
+              paired <- reads files paired "*_{1,2}"
+            --reference
+              hg38 <- uses human reference hg38
+              hg19 <- uses human reference hg19
+              mm10 <- uses mouse reference mm10
+              rn6  <- uses rat reference rn6
+            --strand
+              forward <- uses forward stranding
+              reverse <- uses reverse stranding
+              unstranded <- uses pipeine inferencing
          {OPTIONS}:
-            --merge <- assumes files are compressed "{CORE.extension}.{fastq,fq}.hz"
+            --merge <- assumes files are compressed "*_read{1,2}.fastq.gz"
+            --ercc  <- performs ercc quantification
+            --fullCov <- performs fullCov R analysis
+             etc...
     
     Mandatory Options:
     -----------------------------------------------------------------------------------------------------------------------------------
@@ -112,8 +127,6 @@ def helpMessage() {
     -----------------------------------------------------------------------------------------------------------------------------------
     --ercc                        Flag for ERCC quantification with Kallisto
     -----------------------------------------------------------------------------------------------------------------------------------
-    --cores                       Defines the number of cores to be used with the pipeline. Defaults to 1
-    -----------------------------------------------------------------------------------------------------------------------------------
     --large                       Parameter to be used to set the run size for the cluster
     -----------------------------------------------------------------------------------------------------------------------------------
     --fullCov                     Full coverage in step 7b
@@ -121,10 +134,8 @@ def helpMessage() {
     --k_lm                        Kallisto ERCC Length Mean Value for Single End Reads (defaults to 200)
     -----------------------------------------------------------------------------------------------------------------------------------
     --k_sd                        Kallisto ERCC Standard Deviation Value for Single End Reads (defaults to 30)
-    
     -----------------------------------------------------------------------------------------------------------------------------------
     --small_test                  Runs the pipeline as a small test run on sample files located in the test folder
-
     -----------------------------------------------------------------------------------------------------------------------------------
     --test                        Runs the pipeline as a test run on sample files located on winter server 
     -----------------------------------------------------------------------------------------------------------------------------------
@@ -177,14 +188,12 @@ params.email = false
 params.name = false
 params.raw = false
 params.ercc = false
-params.cores = false
 params.large = false
 params.fullCov = false
 params.test = false
 params.small_test = false
 params.k_lm = false
 params.k_sd = false
-params.post_hisat
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validate Inputs
@@ -243,6 +252,22 @@ if (!params.name) {
 
 // External Script Path Validation
 params.scripts = "./scripts"
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Input Path Options
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+params.cores = '1'
+params.ercc_cores = '8'
+params.trimming_cores = '8'
+params.hisat_cores = '8'
+params.samtobam_cores = '8'
+params.featurecounts_cores = '8'
+params.alignments_cores = '8'
+params.salmon_cores = '8'
+params.counts_cores = '5'
+params.coverage_cores = '5'
+params.expressedregion_cores = '8'
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -588,27 +613,6 @@ def get_paired_trimmed_prefix = { file -> file.name.toString().tokenize('.')[0] 
 
 def get_hisat_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_hisat_out_A1s2o2s1A" }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Memory + Core Usage Parameters
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-if (params.cores) {
-    params.core = "${params.cores}"
-}
-if (!params.cores) {
-    params.core = 1
-}
-
-if (params.large) {
-    params.memory = "mem_free=3G"
-    params.virtualmemory="h_vmem=10G"
-    params.harddisk="h_fsize=100G"
-}
-if (!params.large) {
-    params.memory = "mem_free=3G"
-    params.virtualmemory="h_vmem=5G"
-    params.harddisk="h_fsize=100G"
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Summary of Defined Variables
@@ -627,7 +631,6 @@ summary['Strand']              = params.strand
 summary['Annotations']         = params.annotations
 summary['Genotypes']           = params.genotypes
 summary['Input']               = params.inputs
-summary['Cores']               = params.core
 if(params.ercc) summary['ERCC Index'] = erccidx
 if(params.experiments) summary['Experiment'] = params.experiments
 if(params.email) summary['E-mail Address'] = params.email
@@ -994,10 +997,10 @@ if (params.ercc) {
         set val("${ercc_prefix}"), file("${ercc_prefix}_abundance.tsv") into ercc_abundances
 
         script:
-        core_option = "${params.core}"
+        ercc_cores = "${params.ercc_cores}"
         strand_option = "${params.kallisto_strand}"
         """
-        kallisto quant -i $erccidx -t $core_option -o . $strand_option $ercc_input
+        kallisto quant -i $erccidx -t $ercc_cores -o . $strand_option $ercc_input
         cp abundance.tsv ${ercc_prefix}_abundance.tsv
         """
     }
@@ -1272,7 +1275,7 @@ process sampleTrimming {
     file "*.fastq.gz" into trimmed_fastqc_inputs, trimmed_hisat_inputs
 
     script:
-    core_option = "${params.core}"
+    trimming_cores = "${params.trimming_cores}"
     sample_option = "${params.trim_sample}"
     if (params.sample == "single") {
         output_option = "${trimming_prefix}_trimmed.fastq.gz"
@@ -1284,7 +1287,7 @@ process sampleTrimming {
     java -Xmx512M \
     -jar /usr/local/bin/trimmomatic-0.36.jar \
     $sample_option \
-    -threads $core_option \
+    -threads $trimming_cores \
     -phred33 \
     $trimming_input \
     $output_option \
@@ -1350,10 +1353,10 @@ if (params.sample == "single") {
       shell:
       hisat_prefix = "${params.hisat_prefix}"
       strand = "${params.hisat_strand}"
-      cores = "${params.core}"
+      hisat_cores = "${params.hisat_cores}"
       '''
       hisat2 \
-      -p !{cores} \
+      -p !{hisat_cores} \
       -x !{hisat_prefix} \
       -U !{single_hisat_input} \
       -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 \
@@ -1391,7 +1394,7 @@ if (params.sample == "paired") {
       shell:
       hisat_prefix = "${params.hisat_prefix}"
       strand = "${params.hisat_strand}"
-      cores = "${params.core}"
+      hisat_cores = "${params.hisat_cores}"
       sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR.fastq.gz"
       sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR.fastq.gz"
       if (params.unalign) {
@@ -1402,7 +1405,7 @@ if (params.sample == "paired") {
       }
       '''
       hisat2 \
-      -p !{cores} \
+      -p !{hisat_cores} \
       -x !{hisat_prefix} \
       -1 !{sample_1_hisat} \
       -2 !{sample_2_hisat} \
@@ -1437,7 +1440,7 @@ if (params.sample == "paired") {
       shell:
       hisat_prefix = "${params.hisat_prefix}"
       strand = "${params.hisat_strand}"
-      cores = "${params.core}"
+      hisat_cores = "${params.hisat_cores}"
       forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq.gz"
       reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq"
       forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.fastq.gz"
@@ -1450,7 +1453,7 @@ if (params.sample == "paired") {
       }
       '''
       hisat2 \
-      -p !{cores} \
+      -p !{hisat_cores} \
       -x !{hisat_prefix} \
       -1 !{forward_paired} \
       -2 !{reverse_paired} \
@@ -1488,10 +1491,10 @@ process sampleSamtoBam {
     script:
     original_bam = "${sam_to_bam_prefix}_accepted_hits.bam"
     sorted_bam = "${sam_to_bam_prefix}_accepted_hits.sorted"
-    cores = "${params.core}"
+    samtobam_cores = "${params.samtobam_cores}"
     """
     samtools view -bh -F 4 $sam_to_bam_input > $original_bam
-    samtools sort -@ $cores $original_bam $sorted_bam
+    samtools sort -@ $samtobam_cores $original_bam -o ${sorted_bam}.bam
     samtools index ${sorted_bam}.bam
     """
 }
@@ -1579,13 +1582,13 @@ process sampleFeatureCounts {
         sample_option = "-p"
     }
     feature_out = "${feature_prefix}_${params.feature_output_prefix}"
-    cores = "${params.core}"
+    featurecounts_cores = "${params.featurecounts_cores}"
     feature_strand = "${params.feature_strand}"
     """ 
     featureCounts \
     -s $feature_strand \
     $sample_option \
-    -T $cores \
+    -T $featurecounts_cores \
     -a $gencode_gtf_feature \
     -o ${feature_out}_Genes.counts \
     $feature_bam
@@ -1595,7 +1598,7 @@ process sampleFeatureCounts {
     $sample_option \
     -O \
     -f \
-    -T $cores \
+    -T $featurecounts_cores \
     -a $gencode_gtf_feature \
     -o ${feature_out}_Exons.counts \
     $feature_bam
@@ -1619,9 +1622,9 @@ process samplePrimaryAlignments {
     set val("${alignment_prefix}"), file("${alignment_prefix}.bam"), file("${alignment_prefix}.bam.bai") into primary_alignments
 
     script:
-    cores = "${params.cores}"
+    alignments_cores = "${params.alignments_cores}"
     """
-    samtools view -@ $cores -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
+    samtools view -@ $alignments_cores -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
     samtools index ${alignment_prefix}.bam
     """
 }
@@ -1771,7 +1774,7 @@ if (params.step6) {
         set val("${salmon_input_prefix}"), file("${salmon_input_prefix}_quant.sf") into salmon_quants
 
         shell:
-        salmon_cores = 1
+        salmon_cores = "${params.salmon_cores}"
         salmon_index_prefix = "${params.salmon_prefix}"
         if (params.sample == "single") {
             sample_command = "-r ${salmon_input_prefix}.fastq.gz"
@@ -1903,7 +1906,7 @@ process sampleCreateCountObjects {
     if (params.strand == "reverse") {
         counts_strand = "reverse"
     }
-    counts_cores = "${params.cores}"
+    counts_cores = "${params.counts_cores}"
     counts_reference = "${params.reference}"
     counts_experiment = "${params.experiments}"
     counts_prefix = "${params.prefix}"
@@ -1955,7 +1958,7 @@ if (params.fullCov) {
         if (params.strand == "reverse") {
             coverage_strand = "reverse"
         }
-        coverage_cores = "${params.cores}"
+        coverage_cores = "${params.coverage_cores}"
         coverage_reference = "${params.reference}"
         coverage_experiment = "${params.experiment}"
         coverage_prefix = "${params.prefix}"
@@ -2053,7 +2056,7 @@ process sampleExpressedRegions {
     file "*" 
 
     shell:
-    expressed_regions_cores = 1
+    expressedregion_cores = "${params.expressedregion_cores}"
     '''
     Rscript !{expressedRegions_file} \
     -m !{expressed_regions_mean_bigwig} \

@@ -7,59 +7,59 @@ NS = libddocker
 ## R Base
 R_IMAGE = r3.4.3_base
 R_IMAGE_TAG = 1
-R_IMAGE_VERSION = 1
+R_IMAGE_VERSION = 2
 ## Ubuntu Base
 UBUNTU_BASE_IMAGE = ubuntu16.04_base
 UBUNTU_BASE_IMAGE_TAG = 1
-UBUNTU_BASE_IMAGE_VERSION = 1
+UBUNTU_BASE_IMAGE_VERSION = 2
 ## Kallisto
 ERCC_IMAGE = kallisto_v0.43.1
 ERCC_IMAGE_TAG = 1
-ERCC_IMAGE_VERSION = 1
+ERCC_IMAGE_VERSION = 2
 ## FastQC
 QUALITY_IMAGE = fastqc_v0.11.5
 QUALITY_IMAGE_TAG = 1
-QUALITY_IMAGE_VERSION = 1
+QUALITY_IMAGE_VERSION = 2
 ## Trimmomatic
 TRIM_IMAGE = trimmomatic-0.36
 TRIM_IMAGE_TAG = 1
-TRIM_IMAGE_VERSION = 1
+TRIM_IMAGE_VERSION = 2
 ## HISAT 
 HISAT_IMAGE = hisat2-2.0.4
 HISAT_IMAGE_TAG = 1
-HISAT_IMAGE_VERSION = 1
+HISAT_IMAGE_VERSION = 2
 ## RSeQC
 RSEQC_IMAGE = rseqc-v2.6.4
 RSEQC_IMAGE_TAG = 1
-RSEQC_IMAGE_VERSION = 1
+RSEQC_IMAGE_VERSION = 2
 ## Samtools
 SAMTOOLS_IMAGE = samtools-1.3.1
 SAMTOOLS_IMAGE_TAG = 1
-SAMTOOLS_IMAGE_VERSION = 1
+SAMTOOLS_IMAGE_VERSION = 2
 ## Salmon
 SALMON_IMAGE = salmon-0.9.1
 SALMON_IMAGE_TAG = 1
-SALMON_IMAGE_VERSION = 1
+SALMON_IMAGE_VERSION = 2
 ## Regtools
 REGTOOLS_IMAGE = regtools-0.3.0
 REGTOOLS_IMAGE_TAG = 1
-REGTOOLS_IMAGE_VERSION = 1
+REGTOOLS_IMAGE_VERSION = 2
 ## SubRead 
 SUBREAD_IMAGE = subread-1.6.0
 SUBREAD_IMAGE_TAG = 1
-SUBREAD_IMAGE_VERSION = 1
+SUBREAD_IMAGE_VERSION = 2
 ## Wiggletools
 WIGGLETOOLS_IMAGE = wiggletools-1.2
 WIGGLETOOLS_IMAGE_TAG = 1
-WIGGLETOOLS_IMAGE_VERSION = 1
+WIGGLETOOLS_IMAGE_VERSION = 2
 ## BCFTools
 BCFTOOLS_IMAGE = bcftools-1.3.1
 BCFTOOLS_IMAGE_TAG = 1
-BCFTOOLS_IMAGE_VERSION = 1
+BCFTOOLS_IMAGE_VERSION = 2
 ## VCFTOols
 VCFTOOLS_IMAGE = vcftools-v0.1.15
 VCFTOOLS_IMAGE_TAG = 1
-VCFTOOLS_IMAGE_VERSION = 1
+VCFTOOLS_IMAGE_VERSION = 2
 
 
 #########################
@@ -128,59 +128,45 @@ build:
 
 push:
 	# R Image
-	docker push $(NS)/$(R_IMAGE)
 	docker push $(NS)/$(R_IMAGE):$(R_IMAGE_TAG)_v$(R_IMAGE_VERSION)
 	docker push $(NS)/$(R_IMAGE):latest
 	# Ubuntu Image
-	docker push $(NS)/$(UBUNTU_BASE_IMAGE)
 	docker push $(NS)/$(UBUNTU_BASE_IMAGE):$(UBUNTU_BASE_IMAGE_TAG)_v$(UBUNTU_BASE_IMAGE_VERSION)
 	docker push $(NS)/$(UBUNTU_BASE_IMAGE):latest
 	# Kallisto
-	docker push $(NS)/$(ERCC_IMAGE)
 	docker push $(NS)/$(ERCC_IMAGE):$(ERCC_IMAGE_TAG)_v$(ERCC_IMAGE_VERSION)
 	docker push $(NS)/$(ERCC_IMAGE):latest
 	# FastQC
-	docker push $(NS)/$(QUALITY_IMAGE)
 	docker push $(NS)/$(QUALITY_IMAGE):$(QUALITY_IMAGE_TAG)_v$(QUALITY_IMAGE_VERSION)
 	docker push $(NS)/$(QUALITY_IMAGE):latest
 	# Trimmomatic
-	docker push $(NS)/$(TRIM_IMAGE)
 	docker push $(NS)/$(TRIM_IMAGE):$(TRIM_IMAGE_TAG)_v$(TRIM_IMAGE_VERSION)
 	docker push $(NS)/$(TRIM_IMAGE):latest
 	# Hisat
-	docker push $(NS)/$(HISAT_IMAGE)
 	docker push $(NS)/$(HISAT_IMAGE):$(HISAT_IMAGE_TAG)_v$(HISAT_IMAGE_VERSION)
 	docker push $(NS)/$(HISAT_IMAGE):latest
 	# RSeQC
-	docker push $(NS)/$(RSEQC_IMAGE)
 	docker push $(NS)/$(RSEQC_IMAGE):$(RSEQC_IMAGE_TAG)_v$(RSEQC_IMAGE_VERSION)
 	docker push $(NS)/$(RSEQC_IMAGE):latest
 	# Samtools
-	docker push $(NS)/$(SAMTOOLS_IMAGE)
 	docker push $(NS)/$(SAMTOOLS_IMAGE):$(SAMTOOLS_IMAGE_TAG)_v$(SAMTOOLS_IMAGE_VERSION)
 	docker push $(NS)/$(SAMTOOLS_IMAGE):latest
 	# Salmon
-	docker push $(NS)/$(SALMON_IMAGE)
 	docker push $(NS)/$(SALMON_IMAGE):$(SALMON_IMAGE_TAG)_v$(SALMON_IMAGE_VERSION)
 	docker push $(NS)/$(SALMON_IMAGE):latest
 	# Regtools
-	docker push $(NS)/$(REGTOOLS_IMAGE)
 	docker push $(NS)/$(REGTOOLS_IMAGE):$(REGTOOLS_IMAGE_TAG)_v$(REGTOOLS_IMAGE_VERSION)
 	docker push $(NS)/$(REGTOOLS_IMAGE):latest
 	# Subread
-	docker push $(NS)/$(SUBREAD_IMAGE)
 	docker push $(NS)/$(SUBREAD_IMAGE):$(SUBREAD_IMAGE_TAG)_v$(SUBREAD_IMAGE_VERSION)
 	docker push $(NS)/$(SUBREAD_IMAGE):latest
 	# Wiggletools
-	docker push $(NS)/$(WIGGLETOOLS_IMAGE)
 	docker push $(NS)/$(WIGGLETOOLS_IMAGE):$(WIGGLETOOLS_IMAGE_TAG)_v$(WIGGLETOOLS_IMAGE_VERSION)
 	docker push $(NS)/$(WIGGLETOOLS_IMAGE):latest
 	# BCFTools
-	docker push $(NS)/$(BCFTOOLS_IMAGE)
 	docker push $(NS)/$(BCFTOOLS_IMAGE):$(BCFTOOLS_IMAGE_TAG)_v$(BCFTOOLS_IMAGE_VERSION)
 	docker push $(NS)/$(BCFTOOLS_IMAGE):latest
 	# VCFTools
-	docker push $(NS)/$(VCFTOOLS_IMAGE)
 	docker push $(NS)/$(VCFTOOLS_IMAGE):$(VCFTOOLS_IMAGE_TAG)_v$(VCFTOOLS_IMAGE_VERSION)
 	docker push $(NS)/$(VCFTOOLS_IMAGE):latest
 
@@ -194,30 +180,30 @@ deploy: build push
 
 pull:
 	# R Image
-	docker pull $(NS)/$(R_IMAGE):latest
+	docker pull $(NS)/$(R_IMAGE):$(R_IMAGE_TAG)_v$(R_IMAGE_VERSION)
 	# Ubuntu Image
-	docker pull $(NS)/$(UBUNTU_BASE_IMAGE):latest
+	docker pull $(NS)/$(UBUNTU_BASE_IMAGE):$(UBUNTU_BASE_IMAGE_TAG)_v$(UBUNTU_BASE_IMAGE_VERSION)
 	# Kallisto
-	docker pull $(NS)/$(ERCC_IMAGE):latest
+	docker pull $(NS)/$(ERCC_IMAGE):$(ERCC_IMAGE_TAG)_v$(ERCC_IMAGE_VERSION)
 	# FastQC
-	docker pull $(NS)/$(QUALITY_IMAGE):latest
+	docker pull $(NS)/$(QUALITY_IMAGE):$(QUALITY_IMAGE_TAG)_v$(QUALITY_IMAGE_VERSION)
 	# Trimmomatic
-	docker pull $(NS)/$(TRIM_IMAGE):latest
+	docker pull $(NS)/$(TRIM_IMAGE):$(TRIM_IMAGE_TAG)_v$(TRIM_IMAGE_VERSION)
 	# Hisat
-	docker pull $(NS)/$(HISAT_IMAGE):latest
+	docker pull $(NS)/$(HISAT_IMAGE):$(HISAT_IMAGE_TAG)_v$(HISAT_IMAGE_VERSION)
 	# RSeQC
-	docker pull $(NS)/$(RSEQC_IMAGE):latest
+	docker pull $(NS)/$(RSEQC_IMAGE):$(RSEQC_IMAGE_TAG)_v$(RSEQC_IMAGE_VERSION)
 	# Samtools
-	docker pull $(NS)/$(SAMTOOLS_IMAGE):latest
+	docker pull $(NS)/$(SAMTOOLS_IMAGE):$(SAMTOOLS_IMAGE_TAG)_v$(SAMTOOLS_IMAGE_VERSION)
 	# Salmon
-	docker pull $(NS)/$(SALMON_IMAGE):latest
+	docker pull $(NS)/$(SALMON_IMAGE):$(SALMON_IMAGE_TAG)_v$(SALMON_IMAGE_VERSION)
 	# Regtools
-	docker pull $(NS)/$(REGTOOLS_IMAGE):latest
+	docker pull $(NS)/$(REGTOOLS_IMAGE):$(REGTOOLS_IMAGE_TAG)_v$(REGTOOLS_IMAGE_VERSION)
 	# Subread
-	docker pull $(NS)/$(SUBREAD_IMAGE):latest
+	docker pull $(NS)/$(SUBREAD_IMAGE):$(SUBREAD_IMAGE_TAG)_v$(SUBREAD_IMAGE_VERSION)
 	# Wiggletools
-	docker pull $(NS)/$(WIGGLETOOLS_IMAGE):latest
+	docker pull $(NS)/$(WIGGLETOOLS_IMAGE):$(WIGGLETOOLS_IMAGE_TAG)_v$(WIGGLETOOLS_IMAGE_VERSION)
 	# BCFTools
-	docker pull $(NS)/$(BCFTOOLS_IMAGE):latest
+	docker pull $(NS)/$(BCFTOOLS_IMAGE):$(BCFTOOLS_IMAGE_TAG)_v$(BCFTOOLS_IMAGE_VERSION)
 	# VCFTools
-	docker pull $(NS)/$(VCFTOOLS_IMAGE):latest
+	docker pull $(NS)/$(VCFTOOLS_IMAGE):$(VCFTOOLS_IMAGE_TAG)_v$(VCFTOOLS_IMAGE_VERSION)

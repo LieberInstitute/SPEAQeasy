@@ -25,12 +25,13 @@ RUN wget http://www.cmake.org/files/v3.2/cmake-3.2.2.tar.gz && \
     make install && \
     cp -r * $BIN
 
+RUN rm /usr/local/src/CMakeCache.txt
+
 ## Install Salmon
 WORKDIR $SRC
 RUN wget https://github.com/COMBINE-lab/salmon/releases/download/v0.9.1/Salmon-0.9.1_linux_x86_64.tar.gz && \ 
     tar -xvzf Salmon-0.9.1_linux_x86_64.tar.gz && \
     cd Salmon-latest_linux_x86_64 && \
-    ./configure && \
     mkdir build && \
     cmake .. && \
     make && \
