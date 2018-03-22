@@ -32,7 +32,8 @@ vim: syntax=groovy
    Sample Processing:
     -   A: File Merging (Optional)
     -   B: ERCC Quality Analysis (Optional)
-    -   C: Sample Manifest
+    -  C1: Individual Sample Manifest
+    -  C2: Sample Manifest
     -   1: FastQC Quality Analysis
     -  2a: Adaptive Trimming Filter (Sample Dependent)
     -  2b: File Trimming (Sample Dependent)
@@ -44,8 +45,9 @@ vim: syntax=groovy
     -  4a: Feature Counts
     -  4b: Primary Alignments
     -  4c: Junctions
-    -   5: Coverage
-    -  5b: Mean Coverage
+    -  5a: Coverage
+    -  5b: WigtoBigWig
+    -  5c: Mean Coverage
     -   6: Salmon TXQuant
     -  7a: Create Counts Objects
     -  7b: Create Coverage Objects
@@ -235,7 +237,7 @@ if (!params.indexing && !params.test) {
 
 // Genotype Path Validation
 if (!params.genotype) {
-    params.genotypes = "./Genotypes"
+    params.genotypes = "./Genotyping"
 }
 
 // Experiment/Workflow Name Validation
@@ -1053,7 +1055,7 @@ if (!params.merge) {
 }
 
 /*
- * Step Ca: Sample Manifest
+ * Step C1: Sample Manifest
  */
 
 process sampleIndividualManifest {
@@ -1080,7 +1082,7 @@ individual_manifests
   .set{ individual_manifest_files }
 
 /*
- * Step Cb: Sample Manifest
+ * Step C2: Sample Manifest
  */
 
 process sampleManifest {
@@ -1698,7 +1700,7 @@ process sampleCoverage {
  process sampleWigToBigWig {
 
     echo true
-    tag "Prefix: $bw_prefix | Sample: [ $wig_file ]"
+    tag "Prefix: $wig_prefix | Sample: [ $wig_file ]"
     publishDir "${params.basedir}/Coverage/BigWigs",mode:'copy'
 
     input:
@@ -1721,7 +1723,7 @@ process sampleCoverage {
    .into{ mean_coverage_bigwigs;full_coverage_bigwigs }
 
 /*
- * Step 5b: Mean Coverage
+ * Step 5c: Mean Coverage
  */
 
 process sampleMeanCoverage {
@@ -1743,7 +1745,7 @@ process sampleMeanCoverage {
     '''
     export coverage_strand_rule=$(cat !{inferred_strand_file})
     if [ $coverage_strand_rule == "none" ] ; then
-        /usr/local/bin/wiggletools write mean.wig mean ${mean_coverage_bigwig}
+        /usr/local/bin/wiggletools write mean.wig mean !{mean_coverage_bigwig}
         /usr/local/bin/wigToBigWig mean.wig !{chr_sizes} mean.bw
     else
         /usr/local/bin/wiggletools write mean.forward.wig mean !{mean_coverage_bigwig}
@@ -1781,7 +1783,7 @@ if (params.step6) {
             if (params.strand == "unstranded" ) {
                 salmon_strand = "U"
             }
-            if (params.strand == "forward" ) {
+            if (params.stranded == "forward" ) {
                 salmon_strand = "SF"
             }
             if (params.strand == "reverse" )
@@ -1901,17 +1903,17 @@ process sampleCreateCountObjects {
         counts_strand = ""
     }
     if (params.strand == "forward") {
-        counts_strand = "forward"
+        counts_strand = "-s forward"
     }
     if (params.strand == "reverse") {
-        counts_strand = "reverse"
+        counts_strand = "-s reverse"
     }
     counts_cores = "${params.counts_cores}"
     counts_reference = "${params.reference}"
     counts_experiment = "${params.experiments}"
     counts_prefix = "${params.prefix}"
     '''
-    Rscript !{create_counts} -o !{counts_reference} -m . -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} -s !{counts_strand}
+    Rscript !{create_counts} -o !{counts_reference} -m . -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
     '''
 }
 
@@ -1949,15 +1951,6 @@ if (params.fullCov) {
         if (params.sample == "single") {
             coverage_pe = "FALSE"
         }
-        if (params.strand == "unstranded") {
-            coverage_strand = ""
-        }
-        if (params.strand == "forward") {
-            coverage_strand = "forward"
-        }
-        if (params.strand == "reverse") {
-            coverage_strand = "reverse"
-        }
         coverage_cores = "${params.coverage_cores}"
         coverage_reference = "${params.reference}"
         coverage_experiment = "${params.experiment}"
@@ -1978,17 +1971,18 @@ if (params.step8 && params.reference == "hg38") {
     process sampleVariantCalls {
 
         echo true
-        tag "Sample: $variant_calls_bam"
+        tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
         publishDir "${params.basedir}/Variant_Calls",mode:'copy'
 
         input:
-        set val(variant_bams_prefix), file(variant_calls_bam) from variant_calls_bam
+        set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai) from variant_calls_bam
         file variant_assembly from variant_assembly
         file snv_bed from snv_bed
 
         output:
         file "*"
-        file "*.vcf.gz" into compressed_variant_calls
+        file "${variant_bams_prefix}.vcf.gz" into compressed_variant_calls
+        file "${variant_bams_prefix}.vcf.gz.tbi" into compressed_variant_calls_tbi
 
         shell:
         snptmp = "${variant_bams_prefix}_tmp.vcf"
@@ -2000,8 +1994,8 @@ if (params.step8 && params.reference == "hg38") {
         -q0 \
         -Q13 \
         -d1000000 \
-        -uf !{variant_assembly} !{variant_calls_bam} \
-        -o !{snpoutgz}
+        -uf !{variant_assembly} !{variant_calls_bam_file} \
+        -o !{snptmp}
         bcftools call \
         -mv \
         -Oz !{snptmp} > !{snpoutgz}
@@ -2010,8 +2004,14 @@ if (params.step8 && params.reference == "hg38") {
     }
 
     compressed_variant_calls
+      .flatten()
       .collect()
       .set{ collected_variant_calls }
+
+    compressed_variant_calls_tbi
+      .flatten()
+      .collect()
+      .set{ collected_variant_calls_tbi }
 
 
     /*
@@ -2026,6 +2026,7 @@ if (params.step8 && params.reference == "hg38") {
 
         input:
         file collected_variants from collected_variant_calls
+        file collected_variants_tbi from collected_variant_calls_tbi
 
         output:
         file "*"

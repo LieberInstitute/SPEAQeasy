@@ -1,0 +1,310 @@
+
+
+##########################################
+##           pipeline rna-seq           ##
+##    Ia: Download Assembly FA    ##
+##########################################
+
+
+Process:
+    params.hisat_idx_output = "${params.index_out}/${params.hisat_assembly}"
+
+    Channel
+      .fromPath("${params.hisat_idx_output}/fa/*.fa")
+      .set{ assembly_fa_trigger }
+
+    assembly_fa_trigger.count().filter{ it == 0 }.set{ assembly_fa_download }
+
+    process pullGENCODEassemblyfa {
+
+        echo true
+        tag "Downloading Assembly FA File: ${params.fa}"
+        publishDir "${params.hisat_idx_output}/fa",'mode':'copy'
+
+        input:
+        val(assembly_fa_val) from assembly_fa_download
+
+        output:
+        file("${params.fa}") into reference_fa
+
+        script:
+        idx_file_link = "${params.fa_link}"
+        idx_gz = "${params.fa_gz}"
+        idx = "${params.fa}"
+        """
+        wget $idx_file_link
+        gunzip $idx_gz
+        """
+    }
+
+    Channel
+      .fromPath("${params.hisat_idx_output}/fa/${params.fa}")
+      .mix(reference_fa)
+      .toSortedList()
+      .flatten()
+      .distinct()
+      .into{ reference_assembly; variant_assembly }
+
+
+Module execution:
+        Module is executed within the pipeline:
+
+        1) `mk <SPECIFIC_TARGET>`; where SPECIFIC_TARGET is any line printed by `002/bin/targets`.
+
+        2) `bin/targets | xrags mk`; every posible target printed by 002/bin/targets will be generated in tandem.
+
+        3) `condor submit`; parallel generation of every posible target printed by 002/bin/targets. Needs HTCondor to run.
+
+
+Expected output:
+        EXAMPLE:
+
+        Intermediate files:
+        results/
+    ├── SAMPLE.recal2.bam       ##Recalibrated bam file, from second recalibration
+    ├── SAMPLE.recal2.bam.bai   ##Index for recalibrated bam file
+
+        Requested output:
+        results/
+    ├── SAMPLE.BQSR_plot.csv    ##Recalibration comparison file
+    ├── SAMPLE.BQSR_plot.pdf    ##Recalibration comparison report
+    ├── SAMPLE.recal-tab1       ##Table from first recalibration round
+    ├── SAMPLE.recal-tab2       ##Table from second recalibration rouns
+
+Module description:
+
+    This module performs Base Quality Score Recalibration of bam files by applying machine learning to model errors produced by the machine-sequencers.
+    Its important because  technical error, leading to over- or under-estimated base quality scores in the data. Some of these errors are due to the physics or the chemistry of how the sequencing reaction works and some are probably due to manufacturing flaws in the equipment.
+
+    The base recalibration process involves two key steps: 
+    1) The program builds a model of covariation based on the data and a set 
+    of known variants (BaseRecalibrator).
+    2) Adjusts the base quality scores in the data based on the model (PrintReads).
+
+    The indel realigment step need a reference for variants:
+    The known variants are used to mask out bases at sites of real (expected) variation, to avoid discarding real variants as errors. 
+    Outside of the masked sites, every mismatch is counted as an error.
+
+
+##########################################
+##           pipeline rna-seq           ##
+##        Ib: Build HISAT Index         ##
+##########################################
+
+
+Process:
+
+    process buildHISATindex {
+
+        echo true
+        tag "Building HISAT2 Index: ${params.hisat_prefix}"
+        publishDir "${params.hisat_idx_output}/index",mode:'copy'
+
+        input:
+        val(hisat_trigger_val) from hisat_trigger_build
+        file idx from reference_assembly 
+
+        output:
+        file("${params.hisat_prefix}.*") into hisat_index_built
+
+        script:
+        prefix = "${params.hisat_prefix}"
+        """
+        hisat2-build -p 3 $idx $prefix
+        """
+    }
+
+
+##########################################
+##           pipeline rna-seq           ##
+##    IIa: Download GENCODE GTF File    ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##          IIb: Build Bed File         ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##      IIIa: Download Salmon TX FA     ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##       IIIb: Build Salmon Index       ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##          A: File Merging (O)         ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##      B: ERCC Quality Analysis (O)    ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##    C1: Individual Sample Manifest    ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##    C2: Individual Sample Manifest    ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##      1: FastQC Quality Analysis      ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##      2a: Adaptive Trimming Filter    ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##          2b: File Trimming           ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##  2c: FastQC Trimmed Quality Analysis ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##  3a: Single Hisat2 Index Creation    ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##      3a: Paired Hisat2 Trimmed       ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##       3a: Paired Hisat3 No Trim      ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##        3b: Convert Sam to Bam        ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##         3c: Infer Experiment         ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##         3d: Infer Strandness         ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##          4a: Feature Counts          ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##        4b: Primary Alignments        ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##            4c: Junctions             ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##             5a: Coverage             ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##           5b: WigtoBigWig            ##
+##########################################
+
+##########################################
+##           pipeline rna-seq           ##
+##           5c: Mean Coverage          ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##          6: Salmon TXQuant           ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##      7a: Create Counts Objects       ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##      7b: Create Coverage Objects     ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##          8a: Call Variants           ##
+##########################################
+
+
+##########################################
+##           pipeline rna-seq           ##
+##       8b: Merge Called Variants      ##
+##########################################
+
+
+
+##########################################
+##           pipeline rna-seq           ##
+##         9: Expressed Regions         ##
+##########################################
+

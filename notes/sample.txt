@@ -1,0 +1,30 @@
+##################################
+##      pipeline mk-gatk        ##
+##      module 002 notes        ##
+##################################
+
+Module execution:
+        Module can be executed from analysis/001/, by any of the following commands:
+
+        1) `mk <SPECIFIC_TARGET>`; where SPECIFIC_TARGET is any line printed by `002/bin/targets`.
+
+        2) `bin/targets | xrags mk`; every posible target printed by 002/bin/targets will be generated in tandem.
+
+        3) `condor submit`; parallel generation of every posible target printed by 002/bin/targets. Needs HTCondor to run.
+
+Expected output:
+        EXAMPLE:
+
+        Intermediate files:
+        results/
+	├── SAMPLE.recal2.bam		##Recalibrated bam file, from second recalibration
+	├── SAMPLE.recal2.bam.bai	##Index for recalibrated bam file
+
+        Requested output:
+        results/
+	├── SAMPLE.BQSR_plot.csv	##Recalibration comparison file
+	├── SAMPLE.BQSR_plot.pdf	##Recalibration comparison report
+	├── SAMPLE.recal-tab1		##Table from first recalibration round
+	├── SAMPLE.recal-tab2		##Table from second recalibration rouns
+
+Module description:

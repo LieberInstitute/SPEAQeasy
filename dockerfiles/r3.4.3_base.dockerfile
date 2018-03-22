@@ -1,5 +1,6 @@
 FROM r-base:3.4.3
 
+
 MAINTAINER Jacob Leonard "leonard.jacob09@gmail.com"
 
 ######## Update/Install Core ########
@@ -26,6 +27,7 @@ RUN apt-get install -y \
     libglu1-mesa \
     libxi-dev \
     libxmu-dev \
+    libmariadb-client-lgpl-dev \
     vim \
     wget \
     curl \
@@ -36,10 +38,13 @@ RUN apt-get clean
 RUN apt-get update
 
 ######## Install R Base Packages ########
-RUN apt-get update
+RUN Rscript -e "install.packages(c('remotes','devtools','RColorBrewer','plyr'),repo='http://cran.rstudio.com/',dependencies=TRUE)"
+
+## BiocInstaller_1.28.0
 RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/bioc/src/contrib/BiocInstaller_1.28.0.tar.gz',type='source',dependencies=TRUE)"
 
-RUN Rscript -e "install.packages(c('remotes','devtools','RColorBrewer','plyr'),repo='http://cran.rstudio.com/',dependencies=TRUE)"
+## bitops_1.0-6
+RUN Rscript -e "install.packages('https://cran.r-project.org/src/contrib/bitops_1.0-6.tar.gz',type='source',dependencies=TRUE)"
 
 ## getopt:1.20.2
 RUN Rscript -e "install.packages('https://cran.r-project.org/src/contrib/getopt_1.20.2.tar.gz',type='source',dependencies=TRUE)"
@@ -224,10 +229,6 @@ RUN Rscript -e "install.packages('https://cran.rstudio.com/src/contrib/RCurl_1.9
 ## derfinderHelper: 1.12.0
 RUN Rscript -e "install.packages('http://bioconductor.org/packages/release/bioc/src/contrib/derfinderHelper_1.12.0.tar.gz',type='source',dependencies=TRUE)"
 
-## install mysql client
-RUN apt-get install -y libmariadb-client-lgpl-dev
-RUN apt-get update
-
 ## RMySQL: 0.10.14
 RUN Rscript -e "install.packages('https://cran.r-project.org/src/contrib/RMySQL_0.10.14.tar.gz',type='source',dependencies=TRUE)"
 
@@ -336,5 +337,14 @@ RUN Rscript -e "install.packages('http://bioconductor.org/packages/release/data/
 ## rafalib: 1.0.0
 RUN Rscript -e "install.packages('https://cran.r-project.org/src/contrib/rafalib_1.0.0.tar.gz',type='source',dependencies=TRUE)"
 
-## plyr: 1.8.4
-RUN Rscript -e "install.packages('https://cran.r-project.org/src/contrib/plyr_1.8.4.tar.gz',type='source',dependencies=TRUE)"
+## BSgenome.Hsapiens.UCSC.hg38_1.4.1
+RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/data/annotation/src/contrib/BSgenome.Hsapiens.UCSC.hg38_1.4.1.tar.gz',type='source',dependencies=TRUE)"
+
+## BSgenome.Hsapiens.UCSC.hg19_1.4.0
+RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/data/annotation/src/contrib/BSgenome.Hsapiens.UCSC.hg19_1.4.0.tar.gz',type='source',dependencies=TRUE)"
+
+## BSgenome.Mmusculus.UCSC.mm10_1.4.0
+RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/data/annotation/src/contrib/BSgenome.Mmusculus.UCSC.mm10_1.4.0.tar.gz',type='source',dependencies=TRUE)"
+
+## BSgenome.Rnorvegicus.UCSC.rn6_1.4.1
+RUN Rscript -e "install.packages('https://bioconductor.org/packages/release/data/annotation/src/contrib/BSgenome.Rnorvegicus.UCSC.rn6_1.4.1.tar.gz',type='source',dependencies=TRUE)"

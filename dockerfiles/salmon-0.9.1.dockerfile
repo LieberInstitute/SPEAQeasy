@@ -4,28 +4,11 @@ MAINTAINER Jacob Leonard "leonard.jacob09@gmail.com"
  
 ########### Update Core ###########
 RUN apt-get update
-RUN apt-get install -y build-essential
-RUN apt-get install -y cmake-curses-gui
 
 ## define the folders for installation
 ENV SRC /usr/local/src
 ENV BIN /usr/local/bin
 ENV LIB /usr/local/lib
-
-
-## Install cmake
-WORKDIR $SRC
-RUN wget http://www.cmake.org/files/v3.2/cmake-3.2.2.tar.gz && \
-    tar xf cmake-3.2.2.tar.gz && \
-    cd cmake-3.2.2 && \
-    cp -r * ../. && \
-    cd .. && \
-    ./configure && \
-    make && \
-    make install && \
-    cp -r * $BIN
-
-RUN rm /usr/local/src/CMakeCache.txt
 
 ## Install Salmon
 WORKDIR $SRC
