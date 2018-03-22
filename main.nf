@@ -186,6 +186,7 @@ params.reference = false
 params.annotation = false
 params.indexing = false
 params.genotype = false
+params.output = false
 params.email = false
 params.name = false
 params.raw = false
@@ -256,7 +257,7 @@ if (!params.name) {
 params.scripts = "./scripts"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Input Path Options
+// Core Options
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 params.cores = '1'
@@ -1697,7 +1698,7 @@ process sampleCoverage {
  * Step 5b: Wig to BigWig
  */
 
- process sampleWigToBigWig {
+process sampleWigToBigWig {
 
     echo true
     tag "Prefix: $wig_prefix | Sample: [ $wig_file ]"
@@ -1715,12 +1716,13 @@ process sampleCoverage {
     /usr/local/bin/wigToBigWig !{wig_file} !{chr_sizes} !{wig_prefix}.bw
     '''
 
- }
+}
 
- coverage_bigwigs
-   .flatten()
-   .collect()
-   .into{ mean_coverage_bigwigs;full_coverage_bigwigs }
+coverage_bigwigs
+  .flatten()
+  .collect()
+  .toSortedList()
+  .into{ mean_coverage_bigwigs;full_coverage_bigwigs }
 
 /*
  * Step 5c: Mean Coverage
@@ -1783,7 +1785,7 @@ if (params.step6) {
             if (params.strand == "unstranded" ) {
                 salmon_strand = "U"
             }
-            if (params.stranded == "forward" ) {
+            if (params.strand == "forward" ) {
                 salmon_strand = "SF"
             }
             if (params.strand == "reverse" )
@@ -1849,6 +1851,7 @@ if (params.ercc) {
       .toSortedList()
       .flatten()
       .collect()
+      .toSortedList()
       .set{ counts_inputs }
 }
 if (!params.ercc) {
@@ -1858,6 +1861,7 @@ if (!params.ercc) {
       .toSortedList()
       .flatten()
       .collect()
+      .toSortedList()
       .set{ counts_inputs }
 }
 
@@ -2006,11 +2010,13 @@ if (params.step8 && params.reference == "hg38") {
     compressed_variant_calls
       .flatten()
       .collect()
+      .toSortedList()
       .set{ collected_variant_calls }
 
     compressed_variant_calls_tbi
       .flatten()
       .collect()
+      .toSortedList()
       .set{ collected_variant_calls_tbi }
 
 
@@ -2021,12 +2027,12 @@ if (params.step8 && params.reference == "hg38") {
     process sampleVariantCallsMerge {
 
         echo true
-        tag "Sample: $collected_variants"
+        tag "Samples: $collected_variants"
         publishDir "${params.basedir}/Merged_Variants",mode:'copy'
 
         input:
         file collected_variants from collected_variant_calls
-        file collected_variants_tbi from collected_variant_calls_tbi
+        file file collected_variants_tbi from collected_variant_calls_tbi
 
         output:
         file "*"

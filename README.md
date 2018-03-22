@@ -112,7 +112,7 @@ __script__
 	```
 	Using script to define the process environment creates a sudo-bash script that is executed in the following way
 	Ex:
-	  script:
+	    script:
 	    original_bam = "${sam_to_bam_prefix}_accepted_hits.bam"
 	    sorted_bam = "${sam_to_bam_prefix}_accepted_hits.sorted"
 	    samtobam_cores = "${params.samtobam_cores}"
@@ -128,12 +128,14 @@ __shell__
 	```
 	Using shell to define the process environment creates a sudo-shell to execute commands and custom scripts
 	Ex:
-	  shell:
+	    shell:
+	    '''
 	    python /usr/local/bin/infer_experiment.py \
 	    -i !{bam_file} \
 	    -r !{bedfile} \
 	    1> !{infer_prefix}_experiment.txt \
 	    2> !{infer_prefix}_experiment_summary_out.txt
+	    '''
 	```
 
 __workdir__
