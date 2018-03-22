@@ -129,8 +129,6 @@ def helpMessage() {
     -----------------------------------------------------------------------------------------------------------------------------------
     --ercc                        Flag for ERCC quantification with Kallisto
     -----------------------------------------------------------------------------------------------------------------------------------
-    --large                       Parameter to be used to set the run size for the cluster
-    -----------------------------------------------------------------------------------------------------------------------------------
     --fullCov                     Full coverage in step 7b
     -----------------------------------------------------------------------------------------------------------------------------------
     --k_lm                        Kallisto ERCC Length Mean Value for Single End Reads (defaults to 200)
@@ -191,7 +189,6 @@ params.email = false
 params.name = false
 params.raw = false
 params.ercc = false
-params.large = false
 params.fullCov = false
 params.test = false
 params.small_test = false

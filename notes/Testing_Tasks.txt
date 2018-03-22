@@ -1,0 +1,97 @@
+Testing Tasks:
+
+1) Finish annotating the pipeline_breakdown.txt to show inputs, outputs and module execution
+2) Divide up the pipeline_breakdown.txt into its own files for each step:
+   Ex: step00Ia-pullGENCODEassembly.fa.txt
+3) Get the pipeline to run to completetion under the following parameters:
+
+
+Mandatory Flag Cominations:
+
+
+single
+------
+
+	human
+	-----
+
+   "single" "hg38" "unstranded" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "single" "hg38" "forward" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "single" "hg38" "reverse" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "single" "hg19" "unstranded" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "single" "hg19" "forward" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "single" "hg19" "reverse" Optional Flags [ --ercc --merge --unalign --fullCov ]
+   
+   mouse
+   -----
+
+   "single" "mm10" "unstranded" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "single" "mm10" "forward" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "single" "mm10" "reverse" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "single" "rn6" "unstranded" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   rat
+   ---
+
+   "single" "rn6" "forward" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "single" "rn6" "reverse" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+
+paired
+------
+   
+   human
+   -----
+
+   "paired" "hg38" "unstranded" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "paired" "hg38" "forward" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "paired" "hg38" "reverse" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "paired" "hg19" "unstranded" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "paired" "hg19" "forward" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "paired" "hg19" "reverse" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   mouse
+   -----
+
+   "paired" "mm10" "unstranded" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "paired" "mm10" "forward" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "paired" "mm10" "reverse" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   rat
+   ---
+
+   "paired" "rn6" "unstranded" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "paired" "rn6" "forward" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+   "paired" "rn6" "reverse" Optional Flags [ --ercc --merge --unalign --fullCov ]
+
+
+
+4) Run the pipeline for all the possibilities above IN ADDITION to files that need to be trimmed. Up to now all the files I have used have not needed trimming, and I need to test that functionality
+5) Data Flow Visualization/Presentation???
+6) Add email notifcations to the pipeline
+7) Create an SGE cluster config file, and execute the piepeline in that executor environment
+
+
+
+Data Needs:
+
+Single and Paired end data that needs to be merged
+Single and Paired end data that needs to be trimmed
