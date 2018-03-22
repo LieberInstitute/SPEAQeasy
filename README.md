@@ -37,13 +37,13 @@ The pipeline works by reading a main.nf file, and using the nexflow.config file 
 
 	```
 	This method operates by generating lists of values in the form of integers, values and
-	files. Channels can be manipulated by ```operators``` to form single value channels, paired
+	files. Channels can be manipulated by operators to form single value channels, paired
 	value channels, prefix grouped channels, and many more forms of aggregation into the
 	processing pipeline. These values can range from integers and strings, to files and lists of
 	files grouped by similar name. Nextflow creates a reverse dependecy map for the whole
 	pipeline to determine where to expect file outputs, where outputs from previous tasks need
 	to be ingested into consecutive processes, as well as where to look for existing files for
-	ingestion. Channels can be manipulated with ```operators``` that are used to group/split/
+	ingestion. Channels can be manipulated with operators that are used to group/split/
 	merge/etc. the channels into different sized lists and values. This is the best way to
 	ingest multiple files into a single process for scenarios such as sample aggregations and
 	index ingestion. For examples, look to the pipeline_breakdown.txt for more details on how
@@ -53,7 +53,11 @@ The pipeline works by reading a main.nf file, and using the nexflow.config file 
 	__Declarations__
 
 	```
-	This method operates simply by declaring a variable to be equal to a value such as a string of integer, or declaring it as a file() with a path. This method acts as a __constant__ input, and can be reused by multiple processes without re-declaration. Look to the __main.nf__ file starting at line 437 to see reference specific file inputs and parameter declarations.
+	This method operates simply by declaring a variable to be equal to a value such as a string
+	of integer, or declaring it as a file() with a path. This method acts as a constant
+	input, and can be reused by multiple processes without re-declaration. Look to the
+	main.nf file starting at line 437 to see reference specific file inputs and parameter
+	declarations.
 	```
 
 
@@ -184,7 +188,8 @@ __Build__
 	```
 	make build
 	```	
-	An example build and deploy of all the images can be found in ./dockerfiles/make.log
+
+An example build and deploy of all the images can be found in ./dockerfiles/make.log
 
 
 ## Usage
@@ -235,13 +240,13 @@ __stranded__
 	```
 
 
-#### File Naming
+### File Naming
 
 NOTICE: File names can not contain "." in the name because the pipeline operates on file names by splitting along the "." to determine prefixes. Change all "." to "\_"
 
 The pipeline can handle merging required samples and files should be named in the following format:
 
-##### Merging Required
+### Merging Required
 
 __single__
 
@@ -261,6 +266,7 @@ __paired__
 
 
 To see what other commands and options the pipeline can handle, type:
+
 ```
 nextflow main.nf --help
 ```
