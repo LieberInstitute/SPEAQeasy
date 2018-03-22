@@ -1,4 +1,4 @@
-Macuahuitl RNA-Seq Analysis Pipeline
+MACHUAHUITL RNA-Seq Analysis Pipeline
 ====================================
 
 ## Nextflow 
