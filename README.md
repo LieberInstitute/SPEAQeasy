@@ -24,7 +24,7 @@ This RNA-Seq pipeline runs on the distributed processing framework, [Nextflow](h
 The pipeline works by reading a main.nf file, and using the nexflow.config file to determine the execution and processing environment. Additionally, the nextflow.config file decalres logging parameters, and points to the execution specific config files located in the '''./conf''' folder. The development profile is set to ```standard``` and uses __docker__ to execute and maintain the required software versions. __BEFORE EXECUTING: The development enviornment and subsequent memory and cpu requirements defined for each task is held in the mem.config file, and is declared for an environment with the available resources: 8 Cores, 16 GB Memory__ The pipeline works by declaring parameters in the form ```params.parameter_name``` that can be used as command line options. These parameters can be used to define the pathway of the pipeline, and declare subsequent inputs and values. Files in this pipeline are ingested through input files and values in the form of __channels and declarations__.
 
 
-	__Process Overview__
+__Process Overview__
 
 	```
 	Channels/Declarations(1) -> Process(1) -> Channel(2)
@@ -33,7 +33,7 @@ The pipeline works by reading a main.nf file, and using the nexflow.config file 
 	Where channels represent the flow of input and output files in a list ingestion structure.
 
 
-	__Channels__
+__Channels__
 
 	```
 	This method operates by generating lists of values in the form of integers, values and
@@ -50,7 +50,7 @@ The pipeline works by reading a main.nf file, and using the nexflow.config file 
 	channels, operators work and processes.
 	```
 
-	__Declarations__
+__Declarations__
 
 	```
 	This method operates simply by declaring a variable to be equal to a value such as a string
