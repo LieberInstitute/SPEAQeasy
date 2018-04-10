@@ -29,7 +29,7 @@ EXPNAME <- paste0(opt$experiment, "_", opt$prefix)
 if(opt$fullcov) {
     ## read in pheno	
     manifest <- read.table(file.path(opt$maindir, 'samples.manifest'),
-        sep = '\t', header = FALSE, stringsAsFactors = FALSE)
+        sep = ' ', header = FALSE, stringsAsFactors = FALSE)
     info <- data.frame('SAMPLE_ID' = manifest[, ncol(manifest)],
         stringsAsFactors = FALSE)
     N <- length(info$SAMPLE_ID)

@@ -466,9 +466,11 @@ def get_hisat_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o
 
 Inputs:
 [
-    Channel: { assembly_fa_trigger }
-      - this channel checks for the asembly fa
-      - flows into a process trigger that filters for file presence
+    File Path Channel: { assembly_fa_trigger }
+      - this channel checks for the asembly fa file
+
+    Operated Channel:
+      - filters the assembly_fa_trigger for file presence
       - if file not present, process triggered
 ]
 
@@ -479,6 +481,7 @@ Process:
     Channel
       .fromPath("${params.hisat_idx_output}/fa/*.fa")
       .set{ assembly_fa_trigger }
+    
     assembly_fa_trigger.count().filter{ it == 0 }.set{ assembly_fa_download }
 
     process pullGENCODEassemblyfa {
@@ -514,22 +517,22 @@ Process:
 
 Outputs:
 [
-    Channel: reference_fa
+    Process Channel: reference_fa
       - this channel outputs the file from the pull process
 
-    Channel: { reference_assembly; variant_assembly }
-      - this channel reads in the fa file from the target location
+    File Path Channel: { reference_assembly; variant_assembly }
+      - this channel reads in the fa file from the target file path
       - if the pull happened or not, the file should be present
       - channel is mixed with fa pull, even if pull never happened
-      - channel is flattened and filtered for distinct values 
-      - channel is mixed so that the channel is "dependent" on process completion
+      - channel is flattened and filtered for distinct values in case pull happened AND file was read (file suplicity error)
+      - channel is mixed with process trigger output so that the channel is "dependent" on process completion proceeding
 ]
 
 Module execution:
 [
         Module is executed within the pipeline:
 
-        1) `wget $idx_file_link`; downloads the target fa if the file is not already present
+        1) `wget $idx_file_link`; downloads the target fa if the file is not already present. The link is taken from the parameter: params.fa_link
 
         2) `gunzip $idx_gz`; gunzip the fa file for use downstream in other processes
 ]
@@ -543,8 +546,12 @@ Module execution:
 
 Inputs:
 [
+    Channel: { hisat_builds_trigger }
+      - this channel checks for the asembly fa file
 
-]
+    Channel:
+      - filters the assembly_fa_trigger for file presence
+      - if file not present, process triggered]
 
 Process:
 [
@@ -609,7 +616,12 @@ Module execution:
 
 Inputs:
 [
+    Channel: { assembly_fa_trigger }
+      - this channel checks for the asembly fa file
 
+    Channel:
+      - filters the assembly_fa_trigger for file presence
+      - if file not present, process triggered
 ]
 
 Process:
@@ -656,7 +668,12 @@ Process:
 
 Outputs:
 [
+    Channel: { assembly_fa_trigger }
+      - this channel checks for the asembly fa file
 
+    Channel:
+      - filters the assembly_fa_trigger for file presence
+      - if file not present, process triggered
 ]
 
 Module execution:
@@ -676,7 +693,12 @@ Module execution:
 
 Inputs:
 [
+    Channel: { assembly_fa_trigger }
+      - this channel checks for the asembly fa file
 
+    Channel:
+      - filters the assembly_fa_trigger for file presence
+      - if file not present, process triggered
 ]
 
 Process:
@@ -740,7 +762,12 @@ Module execution:
 
 Inputs:
 [
+    Channel: { assembly_fa_trigger }
+      - this channel checks for the asembly fa file
 
+    Channel:
+      - filters the assembly_fa_trigger for file presence
+      - if file not present, process triggered
 ]
 
 Process:
@@ -807,7 +834,12 @@ Module execution:
 
 Inputs:
 [
+    Channel: { assembly_fa_trigger }
+      - this channel checks for the asembly fa file
 
+    Channel:
+      - filters the assembly_fa_trigger for file presence
+      - if file not present, process triggered
 ]
 
 Process:
@@ -2583,14 +2615,14 @@ Process:
 [
 
     compressed_variant_calls
-      .flatten()
       .collect()
+      .flatten()
       .toSortedList()
       .set{ collected_variant_calls }
 
     compressed_variant_calls_tbi
-      .flatten()
       .collect()
+      .flatten()
       .toSortedList()
       .set{ collected_variant_calls_tbi }
 
@@ -2640,7 +2672,7 @@ Module execution:
 
 Inputs:
 [
-
+    
 ]
 
 Process:

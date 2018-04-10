@@ -61,7 +61,7 @@ __Declarations__
 	```
 
 
-#### Process
+### Process
 
 Processes are the content and commands of the pipeline, and represent the actual execution of pipeline steps. After a process is declared, the following segments define the way information is handled:
 

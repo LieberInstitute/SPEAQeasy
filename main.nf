@@ -250,6 +250,14 @@ if (!params.name) {
     }
 }
 
+// Prefix
+if (!params.prefix) {
+    params.experiment_prefix = "Yas"
+}
+if (params.prefix) {
+    params.experiment_prefix = "Yas"
+}
+
 // External Script Path Validation
 params.scripts = "./scripts"
 
@@ -470,16 +478,18 @@ if (params.reference == "hg38") {
     params.salmon_assembly = "GENCODE/GRCh38_hg38/transcripts"
 
     // Step 7: Make R objects    
-    junction_annotation_gencode = file("${params.annotations}/junction_txdb/junction_annotation_hg38_gencode_v25.rda")
-    junction_annotation_ensembl = file("${params.annotations}/junction_txdb/junction_annotation_hg38_ensembl_v85.rda")
-    junction_annotation_genes = file("${params.annotations}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
-    feature_to_tx_gencode = file("${params.annotations}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
-    feature_to_tx_ensembl = file("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
+    junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_gencode_v25.rda")
+    junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_ensembl_v85.rda")
+    junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
+    feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
+    feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
     create_counts = file("${params.scripts}/create_count_objects-human.R")
 
     // Step 8: call variants
     params.step8 = true
-    snv_bed = file("${params.genotypes}/common_missense_SNVs_hg38.bed")
+    Channel
+      .fromPath("${params.genotypes}/common_missense_SNVs_hg38.bed")
+      .set{ snvbed }
 
 }
 if (params.reference == "hg19") {
@@ -509,16 +519,18 @@ if (params.reference == "hg19") {
     params.salmon_assembly = "GENCODE/GRCh37_hg19/transcripts"
 
     // Step 7: Make R objects
-    junction_annotation_gencode = file("${params.annotations}/junction_txdb/junction_annotation_hg19_gencode_v25lift37.rda")
-    junction_annotation_ensembl = file("${params.annotations}/junction_txdb/junction_annotation_hg19_ensembl_v75.rda")
-    junction_annotation_genes = file("${params.annotations}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
-    feature_to_tx_gencode = file("${params.annotations}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
-    feature_to_tx_ensembl = file("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
+    junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_gencode_v25lift37.rda")
+    junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_ensembl_v75.rda")
+    junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
+    feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
+    feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
     create_counts = file("${params.scripts}/create_count_objects-human.R")
 
     // Step 8: call variants
     params.step8 = true
-    snv_bed = file("${params.genotypes}/common_missense_SNVs_hg19.bed")
+    Channel
+      .fromPath("${params.genotypes}/common_missense_SNVs_hg19.bed")
+      .set{ snvbed }
 
 }
 if (params.reference == "mm10") {
@@ -548,8 +560,8 @@ if (params.reference == "mm10") {
     params.salmon_assembly = "GENCODE/GRCm38_mm10/transcripts"
 
     // Step 7: Make R objects
-    junction_annotation_gencode = file("${params.annotations}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
-    junction_annotation_ensembl = file("${params.annotations}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
+    junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
+    junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
     create_counts = file("${params.scripts}/create_count_objects-mouse.R")
 
     // Step 8: call variants
@@ -581,7 +593,7 @@ if (params.reference == "rn6") {
     params.step8 = false
 
     // Step 7: Make R Objects
-    junction_annotation_ensembl = file("${params.annotations}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
+    junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
     create_counts = file("${params.scripts}/create_count_objects-rat.R")
 }
 
@@ -947,6 +959,8 @@ if (params.ercc) {
 
             ercc_merged_inputs
               .flatten()
+              .toSortedList()
+              .flatten()
               .map{ file -> tuple(get_prefix(file), file) }
               .ifEmpty{ error "Could not find Channel for Merged Single Sample Files for ERCC" }
               .set{ ercc_inputs }
@@ -954,6 +968,8 @@ if (params.ercc) {
         if (params.sample == "paired") {
 
             ercc_merged_inputs
+              .flatten()
+              .toSortedList()
               .flatten()
               .map{file -> tuple(get_paired_prefix(file), file) }
               .groupTuple()
@@ -967,6 +983,9 @@ if (params.ercc) {
 
             Channel
               .fromPath("${params.inputs}/*.fastq.gz")
+              .flatten()
+              .toSortedList()
+              .flatten()
               .map{ file -> tuple(get_prefix(file), file) }
               .ifEmpty{ error "Could not Find Unmerged Sample Files for ERCC"}
               .set{ ercc_inputs }
@@ -975,6 +994,9 @@ if (params.ercc) {
 
             Channel
               .fromPath("${params.inputs}/*.fastq.gz")
+              .flatten()
+              .toSortedList()
+              .flatten()
               .map{ file -> tuple(get_paired_prefix(file), file) }
               .groupTuple()
               .ifEmpty{ error "Could not Find Unmerged Sample Files for ERCC"}
@@ -994,7 +1016,7 @@ if (params.ercc) {
 
         output:
         file "*"
-        set val("${ercc_prefix}"), file("${ercc_prefix}_abundance.tsv") into ercc_abundances
+        file("${ercc_prefix}_abundance.tsv") into ercc_abundances
 
         script:
         ercc_cores = "${params.ercc_cores}"
@@ -1012,8 +1034,9 @@ if (params.merge) {
 
         fastqc_merged_inputs
           .flatten()
+          .toSortedList()
+          .flatten()
           .map{file -> tuple(get_prefix(file), file) }
-          .groupTuple()
           .ifEmpty{ error "Could not find Channel for Merged Sample Files for FastQC" }
           .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
     }
@@ -1034,7 +1057,9 @@ if (!params.merge) {
     if (params.sample == "single") {
 
         Channel
-          .fromPath("${params.inputs}/*")
+          .fromPath("${params.inputs}/*.fastq.gz")
+          .flatten()
+          .toSortedList()
           .flatten()
           .map{file -> tuple(get_prefix(file), file) }
           .ifEmpty{ error "Could not Find Unmerged Untrimmed Single Sample Files for FastQC"}
@@ -1043,7 +1068,9 @@ if (!params.merge) {
     if (params.sample == "paired") {
 
         Channel
-          .fromPath("${params.inputs}/*")
+          .fromPath("${params.inputs}/*.fastq.gz")
+          .flatten()
+          .toSortedList()
           .flatten()
           .map{file -> tuple(get_paired_prefix(file), file) }
           .groupTuple()
@@ -1053,7 +1080,7 @@ if (!params.merge) {
 }
 
 /*
- * Step C1: Sample Manifest
+ * Step C1: Individual Sample Manifest
  */
 
 process sampleIndividualManifest {
@@ -1389,7 +1416,7 @@ if (params.sample == "paired") {
       output:
       file "*_hisat_out.sam" into hisat_paired_notrim_output
       file "*"
-      file "*_align_summary.txt" into alignment_summaries
+      file "*_align_summary.txt" into paired_notrim_alignment_summaries
 
       shell:
       hisat_prefix = "${params.hisat_prefix}"
@@ -1435,7 +1462,7 @@ if (params.sample == "paired") {
       output:
       file "*_hisat_out.sam" into hisat_paired_trim_output
       file "*"
-      file "*_align_summary.txt" into alignment_summaries
+      file "*_align_summary.txt" into paired_trim_alignment_summaries
 
       shell:
       hisat_prefix = "${params.hisat_prefix}"
@@ -1469,6 +1496,11 @@ if (params.sample == "paired") {
       .flatten()
       .map{ file -> tuple(get_hisat_prefix(file), file) }
       .set{ sam_to_bam_inputs }
+
+    paired_trim_alignment_summaries
+      .mix(paired_notrim_alignment_summaries)
+      .flatten()
+      .set{ alignment_summaries }
 }
 
 /*
@@ -1499,6 +1531,10 @@ process sampleSamtoBam {
     """
 }
 
+infer_experiment_inputs
+  .combine(bedfile)
+  .set{ infer_experiments }
+
 /*
  * Step 3c: Infer Experiment
  */
@@ -1510,24 +1546,25 @@ process sampleInferExperiment {
     publishDir "${params.basedir}/HISAT2_out/infer_experiment",mode:'copy'
 
     input:
-    set val(infer_prefix), file(bam_file), file(bam_index) from infer_experiment_inputs
-    file bedfile from bedfile
+    set val(infer_prefix), file(bam_file), file(bam_index), file(bed_file) from infer_experiments
 
     output:
     file "*"
-    file "${infer_prefix}_experiment.txt" into infer_experiment_outputs
+    file "*_experiment.txt" into infer_experiment_outputs
 
     shell:
     '''
     python /usr/local/bin/infer_experiment.py \
     -i !{bam_file} \
-    -r !{bedfile} \
+    -r !{bed_file} \
     1> !{infer_prefix}_experiment.txt \
     2> !{infer_prefix}_experiment_summary_out.txt
     '''
 }
 
 infer_experiment_outputs
+  .collect()
+  .flatten()
   .toSortedList()
   .set{ infer_experiment_output }
 
@@ -1556,6 +1593,10 @@ process sampleInferStrandness {
     '''
 }
 
+feature_bam_inputs
+  .combine(gencode_feature_gtf)
+  .set{ feature_counts_inputs }
+
 /*
  * Step 4a: Feature Counts
  */
@@ -1567,8 +1608,7 @@ process sampleFeatureCounts {
     publishDir "${params.basedir}/Counts",mode:'copy'
 
     input:
-    set val(feature_prefix), file(feature_bam), file(feature_index) from feature_bam_inputs
-    file gencode_gtf_feature from gencode_feature_gtf
+    set val(feature_prefix), file(feature_bam), file(feature_index), file(gencode_gtf_feature) from feature_counts_inputs
 
     output:
     file "*"
@@ -1706,7 +1746,7 @@ process sampleWigToBigWig {
     file chr_sizes from chr_sizes
 
     output:
-    file "${wig_prefix}.bw" into coverage_bigwigs
+    file "*.bw" into coverage_bigwigs
 
     shell:
     '''
@@ -1716,8 +1756,8 @@ process sampleWigToBigWig {
 }
 
 coverage_bigwigs
-  .flatten()
   .collect()
+  .flatten()
   .toSortedList()
   .into{ mean_coverage_bigwigs;full_coverage_bigwigs }
 
@@ -1737,7 +1777,6 @@ process sampleMeanCoverage {
     file chr_sizes from chr_sizes
 
     output:
-    file "*" 
     file "mean*.bw" into mean_bigwigs, expressed_regions_mean_bigwigs
 
     shell:
@@ -1764,15 +1803,15 @@ if (params.step6) {
 
         echo true
         tag "Prefix: $salmon_input_prefix | Sample: [ $salmon_inputs ]"
-        publishDir "${params.basedir}/Salmon_tx",mode:'copy'
+        publishDir "${params.basedir}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
 
         input:
         file salmon_index from salmon_index
         set val(salmon_input_prefix), file(salmon_inputs) from salmon_inputs
 
         output:
-        file "*"
-        set val("${salmon_input_prefix}"), file("${salmon_input_prefix}_quant.sf") into salmon_quants
+        file "${salmon_input_prefix}/*"
+        file("${salmon_input_prefix}_quant.sf") into salmon_quants
 
         shell:
         salmon_cores = "${params.salmon_cores}"
@@ -1821,18 +1860,25 @@ if (params.step6) {
 
 count_objects_bam_files
   .flatten()
+  .buffer(size:2,skip:1)
+  .flatten()
   .mix(count_objects_quality_reports)
   .mix(count_objects_quality_metrics)
   .mix(alignment_summaries)
   .mix(create_counts_gtf)
   .mix(sample_counts)
+  .collect()
   .flatten()
+  .toSortedList()
   .set{ counts_objects_channel }
 
 if (params.reference_type == "human" || params.reference_type == "mouse") {
 
     counts_objects_channel
       .mix(salmon_quants)
+      .collect()
+      .flatten()
+      .toSortedList()
       .set{counts_objects_channel_1}
 }
 if (params.reference_type == "rat") {
@@ -1844,24 +1890,67 @@ if (params.ercc) {
         
     counts_objects_channel_1
       .mix(ercc_abundances)
-      .flatten()
-      .toSortedList()
-      .flatten()
       .collect()
+      .flatten()
       .toSortedList()
       .set{ counts_inputs }
 }
 if (!params.ercc) {
 
     counts_objects_channel_1
-      .flatten()
-      .toSortedList()
-      .flatten()
       .collect()
+      .flatten()
       .toSortedList()
       .set{ counts_inputs }
 }
 
+
+/*
+ * Construct the Annotation Input Channel
+ */
+
+junction_annotation_ensembl
+  .collect()
+  .flatten()
+  .toSortedList()
+  .set{rat_annotations}
+
+if (params.reference_type == "rat") {
+    rat_annotations
+      .collect()
+      .flatten()
+      .toSortedList()
+      .set{counts_annotations}
+}
+
+if(params.reference_type != "rat") {
+
+    rat_annotations
+      .mix(junction_annotation_gencode)
+      .collect()
+      .flatten()
+      .toSortedList()
+      .set{mouse_annotations}
+}
+
+if(params.reference_type == "mouse") {
+    mouse_annotations
+      .collect()
+      .flatten()
+      .toSortedList()
+      .set{counts_annotations}
+}
+
+if(params.reference_type == "human") {
+    mouse_annotations
+      .mix(junction_annotation_genes)
+      .mix(feature_to_tx_gencode)
+      .mix(feature_to_tx_ensembl)
+      .collect()
+      .flatten()
+      .toSortedList()
+      .set{counts_annotations}
+}
 
 /*
  * Step 7a: Create Count Objects
@@ -1870,19 +1959,15 @@ if (!params.ercc) {
 process sampleCreateCountObjects {
 
     echo true
-    tag "Creating Counts Objects"
+    tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
     publishDir "${params.basedir}/Count_Objects",mode:'copy'
 
     input:
     file counts_input from counts_inputs
+    file counts_annotation from counts_annotations
     file create_counts from create_counts
     file ercc_actual_conc from ercc_actual_conc
     file counts_sample_manifest from counts_samples_manifest
-    file junction_annotation_genes from junction_annotation_genes
-    file junction_annotation_gencode from junction_annotation_gencode
-    file junction_annotation_ensembl from junction_annotation_ensembl
-    file feature_to_tx_gencode from feature_to_tx_gencode
-    file feature_to_tx_ensembl from feature_to_tx_ensembl
 
     output:
     file "*"
@@ -1901,7 +1986,7 @@ process sampleCreateCountObjects {
         counts_pe = "FALSE"
     }
     if (params.strand == "unstranded") {
-        counts_strand = ""
+        counts_strand = "-s FALSE"
     }
     if (params.strand == "forward") {
         counts_strand = "-s forward"
@@ -1912,18 +1997,23 @@ process sampleCreateCountObjects {
     counts_cores = "${params.counts_cores}"
     counts_reference = "${params.reference}"
     counts_experiment = "${params.experiments}"
-    counts_prefix = "${params.prefix}"
+    counts_prefix = "${params.experiment_prefix}"
+    counts_dir = "./"
     '''
-    Rscript !{create_counts} -o !{counts_reference} -m . -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
+    Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
     '''
 }
 
 if (params.fullCov) {
 
     full_coverage_bams
-      .mix(full_coverage_bigwigs)
       .flatten()
+      .buffer(size:2,skip:1)
+      .flatten()
+      .mix(full_coverage_bigwigs)
       .collect()
+      .flatten()
+      .toSortedList()
       .set{ full_coverage_inputs }
   
     /*
@@ -1933,7 +2023,7 @@ if (params.fullCov) {
     process sampleCreateCoverageObjects {
 
         echo true
-        tag "Creating Coverage Objects"
+        tag "Creating Coverage Objects [ $full_coverage_input ]"
         publishDir "${params.basedir}/Coverage_Objects",mode:'copy'
 
         input:
@@ -1955,7 +2045,7 @@ if (params.fullCov) {
         coverage_cores = "${params.coverage_cores}"
         coverage_reference = "${params.reference}"
         coverage_experiment = "${params.experiment}"
-        coverage_prefix = "${params.prefix}"
+        coverage_prefix = "${params.experiment_prefix}"
         coverage_fullCov = "TRUE"
         '''
         Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
@@ -1963,11 +2053,16 @@ if (params.fullCov) {
     }
 }
 
-if (params.step8 && params.reference == "hg38") {
+if (params.step8) {
 
     /*
      * Step 8: Call Variants
      */
+
+    variant_calls_bam
+      .combine(snvbed)
+      .combine(variant_assembly)
+      .set{ variant_calls }
 
     process sampleVariantCalls {
 
@@ -1976,12 +2071,9 @@ if (params.step8 && params.reference == "hg38") {
         publishDir "${params.basedir}/Variant_Calls",mode:'copy'
 
         input:
-        set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai) from variant_calls_bam
-        file variant_assembly from variant_assembly
-        file snv_bed from snv_bed
+        set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai), file(snv_bed), file(variant_assembly_file) from variant_calls
 
         output:
-        file "*"
         file "${variant_bams_prefix}.vcf.gz" into compressed_variant_calls
         file "${variant_bams_prefix}.vcf.gz.tbi" into compressed_variant_calls_tbi
 
@@ -1995,7 +2087,7 @@ if (params.step8 && params.reference == "hg38") {
         -q0 \
         -Q13 \
         -d1000000 \
-        -uf !{variant_assembly} !{variant_calls_bam_file} \
+        -uf !{variant_assembly_file} !{variant_calls_bam_file} \
         -o !{snptmp}
         bcftools call \
         -mv \
@@ -2029,7 +2121,7 @@ if (params.step8 && params.reference == "hg38") {
 
         input:
         file collected_variants from collected_variant_calls
-        file file collected_variants_tbi from collected_variant_calls_tbi
+        file collected_variants_tbi from collected_variant_calls_tbi
 
         output:
         file "*"
@@ -2060,7 +2152,7 @@ process sampleExpressedRegions {
     file "*" 
 
     shell:
-    expressedregion_cores = "${params.expressedregion_cores}"
+    expressed_regions_cores = "${params.expressedregion_cores}"
     '''
     Rscript !{expressedRegions_file} \
     -m !{expressed_regions_mean_bigwig} \

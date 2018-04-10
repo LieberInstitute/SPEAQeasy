@@ -3,8 +3,25 @@ Testing Tasks:
 1) Finish annotating the pipeline_breakdown.txt to show inputs, outputs and module execution
 2) Divide up the pipeline_breakdown.txt into its own files for each step:
    Ex: step00Ia-pullGENCODEassembly.fa.txt
-3) Get the pipeline to run to completetion under the following parameters:
+3) Data Flow Visualization/Presentation???
+4) Add email notifcations to the pipeline
+5) Create an SGE cluster config file, and execute the piepeline in that executor environment
+6) abstract out the reference paths to the genomes in the config file
 
+Get the pipeline to finish executing on the bulma server with the command:
+
+nohup nextflow main.nf --sample "single" --reference "hg38" --strand "unstranded" --ercc --test --raw --fullCov -w "/media/genomics/disco3/dump/work" -profile standard > hg38-single.log &
+
+in the directory: /media/genomics/disco3/rnaseq-pipeline
+
+
+The pipeline has never created the mean bigwigs in step 5C, never created the full merged VCF in step 8b, has not made the expressed regions in Step 9, and has not finished either Step 7a/7b.
+
+The pipeline takes quite a while to execute, but if it fails, you can resume where you left off with the -resume flag
+
+
+------------------------------------------------------------------
+Get the pipeline to run to completetion under the following parameters:
 
 Mandatory Flag Cominations:
 
@@ -85,10 +102,6 @@ paired
 
 
 4) Run the pipeline for all the possibilities above IN ADDITION to files that need to be trimmed. Up to now all the files I have used have not needed trimming, and I need to test that functionality
-5) Data Flow Visualization/Presentation???
-6) Add email notifcations to the pipeline
-7) Create an SGE cluster config file, and execute the piepeline in that executor environment
-
 
 
 Data Needs:

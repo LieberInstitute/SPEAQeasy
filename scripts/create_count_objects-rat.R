@@ -39,7 +39,7 @@ RDIR="/dcl01/lieber/ajaffe/Emily/RNAseq-pipeline/Annotation/junction_txdb"
 EXPNAME = paste0(opt$experiment,"_",opt$prefix)
 
 ## read in pheno	
-manifest <- read.table(file.path(opt$maindir, 'samples.manifest'), sep = '\t',
+manifest <- read.table(file.path('samples.manifest'), sep = ' ',
     header = FALSE, stringsAsFactors = FALSE)
 metrics <- data.frame('SAMPLE_ID' = manifest[, ncol(manifest)],
     stringsAsFactors = FALSE)
@@ -52,9 +52,9 @@ if (opt$ercc == TRUE ){
 
 	##observed kallisto tpm
 	erccTPM = sapply(sampIDs, function(x) {
-	  read.table(file.path(opt$maindir, paste0(x, "_abundance.tsv"),header = TRUE)$tpm
+	  read.table(file.path(paste0(x, "_abundance.tsv"),header = TRUE)$tpm
 	})
-	rownames(erccTPM) = read.table(file.path(opt$maindir, paste0(sampIDs[1], "_abundance.tsv")),
+	rownames(erccTPM) = read.table(file.path(paste0(sampIDs[1], "_abundance.tsv")),
 							header = TRUE)$target_id
 	#check finiteness / change NaNs to 0s
 	erccTPM[which(is.na(erccTPM),arr.ind=T)] = 0
@@ -65,7 +65,7 @@ if (opt$ercc == TRUE ){
 	##match row order
 	spikeIns = spikeIns[match(rownames(erccTPM),rownames(spikeIns)),]
 
-	pdf(file.path(opt$maindir, 'ercc_spikein_check_mix1.pdf'),h=12,w=18)
+	pdf(file.path('ercc_spikein_check_mix1.pdf'),h=12,w=18)
 	mypar(4,6)
 	for(i in 1:ncol(erccTPM)) {
 		plot(log2(spikeIns[,"concentration.in.Mix.1..attomoles.ul."]+1) ~ log2(erccTPM[,i]+1),
@@ -85,7 +85,7 @@ if (opt$ercc == TRUE ){
 ############################################################
 
 ### add bam file
-metrics$bamFile <- file.path(opt$maindir, paste0(metrics$SAMPLE_ID, '_accepted_hits.sorted.bam'))
+metrics$bamFile <- file.path(paste0(metrics$SAMPLE_ID, '_accepted_hits.sorted.bam'))
 
 ### get alignment metrics
 if (opt$paired == TRUE) {
@@ -129,7 +129,7 @@ if (opt$paired == TRUE) {
     }
 }
 
-logFiles = file.path(opt$maindir, paste0(metrics$SAMPLE_ID, '_align_summary.txt'))
+logFiles = file.path(paste0(metrics$SAMPLE_ID, '_align_summary.txt'))
 names(logFiles)  = metrics$SAMPLE_ID
 hiStats <- do.call(rbind, lapply(logFiles, hisatStats))
 
@@ -146,7 +146,7 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped +  metrics$totalMap
 
 ###############
 ### gene counts
-geneFn <- file.path(opt$maindir, paste0(metrics$SAMPLE_ID, '_Ensembl.rnor6.0.rn6_Genes.counts'))
+geneFn <- file.path(paste0(metrics$SAMPLE_ID, '_Ensembl.rnor6.0.rn6_Genes.counts'))
 names(geneFn) = metrics$SAMPLE_ID
 stopifnot(all(file.exists(geneFn)))
 
@@ -197,14 +197,14 @@ widG = matrix(rep(geneMap$Length), nr = nrow(geneCounts),
 geneRpkm = geneCounts/(widG/1000)/(bg/1e6)
 
 ## save metrics
-write.csv(metrics, file = file.path(opt$maindir, 
+write.csv(metrics, file = file.path(
     paste0('read_and_alignment_metrics_', opt$experiment, '_', opt$prefix,
     '.csv')))
 
 
 ###############
 ### exon counts
-exonFn <- file.path(opt$maindir, paste0(metrics$SAMPLE_ID, '_Ensembl.rnor6.0.rn6_Exons.counts'))
+exonFn <- file.path(paste0(metrics$SAMPLE_ID, '_Ensembl.rnor6.0.rn6_Exons.counts'))
 names(exonFn) = metrics$SAMPLE_ID
 stopifnot(all(file.exists(exonFn)))
 
@@ -294,7 +294,7 @@ save(rse_exon, getRPKM, file = paste0('rse_exon_', EXPNAME, '_n', N, '.Rdata'))
 ##### junctions
 
 ## via primary alignments only
-junctionFiles <- file.path(opt$maindir, paste0(metrics$SAMPLE_ID, '_junctions_primaryOnly_regtools.count'))
+junctionFiles <- file.path(paste0(metrics$SAMPLE_ID, '_junctions_primaryOnly_regtools.count'))
 stopifnot(all(file.exists(junctionFiles))) #  TRUE
 
 if (opt$stranded %in% c('forward', 'reverse')) {
@@ -420,9 +420,9 @@ if (exists("erccTPM")) {
 }
 
 save(list=ls()[ls() %in% tosaveCounts], compress=TRUE,
-	file= file.path(opt$maindir, paste0('rawCounts_', EXPNAME, '_n', N, '.rda')))
+	file= file.path(paste0('rawCounts_', EXPNAME, '_n', N, '.rda')))
 save(list=ls()[ls() %in% tosaveRpkm], compress=TRUE,
-	file= file.path(opt$maindir, paste0('rpkmCounts_', EXPNAME, '_n', N, '.rda')))
+	file= file.path(paste0('rpkmCounts_', EXPNAME, '_n', N, '.rda')))
 
 ## Create RangedSummarizedExperiment objects
 getRPM = function(rse, target = 80e6) {
