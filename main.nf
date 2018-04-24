@@ -1518,7 +1518,7 @@ process sampleSamtoBam {
     set val(sam_to_bam_prefix), file(sam_to_bam_input) from sam_to_bam_inputs
 
     output:
-    set val("${sam_to_bam_prefix}"), file("${sam_to_bam_prefix}*.sorted.bam"), file("${sam_to_bam_prefix}*.sorted.bam.bai") into infer_experiment_inputs, feature_bam_inputs, alignment_bam_inputs, junction_bam_inputs, coverage_bam_inputs, full_coverage_bams, count_objects_bam_files, variant_calls_bam
+    set val("${sam_to_bam_prefix}"), file("${sam_to_bam_prefix}*.sorted.bam"), file("${sam_to_bam_prefix}*.sorted.bam.bai") into infer_experiment_inputs, feature_bam_inputs, alignment_bam_inputs, coverage_bam_inputs, full_coverage_bams, count_objects_bam_files, variant_calls_bam
 
     script:
     original_bam = "${sam_to_bam_prefix}_accepted_hits.bam"
@@ -1685,7 +1685,7 @@ process sampleJunctions {
 
     output:
     file "*"
-    file("*.count") into junction_counts
+    file("*.count")
 
     shell:
     outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
