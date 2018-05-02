@@ -1,4 +1,4 @@
-MACHUAHUITL RNA-Seq Analysis Pipeline
+Lieber Institute Jaffe RNA-Seq Analysis Pipeline
 ====================================
 
 ## Nextflow 
