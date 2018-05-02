@@ -1,4 +1,4 @@
-Lieber Institute Jaffe RNA-Seq Analysis Pipeline
+Lieber Institute Jaffe-lab RNA-Seq Analysis Pipeline
 ====================================
 
 ## Nextflow 
