@@ -3,11 +3,11 @@
 vim: syntax=groovy
 -*- mode: groovy;-*-
 ===================================================================================================================================
-                       M A C U A H U I T L     R N A - S E Q     A N A L Y S I S     P I P E L I N E  
+                       LIEBER INSTITUTE JAFFE-LAB     R N A - S E Q     A N A L Y S I S     P I P E L I N E  
 ===================================================================================================================================
  RNA-Seq Multi-Input Analysis Pipeline. Nextflow Version: Started December 2017.
  #### Homepage / Documentation
- https://bitbucket.org/wintergenomics/rnaseq-pipeline
+ https://github.com/LieberInstitute/RNAsp
  #### Authors
  ##### Original Pipeline
  Emily Burke <address@email.com>
@@ -16,6 +16,8 @@ vim: syntax=groovy
  BaDoi Phan <address@email.com>
  ##### Nextflow Version
  Jacob Leonard <leonard.jacob09@gmail.com>
+ Israel Aguilar <iaguilaror@gmail.com>
+ Violeta Larios <siedracko@gmail.com>
  ###### References
  https://github.com/SciLifeLab/NGI-smRNAseq
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -60,7 +62,7 @@ vim: syntax=groovy
 def helpMessage() {
     log.info"""
     =============================================================
-     MACUAHUITL-RNAseq : RNA-Seq Multi-Input Analysis v${version}
+     LIEBER INSTITUTE JAFFE-LAB RNA-seq : RNA-Seq Multi-Input Analysis v${version}
     =============================================================
     Usage:
     The typical command for running the pipeline is as follows:
@@ -76,7 +78,7 @@ def helpMessage() {
 
     nextflow run main.nf {CORE} {OPTIONS}
          {CORE}:
-            --sample "single/paired"  --strand "forward"/"reverse/unstranded"
+            --sample "single/paired"
               single <- reads files individually "*"
               paired <- reads files paired "*_{1,2}"
             --reference
@@ -84,15 +86,18 @@ def helpMessage() {
               hg19 <- uses human reference hg19
               mm10 <- uses mouse reference mm10
               rn6  <- uses rat reference rn6
-            --strand
+	    --strand "forward"/"reverse"/"unstranded"
               forward <- uses forward stranding
               reverse <- uses reverse stranding
               unstranded <- uses pipeine inferencing
          {OPTIONS}:
-            --merge <- assumes files are compressed "*_read{1,2}.fastq.gz"
+            --merge <- assumes fastq.gz files require merging "*_read{1,2}.fastq.gz"
+	##TODO(iaguilar): Check that THIS IS what --merge means (Docummentation ######)
             --ercc  <- performs ercc quantification
             --fullCov <- performs fullCov R analysis
+	    --help <- shows this message
              etc...
+	##TODO(iaguilar): Finish the brief help descriptors (Docummentation ######)
     
     Mandatory Options:
     -----------------------------------------------------------------------------------------------------------------------------------
@@ -122,19 +127,24 @@ def helpMessage() {
     --indexing                    Path to the base directory containing pipeline indexes. Defaults to --annotation path
     -----------------------------------------------------------------------------------------------------------------------------------
     --genotype                    Path to the folder containing pipeline genotypes. Defaults to "./Genotyping"
+	##TODO(iaguilar): Expand genotype description. what are they used for? (Docummentation ######)
     -----------------------------------------------------------------------------------------------------------------------------------
     --email                       Parameter to get a summary e-mail with details of the run sent to you when the workflow exits
+	##TODO(iaguilar): Check if this works for failed executions (Docummentation ######)
     -----------------------------------------------------------------------------------------------------------------------------------
     --name                        Name for the pipeline run. If not specified, name is set to experiment
+	##TODO(iaguilar): What is this used for? (Docummentation ######)
     -----------------------------------------------------------------------------------------------------------------------------------
-    --ercc                        Flag for ERCC quantification with Kallisto
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --fullCov                     Full coverage in step 7b
+    --ercc                        Flag to enable ERCC quantification with Kallisto
     -----------------------------------------------------------------------------------------------------------------------------------
     --k_lm                        Kallisto ERCC Length Mean Value for Single End Reads (defaults to 200)
     -----------------------------------------------------------------------------------------------------------------------------------
     --k_sd                        Kallisto ERCC Standard Deviation Value for Single End Reads (defaults to 30)
     -----------------------------------------------------------------------------------------------------------------------------------
+    --fullCov                     Flag to perform full coverage in step 7b
+    -----------------------------------------------------------------------------------------------------------------------------------
+#################
+	##TODO(iaguilar): change this commands to perform quick tests on every posible version of the input data (maybe a quick human test, and a whole species tests)(Docummentation ######)
     --small_test                  Runs the pipeline as a small test run on sample files located in the test folder
     -----------------------------------------------------------------------------------------------------------------------------------
     --test                        Runs the pipeline as a test run on sample files located on winter server 
@@ -146,9 +156,9 @@ def helpMessage() {
  */
 
 // Pipeline version
-version = 1.0
+version = "0.7.1"
 
-// Show help emssage
+// Show help message
 params.help = false
 if (params.help){
     helpMessage()
@@ -187,6 +197,9 @@ params.genotype = false
 params.output = false
 params.email = false
 params.name = false
+//##TODO(iaguilar): what is params raw? not described in documentation (Doc ######)
+//##TODO(iaguilar): raw seems to mean that data requires trimming (Doc ######)
+//##TODO(iaguilar): since the pipeline can detect if trimming is necessary, there should not be an option to direct trimming  (Doc ######)
 params.raw = false
 params.ercc = false
 params.fullCov = false
@@ -194,11 +207,14 @@ params.test = false
 params.small_test = false
 params.k_lm = false
 params.k_sd = false
+//##TODO(iaguilar): Check that no parameter definition is missing (Dev ######)
+//  ##TODO(iaguilar): seems that params.scripts is missing (Dev ######)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validate Inputs
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//##// MANDATORY PARAMS BLOCK
 // Sample Selection Validation
 if (!params.sample || (params.sample != "single" && params.sample != "paired")) {
     exit 1, "Sample Type Not Provided or Invalid Choice. Please Provide a Valid Sample Type"
@@ -223,6 +239,7 @@ if (params.reference == "rn6") {
     params.reference_type = "rat"
 }
 
+//##// OPTIONAL PARAMS BLOCK
 // Annotation Path Validation
 if (!params.annotation) {
     params.annotations = "./Annotation"
@@ -241,30 +258,34 @@ if (!params.genotype) {
 // Experiment/Workflow Name Validation
 if (!params.name) {
     if (!params.experiment) {
-        workflow.runName = "Extravaganza"
-        params.experiments = "Crystalized"
+        workflow.runName = "RNAsp_run"
+        params.experiments = "Jlab_experiment"
     }
     if (params.experiment) {
-        params.experiments = params.experiment
         workflow.runName = params.experiment
+        params.experiments = params.experiment
     }
 }
 
 // Prefix
 if (!params.prefix) {
-    params.experiment_prefix = "Yas"
+    params.experiment_prefix = "pref"
 }
 if (params.prefix) {
-    params.experiment_prefix = "Yas"
+    params.experiment_prefix = params.prefix
+//  params.experiment_prefix = "Yas"
 }
 
 // External Script Path Validation
+//##TODO(iaguilar): This param was not defined neither in help nor in the variable definition block (Dev ######)
+//##TODO(iaguilar): Comment in original devp was: "It's the directory where the shell files are located at. You only need to specify it if you cloned this repository somewhere else"; since this scripts folder will be versioned with the NF pipeline, there is no need to allow it to be on another directory (Dev ######)
+//##TODO(iaguilar): remove this param? only if it is not used by any block, may be replaced by a good old variable to construct paths for script execution (Dev ######)
 params.scripts = "./scripts"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Core Options
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//##TODO(iaguilar): Add brief descriptions for what are the cores used (parallelization level, by sample, by chunck, etc) (Doc ######)
 params.cores = '1'
 params.ercc_cores = '8'
 params.trimming_cores = '8'
@@ -283,25 +304,35 @@ params.expressedregion_cores = '8'
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Base Input Path Options
+//##TODO(iaguilar): Explain how the input files must be ordered or located inside the input data directory (Doc ######)
+//##TODO(iaguilar): INCLUDE IN THE README: a tree with file strcture description (Doc ######)
 if (!params.input && !params.test && !params.small_test) {
     if (params.input) {
         params.inputs = "${params.input}"
     }
     else {
-        params.inputs = "./inputs"
+        params.inputs = "./input"
+// originally was        params.inputs = "./inputs"
+// but it does not seem to be a "inputs" dir in the repo, only "input", without the s
     }
 }
 
 // Testing Paths for Rat
+//##TODO(iaguilar): Complete with data for rat, by vlarios (Dev ######)
 if (params.reference_type == "rat") {
     exit 1, "There are no sample files for rat. Please add sample files and then run again"
 }
 
 // Real File Test Paths (Human & Mouse)
+//##TODO(iaguilar): This could change to a general test param that runs on every species and genome version (Dev ######)
 if (params.test && !params.small_test) {
     if (params.reference_type == "mouse") {
         params.inputs = "/media/genomics/disco3/dataLieber/raw/${params.reference_type}/${params.sample}"
     }
+//##TODO(iaguilar): Check what does raw mean (Dev ######)
+//##TODO(iaguilar): It means data in need of trimming (Dev ######)
+//##TODO(iaguilar): These paths should point to the test data created by Lieber or vlarios (Dev ######)
+//##TODO(iaguilar): A minimal test-data directory should be versionated with the pipeline (Dev ######)
     if (params.reference_type == "human") {
         if (params.raw) {
             params.inputs = "/media/genomics/disco3/dataLieber/raw/human/paired"
@@ -313,6 +344,8 @@ if (params.test && !params.small_test) {
 }
 
 // Dummy File Test Paths
+//##TODO(iaguilar): this seems to complex to have to specifiy the test and the type of stranded data (Dev ######)
+//##TODO(iaguilar): One or two test runs with multiple species, genome versions, and minimal data should be defined in a single flag (like: "quick_test" and "full_test"  (Dev ######)
 if (params.small_test && !params.test) {
     if (params.strand != "unstranded") {
         if (params.merge) {
@@ -333,6 +366,7 @@ if (params.small_test && !params.test) {
 }
 
 // Conflicting Test Options
+//##TODO(iaguilar): Modify for quick_test vs full_test (Dev ######)
 if (params.small_test && params.test) {
     exit 1, "You've selected 'small_test' and 'test' ... Please choose one and run again"
 }
@@ -341,6 +375,7 @@ if (params.small_test && params.test) {
 // Strand Option Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//##TODO(iaguilar): Check if kallisto parameters belong on the stranded option params block, or deserve their own block (Doc ######)
 if (!params.k_lm) {
     params.k_length_mean = 200
 }
