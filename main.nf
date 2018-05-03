@@ -731,7 +731,7 @@ log.info "==========================================="
 
 params.hisat_idx_output = "${params.index_out}/${params.hisat_assembly}"
 
-println "building hisat index into $params.hisat_idx_output"
+println "[WGMES] Building hisat index into $params.hisat_idx_output"
 
 Channel
   .fromPath("${params.hisat_idx_output}/fa/*.fa")
@@ -739,7 +739,7 @@ Channel
 
 assembly_fa_trigger.count().filter{ it == 0 }.set{ assembly_fa_download }
 
-process pullGENCODEassemblyfa {
+/* process pullGENCODEassemblyfa {
 
     echo true
     tag "Downloading Assembly FA File: ${params.fa}"
@@ -759,7 +759,7 @@ process pullGENCODEassemblyfa {
     wget $idx_file_link
     gunzip $idx_gz
     """
-}
+} */
 
 /* Channel
   .fromPath("${params.hisat_idx_output}/fa/${params.fa}")
