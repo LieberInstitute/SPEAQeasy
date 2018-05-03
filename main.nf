@@ -759,11 +759,11 @@ process pullGENCODEassemblyfa {
     script:
     fa_gz_file_link = "${params.fa_link}"
     fa_gz = "${params.fa_gz}"
-	fa_file_build = "${fa_file}_build"
 	fa_file = "${params.fa}"
+	fa_file_build = "${fa_file}_build"
 	"""
 		## Download and unzip the ref genome
-		## *_build lock added as intermediate file to be able to quickly catch if a process was interrupted int he workdir
+		## *_build lock added as intermediate file to be able to quickly find if a process was interrupted in the workdir
 		wget "$fa_gz_file_link" \
 		&& gunzip -c "$fa_gz" > "$fa_file_build" \
 		&& mv "$fa_file_build" "$fa_file"
@@ -787,7 +787,9 @@ Channel
   .fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
   .set{ hisat_builds_trigger }
 
-  // (iaguilar) Why is the filter count < 8 in this one?
+  // Check if less than 8 files were found in the previous trigger definition
+ // If the count of files in the trigger is less than eigth, the channel wont be set
+ // else the channel is set, and pipeline performs this step
 hisat_builds_trigger.count().filter{ it < 8 }.set{ hisat_trigger_build }
 
 process buildHISATindex {
@@ -805,39 +807,47 @@ process buildHISATindex {
 
     script:
     prefix = "${params.hisat_prefix}"
-	// Here, number of threads in the -p option does not seem to be assigned by variable
-	// $prefix is the hisat2_index_base          write ht2 data to files with this dir/basename
+	// Here, number of threads in the -p option does not seem to be assigned by variable (### Dev)
+	// $prefix is "the hisat2_index_base  write ht2 data to files with this dir/basename"
     """
 		hisat2-build -p 3 $reference_fasta $prefix
     """
 }
 
-/* Channel
+// Read the hisat index file from path, and/or mix with the channel output from the buildHISATindex process
+// This effectively means that whether the index was created or it was already present, the flow can continue
+Channel
   .fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
   .mix(hisat_index_built)
   .toSortedList()
   .flatten()
   .distinct()
   .toSortedList()
-  .set{ hisat_index } */
+  .set{ hisat_index }
 
 /*
  * Step IIa: GENCODE GTF Download
  */
 
-/*  params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
+// Define the putput dir for download of the GTF reference
+params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
 
+ // Another trigger to check if the next step is necessary
+ // Will look for a .gtf file in the gtf annotation directory.
+ // If it finds it, gencode_gtf_download_trigger will be set; If it does not find it, it will be empty
 Channel
   .fromPath("${params.gencode_gtf_out}/gtf/*.gtf")
   .set{ gencode_gtf_download_trigger }
- */
-/* gencode_gtf_download_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_download }
- */
-/* process pullGENCODEgtf {
+
+ // If the count of files in the trigger is different from zero, the channel wont be set
+ // else the channel is set, and pipeline performs this step
+gencode_gtf_download_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_download }
+
+process pullGENCODEgtf {
 
     echo true
     tag "Downloading GTF File: ${params.gencode_gtf}"
-    publishDir "${params.gencode_gtf_out}/gtf",mode:'copy'
+    publishDir "${params.gencode_gtf_out}/gtf",'mode':'copy'
 
     input:
     val(gencode_gtf_bed_val) from gencode_gtf_trigger_download
@@ -848,31 +858,39 @@ Channel
     script:
     gencode_gtf_link = "${params.gencode_gtf_link}"
     gencode_gtf_gz = "${params.gencode_gtf_gz}"
+	gencode_gtf_file = "${params.gencode_gtf}"
+	gencode_gtf_file_build = "${gencode_gtf_file}_build"
     """
-    wget $gencode_gtf_link
-    gunzip $gencode_gtf_gz
+    wget "$gencode_gtf_link" \
+	&& gunzip -c "$gencode_gtf_gz" > "$gencode_gtf_file_build" \
+	&& mv "$gencode_gtf_file_build" "$gencode_gtf_file"
     """
-} */
+	// May add afterscript to clean the .gz? or the .gtf also if it copies the results BEFORE performing afterscript routines
+}
 
-/* Channel
+// Read the gencode gtf file from path, and/or mix with the channel output from the pullGENCODEgtf process
+// This effectively means that whether the gtf was created or it was already present, the flow can continue
+Channel
   .fromPath("${params.gencode_gtf_out}/gtf/${params.gencode_gtf}")
   .mix(gencode_gtf_downloaded)
   .toSortedList()
   .flatten()
   .distinct()
   .into{ gencode_gtf; create_counts_gtf; gencode_feature_gtf }
- */
+
 /*
  * Step IIb: Build Bed File
  */
 
-/* Channel
+// Define the putput dir for download of the bed file used by http://rseqc.sourceforge.net/#infer-experiment-py
+Channel
   .fromPath("${params.gencode_gtf_out}/bed/*")
   .set{ gencode_gtf_bed_trigger }
 
+// Create a trigger to check if the file exist, similar to previous triggers
 gencode_gtf_bed_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_bed }
- */
-/* process buildPrepBED {
+
+process buildPrepBED {
 
     echo true
     tag "Building Bed File: ${params.reference}"
@@ -891,7 +909,7 @@ gencode_gtf_bed_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_bed }
     '''
     Rscript !{prep_bed} -f !{gencode_gtf} -n !{name}
     '''
-} */
+}
 
 /* Channel
   .fromPath("${params.gencode_gtf_out}/bed/*")
