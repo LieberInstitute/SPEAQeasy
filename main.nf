@@ -731,74 +731,87 @@ log.info "==========================================="
 
 params.hisat_idx_output = "${params.index_out}/${params.hisat_assembly}"
 
-println "[WGMES] Building hisat index into $params.hisat_idx_output"
-
+// get the number of *fa files in the reference directory
 Channel
   .fromPath("${params.hisat_idx_output}/fa/*.fa")
   .set{ assembly_fa_trigger }
+  
+// Use the number of fa files in the reference directory to set the aseembly channel, efectively skipping this step when running the pipeline
+// If the count of files in the assembly_fa_trigger is more than zero, the assembly_fa_download channel wont be set
+// else assembly_fa_download channel is set, and pipeline starts by downloading the ref genome
+assembly_fa_trigger
+	.count()
+	.filter{ it == 0 }
+	.set{ assembly_fa_download }
 
-assembly_fa_trigger.count().filter{ it == 0 }.set{ assembly_fa_download }
-
-/* process pullGENCODEassemblyfa {
+process pullGENCODEassemblyfa {
 
     echo true
     tag "Downloading Assembly FA File: ${params.fa}"
     publishDir "${params.hisat_idx_output}/fa",'mode':'copy'
 
-    input:
-    val(assembly_fa_val) from assembly_fa_download
+	input:
+	val(assembly_fa_val) from assembly_fa_download
 
     output:
     file("${params.fa}") into reference_fa
 
     script:
-    idx_file_link = "${params.fa_link}"
-    idx_gz = "${params.fa_gz}"
-    idx = "${params.fa}"
-    """
-    wget $idx_file_link
-    gunzip $idx_gz
-    """
-} */
+    fa_gz_file_link = "${params.fa_link}"
+    fa_gz = "${params.fa_gz}"
+	fa_file_build = "${fa_file}_build"
+	fa_file = "${params.fa}"
+	"""
+		## Download and unzip the ref genome
+		## *_build lock added as intermediate file to be able to quickly catch if a process was interrupted int he workdir
+		wget "$fa_gz_file_link" \
+		&& gunzip -c "$fa_gz" > "$fa_file_build" \
+		&& mv "$fa_file_build" "$fa_file"
+	"""
+}
 
-/* Channel
+Channel
   .fromPath("${params.hisat_idx_output}/fa/${params.fa}")
   .mix(reference_fa)
   .toSortedList()
   .flatten()
   .distinct()
   .into{ reference_assembly; variant_assembly }
- */
+
 /*
  * Step Ib: Build HISAT Index
  */
 
-/* Channel
+ // Another trigger to check if the next step is necessary
+Channel
   .fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
   .set{ hisat_builds_trigger }
 
+  // (iaguilar) Why is the filter count < 8 in this one?
 hisat_builds_trigger.count().filter{ it < 8 }.set{ hisat_trigger_build }
 
 process buildHISATindex {
 
     echo true
     tag "Building HISAT2 Index: ${params.hisat_prefix}"
-    publishDir "${params.hisat_idx_output}/index",mode:'copy'
+    publishDir "${params.hisat_idx_output}/index",'mode':'copy'
 
     input:
     val(hisat_trigger_val) from hisat_trigger_build
-    file idx from reference_assembly 
+    file reference_fasta from reference_assembly
 
     output:
     file("${params.hisat_prefix}.*") into hisat_index_built
 
     script:
     prefix = "${params.hisat_prefix}"
+	// Here, number of threads in the -p option does not seem to be assigned by variable
+	// $prefix is the hisat2_index_base          write ht2 data to files with this dir/basename
     """
-    hisat2-build -p 3 $idx $prefix
+		hisat2-build -p 3 $reference_fasta $prefix
     """
 }
- */
+
 /* Channel
   .fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
   .mix(hisat_index_built)
