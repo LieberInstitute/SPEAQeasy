@@ -388,7 +388,7 @@ if (params.k_lm){
 if (params.k_sd) {
     params.k_standard_deviation = params.k_sd
 }
-
+//##TODO(iaguilar): Expand what is every param used for and why is this value assigned (Doc ######)
 if (params.strand == "unstranded") {
     if (params.sample == "single") {
         params.kallisto_strand = "--single -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
@@ -439,10 +439,13 @@ if (params.strand == "reverse") {
 
 if (params.output) {
     params.basedir = "${params.output}"
+//##TODO(iaguilar): Check if this is necessary or it is best to manage the ./Annotations dir by default (Dev ######)
     params.index_out = "${params.annotations}"
 }
 if (!params.output) {
+//##TODO(iaguilar): What is params.production_baseout used for? (Doc ######)
     params.production_baseout = "."
+//##TODO(iaguilar): What is params.test_baseout used for? (Doc ######)
     params.test_baseout = "."
     if (params.test) {
         params.index_out = "${params.test_baseout}/Annotation"
@@ -459,7 +462,7 @@ if (!params.output) {
             params.basedir = "${params.production_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}/merge"
         }
         if (!params.merge) {
-            params.basedir = "${params.production_baseout}/results/${params.reference_type}/params.reference}${params.sample}"
+		params.basedir = "${params.production_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}"
         }
     }
 }
@@ -467,7 +470,7 @@ if (!params.output) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define External Scripts
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//##TODO(iaguilar): This should live in an external config file... (Dev ######)
 infer_strandness = file("${params.scripts}/step3b_infer_strandness.R")
 prep_bed = file("${params.scripts}/prep_bed.R")
 bed_to_juncs = file("${params.scripts}/bed_to_juncs.py")
@@ -489,6 +492,7 @@ ercc_actual_conc = file("${params.annotations}/ercc_actual_conc.txt")
 if (params.reference == "hg38") {
     
     // Step 3: hisat2
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz"
     params.fa_gz = "GRCh38.primary_assembly.genome.fa.gz"
     params.fa = "GRCh38.primary_assembly.genome.fa"
@@ -496,17 +500,21 @@ if (params.reference == "hg38") {
     params.hisat_assembly = "GENCODE/GRCh38_hg38/assembly"
 
     // Step 4: gencode gtf
+//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz"
     params.gencode_gtf_gz = "gencode.v25.annotation.gtf.gz"
     params.gencode_gtf = "gencode.v25.annotation.gtf"
     params.feature_output_prefix = "Gencode.v25.hg38"
 
     // Step 5: python coverage
+//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
     chr_sizes = file("${params.annotations}/chrom_sizes/hg38.chrom.sizes.gencode")
 
     // Step 6: salmon
+//##TODO(iaguilar): Explain why step 6 is enabled if reference is hg38...  (Doc ######)
     params.step6 = true
-    params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v27.transcripts.fa.gz"
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
+    params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
     params.tx_fa_gz = "gencode.v25.transcripts.fa.gz"
     params.tx_fa = "gencode.v25.transcripts.fa"
     params.salmon_prefix = "salmon_0.8.2_index_gencode.v25.transcripts"
@@ -521,7 +529,9 @@ if (params.reference == "hg38") {
     create_counts = file("${params.scripts}/create_count_objects-human.R")
 
     // Step 8: call variants
+//##TODO(iaguilar): Explain why step 8 is enabled if reference is hg38...  (Doc ######)
     params.step8 = true
+//##TODO(iaguilar): Explain the need to define the channel from this block  (Doc ######)
     Channel
       .fromPath("${params.genotypes}/common_missense_SNVs_hg38.bed")
       .set{ snvbed }
@@ -530,6 +540,7 @@ if (params.reference == "hg38") {
 if (params.reference == "hg19") {
     
     // Step 3: hisat2
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
     params.fa_gz = "GRCh37.primary_assembly.genome.fa.gz"
     params.fa = "GRCh37.primary_assembly.genome.fa"
@@ -537,16 +548,20 @@ if (params.reference == "hg19") {
     params.hisat_assembly = "GENCODE/GRCh37_hg19/assembly"
     
     // Step 4: gencode gtf
+//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"
     params.gencode_gtf_gz = "gencode.v25lift37.annotation.gtf.gz"
     params.gencode_gtf = "gencode.v25lift37.annotation.gtf"
     params.feature_output_prefix = "Gencode.v25lift37.hg19"
 
     // Step 5: python coverage
+//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
     chr_sizes = file("${params.annotations}/chrom_sizes/hg19.chrom.sizes.gencode")
 
     // Step 6: salmon
+//##TODO(iaguilar): Explain why step 6 is enabled if reference is hg19...  (Doc ######)
     params.step6 = true
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
     params.tx_fa_gz = "gencode.v25lift37.transcripts.fa.gz"
     params.tx_fa = "gencode.v25lift37.transcripts.fa"
@@ -562,7 +577,9 @@ if (params.reference == "hg19") {
     create_counts = file("${params.scripts}/create_count_objects-human.R")
 
     // Step 8: call variants
+//##TODO(iaguilar): Explain why step 8 is enabled if reference is hg19...  (Doc ######)
     params.step8 = true
+//##TODO(iaguilar): Explain the need to define the channel from this block  (Doc ######)
     Channel
       .fromPath("${params.genotypes}/common_missense_SNVs_hg19.bed")
       .set{ snvbed }
@@ -571,6 +588,7 @@ if (params.reference == "hg19") {
 if (params.reference == "mm10") {
 
     // Step 3: hisat2
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/GRCm38.primary_assembly.genome.fa.gz"
     params.fa_gz = "GRCm38.primary_assembly.genome.fa.gz"
     params.fa = "GRCm38.primary_assembly.genome.fa"
@@ -578,16 +596,20 @@ if (params.reference == "mm10") {
     params.hisat_assembly = "GENCODE/GRCm38_mm10/assembly"
 
     // Step 4: gencode gtf
+//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/gencode.vM11.annotation.gtf.gz"
     params.gencode_gtf_gz = "gencode.vM11.annotation.gtf.gz"
     params.gencode_gtf = "gencode.vM11.annotation.gtf"
     params.feature_output_prefix = "Gencode.M11.mm10"
 
     // Step 5: python coverage
+//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
     chr_sizes = file("${params.annotations}/chrom_sizes/mm10.chrom.sizes.gencode")
     
     // Step 6: salmon
+//##TODO(iaguilar): Explain why step 6 is enabled if reference is mm10...  (Doc ######)
     params.step6 = true
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gz value (Dev ######)
     params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
     params.tx_fa_gz = "gencode.vM11.transcripts.fa.gz"
     params.tx_fa = "gencode.vM11.transcripts.fa"
@@ -600,11 +622,13 @@ if (params.reference == "mm10") {
     create_counts = file("${params.scripts}/create_count_objects-mouse.R")
 
     // Step 8: call variants
+//##TODO(iaguilar): Explain why step 8 is disabled if reference is mm10...  (Doc ######)
     params.step8 = false
 }
 if (params.reference == "rn6") {
 
     // Step 3: hisat2
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gz value (Dev ######)
     params.fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
     params.fa_gz = "Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
     params.fa = "Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa"
@@ -613,23 +637,25 @@ if (params.reference == "rn6") {
     
     
     // Step 4: gencode gtf (ensembl for rn6)
+//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes gtf_gz value (Dev ######)
     params.gencode_gtf_link = "ftp://ftp.ensembl.org/pub/release-86/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
     params.gencode_gtf_gz = "Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
     params.gencode_gtf = "Rattus_norvegicus.Rnor_6.0.86.gtf"
     params.feature_output_prefix = "Rnor_6.0.86"
 
     // Step 5: python coverage
+//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
     chr_sizes = file("${params.annotations}/chrom_sizes/rn6.chrom.sizes.ensembl")
     
     // Step 6: Salmon
+//##TODO(iaguilar): Explain why step 6 is enabled if reference is rn6...  (Doc ######)
     params.step6 = false
 
-    //Step 8: call variants    
+
+    //Step 8: call variants
+//##TODO(iaguilar): Explain why step 8 is enabled if reference is rn6...  (Doc ######)
     params.step8 = false
 
-    // Step 7: Make R Objects
-    junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
-    create_counts = file("${params.scripts}/create_count_objects-rat.R")
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -705,6 +731,8 @@ log.info "==========================================="
 
 params.hisat_idx_output = "${params.index_out}/${params.hisat_assembly}"
 
+println "building hisat index into $params.hisat_idx_output"
+
 Channel
   .fromPath("${params.hisat_idx_output}/fa/*.fa")
   .set{ assembly_fa_trigger }
@@ -733,19 +761,19 @@ process pullGENCODEassemblyfa {
     """
 }
 
-Channel
+/* Channel
   .fromPath("${params.hisat_idx_output}/fa/${params.fa}")
   .mix(reference_fa)
   .toSortedList()
   .flatten()
   .distinct()
   .into{ reference_assembly; variant_assembly }
-
+ */
 /*
  * Step Ib: Build HISAT Index
  */
 
-Channel
+/* Channel
   .fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
   .set{ hisat_builds_trigger }
 
@@ -770,29 +798,29 @@ process buildHISATindex {
     hisat2-build -p 3 $idx $prefix
     """
 }
-
-Channel
+ */
+/* Channel
   .fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
   .mix(hisat_index_built)
   .toSortedList()
   .flatten()
   .distinct()
   .toSortedList()
-  .set{ hisat_index }
+  .set{ hisat_index } */
 
 /*
  * Step IIa: GENCODE GTF Download
  */
 
- params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
+/*  params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
 
 Channel
   .fromPath("${params.gencode_gtf_out}/gtf/*.gtf")
   .set{ gencode_gtf_download_trigger }
-
-gencode_gtf_download_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_download }
-
-process pullGENCODEgtf {
+ */
+/* gencode_gtf_download_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_download }
+ */
+/* process pullGENCODEgtf {
 
     echo true
     tag "Downloading GTF File: ${params.gencode_gtf}"
@@ -811,27 +839,27 @@ process pullGENCODEgtf {
     wget $gencode_gtf_link
     gunzip $gencode_gtf_gz
     """
-}
+} */
 
-Channel
+/* Channel
   .fromPath("${params.gencode_gtf_out}/gtf/${params.gencode_gtf}")
   .mix(gencode_gtf_downloaded)
   .toSortedList()
   .flatten()
   .distinct()
   .into{ gencode_gtf; create_counts_gtf; gencode_feature_gtf }
-
+ */
 /*
  * Step IIb: Build Bed File
  */
 
-Channel
+/* Channel
   .fromPath("${params.gencode_gtf_out}/bed/*")
   .set{ gencode_gtf_bed_trigger }
 
 gencode_gtf_bed_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_bed }
-
-process buildPrepBED {
+ */
+/* process buildPrepBED {
 
     echo true
     tag "Building Bed File: ${params.reference}"
@@ -850,25 +878,25 @@ process buildPrepBED {
     '''
     Rscript !{prep_bed} -f !{gencode_gtf} -n !{name}
     '''
-}
+} */
 
-Channel
+/* Channel
   .fromPath("${params.gencode_gtf_out}/bed/*")
   .mix(bedfile_built)
   .toSortedList()
   .flatten()
   .distinct()
-  .set{ bedfile }
+  .set{ bedfile } */
 
-if (params.step6) {
+/* if (params.step6) {
 
     params.salmon_idx_output = "${params.index_out}/${params.salmon_assembly}"
-
+ */
     /*
      * Step IIIa: GENCODE TX FA Download
      */
 
-    Channel
+/*     Channel
       .fromPath("${params.salmon_idx_output}/fa/*.fa")
       .set{ transcript_fa_download }
 
@@ -895,20 +923,20 @@ if (params.step6) {
         gunzip $tx_fa_gz
         """
     }
-
-    Channel
+ */
+/*     Channel
       .fromPath("${params.salmon_idx_output}/fa/${params.tx_fa}")
       .mix(tx_fa_downloaded)
       .toSortedList()
       .flatten()
       .distinct()
       .set{ transcript_fa }
-
+ */
     /*
      * Step IIIb: Salmon Transcript Build
      */
 
-    Channel
+/*     Channel
       .fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
       .set{ salmon_build_trigger }
 
@@ -932,9 +960,9 @@ if (params.step6) {
         """
         salmon index -t $tx_file -i $salmon_idx -p 1 --type quasi -k 31
         """
-    }
+    } */
 
-    Channel
+/*     Channel
       .fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
       .mix(salmon_index_built)
       .toSortedList()
@@ -942,13 +970,13 @@ if (params.step6) {
       .distinct()
       .toSortedList()
       .set{ salmon_index }
-}
+} */
 
 /*
  * Step A: Run Sample Merging if --merge is specified
  */
 
-if (params.merge) {
+/* if (params.merge) {
 
     Channel
       .fromPath("${params.inputs}/*.fastq.gz")
@@ -980,13 +1008,13 @@ if (params.merge) {
         gzip ${merging_prefix}.fastq
         """
     }
-}
+} */
 
 /*
  * Step B: Run the ERCC process if the --ercc flag is specified
  */
 
-if (params.ercc) {
+/* if (params.ercc) {
 
     if (params.merge) {
 
@@ -1037,9 +1065,9 @@ if (params.ercc) {
               .ifEmpty{ error "Could not Find Unmerged Sample Files for ERCC"}
               .set{ ercc_inputs }
         }
-    }
+    } */
 
-    process sampleERCC {
+/*     process sampleERCC {
      
         echo true
         tag "Prefix: $ercc_prefix | Sample: [ $ercc_input ]"
@@ -1061,9 +1089,9 @@ if (params.ercc) {
         cp abundance.tsv ${ercc_prefix}_abundance.tsv
         """
     }
-}
+} */
 
-if (params.merge) {
+/* if (params.merge) {
 
     if (params.sample == "single") {
 
@@ -1112,13 +1140,13 @@ if (!params.merge) {
           .ifEmpty{ error "Could not Find Unmerged Untrimmed Paired Sample Files for FastQC"}
           .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
     }
-}
+} */
 
 /*
  * Step C1: Individual Sample Manifest
  */
 
-process sampleIndividualManifest {
+/* process sampleIndividualManifest {
 
     echo true
     tag "Individual Manifest: $manifest_samples $samples_prefix > samples.manifest.${samples_prefix}"
@@ -1140,12 +1168,12 @@ individual_manifests
   .flatten()
   .collect()
   .set{ individual_manifest_files }
-
+ */
 /*
  * Step C2: Sample Manifest
  */
 
-process sampleManifest {
+/* process sampleManifest {
 
     echo true
     tag "Aggregate Manifest: $individual_manifests > samples.manifest"
@@ -1162,12 +1190,12 @@ process sampleManifest {
     cat ${individual_manifests} > "samples.manifest"
     """
 }
-
+ */
 /*
  * Step 1: Untrimmed Quality Report
  */
 
-process sampleQualityUntrimmed {
+/* process sampleQualityUntrimmed {
   
     echo true
     tag "Prefix: $untrimmed_prefix | Sample: [ $fastqc_untrimmed_input ]"
@@ -1195,14 +1223,14 @@ process sampleQualityUntrimmed {
     $copy_command
     $data_command
     """
-}
+} */
 
 /*
  * Step 2a: Adaptive Trimming
  * Merge the quality reports channel and trimming input channels
  */
 
-if (params.sample == "single") {
+/* if (params.sample == "single") {
 
     quality_reports
       .flatten()
@@ -1235,8 +1263,8 @@ if (params.sample == "single") {
       fi
       '''
     }
-}
-if (params.sample == "paired") {
+} */
+/* if (params.sample == "paired") {
 
     quality_reports
       .flatten()
@@ -1279,52 +1307,52 @@ if (params.sample == "paired") {
       '''
     }
 }
-
+ */
 /*
  * Modify the Trimming Input Channel 
  */
 
-if (params.sample == "single") {
+// if (params.sample == "single") {
 
-    trimming_fastqs
-      .flatten()
-      .filter{ file -> file.name.toString() =~ /_TR.*/ }
-      .map{ file -> tuple(get_TR_prefix(file), file) }
-      .set{ trimming_inputs }
+    // trimming_fastqs
+      // .flatten()
+      // .filter{ file -> file.name.toString() =~ /_TR.*/ }
+      // .map{ file -> tuple(get_TR_prefix(file), file) }
+      // .set{ trimming_inputs }
 
-    no_trimming_fastqs
-      .flatten()
-      .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-      .map{ file -> tuple(get_TNR_prefix(file), file) }
-      .set{ no_trim_fastqs }
-  }
+    // no_trimming_fastqs
+      // .flatten()
+      // .filter{ file -> file.name.toString() =~ /_TNR.*/ }
+      // .map{ file -> tuple(get_TNR_prefix(file), file) }
+      // .set{ no_trim_fastqs }
+  // }
 
-  if (params.sample == "paired") {
+  // if (params.sample == "paired") {
 
-    trimming_fastqs
-      .flatten()
-      .filter{ file -> file.name.toString() =~ /_TR.*/ }
-      .toSortedList()
-      .flatten()
-      .map{ file -> tuple(get_TR_paired_prefix(file), file) }
-      .groupTuple()
-      .set{ trimming_inputs }
+    // trimming_fastqs
+      // .flatten()
+      // .filter{ file -> file.name.toString() =~ /_TR.*/ }
+      // .toSortedList()
+      // .flatten()
+      // .map{ file -> tuple(get_TR_paired_prefix(file), file) }
+      // .groupTuple()
+      // .set{ trimming_inputs }
 
-    no_trimming_fastqs
-      .flatten()
-      .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-      .toSortedList()
-      .flatten()
-      .map{ file -> tuple(get_TNR_paired_prefix(file), file) }
-      .groupTuple()
-      .set{ no_trim_fastqs }
-}
+    // no_trimming_fastqs
+      // .flatten()
+      // .filter{ file -> file.name.toString() =~ /_TNR.*/ }
+      // .toSortedList()
+      // .flatten()
+      // .map{ file -> tuple(get_TNR_paired_prefix(file), file) }
+      // .groupTuple()
+      // .set{ no_trim_fastqs }
+// }
 
 /*
  * Step 2b: Trimming 
  */
 
-process sampleTrimming {
+/* process sampleTrimming {
 
     echo true
     tag "Prefix: $trimming_prefix | Sample: [ $trimming_input ]"
@@ -1359,13 +1387,13 @@ process sampleTrimming {
     SLIDINGWINDOW:4:15 \
     MINLEN:75
     """
-}
+} */
 
 /*
  * Step 2c: Run FastQC Quality Check on Trimmed Files
  */
 
-process sampleQualityTrimmed {
+/* process sampleQualityTrimmed {
   
     echo true
     tag "$fastqc_trimmed_input"
@@ -1381,23 +1409,23 @@ process sampleQualityTrimmed {
     """
     fastqc $fastqc_trimmed_input --extract
     """
-}
+} */
 
 /*
  * Step 3a: Hisat Sam File
  */
 
-if (params.sample == "single") {
+/* if (params.sample == "single") {
 
     trimmed_hisat_inputs
       .flatten()
       .map{ file -> tuple(get_single_trimmed_prefix(file), file) }
       .mix(no_trim_fastqs)
       .ifEmpty{ error "Single End Channel for HISAT is empty" }
-      .set{ single_hisat_inputs }
+      .set{ single_hisat_inputs } */
 
 
-    process sampleSingleEndHISAT {
+/*     process sampleSingleEndHISAT {
 
       echo true
       tag "Prefix: $single_hisat_prefix | Sample: $single_hisat_input"
@@ -1424,16 +1452,16 @@ if (params.sample == "single") {
       -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 \
       2> !{single_hisat_prefix}_align_summary.txt
       '''
-    }
+    } */
 
-    hisat_single_output
+/*     hisat_single_output
       .flatten()
       .map{ file -> tuple(get_hisat_prefix(file), file) }
       .set{ sam_to_bam_inputs }
-}
+} */
 
 
-if (params.sample == "paired") {
+/* if (params.sample == "paired") {
 
     no_trim_fastqs
       .set{ notrim_paired_hisat_inputs }
@@ -1475,16 +1503,16 @@ if (params.sample == "paired") {
       !{unaligned_opt} \
       2> !{paired_notrim_hisat_prefix}_align_summary.txt
       '''
-    }
+    } */
 
-    trimmed_hisat_inputs
+/*     trimmed_hisat_inputs
       .flatten()
       .map{ file -> tuple(get_paired_trimmed_prefix(file), file) }
       .groupTuple()
-      .set{ trim_paired_hisat_inputs }
+      .set{ trim_paired_hisat_inputs } */
 
 
-    process samplePairedEndTrimmedHISAT {
+/*     process samplePairedEndTrimmedHISAT {
 
       echo true
       tag "Prefix: $paired_trimmed_prefix | Sample: $paired_trimmed_fastqs"
@@ -1524,9 +1552,9 @@ if (params.sample == "paired") {
       !{unaligned_opt} \
       2> !${paired_trimmed_prefix}_align_summary.txt
       '''
-    }
+    } */
 
-    hisat_paired_notrim_output
+/*     hisat_paired_notrim_output
       .mix(hisat_paired_trim_output)
       .flatten()
       .map{ file -> tuple(get_hisat_prefix(file), file) }
@@ -1536,14 +1564,14 @@ if (params.sample == "paired") {
       .mix(paired_notrim_alignment_summaries)
       .flatten()
       .set{ alignment_summaries }
-}
+} */
 
 /*
  * Step 3b: Sam to Bam 
  */
 
 
-process sampleSamtoBam {
+/* process sampleSamtoBam {
 
     echo true
     tag "Prefix: $sam_to_bam_prefix | Sample: $sam_to_bam_input"
@@ -1564,17 +1592,17 @@ process sampleSamtoBam {
     samtools sort -@ $samtobam_cores $original_bam -o ${sorted_bam}.bam
     samtools index ${sorted_bam}.bam
     """
-}
+} */
 
-infer_experiment_inputs
+/* infer_experiment_inputs
   .combine(bedfile)
-  .set{ infer_experiments }
+  .set{ infer_experiments } */
 
 /*
  * Step 3c: Infer Experiment
  */
 
-process sampleInferExperiment {
+/* process sampleInferExperiment {
 
     echo true
     tag "Prefix: $infer_prefix | Sample: $bam_file | Index: $bam_index"
@@ -1595,19 +1623,19 @@ process sampleInferExperiment {
     1> !{infer_prefix}_experiment.txt \
     2> !{infer_prefix}_experiment_summary_out.txt
     '''
-}
+} */
 
-infer_experiment_outputs
+/* infer_experiment_outputs
   .collect()
   .flatten()
   .toSortedList()
-  .set{ infer_experiment_output }
+  .set{ infer_experiment_output } */
 
 /*
  * Step 3d: Infer Strandness
  */
 
-process sampleInferStrandness {
+/* process sampleInferStrandness {
 
     echo true
     tag "Sample: $infer_experiment_files"
@@ -1626,17 +1654,17 @@ process sampleInferStrandness {
     '''
     Rscript !{infer_strandness} -p !{inferred_strandness_pattern}
     '''
-}
+} */
 
-feature_bam_inputs
+/* feature_bam_inputs
   .combine(gencode_feature_gtf)
-  .set{ feature_counts_inputs }
+  .set{ feature_counts_inputs } */
 
 /*
  * Step 4a: Feature Counts
  */
 
-process sampleFeatureCounts {
+/* process sampleFeatureCounts {
 
     echo true
     tag "Prefix: $feature_prefix | Sample: $feature_bam | Sample Index: $feature_index"
@@ -1678,13 +1706,13 @@ process sampleFeatureCounts {
     -o ${feature_out}_Exons.counts \
     $feature_bam
     """
-}
+} */
 
 /*
  * Step 4b: Primary Alignments
  */
 
-process samplePrimaryAlignments {
+/* process samplePrimaryAlignments {
 
     echo true
     tag "Prefix: $alignment_prefix | Sample: [ $alignment_bam ]"
@@ -1702,13 +1730,13 @@ process samplePrimaryAlignments {
     samtools view -@ $alignments_cores -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
     samtools index ${alignment_prefix}.bam
     """
-}
+} */
 
 /*
  * Step 4c: Junctions
  */
 
-process sampleJunctions {
+/* process sampleJunctions {
 
     echo true
     tag "Prefix: $junction_prefix | Sample: [ $alignment_bam ]"
@@ -1729,13 +1757,13 @@ process sampleJunctions {
     regtools junctions extract -i 9 -o !{outjxn} !{alignment_bam}
     python !{bed_to_juncs} < !{outjxn} > !{outcount}
     '''
-}
+} */
 
 /*
  * Step 5a: Coverage
  */
 
-process sampleCoverage {
+/* process sampleCoverage {
 
     echo true
     tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
@@ -1764,13 +1792,13 @@ process sampleCoverage {
         python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "+-,-+"
     fi
     '''
-}
+} */
 
 /*
  * Step 5b: Wig to BigWig
  */
 
-process sampleWigToBigWig {
+/* process sampleWigToBigWig {
 
     echo true
     tag "Prefix: $wig_prefix | Sample: [ $wig_file ]"
@@ -1788,19 +1816,19 @@ process sampleWigToBigWig {
     /usr/local/bin/wigToBigWig !{wig_file} !{chr_sizes} !{wig_prefix}.bw
     '''
 
-}
+} */
 
-coverage_bigwigs
+/* coverage_bigwigs
   .collect()
   .flatten()
   .toSortedList()
-  .into{ mean_coverage_bigwigs;full_coverage_bigwigs }
+  .into{ mean_coverage_bigwigs;full_coverage_bigwigs } */
 
 /*
  * Step 5c: Mean Coverage
  */
 
-process sampleMeanCoverage {
+/* process sampleMeanCoverage {
 
     echo true
     tag "Samples: [ $mean_coverage_bigwig ]"
@@ -1827,14 +1855,14 @@ process sampleMeanCoverage {
         /usr/local/bin/wigToBigWig mean.reverse.wig !{chr_sizes} mean.reverse.bw
     fi
     '''
-}
+} */
 
-if (params.step6) {
+/* if (params.step6) { */
     /*
      * Step 6: txQuant
      */
 
-    process sampleTXQuant {
+/*     process sampleTXQuant {
 
         echo true
         tag "Prefix: $salmon_input_prefix | Sample: [ $salmon_inputs ]"
@@ -1873,8 +1901,8 @@ if (params.step6) {
             if (params.strand == "reverse" ) {
                 salmon_strand = "ISR"
             }
-        }
-        '''
+        } */
+/*         '''
         mkdir !{salmon_index_prefix}
         cp !{salmon_index} !{salmon_index_prefix}/.
         salmon quant \
@@ -1886,14 +1914,14 @@ if (params.step6) {
         cp !{salmon_input_prefix}/quant.sf !{salmon_input_prefix}_quant.sf
         '''
     }
-}
+} */
 
 /*
  * Construct the Counts Objects Input Channel
  */
 
 
-count_objects_bam_files
+/* count_objects_bam_files
   .flatten()
   .buffer(size:2,skip:1)
   .flatten()
@@ -1905,9 +1933,9 @@ count_objects_bam_files
   .collect()
   .flatten()
   .toSortedList()
-  .set{ counts_objects_channel }
+  .set{ counts_objects_channel } */
 
-if (params.reference_type == "human" || params.reference_type == "mouse") {
+/* if (params.reference_type == "human" || params.reference_type == "mouse") {
 
     counts_objects_channel
       .mix(salmon_quants)
@@ -1937,28 +1965,28 @@ if (!params.ercc) {
       .flatten()
       .toSortedList()
       .set{ counts_inputs }
-}
+} */
 
 
 /*
  * Construct the Annotation Input Channel
  */
 
-junction_annotation_ensembl
+/* junction_annotation_ensembl
   .collect()
   .flatten()
   .toSortedList()
-  .set{rat_annotations}
+  .set{rat_annotations} */
 
-if (params.reference_type == "rat") {
+/* if (params.reference_type == "rat") {
     rat_annotations
       .collect()
       .flatten()
       .toSortedList()
       .set{counts_annotations}
-}
+} */
 
-if(params.reference_type != "rat") {
+/* if(params.reference_type != "rat") {
 
     rat_annotations
       .mix(junction_annotation_gencode)
@@ -1985,13 +2013,13 @@ if(params.reference_type == "human") {
       .flatten()
       .toSortedList()
       .set{counts_annotations}
-}
+} */
 
 /*
  * Step 7a: Create Count Objects
  */
 
-process sampleCreateCountObjects {
+/* process sampleCreateCountObjects {
 
     echo true
     tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
@@ -2037,9 +2065,9 @@ process sampleCreateCountObjects {
     '''
     Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
     '''
-}
+} */
 
-if (params.fullCov) {
+/* if (params.fullCov) {
 
     full_coverage_bams
       .flatten()
@@ -2049,13 +2077,13 @@ if (params.fullCov) {
       .collect()
       .flatten()
       .toSortedList()
-      .set{ full_coverage_inputs }
+      .set{ full_coverage_inputs } */
   
     /*
      * Step 7b: Create Full Coverage Objects
      */
 
-    process sampleCreateCoverageObjects {
+/*     process sampleCreateCoverageObjects {
 
         echo true
         tag "Creating Coverage Objects [ $full_coverage_input ]"
@@ -2086,15 +2114,15 @@ if (params.fullCov) {
         Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
         '''
     }
-}
+} */
 
-if (params.step8) {
+/* if (params.step8) { */
 
     /*
      * Step 8: Call Variants
      */
 
-    variant_calls_bam
+/*     variant_calls_bam
       .combine(snvbed)
       .combine(variant_assembly)
       .set{ variant_calls }
@@ -2129,9 +2157,9 @@ if (params.step8) {
         -Oz !{snptmp} > !{snpoutgz}
         tabix -p vcf !{snpoutgz}
         '''
-    }
+    } */
 
-    compressed_variant_calls
+/*     compressed_variant_calls
       .flatten()
       .collect()
       .toSortedList()
@@ -2141,14 +2169,14 @@ if (params.step8) {
       .flatten()
       .collect()
       .toSortedList()
-      .set{ collected_variant_calls_tbi }
+      .set{ collected_variant_calls_tbi } */
 
 
     /*
      * Step 8b: Merge Variant Calls
      */
 
-    process sampleVariantCallsMerge {
+/*     process sampleVariantCallsMerge {
 
         echo true
         tag "Samples: $collected_variants"
@@ -2166,13 +2194,13 @@ if (params.step8) {
         vcf-merge !{collected_variants} | bgzip -c > mergedVariants.vcf.gz
         '''
     }
-}
+} */
 
 /*
  * Step 9: Expressed Regions
  */
 
-process sampleExpressedRegions {
+/* process sampleExpressedRegions {
 
     echo true
     tag "Sample: $expressed_regions_mean_bigwig"
@@ -2196,3 +2224,4 @@ process sampleExpressedRegions {
     -c !{expressed_regions_cores}
     '''
 }
+ */
