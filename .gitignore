@@ -1,0 +1,7 @@
+## ignore local files from local executions
+*nextflow.log*
+*.nextflow/
+*pipeline_log/
+*work/
+
+##TODO(iaguilar) add the big reference files downloaded by the pipeline due to big sizes
