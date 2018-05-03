@@ -4,4 +4,9 @@
 *pipeline_log/
 *work/
 
+## ignore big reference files
+Annotation/GENCODE/GRCh38_hg38/assembly/fa/*.fa
+Annotation/GENCODE/GRCh38_hg38/assembly/index/*.ht2
+Annotation/RSeQC/hg38/gtf/gencode.v25.annotation.gtf
+
 ##TODO(iaguilar) add the big reference files downloaded by the pipeline due to big sizes
