@@ -1321,7 +1321,8 @@ if (params.sample == "single") {
       '''
     }
 }
-/* if (params.sample == "paired") {
+//TODO following block still not tested
+if (params.sample == "paired") {
 
     quality_reports
       .flatten()
@@ -1363,57 +1364,60 @@ if (params.sample == "single") {
       fi
       '''
     }
-} */
+} // Finishes untested block
 
 /*
  * Modify the Trimming Input Channel 
  */
 
-// if (params.sample == "single") {
+if (params.sample == "single") {
 
-    // trimming_fastqs
-      // .flatten()
-      // .filter{ file -> file.name.toString() =~ /_TR.*/ }
-      // .map{ file -> tuple(get_TR_prefix(file), file) }
-      // .set{ trimming_inputs }
+    trimming_fastqs
+      .flatten()
+      .filter{ file -> file.name.toString() =~ /_TR.*/ }
+      .map{ file -> tuple(get_TR_prefix(file), file) }
+      .set{ trimming_inputs }
 
-    // no_trimming_fastqs
-      // .flatten()
-      // .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-      // .map{ file -> tuple(get_TNR_prefix(file), file) }
-      // .set{ no_trim_fastqs }
-  // }
+    no_trimming_fastqs
+      .flatten()
+      .filter{ file -> file.name.toString() =~ /_TNR.*/ }
+      .map{ file -> tuple(get_TNR_prefix(file), file) }
+      .set{ no_trim_fastqs }
+  }
 
-  // if (params.sample == "paired") {
+// Following block is untested
+  if (params.sample == "paired") {
 
-    // trimming_fastqs
-      // .flatten()
-      // .filter{ file -> file.name.toString() =~ /_TR.*/ }
-      // .toSortedList()
-      // .flatten()
-      // .map{ file -> tuple(get_TR_paired_prefix(file), file) }
-      // .groupTuple()
-      // .set{ trimming_inputs }
+    trimming_fastqs
+      .flatten()
+      .filter{ file -> file.name.toString() =~ /_TR.*/ }
+      .toSortedList()
+      .flatten()
+      .map{ file -> tuple(get_TR_paired_prefix(file), file) }
+      .groupTuple()
+      .set{ trimming_inputs }
 
-    // no_trimming_fastqs
-      // .flatten()
-      // .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-      // .toSortedList()
-      // .flatten()
-      // .map{ file -> tuple(get_TNR_paired_prefix(file), file) }
-      // .groupTuple()
-      // .set{ no_trim_fastqs }
-// }
+    no_trimming_fastqs
+      .flatten()
+      .filter{ file -> file.name.toString() =~ /_TNR.*/ }
+      .toSortedList()
+      .flatten()
+      .map{ file -> tuple(get_TNR_paired_prefix(file), file) }
+      .groupTuple()
+      .set{ no_trim_fastqs }
+} // finished ustested blocks
 
 /*
  * Step 2b: Trimming 
  */
 
-/* process sampleTrimming {
+//TODO (iaguilar): Not yet tested since no data with high adapter content has been found
+//TODO (iaguilar): run FASTQC on test data to see if it contains adapters not found due to list of adapter used by fastqc
+process sampleTrimming {
 
     echo true
     tag "Prefix: $trimming_prefix | Sample: [ $trimming_input ]"
-    publishDir "${params.basedir}/trimmed_fq",mode:'copy'
+    publishDir "${params.basedir}/trimmed_fq",'mode':'copy'
 
     input:
     set val(trimming_prefix), file(trimming_input) from trimming_inputs
@@ -1430,6 +1434,11 @@ if (params.sample == "single") {
     if (params.sample == "paired") {
         output_option = "${trimming_prefix}_trimmed_forward_paired.fastq.gz ${trimming_prefix}_trimmed_forward_unpaired.fastq.gz ${trimming_prefix}_trimmed_reverse_paired.fastq.gz ${trimming_prefix}_trimmed_reverse_unpaired.fastq.gz"
     }
+	// Here trimmomatic is hardcoded into the script
+	// THIS MUST BE DINAMYCALLY directed
+	// Or, since trimmo is java, we should provide a .jar file in the lieber repository as software
+	// Above depends on jar size
+	// PATH to ILLUMINACLIP is hardcoded too, should be configurable
     """
     java -Xmx512M \
     -jar /usr/local/bin/trimmomatic-0.36.jar \
@@ -1444,13 +1453,14 @@ if (params.sample == "single") {
     SLIDINGWINDOW:4:15 \
     MINLEN:75
     """
-} */
+} // finishes untested block
 
 /*
  * Step 2c: Run FastQC Quality Check on Trimmed Files
  */
 
-/* process sampleQualityTrimmed {
+// THE FOLLOWING BLOCK IS UNTESTED
+process sampleQualityTrimmed {
   
     echo true
     tag "$fastqc_trimmed_input"
@@ -1466,23 +1476,24 @@ if (params.sample == "single") {
     """
     fastqc $fastqc_trimmed_input --extract
     """
-} */
+} // finishes untested block
 
 /*
  * Step 3a: Hisat Sam File
  */
 
-/* if (params.sample == "single") {
+if (params.sample == "single") {
 
+//Here trimmed and not timmed data is mixed in a channel to ensure the flow of the pipeline
     trimmed_hisat_inputs
       .flatten()
       .map{ file -> tuple(get_single_trimmed_prefix(file), file) }
       .mix(no_trim_fastqs)
       .ifEmpty{ error "Single End Channel for HISAT is empty" }
-      .set{ single_hisat_inputs } */
+      .set{ single_hisat_inputs }
 
 
-/*     process sampleSingleEndHISAT {
+      process sampleSingleEndHISAT {
 
       echo true
       tag "Prefix: $single_hisat_prefix | Sample: $single_hisat_input"
@@ -1501,6 +1512,7 @@ if (params.sample == "single") {
       hisat_prefix = "${params.hisat_prefix}"
       strand = "${params.hisat_strand}"
       hisat_cores = "${params.hisat_cores}"
+	  // Phred Quality is hardcoded, if it will be so, it should be pointed in the README.md
       '''
       hisat2 \
       -p !{hisat_cores} \
@@ -1509,16 +1521,16 @@ if (params.sample == "single") {
       -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 \
       2> !{single_hisat_prefix}_align_summary.txt
       '''
-    } */
+    }
 
-/*     hisat_single_output
+    hisat_single_output
       .flatten()
       .map{ file -> tuple(get_hisat_prefix(file), file) }
       .set{ sam_to_bam_inputs }
-} */
+}
 
-
-/* if (params.sample == "paired") {
+// Bellow block is not tested yet
+if (params.sample == "paired") {
 
     no_trim_fastqs
       .set{ notrim_paired_hisat_inputs }
@@ -1560,16 +1572,16 @@ if (params.sample == "single") {
       !{unaligned_opt} \
       2> !{paired_notrim_hisat_prefix}_align_summary.txt
       '''
-    } */
+    } // finishes untested block
 
-/*     trimmed_hisat_inputs
+     trimmed_hisat_inputs
       .flatten()
       .map{ file -> tuple(get_paired_trimmed_prefix(file), file) }
       .groupTuple()
-      .set{ trim_paired_hisat_inputs } */
+      .set{ trim_paired_hisat_inputs }
 
-
-/*     process samplePairedEndTrimmedHISAT {
+// Bellow block is not tested yet
+     process samplePairedEndTrimmedHISAT {
 
       echo true
       tag "Prefix: $paired_trimmed_prefix | Sample: $paired_trimmed_fastqs"
@@ -1609,9 +1621,9 @@ if (params.sample == "single") {
       !{unaligned_opt} \
       2> !${paired_trimmed_prefix}_align_summary.txt
       '''
-    } */
-
-/*     hisat_paired_notrim_output
+    }
+// Bellow block is not tested yet
+     hisat_paired_notrim_output
       .mix(hisat_paired_trim_output)
       .flatten()
       .map{ file -> tuple(get_hisat_prefix(file), file) }
@@ -1621,7 +1633,7 @@ if (params.sample == "single") {
       .mix(paired_notrim_alignment_summaries)
       .flatten()
       .set{ alignment_summaries }
-} */
+}
 
 /*
  * Step 3b: Sam to Bam 
