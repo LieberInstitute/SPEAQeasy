@@ -1148,7 +1148,7 @@ if (params.ercc) {
     }
 }
 
-/* if (params.merge) {
+if (params.merge) {
 
     if (params.sample == "single") {
 
@@ -1197,17 +1197,17 @@ if (!params.merge) {
           .ifEmpty{ error "Could not Find Unmerged Untrimmed Paired Sample Files for FastQC"}
           .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
     }
-} */
+}
 
 /*
  * Step C1: Individual Sample Manifest
  */
 
-/* process sampleIndividualManifest {
+process sampleIndividualManifest {
 
     echo true
     tag "Individual Manifest: $manifest_samples $samples_prefix > samples.manifest.${samples_prefix}"
-    publishDir "${params.basedir}/manifest",mode:'copy'
+    publishDir "${params.basedir}/manifest",'mode':'copy'
 
     input:
     set val(samples_prefix), file(manifest_samples) from manifest_creation
@@ -1225,12 +1225,12 @@ individual_manifests
   .flatten()
   .collect()
   .set{ individual_manifest_files }
- */
+
 /*
  * Step C2: Sample Manifest
  */
 
-/* process sampleManifest {
+process sampleManifest {
 
     echo true
     tag "Aggregate Manifest: $individual_manifests > samples.manifest"
@@ -1247,13 +1247,13 @@ individual_manifests
     cat ${individual_manifests} > "samples.manifest"
     """
 }
- */
+
 /*
  * Step 1: Untrimmed Quality Report
  */
 
-/* process sampleQualityUntrimmed {
-  
+process sampleQualityUntrimmed {
+
     echo true
     tag "Prefix: $untrimmed_prefix | Sample: [ $fastqc_untrimmed_input ]"
     publishDir "${params.basedir}/FastQC/Untrimmed",mode:'copy'
@@ -1280,14 +1280,14 @@ individual_manifests
     $copy_command
     $data_command
     """
-} */
+}
 
 /*
  * Step 2a: Adaptive Trimming
  * Merge the quality reports channel and trimming input channels
  */
 
-/* if (params.sample == "single") {
+if (params.sample == "single") {
 
     quality_reports
       .flatten()
@@ -1300,7 +1300,7 @@ individual_manifests
 
       echo true
       tag "Prefix: $single_adaptive_prefix : Sample: [ $single_adaptive_fastq | $single_adaptive_summary ]"
-      publishDir "${params.basedir}/Adaptive_Trim",mode:'copy'
+      publishDir "${params.basedir}/Adaptive_Trim",'mode':'copy'
 
       input:
       set val(single_adaptive_prefix), file(single_adaptive_summary), file(single_adaptive_fastq) from adaptive_trimming_single_inputs
@@ -1312,7 +1312,7 @@ individual_manifests
       single_quality_report = single_adaptive_prefix.toString() + "_summary.txt"
       single_trimming_input = single_adaptive_prefix.toString() + ".fastq.gz"
       '''
-      export result=$(grep "Adapter Content" !{single_quality_report} | cut -c1-4)
+      export result=$(grep "Adapter Content" !{single_quality_report} | cut -f1)
       if [ $result == "FAIL" ] ; then
           mv !{single_trimming_input} "!{single_adaptive_prefix}_TR.fastq.gz"
       else
@@ -1320,7 +1320,7 @@ individual_manifests
       fi
       '''
     }
-} */
+}
 /* if (params.sample == "paired") {
 
     quality_reports
@@ -1363,8 +1363,8 @@ individual_manifests
       fi
       '''
     }
-}
- */
+} */
+
 /*
  * Modify the Trimming Input Channel 
  */
