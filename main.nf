@@ -475,7 +475,9 @@ infer_strandness = file("${params.scripts}/step3b_infer_strandness.R")
 prep_bed = file("${params.scripts}/prep_bed.R")
 bed_to_juncs = file("${params.scripts}/bed_to_juncs.py")
 fullCov_file = file("${params.scripts}/create_fullCov_object.R")
+//TODO(iaguilar) change _file for _script in the variable expressedRegions_file (###Dev)
 expressedRegions_file = file("${params.scripts}/step9-find_expressed_regions.R")
+check_R_packages_script = file("${params.scripts}/check_R_packages.R")
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define Reference Paths/Scripts + Reference Dependent Parameters
@@ -900,6 +902,7 @@ process buildPrepBED {
     val(gencode_gtf_bed_val) from gencode_gtf_trigger_bed
     file gencode_gtf from gencode_gtf
     file prep_bed from prep_bed
+	file check_R_packages_script from check_R_packages_script
 
     output:
     file("${name}.bed") into bedfile_built
@@ -907,7 +910,9 @@ process buildPrepBED {
     shell:
     name = "${params.reference}"
     '''
-    Rscript !{prep_bed} -f !{gencode_gtf} -n !{name}
+	## Run the script to check for missing rpackages
+	Rscript !{check_R_packages_script} \
+	&& Rscript !{prep_bed} -f !{gencode_gtf} -n !{name}
     '''
 }
 
