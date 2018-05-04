@@ -3,6 +3,7 @@
 *.nextflow/
 *pipeline_log/
 *work/
+*results/
 
 ## ignore big reference files
 Annotation/GENCODE/GRCh38_hg38/assembly/fa/*.fa
