@@ -1640,11 +1640,11 @@ if (params.sample == "paired") {
  */
 
 
-/* process sampleSamtoBam {
+process sampleSamtoBam {
 
     echo true
     tag "Prefix: $sam_to_bam_prefix | Sample: $sam_to_bam_input"
-    publishDir "${params.basedir}/HISAT2_out/sam_to_bam",mode:'copy'
+    publishDir "${params.basedir}/HISAT2_out/sam_to_bam",'mode':'copy'
 
     input:
     set val(sam_to_bam_prefix), file(sam_to_bam_input) from sam_to_bam_inputs
@@ -1658,20 +1658,20 @@ if (params.sample == "paired") {
     samtobam_cores = "${params.samtobam_cores}"
     """
     samtools view -bh -F 4 $sam_to_bam_input > $original_bam
-    samtools sort -@ $samtobam_cores $original_bam -o ${sorted_bam}.bam
+    samtools sort -T temporary -@ $samtobam_cores $original_bam -o ${sorted_bam}.bam
     samtools index ${sorted_bam}.bam
     """
-} */
+}
 
-/* infer_experiment_inputs
+infer_experiment_inputs
   .combine(bedfile)
-  .set{ infer_experiments } */
+  .set{ infer_experiments }
 
 /*
  * Step 3c: Infer Experiment
  */
 
-/* process sampleInferExperiment {
+process sampleInferExperiment {
 
     echo true
     tag "Prefix: $infer_prefix | Sample: $bam_file | Index: $bam_index"
@@ -1692,13 +1692,13 @@ if (params.sample == "paired") {
     1> !{infer_prefix}_experiment.txt \
     2> !{infer_prefix}_experiment_summary_out.txt
     '''
-} */
+}
 
-/* infer_experiment_outputs
+infer_experiment_outputs
   .collect()
   .flatten()
   .toSortedList()
-  .set{ infer_experiment_output } */
+  .set{ infer_experiment_output }
 
 /*
  * Step 3d: Infer Strandness
