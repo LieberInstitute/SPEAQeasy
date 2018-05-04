@@ -1053,7 +1053,7 @@ if (params.merge) {
 
         output:
         file "*.fastq.gz" into ercc_merged_inputs, fastqc_merged_inputs
-		
+
 		shell:
         '''
 		## Use of a local prefiz variable helps to avoid generating dump data in input dir due to fullpaths being captured by merging_prefix NF variable
@@ -1739,14 +1739,14 @@ process sampleFeatureCounts {
 
     echo true
     tag "Prefix: $feature_prefix | Sample: $feature_bam | Sample Index: $feature_index"
-    publishDir "${params.basedir}/Counts",mode:'copy'
+    publishDir "${params.basedir}/Counts",'mode':'copy'
 
     input:
     set val(feature_prefix), file(feature_bam), file(feature_index), file(gencode_gtf_feature) from feature_counts_inputs
 
     output:
     file "*"
-    file "*.counts" into sample_counts
+    file "*.counts*" into sample_counts
 
     script:
     if (params.sample == "single") {
@@ -1834,7 +1834,8 @@ process sampleJunctions {
  * Step 5a: Coverage
  */
 
-/* process sampleCoverage {
+//small_test does not pass to this stage because its infer strandness file returns "NA"
+process sampleCoverage {
 
     echo true
     tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
@@ -1863,13 +1864,13 @@ process sampleJunctions {
         python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "+-,-+"
     fi
     '''
-} */
+}
 
 /*
  * Step 5b: Wig to BigWig
  */
 
-/* process sampleWigToBigWig {
+process sampleWigToBigWig {
 
     echo true
     tag "Prefix: $wig_prefix | Sample: [ $wig_file ]"
@@ -1887,23 +1888,23 @@ process sampleJunctions {
     /usr/local/bin/wigToBigWig !{wig_file} !{chr_sizes} !{wig_prefix}.bw
     '''
 
-} */
+}
 
-/* coverage_bigwigs
+coverage_bigwigs
   .collect()
   .flatten()
   .toSortedList()
-  .into{ mean_coverage_bigwigs;full_coverage_bigwigs } */
+  .into{ mean_coverage_bigwigs;full_coverage_bigwigs }
 
 /*
  * Step 5c: Mean Coverage
  */
 
-/* process sampleMeanCoverage {
+process sampleMeanCoverage {
 
     echo true
     tag "Samples: [ $mean_coverage_bigwig ]"
-    publishDir "${params.basedir}/Coverage/mean",mode:'copy'
+    publishDir "${params.basedir}/Coverage/mean",'mode':'copy'
 
     input:
     file inferred_strand_file from inferred_strand_mean_coverage
@@ -1926,15 +1927,15 @@ process sampleJunctions {
         /usr/local/bin/wigToBigWig mean.reverse.wig !{chr_sizes} mean.reverse.bw
     fi
     '''
-} */
+}
 
 // for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true during Define Reference Paths/Scripts + Reference Dependent Parameters
-/* if (params.step6) { */
+if (params.step6) {
     /*
      * Step 6: txQuant
      */
 
-/*     process sampleTXQuant {
+     process sampleTXQuant {
 
         echo true
         tag "Prefix: $salmon_input_prefix | Sample: [ $salmon_inputs ]"
@@ -1962,6 +1963,7 @@ process sampleJunctions {
             if (params.strand == "reverse" )
                 salmon_strand = "SR"
             }
+		// needs testing for paired
         if (params.sample == "paired") {
             sample_command = "-1 ${salmon_input_prefix}_1.fastq.gz -2 ${salmon_input_prefix}_2.fastq.gz"
             if (params.strand == "unstranded" ) {
@@ -1973,8 +1975,8 @@ process sampleJunctions {
             if (params.strand == "reverse" ) {
                 salmon_strand = "ISR"
             }
-        } */
-/*         '''
+        }
+        '''
         mkdir !{salmon_index_prefix}
         cp !{salmon_index} !{salmon_index_prefix}/.
         salmon quant \
@@ -1986,28 +1988,28 @@ process sampleJunctions {
         cp !{salmon_input_prefix}/quant.sf !{salmon_input_prefix}_quant.sf
         '''
     }
-} */
+}
 
 /*
  * Construct the Counts Objects Input Channel
  */
 
-
-/* count_objects_bam_files
+count_objects_bam_files // this puts sorted.bams and bais into the channel
   .flatten()
   .buffer(size:2,skip:1)
   .flatten()
-  .mix(count_objects_quality_reports)
-  .mix(count_objects_quality_metrics)
-  .mix(alignment_summaries)
-  .mix(create_counts_gtf)
-  .mix(sample_counts)
+  .mix(count_objects_quality_reports) //this puts sample_XX_summary.txt files into the channel
+  .mix(count_objects_quality_metrics) // this puts sample_XX_fastqc_data.txt into the channel
+  .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
+  .mix(create_counts_gtf) // this puts gencode.v25.annotation.gtf file into the channel
+  .mix(sample_counts) // !! this one puts sample_05_Gencode.v25.hg38_Exons.counts and sample_05_Gencode.v25.hg38_Genes.counts into the channel
+	// sample_counts channel should include counts summary files??
   .collect()
   .flatten()
   .toSortedList()
-  .set{ counts_objects_channel } */
+  .set{ counts_objects_channel }
 
-/* if (params.reference_type == "human" || params.reference_type == "mouse") {
+if (params.reference_type == "human" || params.reference_type == "mouse") {
 
     counts_objects_channel
       .mix(salmon_quants)
@@ -2037,28 +2039,29 @@ if (!params.ercc) {
       .flatten()
       .toSortedList()
       .set{ counts_inputs }
-} */
+}
 
 
 /*
  * Construct the Annotation Input Channel
  */
 
-/* junction_annotation_ensembl
+junction_annotation_ensembl
   .collect()
   .flatten()
   .toSortedList()
-  .set{rat_annotations} */
+  .set{rat_annotations}
 
-/* if (params.reference_type == "rat") {
+if (params.reference_type == "rat") {
     rat_annotations
       .collect()
       .flatten()
       .toSortedList()
       .set{counts_annotations}
-} */
+}
 
-/* if(params.reference_type != "rat") {
+//TODO (iaguilar:) Check why rat has its own object (and it says mouse...
+if(params.reference_type != "rat") {
 
     rat_annotations
       .mix(junction_annotation_gencode)
@@ -2085,13 +2088,13 @@ if(params.reference_type == "human") {
       .flatten()
       .toSortedList()
       .set{counts_annotations}
-} */
+}
 
 /*
  * Step 7a: Create Count Objects
  */
 
-/* process sampleCreateCountObjects {
+process sampleCreateCountObjects {
 
     echo true
     tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
@@ -2103,6 +2106,7 @@ if(params.reference_type == "human") {
     file create_counts from create_counts
     file ercc_actual_conc from ercc_actual_conc
     file counts_sample_manifest from counts_samples_manifest
+	file check_R_packages_script from check_R_packages_script
 
     output:
     file "*"
@@ -2135,9 +2139,11 @@ if(params.reference_type == "human") {
     counts_prefix = "${params.experiment_prefix}"
     counts_dir = "./"
     '''
-    Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
+	## Run the script to check for missing rpackages
+	Rscript !{check_R_packages_script} \
+    && Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
     '''
-} */
+}
 
 /* if (params.fullCov) {
 
