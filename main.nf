@@ -1704,15 +1704,16 @@ infer_experiment_outputs
  * Step 3d: Infer Strandness
  */
 
-/* process sampleInferStrandness {
+process sampleInferStrandness {
 
     echo true
     tag "Sample: $infer_experiment_files"
-    publishDir "${params.basedir}/HISAT2_out/infer_strandness/",mode:'copy'
+    publishDir "${params.basedir}/HISAT2_out/infer_strandness/",'mode':'copy'
 
     input:
     file infer_strandness from infer_strandness
     file infer_experiment_files from infer_experiment_output
+	file check_R_packages_script from check_R_packages_script
 
     output:
     file "*"
@@ -1721,19 +1722,20 @@ infer_experiment_outputs
     shell:
     inferred_strandness_pattern = "inferred_strandness_pattern.txt"
     '''
-    Rscript !{infer_strandness} -p !{inferred_strandness_pattern}
+	Rscript !{check_R_packages_script} \
+    && Rscript !{infer_strandness} -p !{inferred_strandness_pattern}
     '''
-} */
+}
 
-/* feature_bam_inputs
+feature_bam_inputs
   .combine(gencode_feature_gtf)
-  .set{ feature_counts_inputs } */
+  .set{ feature_counts_inputs }
 
 /*
  * Step 4a: Feature Counts
  */
 
-/* process sampleFeatureCounts {
+process sampleFeatureCounts {
 
     echo true
     tag "Prefix: $feature_prefix | Sample: $feature_bam | Sample Index: $feature_index"
@@ -1775,17 +1777,17 @@ infer_experiment_outputs
     -o ${feature_out}_Exons.counts \
     $feature_bam
     """
-} */
+}
 
 /*
  * Step 4b: Primary Alignments
  */
 
-/* process samplePrimaryAlignments {
+process samplePrimaryAlignments {
 
     echo true
     tag "Prefix: $alignment_prefix | Sample: [ $alignment_bam ]"
-    publishDir "${params.basedir}/Counts/junction/primary_aligments",mode:'copy'
+    publishDir "${params.basedir}/Counts/junction/primary_aligments",'mode':'copy'
 
     input:
     set val(alignment_prefix), file(alignment_bam), file(alignment_index) from alignment_bam_inputs
@@ -1799,17 +1801,17 @@ infer_experiment_outputs
     samtools view -@ $alignments_cores -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
     samtools index ${alignment_prefix}.bam
     """
-} */
+}
 
 /*
  * Step 4c: Junctions
  */
 
-/* process sampleJunctions {
+process sampleJunctions {
 
     echo true
     tag "Prefix: $junction_prefix | Sample: [ $alignment_bam ]"
-    publishDir "${params.basedir}/Counts/junction",mode:'copy'
+    publishDir "${params.basedir}/Counts/junction",'mode':'copy'
 
     input:
     file bed_to_juncs from bed_to_juncs
@@ -1826,7 +1828,7 @@ infer_experiment_outputs
     regtools junctions extract -i 9 -o !{outjxn} !{alignment_bam}
     python !{bed_to_juncs} < !{outjxn} > !{outcount}
     '''
-} */
+}
 
 /*
  * Step 5a: Coverage
