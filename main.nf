@@ -1049,7 +1049,6 @@ if (params.merge) {
         publishDir "${params.basedir}/merged_fastq",'mode':'copy'
 
         input:
-		// the input file(unmerged_pair seems to only pass one file to the work dir, even though it performs the merge successfully since it uses fullpaths)
         set val(merging_prefix), file(unmerged_pair) from unmerged_pairs
 
         output:
@@ -1072,7 +1071,7 @@ if (params.merge) {
  * Step B: Run the ERCC process if the --ercc flag is specified
  */
 
-/* if (params.ercc) {
+if (params.ercc) {
 
     if (params.merge) {
 
@@ -1123,31 +1122,31 @@ if (params.merge) {
               .ifEmpty{ error "Could not Find Unmerged Sample Files for ERCC"}
               .set{ ercc_inputs }
         }
-    } */
+    }
 
-/*     process sampleERCC {
-     
+     process sampleERCC {
+
         echo true
         tag "Prefix: $ercc_prefix | Sample: [ $ercc_input ]"
-        publishDir "${params.basedir}/ercc/${ercc_prefix}",mode:'copy'
+        publishDir "${params.basedir}/ercc/${ercc_prefix}",'mode':'copy'
 
         input:
         file erccidx from erccidx
         set val(ercc_prefix), file(ercc_input) from ercc_inputs
 
         output:
-        file "*"
+//        file "*_abundance.tsv" into ercc_abundances
         file("${ercc_prefix}_abundance.tsv") into ercc_abundances
 
         script:
         ercc_cores = "${params.ercc_cores}"
         strand_option = "${params.kallisto_strand}"
         """
-        kallisto quant -i $erccidx -t $ercc_cores -o . $strand_option $ercc_input
-        cp abundance.tsv ${ercc_prefix}_abundance.tsv
+        kallisto quant -i $erccidx -t $ercc_cores -o . $strand_option $ercc_input \
+		&& cp abundance.tsv ${ercc_prefix}_abundance.tsv
         """
     }
-} */
+}
 
 /* if (params.merge) {
 
