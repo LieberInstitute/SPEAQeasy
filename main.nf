@@ -1819,7 +1819,8 @@ process sampleJunctions {
 
     output:
     file "*"
-    file("*.count")
+    file("*.count") into regtools_outputs
+	// needs to pass the count files to a channel
 
     shell:
     outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
@@ -2003,7 +2004,7 @@ count_objects_bam_files // this puts sorted.bams and bais into the channel
   .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
   .mix(create_counts_gtf) // this puts gencode.v25.annotation.gtf file into the channel
   .mix(sample_counts) // !! this one puts sample_05_Gencode.v25.hg38_Exons.counts and sample_05_Gencode.v25.hg38_Genes.counts into the channel
-	// sample_counts channel should include counts summary files??
+  .mix(regtools_outputs) // !! this one includes the missing *_junctions_primaryOnly_regtools.count files for the sampleCreateCountObjects process
   .collect()
   .flatten()
   .toSortedList()
@@ -2093,12 +2094,13 @@ if(params.reference_type == "human") {
 /*
  * Step 7a: Create Count Objects
  */
-
+// Rscript searches for *_junctions_primaryOnly_regtools.count files
+// said files does not seem to be in the input channel
 process sampleCreateCountObjects {
 
     echo true
     tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
-    publishDir "${params.basedir}/Count_Objects",mode:'copy'
+    publishDir "${params.basedir}/Count_Objects",'mode':'copy'
 
     input:
     file counts_input from counts_inputs
