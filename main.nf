@@ -1675,7 +1675,7 @@ process sampleInferExperiment {
 
     echo true
     tag "Prefix: $infer_prefix | Sample: $bam_file | Index: $bam_index"
-    publishDir "${params.basedir}/HISAT2_out/infer_experiment",mode:'copy'
+    publishDir "${params.basedir}/HISAT2_out/infer_experiment",'mode':'copy'
 
     input:
     set val(infer_prefix), file(bam_file), file(bam_index), file(bed_file) from infer_experiments
