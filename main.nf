@@ -741,10 +741,7 @@ Channel
 // Use the number of fa files in the reference directory to set the aseembly channel, efectively skipping this step when running the pipeline
 // If the count of files in the assembly_fa_trigger is more than zero, the assembly_fa_download channel wont be set
 // else assembly_fa_download channel is set, and pipeline starts by downloading the ref genome
-assembly_fa_trigger
-	.count()
-	.filter{ it == 0 }
-	.set{ assembly_fa_download }
+assembly_fa_trigger.count().filter{ it == 0 }.set{ assembly_fa_download }
 
 process pullGENCODEassemblyfa {
 
@@ -896,7 +893,7 @@ process buildPrepBED {
 
     echo true
     tag "Building Bed File: ${params.reference}"
-    publishDir "${params.gencode_gtf_out}/bed",mode:'copy'
+    publishDir "${params.gencode_gtf_out}/bed",'mode':'copy'
 
     input:
     val(gencode_gtf_bed_val) from gencode_gtf_trigger_bed
@@ -912,30 +909,40 @@ process buildPrepBED {
     '''
 	## Run the script to check for missing rpackages
 	Rscript !{check_R_packages_script} \
-	&& Rscript !{prep_bed} -f !{gencode_gtf} -n !{name}
+	&& Rscript !{prep_bed} -f !{gencode_gtf} -n !{name} \
+	// does the resulting bed it need to have permissions 775?
+	// currently it is created with 664 (-rw-rw-r--)
     '''
 }
 
-/* Channel
+// Read the bed file from path, and/or mix with the channel output from the bedfile_built process
+// This effectively means that whether the bed was created in this run or it was already present, the flow can continue
+Channel
   .fromPath("${params.gencode_gtf_out}/bed/*")
   .mix(bedfile_built)
   .toSortedList()
   .flatten()
   .distinct()
-  .set{ bedfile } */
+  .set{ bedfile }
 
-/* if (params.step6) {
+// for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true 
+// during Define Reference Paths/Scripts + Reference Dependent Parameters
+if (params.step6) {
 
     params.salmon_idx_output = "${params.index_out}/${params.salmon_assembly}"
- */
+
     /*
      * Step IIIa: GENCODE TX FA Download
      */
 
-/*     Channel
+	// get the number of *fa files in the reference directory
+     Channel
       .fromPath("${params.salmon_idx_output}/fa/*.fa")
       .set{ transcript_fa_download }
 
+	// Use the number of fa files in the reference directory to set the aseembly channel, efectively skipping this step when running the pipeline
+	// If the count of files in the transcript_download_trigger is more than zero, the transcript_download channel wont be set
+	// else transcript_download channel is set, and pipeline starts by downloading the ref transcriptome
     transcript_fa_download.count().filter{ it == 0 }.set{ transcript_download_trigger }
 
     process pullGENCODEtranscripts {
@@ -949,7 +956,7 @@ process buildPrepBED {
 
         output:
         file("${params.tx_fa}") into tx_fa_downloaded
-
+		//TODO (iaguilar) put shell code in same style as for fasta reference download (Dev ###)
         script:
         tx_fa_link = "${params.tx_fa_link}"
         tx_fa_gz = "${params.tx_fa_gz}"
@@ -959,23 +966,29 @@ process buildPrepBED {
         gunzip $tx_fa_gz
         """
     }
- */
-/*     Channel
+
+	// Read the salmon reference from path, and/or mix with the channel output from the pullGENCODEtranscripts process
+	// This effectively means that whether the reference was created or it was already present, the flow can continue
+     Channel
       .fromPath("${params.salmon_idx_output}/fa/${params.tx_fa}")
       .mix(tx_fa_downloaded)
       .toSortedList()
       .flatten()
       .distinct()
       .set{ transcript_fa }
- */
+
     /*
      * Step IIIb: Salmon Transcript Build
      */
 
-/*     Channel
+	// get the number of * files in the reference directory
+     Channel
       .fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
       .set{ salmon_build_trigger }
 
+	// Use the number of files in the reference directory to set the salmon trigger channel
+	// If the count of files in the salmon_build_trigger is more than zero, the transcript_download channel wont be set
+	// else transcript_download channel is set, and pipeline starts by downloading the ref transcriptome
     salmon_build_trigger.count().filter{ it == 0 }.set{ salmon_trigger_build}
 
     process buildSALMONindex {
@@ -993,12 +1006,16 @@ process buildPrepBED {
 
         script:
         salmon_idx = "${params.salmon_prefix}"
+		// in the code execution, -p option is hardcoded to 1 thread
+	// TODO (iaguilar): make thread assignation dynamic by using a configurable variable
         """
         salmon index -t $tx_file -i $salmon_idx -p 1 --type quasi -k 31
         """
-    } */
+    }
 
-/*     Channel
+	// Read the salmon index from path, and/or mix with the channel output from the buildSALMONindex process
+	// This effectively means that whether the index was created or it was already present, the flow can continue
+     Channel
       .fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
       .mix(salmon_index_built)
       .toSortedList()
@@ -1006,13 +1023,15 @@ process buildPrepBED {
       .distinct()
       .toSortedList()
       .set{ salmon_index }
-} */
+}
 
 /*
  * Step A: Run Sample Merging if --merge is specified
  */
 
-/* if (params.merge) {
+// If the --merged flag was used, this block performs fastq.gz file merging
+// currently not working, requires testing and debugging
+if (params.merge) {
 
     Channel
       .fromPath("${params.inputs}/*.fastq.gz")
@@ -1023,28 +1042,31 @@ process buildPrepBED {
       .ifEmpty{ error "Could not find file pairs for merging"}
       .set{ unmerged_pairs }
 
-    process sampleMerging {
-      
+      process sampleMerging {
+
         echo true
         tag "prefix: $merging_prefix | Sample Pair: [ $unmerged_pair ]"
-        publishDir "${params.basedir}/merged_fastq",mode:'copy'
+        publishDir "${params.basedir}/merged_fastq",'mode':'copy'
 
         input:
+		// the input file(unmerged_pair seems to only pass one file to the work dir, even though it performs the merge successfully since it uses fullpaths)
         set val(merging_prefix), file(unmerged_pair) from unmerged_pairs
 
         output:
         file "*.fastq.gz" into ercc_merged_inputs, fastqc_merged_inputs
-
-        script:
-        read1 = "${merging_prefix}_read1.fastq"
-        read2 = "${merging_prefix}_read2.fastq"
-        """
-        gunzip $unmerged_pair
-        cat $read1 $read2 > ${merging_prefix}.fastq
-        gzip ${merging_prefix}.fastq
-        """
+		
+		shell:
+        '''
+		## Use of a local prefiz variable helps to avoid generating dump data in input dir due to fullpaths being captured by merging_prefix NF variable
+		local_prefix=`echo !{merging_prefix} | rev | cut -d "/" -f1 | rev`
+		## To follow illumina naming conventions,_read1 and _read2 will be changed to R1 and R2
+		read1="${local_prefix}_read1.fastq.gz"
+		read2="${local_prefix}_read2.fastq.gz"
+        zcat "${read1}" "${read2}" \
+		| gzip -c > "${local_prefix}.fastq.gz"
+        '''
     }
-} */
+}
 
 /*
  * Step B: Run the ERCC process if the --ercc flag is specified
@@ -1893,6 +1915,7 @@ individual_manifests
     '''
 } */
 
+// for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true during Define Reference Paths/Scripts + Reference Dependent Parameters
 /* if (params.step6) { */
     /*
      * Step 6: txQuant
