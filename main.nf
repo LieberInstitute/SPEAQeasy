@@ -2147,7 +2147,7 @@ process sampleCreateCountObjects {
     '''
 }
 
-/* if (params.fullCov) {
+if (params.fullCov) {
 
     full_coverage_bams
       .flatten()
@@ -2157,7 +2157,7 @@ process sampleCreateCountObjects {
       .collect()
       .flatten()
       .toSortedList()
-      .set{ full_coverage_inputs } */
+      .set{ full_coverage_inputs }
   
     /*
      * Step 7b: Create Full Coverage Objects
