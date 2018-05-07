@@ -12,4 +12,9 @@ Annotation/RSeQC/hg38/gtf/gencode.v25.annotation.gtf
 Annotation/GENCODE/GRCh38_hg38/transcripts/fa/gencode.v25.transcripts.fa
 Annotation/GENCODE/GRCh38_hg38/transcripts/salmon/salmon_0.8.2_index_gencode.v25.transcripts/
 
-##TODO(iaguilar) add the big reference files downloaded by the pipeline due to big sizes
+## diagnostic html report and png flowcharts produced by the NF tes run
+report.html*
+flowchart.png*
+
+## backup stuff
+*.bkp
