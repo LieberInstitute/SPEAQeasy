@@ -1,0 +1,20 @@
+## ignore local files from local executions
+*nextflow.log*
+*.nextflow/
+*pipeline_log/
+*work/
+*results/
+
+## ignore big reference files
+Annotation/GENCODE/GRCh38_hg38/assembly/fa/*.fa
+Annotation/GENCODE/GRCh38_hg38/assembly/index/*.ht2
+Annotation/RSeQC/hg38/gtf/gencode.v25.annotation.gtf
+Annotation/GENCODE/GRCh38_hg38/transcripts/fa/gencode.v25.transcripts.fa
+Annotation/GENCODE/GRCh38_hg38/transcripts/salmon/salmon_0.8.2_index_gencode.v25.transcripts/
+
+## diagnostic html report and png flowcharts produced by the NF tes run
+report.html*
+flowchart.png*
+
+## backup stuff
+*.bkp

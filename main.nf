@@ -3,11 +3,11 @@
 vim: syntax=groovy
 -*- mode: groovy;-*-
 ===================================================================================================================================
-                       M A C U A H U I T L     R N A - S E Q     A N A L Y S I S     P I P E L I N E  
+                       LIEBER INSTITUTE JAFFE-LAB     R N A - S E Q     A N A L Y S I S     P I P E L I N E  
 ===================================================================================================================================
  RNA-Seq Multi-Input Analysis Pipeline. Nextflow Version: Started December 2017.
  #### Homepage / Documentation
- https://bitbucket.org/wintergenomics/rnaseq-pipeline
+ https://github.com/LieberInstitute/RNAsp
  #### Authors
  ##### Original Pipeline
  Emily Burke <address@email.com>
@@ -16,6 +16,8 @@ vim: syntax=groovy
  BaDoi Phan <address@email.com>
  ##### Nextflow Version
  Jacob Leonard <leonard.jacob09@gmail.com>
+ Israel Aguilar <iaguilaror@gmail.com>
+ Violeta Larios <siedracko@gmail.com>
  ###### References
  https://github.com/SciLifeLab/NGI-smRNAseq
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -60,7 +62,7 @@ vim: syntax=groovy
 def helpMessage() {
     log.info"""
     =============================================================
-     MACUAHUITL-RNAseq : RNA-Seq Multi-Input Analysis v${version}
+     LIEBER INSTITUTE JAFFE-LAB RNA-seq : RNA-Seq Multi-Input Analysis v${version}
     =============================================================
     Usage:
     The typical command for running the pipeline is as follows:
@@ -76,7 +78,7 @@ def helpMessage() {
 
     nextflow run main.nf {CORE} {OPTIONS}
          {CORE}:
-            --sample "single/paired"  --strand "forward"/"reverse/unstranded"
+            --sample "single/paired"
               single <- reads files individually "*"
               paired <- reads files paired "*_{1,2}"
             --reference
@@ -84,15 +86,18 @@ def helpMessage() {
               hg19 <- uses human reference hg19
               mm10 <- uses mouse reference mm10
               rn6  <- uses rat reference rn6
-            --strand
+	    --strand "forward"/"reverse"/"unstranded"
               forward <- uses forward stranding
               reverse <- uses reverse stranding
               unstranded <- uses pipeine inferencing
          {OPTIONS}:
-            --merge <- assumes files are compressed "*_read{1,2}.fastq.gz"
+            --merge <- assumes fastq.gz files require merging "*_read{1,2}.fastq.gz"
+	##TODO(iaguilar): Check that THIS IS what --merge means (Docummentation ######)
             --ercc  <- performs ercc quantification
             --fullCov <- performs fullCov R analysis
+	    --help <- shows this message
              etc...
+	##TODO(iaguilar): Finish the brief help descriptors (Docummentation ######)
     
     Mandatory Options:
     -----------------------------------------------------------------------------------------------------------------------------------
@@ -122,19 +127,24 @@ def helpMessage() {
     --indexing                    Path to the base directory containing pipeline indexes. Defaults to --annotation path
     -----------------------------------------------------------------------------------------------------------------------------------
     --genotype                    Path to the folder containing pipeline genotypes. Defaults to "./Genotyping"
+	##TODO(iaguilar): Expand genotype description. what are they used for? (Docummentation ######)
     -----------------------------------------------------------------------------------------------------------------------------------
     --email                       Parameter to get a summary e-mail with details of the run sent to you when the workflow exits
+	##TODO(iaguilar): Check if this works for failed executions (Docummentation ######)
     -----------------------------------------------------------------------------------------------------------------------------------
     --name                        Name for the pipeline run. If not specified, name is set to experiment
+	##TODO(iaguilar): What is this used for? (Docummentation ######)
     -----------------------------------------------------------------------------------------------------------------------------------
-    --ercc                        Flag for ERCC quantification with Kallisto
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --fullCov                     Full coverage in step 7b
+    --ercc                        Flag to enable ERCC quantification with Kallisto
     -----------------------------------------------------------------------------------------------------------------------------------
     --k_lm                        Kallisto ERCC Length Mean Value for Single End Reads (defaults to 200)
     -----------------------------------------------------------------------------------------------------------------------------------
     --k_sd                        Kallisto ERCC Standard Deviation Value for Single End Reads (defaults to 30)
     -----------------------------------------------------------------------------------------------------------------------------------
+    --fullCov                     Flag to perform full coverage in step 7b
+    -----------------------------------------------------------------------------------------------------------------------------------
+#################
+	##TODO(iaguilar): change this commands to perform quick tests on every posible version of the input data (maybe a quick human test, and a whole species tests)(Docummentation ######)
     --small_test                  Runs the pipeline as a small test run on sample files located in the test folder
     -----------------------------------------------------------------------------------------------------------------------------------
     --test                        Runs the pipeline as a test run on sample files located on winter server 
@@ -146,9 +156,9 @@ def helpMessage() {
  */
 
 // Pipeline version
-version = 1.0
+version = "0.7.1"
 
-// Show help emssage
+// Show help message
 params.help = false
 if (params.help){
     helpMessage()
@@ -187,6 +197,9 @@ params.genotype = false
 params.output = false
 params.email = false
 params.name = false
+//##TODO(iaguilar): what is params raw? not described in documentation (Doc ######)
+//##TODO(iaguilar): raw seems to mean that data requires trimming (Doc ######)
+//##TODO(iaguilar): since the pipeline can detect if trimming is necessary, there should not be an option to direct trimming  (Doc ######)
 params.raw = false
 params.ercc = false
 params.fullCov = false
@@ -194,11 +207,14 @@ params.test = false
 params.small_test = false
 params.k_lm = false
 params.k_sd = false
+//##TODO(iaguilar): Check that no parameter definition is missing (Dev ######)
+//  ##TODO(iaguilar): seems that params.scripts is missing (Dev ######)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validate Inputs
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//##// MANDATORY PARAMS BLOCK
 // Sample Selection Validation
 if (!params.sample || (params.sample != "single" && params.sample != "paired")) {
     exit 1, "Sample Type Not Provided or Invalid Choice. Please Provide a Valid Sample Type"
@@ -223,6 +239,7 @@ if (params.reference == "rn6") {
     params.reference_type = "rat"
 }
 
+//##// OPTIONAL PARAMS BLOCK
 // Annotation Path Validation
 if (!params.annotation) {
     params.annotations = "./Annotation"
@@ -241,41 +258,45 @@ if (!params.genotype) {
 // Experiment/Workflow Name Validation
 if (!params.name) {
     if (!params.experiment) {
-        workflow.runName = "Extravaganza"
-        params.experiments = "Crystalized"
+        workflow.runName = "RNAsp_run"
+        params.experiments = "Jlab_experiment"
     }
     if (params.experiment) {
-        params.experiments = params.experiment
         workflow.runName = params.experiment
+        params.experiments = params.experiment
     }
 }
 
 // Prefix
 if (!params.prefix) {
-    params.experiment_prefix = "Yas"
+    params.experiment_prefix = "pref"
 }
 if (params.prefix) {
-    params.experiment_prefix = "Yas"
+    params.experiment_prefix = params.prefix
+//  params.experiment_prefix = "Yas"
 }
 
 // External Script Path Validation
+//##TODO(iaguilar): This param was not defined neither in help nor in the variable definition block (Dev ######)
+//##TODO(iaguilar): Comment in original devp was: "It's the directory where the shell files are located at. You only need to specify it if you cloned this repository somewhere else"; since this scripts folder will be versioned with the NF pipeline, there is no need to allow it to be on another directory (Dev ######)
+//##TODO(iaguilar): remove this param? only if it is not used by any block, may be replaced by a good old variable to construct paths for script execution (Dev ######)
 params.scripts = "./scripts"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Core Options
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//##TODO(iaguilar): Add brief descriptions for what are the cores used (parallelization level, by sample, by chunck, etc) (Doc ######)
 params.cores = '1'
-params.ercc_cores = '8'
-params.trimming_cores = '8'
-params.hisat_cores = '8'
-params.samtobam_cores = '8'
-params.featurecounts_cores = '8'
-params.alignments_cores = '8'
-params.salmon_cores = '8'
-params.counts_cores = '5'
-params.coverage_cores = '5'
-params.expressedregion_cores = '8'
+params.ercc_cores = '1'
+params.trimming_cores = '1'
+params.hisat_cores = '1'
+params.samtobam_cores = '1'
+params.featurecounts_cores = '1'
+params.alignments_cores = '1'
+params.salmon_cores = '1'
+params.counts_cores = '1'
+params.coverage_cores = '1'
+params.expressedregion_cores = '1'
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -283,25 +304,35 @@ params.expressedregion_cores = '8'
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Base Input Path Options
+//##TODO(iaguilar): Explain how the input files must be ordered or located inside the input data directory (Doc ######)
+//##TODO(iaguilar): INCLUDE IN THE README: a tree with file strcture description (Doc ######)
 if (!params.input && !params.test && !params.small_test) {
     if (params.input) {
         params.inputs = "${params.input}"
     }
     else {
-        params.inputs = "./inputs"
+        params.inputs = "./input"
+// originally was        params.inputs = "./inputs"
+// but it does not seem to be a "inputs" dir in the repo, only "input", without the s
     }
 }
 
 // Testing Paths for Rat
+//##TODO(iaguilar): Complete with data for rat, by vlarios (Dev ######)
 if (params.reference_type == "rat") {
     exit 1, "There are no sample files for rat. Please add sample files and then run again"
 }
 
 // Real File Test Paths (Human & Mouse)
+//##TODO(iaguilar): This could change to a general test param that runs on every species and genome version (Dev ######)
 if (params.test && !params.small_test) {
     if (params.reference_type == "mouse") {
         params.inputs = "/media/genomics/disco3/dataLieber/raw/${params.reference_type}/${params.sample}"
     }
+//##TODO(iaguilar): Check what does raw mean (Dev ######)
+//##TODO(iaguilar): It means data in need of trimming (Dev ######)
+//##TODO(iaguilar): These paths should point to the test data created by Lieber or vlarios (Dev ######)
+//##TODO(iaguilar): A minimal test-data directory should be versionated with the pipeline (Dev ######)
     if (params.reference_type == "human") {
         if (params.raw) {
             params.inputs = "/media/genomics/disco3/dataLieber/raw/human/paired"
@@ -313,6 +344,8 @@ if (params.test && !params.small_test) {
 }
 
 // Dummy File Test Paths
+//##TODO(iaguilar): this seems to complex to have to specifiy the test and the type of stranded data (Dev ######)
+//##TODO(iaguilar): One or two test runs with multiple species, genome versions, and minimal data should be defined in a single flag (like: "quick_test" and "full_test"  (Dev ######)
 if (params.small_test && !params.test) {
     if (params.strand != "unstranded") {
         if (params.merge) {
@@ -333,6 +366,7 @@ if (params.small_test && !params.test) {
 }
 
 // Conflicting Test Options
+//##TODO(iaguilar): Modify for quick_test vs full_test (Dev ######)
 if (params.small_test && params.test) {
     exit 1, "You've selected 'small_test' and 'test' ... Please choose one and run again"
 }
@@ -341,6 +375,7 @@ if (params.small_test && params.test) {
 // Strand Option Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//##TODO(iaguilar): Check if kallisto parameters belong on the stranded option params block, or deserve their own block (Doc ######)
 if (!params.k_lm) {
     params.k_length_mean = 200
 }
@@ -353,7 +388,7 @@ if (params.k_lm){
 if (params.k_sd) {
     params.k_standard_deviation = params.k_sd
 }
-
+//##TODO(iaguilar): Expand what is every param used for and why is this value assigned (Doc ######)
 if (params.strand == "unstranded") {
     if (params.sample == "single") {
         params.kallisto_strand = "--single -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
@@ -404,10 +439,13 @@ if (params.strand == "reverse") {
 
 if (params.output) {
     params.basedir = "${params.output}"
+//##TODO(iaguilar): Check if this is necessary or it is best to manage the ./Annotations dir by default (Dev ######)
     params.index_out = "${params.annotations}"
 }
 if (!params.output) {
+//##TODO(iaguilar): What is params.production_baseout used for? (Doc ######)
     params.production_baseout = "."
+//##TODO(iaguilar): What is params.test_baseout used for? (Doc ######)
     params.test_baseout = "."
     if (params.test) {
         params.index_out = "${params.test_baseout}/Annotation"
@@ -424,7 +462,7 @@ if (!params.output) {
             params.basedir = "${params.production_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}/merge"
         }
         if (!params.merge) {
-            params.basedir = "${params.production_baseout}/results/${params.reference_type}/params.reference}${params.sample}"
+		params.basedir = "${params.production_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}"
         }
     }
 }
@@ -432,12 +470,14 @@ if (!params.output) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define External Scripts
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//##TODO(iaguilar): This should live in an external config file... (Dev ######)
 infer_strandness = file("${params.scripts}/step3b_infer_strandness.R")
 prep_bed = file("${params.scripts}/prep_bed.R")
 bed_to_juncs = file("${params.scripts}/bed_to_juncs.py")
 fullCov_file = file("${params.scripts}/create_fullCov_object.R")
+//TODO(iaguilar) change _file for _script in the variable expressedRegions_file (###Dev)
 expressedRegions_file = file("${params.scripts}/step9-find_expressed_regions.R")
+check_R_packages_script = file("${params.scripts}/check_R_packages.R")
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define Reference Paths/Scripts + Reference Dependent Parameters
@@ -454,6 +494,7 @@ ercc_actual_conc = file("${params.annotations}/ercc_actual_conc.txt")
 if (params.reference == "hg38") {
     
     // Step 3: hisat2
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz"
     params.fa_gz = "GRCh38.primary_assembly.genome.fa.gz"
     params.fa = "GRCh38.primary_assembly.genome.fa"
@@ -461,17 +502,21 @@ if (params.reference == "hg38") {
     params.hisat_assembly = "GENCODE/GRCh38_hg38/assembly"
 
     // Step 4: gencode gtf
+//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz"
     params.gencode_gtf_gz = "gencode.v25.annotation.gtf.gz"
     params.gencode_gtf = "gencode.v25.annotation.gtf"
     params.feature_output_prefix = "Gencode.v25.hg38"
 
     // Step 5: python coverage
+//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
     chr_sizes = file("${params.annotations}/chrom_sizes/hg38.chrom.sizes.gencode")
 
     // Step 6: salmon
+//##TODO(iaguilar): Explain why step 6 is enabled if reference is hg38...  (Doc ######)
     params.step6 = true
-    params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v27.transcripts.fa.gz"
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
+    params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
     params.tx_fa_gz = "gencode.v25.transcripts.fa.gz"
     params.tx_fa = "gencode.v25.transcripts.fa"
     params.salmon_prefix = "salmon_0.8.2_index_gencode.v25.transcripts"
@@ -486,7 +531,9 @@ if (params.reference == "hg38") {
     create_counts = file("${params.scripts}/create_count_objects-human.R")
 
     // Step 8: call variants
+//##TODO(iaguilar): Explain why step 8 is enabled if reference is hg38...  (Doc ######)
     params.step8 = true
+//##TODO(iaguilar): Explain the need to define the channel from this block  (Doc ######)
     Channel
       .fromPath("${params.genotypes}/common_missense_SNVs_hg38.bed")
       .set{ snvbed }
@@ -495,6 +542,7 @@ if (params.reference == "hg38") {
 if (params.reference == "hg19") {
     
     // Step 3: hisat2
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
     params.fa_gz = "GRCh37.primary_assembly.genome.fa.gz"
     params.fa = "GRCh37.primary_assembly.genome.fa"
@@ -502,16 +550,20 @@ if (params.reference == "hg19") {
     params.hisat_assembly = "GENCODE/GRCh37_hg19/assembly"
     
     // Step 4: gencode gtf
+//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"
     params.gencode_gtf_gz = "gencode.v25lift37.annotation.gtf.gz"
     params.gencode_gtf = "gencode.v25lift37.annotation.gtf"
     params.feature_output_prefix = "Gencode.v25lift37.hg19"
 
     // Step 5: python coverage
+//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
     chr_sizes = file("${params.annotations}/chrom_sizes/hg19.chrom.sizes.gencode")
 
     // Step 6: salmon
+//##TODO(iaguilar): Explain why step 6 is enabled if reference is hg19...  (Doc ######)
     params.step6 = true
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
     params.tx_fa_gz = "gencode.v25lift37.transcripts.fa.gz"
     params.tx_fa = "gencode.v25lift37.transcripts.fa"
@@ -527,7 +579,9 @@ if (params.reference == "hg19") {
     create_counts = file("${params.scripts}/create_count_objects-human.R")
 
     // Step 8: call variants
+//##TODO(iaguilar): Explain why step 8 is enabled if reference is hg19...  (Doc ######)
     params.step8 = true
+//##TODO(iaguilar): Explain the need to define the channel from this block  (Doc ######)
     Channel
       .fromPath("${params.genotypes}/common_missense_SNVs_hg19.bed")
       .set{ snvbed }
@@ -536,6 +590,7 @@ if (params.reference == "hg19") {
 if (params.reference == "mm10") {
 
     // Step 3: hisat2
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/GRCm38.primary_assembly.genome.fa.gz"
     params.fa_gz = "GRCm38.primary_assembly.genome.fa.gz"
     params.fa = "GRCm38.primary_assembly.genome.fa"
@@ -543,16 +598,20 @@ if (params.reference == "mm10") {
     params.hisat_assembly = "GENCODE/GRCm38_mm10/assembly"
 
     // Step 4: gencode gtf
+//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
     params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/gencode.vM11.annotation.gtf.gz"
     params.gencode_gtf_gz = "gencode.vM11.annotation.gtf.gz"
     params.gencode_gtf = "gencode.vM11.annotation.gtf"
     params.feature_output_prefix = "Gencode.M11.mm10"
 
     // Step 5: python coverage
+//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
     chr_sizes = file("${params.annotations}/chrom_sizes/mm10.chrom.sizes.gencode")
     
     // Step 6: salmon
+//##TODO(iaguilar): Explain why step 6 is enabled if reference is mm10...  (Doc ######)
     params.step6 = true
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gz value (Dev ######)
     params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
     params.tx_fa_gz = "gencode.vM11.transcripts.fa.gz"
     params.tx_fa = "gencode.vM11.transcripts.fa"
@@ -565,11 +624,13 @@ if (params.reference == "mm10") {
     create_counts = file("${params.scripts}/create_count_objects-mouse.R")
 
     // Step 8: call variants
+//##TODO(iaguilar): Explain why step 8 is disabled if reference is mm10...  (Doc ######)
     params.step8 = false
 }
 if (params.reference == "rn6") {
 
     // Step 3: hisat2
+//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gz value (Dev ######)
     params.fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
     params.fa_gz = "Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
     params.fa = "Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa"
@@ -578,23 +639,25 @@ if (params.reference == "rn6") {
     
     
     // Step 4: gencode gtf (ensembl for rn6)
+//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes gtf_gz value (Dev ######)
     params.gencode_gtf_link = "ftp://ftp.ensembl.org/pub/release-86/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
     params.gencode_gtf_gz = "Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
     params.gencode_gtf = "Rattus_norvegicus.Rnor_6.0.86.gtf"
     params.feature_output_prefix = "Rnor_6.0.86"
 
     // Step 5: python coverage
+//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
     chr_sizes = file("${params.annotations}/chrom_sizes/rn6.chrom.sizes.ensembl")
     
     // Step 6: Salmon
+//##TODO(iaguilar): Explain why step 6 is enabled if reference is rn6...  (Doc ######)
     params.step6 = false
 
-    //Step 8: call variants    
+
+    //Step 8: call variants
+//##TODO(iaguilar): Explain why step 8 is enabled if reference is rn6...  (Doc ######)
     params.step8 = false
 
-    // Step 7: Make R Objects
-    junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
-    create_counts = file("${params.scripts}/create_count_objects-rat.R")
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -670,10 +733,14 @@ log.info "==========================================="
 
 params.hisat_idx_output = "${params.index_out}/${params.hisat_assembly}"
 
+// get the number of *fa files in the reference directory
 Channel
   .fromPath("${params.hisat_idx_output}/fa/*.fa")
   .set{ assembly_fa_trigger }
-
+  
+// Use the number of fa files in the reference directory to set the aseembly channel, efectively skipping this step when running the pipeline
+// If the count of files in the assembly_fa_trigger is more than zero, the assembly_fa_download channel wont be set
+// else assembly_fa_download channel is set, and pipeline starts by downloading the ref genome
 assembly_fa_trigger.count().filter{ it == 0 }.set{ assembly_fa_download }
 
 process pullGENCODEassemblyfa {
@@ -682,20 +749,24 @@ process pullGENCODEassemblyfa {
     tag "Downloading Assembly FA File: ${params.fa}"
     publishDir "${params.hisat_idx_output}/fa",'mode':'copy'
 
-    input:
-    val(assembly_fa_val) from assembly_fa_download
+	input:
+	val(assembly_fa_val) from assembly_fa_download
 
     output:
     file("${params.fa}") into reference_fa
 
     script:
-    idx_file_link = "${params.fa_link}"
-    idx_gz = "${params.fa_gz}"
-    idx = "${params.fa}"
-    """
-    wget $idx_file_link
-    gunzip $idx_gz
-    """
+    fa_gz_file_link = "${params.fa_link}"
+    fa_gz = "${params.fa_gz}"
+	fa_file = "${params.fa}"
+	fa_file_build = "${fa_file}_build"
+	"""
+		## Download and unzip the ref genome
+		## *_build lock added as intermediate file to be able to quickly find if a process was interrupted in the workdir
+		wget "$fa_gz_file_link" \
+		&& gunzip -c "$fa_gz" > "$fa_file_build" \
+		&& mv "$fa_file_build" "$fa_file"
+	"""
 }
 
 Channel
@@ -710,32 +781,40 @@ Channel
  * Step Ib: Build HISAT Index
  */
 
+ // Another trigger to check if the next step is necessary
 Channel
   .fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
   .set{ hisat_builds_trigger }
 
+  // Check if less than 8 files were found in the previous trigger definition
+ // If the count of files in the trigger is less than eigth, the channel wont be set
+ // else the channel is set, and pipeline performs this step
 hisat_builds_trigger.count().filter{ it < 8 }.set{ hisat_trigger_build }
 
 process buildHISATindex {
 
     echo true
     tag "Building HISAT2 Index: ${params.hisat_prefix}"
-    publishDir "${params.hisat_idx_output}/index",mode:'copy'
+    publishDir "${params.hisat_idx_output}/index",'mode':'copy'
 
     input:
     val(hisat_trigger_val) from hisat_trigger_build
-    file idx from reference_assembly 
+    file reference_fasta from reference_assembly
 
     output:
     file("${params.hisat_prefix}.*") into hisat_index_built
 
     script:
     prefix = "${params.hisat_prefix}"
+	// Here, number of threads in the -p option does not seem to be assigned by variable (### Dev)
+	// $prefix is "the hisat2_index_base  write ht2 data to files with this dir/basename"
     """
-    hisat2-build -p 3 $idx $prefix
+		hisat2-build -p 3 $reference_fasta $prefix
     """
 }
 
+// Read the hisat index file from path, and/or mix with the channel output from the buildHISATindex process
+// This effectively means that whether the index was created or it was already present, the flow can continue
 Channel
   .fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
   .mix(hisat_index_built)
@@ -749,19 +828,25 @@ Channel
  * Step IIa: GENCODE GTF Download
  */
 
- params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
+// Define the putput dir for download of the GTF reference
+params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
 
+ // Another trigger to check if the next step is necessary
+ // Will look for a .gtf file in the gtf annotation directory.
+ // If it finds it, gencode_gtf_download_trigger will be set; If it does not find it, it will be empty
 Channel
   .fromPath("${params.gencode_gtf_out}/gtf/*.gtf")
   .set{ gencode_gtf_download_trigger }
 
+ // If the count of files in the trigger is different from zero, the channel wont be set
+ // else the channel is set, and pipeline performs this step
 gencode_gtf_download_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_download }
 
 process pullGENCODEgtf {
 
     echo true
     tag "Downloading GTF File: ${params.gencode_gtf}"
-    publishDir "${params.gencode_gtf_out}/gtf",mode:'copy'
+    publishDir "${params.gencode_gtf_out}/gtf",'mode':'copy'
 
     input:
     val(gencode_gtf_bed_val) from gencode_gtf_trigger_download
@@ -772,12 +857,18 @@ process pullGENCODEgtf {
     script:
     gencode_gtf_link = "${params.gencode_gtf_link}"
     gencode_gtf_gz = "${params.gencode_gtf_gz}"
+	gencode_gtf_file = "${params.gencode_gtf}"
+	gencode_gtf_file_build = "${gencode_gtf_file}_build"
     """
-    wget $gencode_gtf_link
-    gunzip $gencode_gtf_gz
+    wget "$gencode_gtf_link" \
+	&& gunzip -c "$gencode_gtf_gz" > "$gencode_gtf_file_build" \
+	&& mv "$gencode_gtf_file_build" "$gencode_gtf_file"
     """
+	// May add afterscript to clean the .gz? or the .gtf also if it copies the results BEFORE performing afterscript routines
 }
 
+// Read the gencode gtf file from path, and/or mix with the channel output from the pullGENCODEgtf process
+// This effectively means that whether the gtf was created or it was already present, the flow can continue
 Channel
   .fromPath("${params.gencode_gtf_out}/gtf/${params.gencode_gtf}")
   .mix(gencode_gtf_downloaded)
@@ -790,22 +881,25 @@ Channel
  * Step IIb: Build Bed File
  */
 
+// Define the putput dir for download of the bed file used by http://rseqc.sourceforge.net/#infer-experiment-py
 Channel
   .fromPath("${params.gencode_gtf_out}/bed/*")
   .set{ gencode_gtf_bed_trigger }
 
+// Create a trigger to check if the file exist, similar to previous triggers
 gencode_gtf_bed_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_bed }
 
 process buildPrepBED {
 
     echo true
     tag "Building Bed File: ${params.reference}"
-    publishDir "${params.gencode_gtf_out}/bed",mode:'copy'
+    publishDir "${params.gencode_gtf_out}/bed",'mode':'copy'
 
     input:
     val(gencode_gtf_bed_val) from gencode_gtf_trigger_bed
     file gencode_gtf from gencode_gtf
     file prep_bed from prep_bed
+	file check_R_packages_script from check_R_packages_script
 
     output:
     file("${name}.bed") into bedfile_built
@@ -813,10 +907,16 @@ process buildPrepBED {
     shell:
     name = "${params.reference}"
     '''
-    Rscript !{prep_bed} -f !{gencode_gtf} -n !{name}
+	## Run the script to check for missing rpackages
+	Rscript !{check_R_packages_script} \
+	&& Rscript !{prep_bed} -f !{gencode_gtf} -n !{name} \
+	// does the resulting bed it need to have permissions 775?
+	// currently it is created with 664 (-rw-rw-r--)
     '''
 }
 
+// Read the bed file from path, and/or mix with the channel output from the bedfile_built process
+// This effectively means that whether the bed was created in this run or it was already present, the flow can continue
 Channel
   .fromPath("${params.gencode_gtf_out}/bed/*")
   .mix(bedfile_built)
@@ -825,6 +925,8 @@ Channel
   .distinct()
   .set{ bedfile }
 
+// for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true 
+// during Define Reference Paths/Scripts + Reference Dependent Parameters
 if (params.step6) {
 
     params.salmon_idx_output = "${params.index_out}/${params.salmon_assembly}"
@@ -833,10 +935,14 @@ if (params.step6) {
      * Step IIIa: GENCODE TX FA Download
      */
 
-    Channel
+	// get the number of *fa files in the reference directory
+     Channel
       .fromPath("${params.salmon_idx_output}/fa/*.fa")
       .set{ transcript_fa_download }
 
+	// Use the number of fa files in the reference directory to set the aseembly channel, efectively skipping this step when running the pipeline
+	// If the count of files in the transcript_download_trigger is more than zero, the transcript_download channel wont be set
+	// else transcript_download channel is set, and pipeline starts by downloading the ref transcriptome
     transcript_fa_download.count().filter{ it == 0 }.set{ transcript_download_trigger }
 
     process pullGENCODEtranscripts {
@@ -850,7 +956,7 @@ if (params.step6) {
 
         output:
         file("${params.tx_fa}") into tx_fa_downloaded
-
+		//TODO (iaguilar) put shell code in same style as for fasta reference download (Dev ###)
         script:
         tx_fa_link = "${params.tx_fa_link}"
         tx_fa_gz = "${params.tx_fa_gz}"
@@ -861,7 +967,9 @@ if (params.step6) {
         """
     }
 
-    Channel
+	// Read the salmon reference from path, and/or mix with the channel output from the pullGENCODEtranscripts process
+	// This effectively means that whether the reference was created or it was already present, the flow can continue
+     Channel
       .fromPath("${params.salmon_idx_output}/fa/${params.tx_fa}")
       .mix(tx_fa_downloaded)
       .toSortedList()
@@ -873,10 +981,14 @@ if (params.step6) {
      * Step IIIb: Salmon Transcript Build
      */
 
-    Channel
+	// get the number of * files in the reference directory
+     Channel
       .fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
       .set{ salmon_build_trigger }
 
+	// Use the number of files in the reference directory to set the salmon trigger channel
+	// If the count of files in the salmon_build_trigger is more than zero, the transcript_download channel wont be set
+	// else transcript_download channel is set, and pipeline starts by downloading the ref transcriptome
     salmon_build_trigger.count().filter{ it == 0 }.set{ salmon_trigger_build}
 
     process buildSALMONindex {
@@ -894,12 +1006,16 @@ if (params.step6) {
 
         script:
         salmon_idx = "${params.salmon_prefix}"
+		// in the code execution, -p option is hardcoded to 1 thread
+	// TODO (iaguilar): make thread assignation dynamic by using a configurable variable
         """
         salmon index -t $tx_file -i $salmon_idx -p 1 --type quasi -k 31
         """
     }
 
-    Channel
+	// Read the salmon index from path, and/or mix with the channel output from the buildSALMONindex process
+	// This effectively means that whether the index was created or it was already present, the flow can continue
+     Channel
       .fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
       .mix(salmon_index_built)
       .toSortedList()
@@ -913,6 +1029,8 @@ if (params.step6) {
  * Step A: Run Sample Merging if --merge is specified
  */
 
+// If the --merged flag was used, this block performs fastq.gz file merging
+// currently not working, requires testing and debugging
 if (params.merge) {
 
     Channel
@@ -924,11 +1042,11 @@ if (params.merge) {
       .ifEmpty{ error "Could not find file pairs for merging"}
       .set{ unmerged_pairs }
 
-    process sampleMerging {
-      
+      process Merging {
+
         echo true
         tag "prefix: $merging_prefix | Sample Pair: [ $unmerged_pair ]"
-        publishDir "${params.basedir}/merged_fastq",mode:'copy'
+        publishDir "${params.basedir}/merged_fastq",'mode':'copy'
 
         input:
         set val(merging_prefix), file(unmerged_pair) from unmerged_pairs
@@ -936,14 +1054,16 @@ if (params.merge) {
         output:
         file "*.fastq.gz" into ercc_merged_inputs, fastqc_merged_inputs
 
-        script:
-        read1 = "${merging_prefix}_read1.fastq"
-        read2 = "${merging_prefix}_read2.fastq"
-        """
-        gunzip $unmerged_pair
-        cat $read1 $read2 > ${merging_prefix}.fastq
-        gzip ${merging_prefix}.fastq
-        """
+		shell:
+        '''
+		## Use of a local prefiz variable helps to avoid generating dump data in input dir due to fullpaths being captured by merging_prefix NF variable
+		local_prefix=`echo !{merging_prefix} | rev | cut -d "/" -f1 | rev`
+		## To follow illumina naming conventions,_read1 and _read2 will be changed to R1 and R2
+		read1="${local_prefix}_read1.fastq.gz"
+		read2="${local_prefix}_read2.fastq.gz"
+        zcat "${read1}" "${read2}" \
+		| gzip -c > "${local_prefix}.fastq.gz"
+        '''
     }
 }
 
@@ -1004,26 +1124,26 @@ if (params.ercc) {
         }
     }
 
-    process sampleERCC {
-     
+     process ERCC {
+
         echo true
         tag "Prefix: $ercc_prefix | Sample: [ $ercc_input ]"
-        publishDir "${params.basedir}/ercc/${ercc_prefix}",mode:'copy'
+        publishDir "${params.basedir}/ercc/${ercc_prefix}",'mode':'copy'
 
         input:
         file erccidx from erccidx
         set val(ercc_prefix), file(ercc_input) from ercc_inputs
 
         output:
-        file "*"
+//        file "*_abundance.tsv" into ercc_abundances
         file("${ercc_prefix}_abundance.tsv") into ercc_abundances
 
         script:
         ercc_cores = "${params.ercc_cores}"
         strand_option = "${params.kallisto_strand}"
         """
-        kallisto quant -i $erccidx -t $ercc_cores -o . $strand_option $ercc_input
-        cp abundance.tsv ${ercc_prefix}_abundance.tsv
+        kallisto quant -i $erccidx -t $ercc_cores -o . $strand_option $ercc_input \
+		&& cp abundance.tsv ${ercc_prefix}_abundance.tsv
         """
     }
 }
@@ -1083,11 +1203,11 @@ if (!params.merge) {
  * Step C1: Individual Sample Manifest
  */
 
-process sampleIndividualManifest {
+process IndividualManifest {
 
     echo true
     tag "Individual Manifest: $manifest_samples $samples_prefix > samples.manifest.${samples_prefix}"
-    publishDir "${params.basedir}/manifest",mode:'copy'
+    publishDir "${params.basedir}/manifest",'mode':'copy'
 
     input:
     set val(samples_prefix), file(manifest_samples) from manifest_creation
@@ -1110,7 +1230,7 @@ individual_manifests
  * Step C2: Sample Manifest
  */
 
-process sampleManifest {
+process Manifest {
 
     echo true
     tag "Aggregate Manifest: $individual_manifests > samples.manifest"
@@ -1132,8 +1252,8 @@ process sampleManifest {
  * Step 1: Untrimmed Quality Report
  */
 
-process sampleQualityUntrimmed {
-  
+process QualityUntrimmed {
+
     echo true
     tag "Prefix: $untrimmed_prefix | Sample: [ $fastqc_untrimmed_input ]"
     publishDir "${params.basedir}/FastQC/Untrimmed",mode:'copy'
@@ -1176,11 +1296,11 @@ if (params.sample == "single") {
       .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Single Adaptive Trimming" }
       .set{ adaptive_trimming_single_inputs }
 
-    process sampleAdaptiveTrimSingleReads {
+    process AdaptiveTrimSingleReads {
 
       echo true
       tag "Prefix: $single_adaptive_prefix : Sample: [ $single_adaptive_fastq | $single_adaptive_summary ]"
-      publishDir "${params.basedir}/Adaptive_Trim",mode:'copy'
+      publishDir "${params.basedir}/Adaptive_Trim",'mode':'copy'
 
       input:
       set val(single_adaptive_prefix), file(single_adaptive_summary), file(single_adaptive_fastq) from adaptive_trimming_single_inputs
@@ -1192,7 +1312,7 @@ if (params.sample == "single") {
       single_quality_report = single_adaptive_prefix.toString() + "_summary.txt"
       single_trimming_input = single_adaptive_prefix.toString() + ".fastq.gz"
       '''
-      export result=$(grep "Adapter Content" !{single_quality_report} | cut -c1-4)
+      export result=$(grep "Adapter Content" !{single_quality_report} | cut -f1)
       if [ $result == "FAIL" ] ; then
           mv !{single_trimming_input} "!{single_adaptive_prefix}_TR.fastq.gz"
       else
@@ -1201,6 +1321,7 @@ if (params.sample == "single") {
       '''
     }
 }
+//TODO following block still not tested
 if (params.sample == "paired") {
 
     quality_reports
@@ -1211,7 +1332,7 @@ if (params.sample == "paired") {
       .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Paired Adaptive Trimming" }
       .set{ adaptive_trimming_paired_inputs }
 
-    process sampleAdaptiveTrimPairedReads {
+    process AdaptiveTrimPairedReads {
 
       echo true
       tag "Prefix: $paired_adaptive_prefix | Sample: [ $paired_adaptive_fastq | $paired_adaptive_summary ]"
@@ -1243,7 +1364,7 @@ if (params.sample == "paired") {
       fi
       '''
     }
-}
+} // Finishes untested block
 
 /*
  * Modify the Trimming Input Channel 
@@ -1264,6 +1385,7 @@ if (params.sample == "single") {
       .set{ no_trim_fastqs }
   }
 
+// Following block is untested
   if (params.sample == "paired") {
 
     trimming_fastqs
@@ -1283,17 +1405,19 @@ if (params.sample == "single") {
       .map{ file -> tuple(get_TNR_paired_prefix(file), file) }
       .groupTuple()
       .set{ no_trim_fastqs }
-}
+} // finished ustested blocks
 
 /*
  * Step 2b: Trimming 
  */
 
-process sampleTrimming {
+//TODO (iaguilar): Not yet tested since no data with high adapter content has been found
+//TODO (iaguilar): run FASTQC on test data to see if it contains adapters not found due to list of adapter used by fastqc
+process Trimming {
 
     echo true
     tag "Prefix: $trimming_prefix | Sample: [ $trimming_input ]"
-    publishDir "${params.basedir}/trimmed_fq",mode:'copy'
+    publishDir "${params.basedir}/trimmed_fq",'mode':'copy'
 
     input:
     set val(trimming_prefix), file(trimming_input) from trimming_inputs
@@ -1310,6 +1434,11 @@ process sampleTrimming {
     if (params.sample == "paired") {
         output_option = "${trimming_prefix}_trimmed_forward_paired.fastq.gz ${trimming_prefix}_trimmed_forward_unpaired.fastq.gz ${trimming_prefix}_trimmed_reverse_paired.fastq.gz ${trimming_prefix}_trimmed_reverse_unpaired.fastq.gz"
     }
+	// Here trimmomatic is hardcoded into the script
+	// THIS MUST BE DINAMYCALLY directed
+	// Or, since trimmo is java, we should provide a .jar file in the lieber repository as software
+	// Above depends on jar size
+	// PATH to ILLUMINACLIP is hardcoded too, should be configurable
     """
     java -Xmx512M \
     -jar /usr/local/bin/trimmomatic-0.36.jar \
@@ -1324,13 +1453,14 @@ process sampleTrimming {
     SLIDINGWINDOW:4:15 \
     MINLEN:75
     """
-}
+} // finishes untested block
 
 /*
  * Step 2c: Run FastQC Quality Check on Trimmed Files
  */
 
-process sampleQualityTrimmed {
+// THE FOLLOWING BLOCK IS UNTESTED
+process QualityTrimmed {
   
     echo true
     tag "$fastqc_trimmed_input"
@@ -1346,7 +1476,7 @@ process sampleQualityTrimmed {
     """
     fastqc $fastqc_trimmed_input --extract
     """
-}
+} // finishes untested block
 
 /*
  * Step 3a: Hisat Sam File
@@ -1354,6 +1484,7 @@ process sampleQualityTrimmed {
 
 if (params.sample == "single") {
 
+//Here trimmed and not timmed data is mixed in a channel to ensure the flow of the pipeline
     trimmed_hisat_inputs
       .flatten()
       .map{ file -> tuple(get_single_trimmed_prefix(file), file) }
@@ -1362,7 +1493,7 @@ if (params.sample == "single") {
       .set{ single_hisat_inputs }
 
 
-    process sampleSingleEndHISAT {
+      process SingleEndHISAT {
 
       echo true
       tag "Prefix: $single_hisat_prefix | Sample: $single_hisat_input"
@@ -1381,13 +1512,9 @@ if (params.sample == "single") {
       hisat_prefix = "${params.hisat_prefix}"
       strand = "${params.hisat_strand}"
       hisat_cores = "${params.hisat_cores}"
+	  // Phred Quality is hardcoded, if it will be so, it should be pointed in the README.md
       '''
-      hisat2 \
-      -p !{hisat_cores} \
-      -x !{hisat_prefix} \
-      -U !{single_hisat_input} \
-      -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 \
-      2> !{single_hisat_prefix}_align_summary.txt
+      hisat2 -p !{hisat_cores} -x !{hisat_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
       '''
     }
 
@@ -1397,13 +1524,13 @@ if (params.sample == "single") {
       .set{ sam_to_bam_inputs }
 }
 
-
+// Bellow block is not tested yet
 if (params.sample == "paired") {
 
     no_trim_fastqs
       .set{ notrim_paired_hisat_inputs }
 
-    process samplePairedEndNoTrimHISAT {
+    process PairedEndNoTrimHISAT {
 
       echo true
       tag "Prefix: $paired_notrim_hisat_prefix | Sample: [ $paired_no_trim_hisat ]"
@@ -1440,16 +1567,16 @@ if (params.sample == "paired") {
       !{unaligned_opt} \
       2> !{paired_notrim_hisat_prefix}_align_summary.txt
       '''
-    }
+    } // finishes untested block
 
-    trimmed_hisat_inputs
+     trimmed_hisat_inputs
       .flatten()
       .map{ file -> tuple(get_paired_trimmed_prefix(file), file) }
       .groupTuple()
       .set{ trim_paired_hisat_inputs }
 
-
-    process samplePairedEndTrimmedHISAT {
+//Bellow block is not tested yet
+     process PairedEndTrimmedHISAT {
 
       echo true
       tag "Prefix: $paired_trimmed_prefix | Sample: $paired_trimmed_fastqs"
@@ -1490,8 +1617,8 @@ if (params.sample == "paired") {
       2> !${paired_trimmed_prefix}_align_summary.txt
       '''
     }
-
-    hisat_paired_notrim_output
+//Bellow block is not tested yet
+     hisat_paired_notrim_output
       .mix(hisat_paired_trim_output)
       .flatten()
       .map{ file -> tuple(get_hisat_prefix(file), file) }
@@ -1500,7 +1627,7 @@ if (params.sample == "paired") {
     paired_trim_alignment_summaries
       .mix(paired_notrim_alignment_summaries)
       .flatten()
-      .set{ alignment_summaries }
+      .set{ alignment_summaries } // think this is causing conflicts...
 }
 
 /*
@@ -1508,11 +1635,11 @@ if (params.sample == "paired") {
  */
 
 
-process sampleSamtoBam {
+process SamtoBam {
 
     echo true
     tag "Prefix: $sam_to_bam_prefix | Sample: $sam_to_bam_input"
-    publishDir "${params.basedir}/HISAT2_out/sam_to_bam",mode:'copy'
+    publishDir "${params.basedir}/HISAT2_out/sam_to_bam",'mode':'copy'
 
     input:
     set val(sam_to_bam_prefix), file(sam_to_bam_input) from sam_to_bam_inputs
@@ -1526,7 +1653,7 @@ process sampleSamtoBam {
     samtobam_cores = "${params.samtobam_cores}"
     """
     samtools view -bh -F 4 $sam_to_bam_input > $original_bam
-    samtools sort -@ $samtobam_cores $original_bam -o ${sorted_bam}.bam
+    samtools sort -T temporary -@ $samtobam_cores $original_bam -o ${sorted_bam}.bam
     samtools index ${sorted_bam}.bam
     """
 }
@@ -1539,11 +1666,11 @@ infer_experiment_inputs
  * Step 3c: Infer Experiment
  */
 
-process sampleInferExperiment {
+process InferExperiment {
 
     echo true
     tag "Prefix: $infer_prefix | Sample: $bam_file | Index: $bam_index"
-    publishDir "${params.basedir}/HISAT2_out/infer_experiment",mode:'copy'
+    publishDir "${params.basedir}/HISAT2_out/infer_experiment",'mode':'copy'
 
     input:
     set val(infer_prefix), file(bam_file), file(bam_index), file(bed_file) from infer_experiments
@@ -1572,15 +1699,16 @@ infer_experiment_outputs
  * Step 3d: Infer Strandness
  */
 
-process sampleInferStrandness {
+process InferStrandness {
 
     echo true
     tag "Sample: $infer_experiment_files"
-    publishDir "${params.basedir}/HISAT2_out/infer_strandness/",mode:'copy'
+    publishDir "${params.basedir}/HISAT2_out/infer_strandness/",'mode':'copy'
 
     input:
     file infer_strandness from infer_strandness
     file infer_experiment_files from infer_experiment_output
+	file check_R_packages_script from check_R_packages_script
 
     output:
     file "*"
@@ -1589,7 +1717,8 @@ process sampleInferStrandness {
     shell:
     inferred_strandness_pattern = "inferred_strandness_pattern.txt"
     '''
-    Rscript !{infer_strandness} -p !{inferred_strandness_pattern}
+	Rscript !{check_R_packages_script} \
+    && Rscript !{infer_strandness} -p !{inferred_strandness_pattern}
     '''
 }
 
@@ -1601,18 +1730,18 @@ feature_bam_inputs
  * Step 4a: Feature Counts
  */
 
-process sampleFeatureCounts {
+process FeatureCounts {
 
     echo true
     tag "Prefix: $feature_prefix | Sample: $feature_bam | Sample Index: $feature_index"
-    publishDir "${params.basedir}/Counts",mode:'copy'
+    publishDir "${params.basedir}/Counts",'mode':'copy'
 
     input:
     set val(feature_prefix), file(feature_bam), file(feature_index), file(gencode_gtf_feature) from feature_counts_inputs
 
     output:
     file "*"
-    file "*.counts" into sample_counts
+    file "*.counts*" into sample_counts
 
     script:
     if (params.sample == "single") {
@@ -1649,11 +1778,11 @@ process sampleFeatureCounts {
  * Step 4b: Primary Alignments
  */
 
-process samplePrimaryAlignments {
+process PrimaryAlignments {
 
     echo true
     tag "Prefix: $alignment_prefix | Sample: [ $alignment_bam ]"
-    publishDir "${params.basedir}/Counts/junction/primary_aligments",mode:'copy'
+    publishDir "${params.basedir}/Counts/junction/primary_aligments",'mode':'copy'
 
     input:
     set val(alignment_prefix), file(alignment_bam), file(alignment_index) from alignment_bam_inputs
@@ -1673,11 +1802,11 @@ process samplePrimaryAlignments {
  * Step 4c: Junctions
  */
 
-process sampleJunctions {
+process Junctions {
 
     echo true
     tag "Prefix: $junction_prefix | Sample: [ $alignment_bam ]"
-    publishDir "${params.basedir}/Counts/junction",mode:'copy'
+    publishDir "${params.basedir}/Counts/junction",'mode':'copy'
 
     input:
     file bed_to_juncs from bed_to_juncs
@@ -1685,7 +1814,8 @@ process sampleJunctions {
 
     output:
     file "*"
-    file("*.count")
+    file("*.count") into regtools_outputs
+	//needs to pass the count files to a channel
 
     shell:
     outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
@@ -1700,7 +1830,7 @@ process sampleJunctions {
  * Step 5a: Coverage
  */
 
-process sampleCoverage {
+process Coverage {
 
     echo true
     tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
@@ -1735,7 +1865,7 @@ process sampleCoverage {
  * Step 5b: Wig to BigWig
  */
 
-process sampleWigToBigWig {
+process WigToBigWig {
 
     echo true
     tag "Prefix: $wig_prefix | Sample: [ $wig_file ]"
@@ -1765,11 +1895,11 @@ coverage_bigwigs
  * Step 5c: Mean Coverage
  */
 
-process sampleMeanCoverage {
+process MeanCoverage {
 
     echo true
     tag "Samples: [ $mean_coverage_bigwig ]"
-    publishDir "${params.basedir}/Coverage/mean",mode:'copy'
+    publishDir "${params.basedir}/Coverage/mean",'mode':'copy'
 
     input:
     file inferred_strand_file from inferred_strand_mean_coverage
@@ -1794,12 +1924,14 @@ process sampleMeanCoverage {
     '''
 }
 
+//for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true during Define Reference Paths/Scripts + Reference Dependent Parameters
 if (params.step6) {
+
     /*
      * Step 6: txQuant
      */
 
-    process sampleTXQuant {
+     process TXQuant {
 
         echo true
         tag "Prefix: $salmon_input_prefix | Sample: [ $salmon_inputs ]"
@@ -1827,6 +1959,7 @@ if (params.step6) {
             if (params.strand == "reverse" )
                 salmon_strand = "SR"
             }
+		//needs testing for paired
         if (params.sample == "paired") {
             sample_command = "-1 ${salmon_input_prefix}_1.fastq.gz -2 ${salmon_input_prefix}_2.fastq.gz"
             if (params.strand == "unstranded" ) {
@@ -1857,16 +1990,16 @@ if (params.step6) {
  * Construct the Counts Objects Input Channel
  */
 
-
-count_objects_bam_files
+count_objects_bam_files // this puts sorted.bams and bais into the channel
   .flatten()
   .buffer(size:2,skip:1)
   .flatten()
-  .mix(count_objects_quality_reports)
-  .mix(count_objects_quality_metrics)
-  .mix(alignment_summaries)
-  .mix(create_counts_gtf)
-  .mix(sample_counts)
+  .mix(count_objects_quality_reports) //this puts sample_XX_summary.txt files into the channel
+  .mix(count_objects_quality_metrics) // this puts sample_XX_fastqc_data.txt into the channel
+  .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
+  .mix(create_counts_gtf) // this puts gencode.v25.annotation.gtf file into the channel
+  .mix(sample_counts) // !! this one puts sample_05_Gencode.v25.hg38_Exons.counts and sample_05_Gencode.v25.hg38_Genes.counts into the channel
+  .mix(regtools_outputs) // !! this one includes the missing *_junctions_primaryOnly_regtools.count files for the CountObjects process
   .collect()
   .flatten()
   .toSortedList()
@@ -1904,7 +2037,6 @@ if (!params.ercc) {
       .set{ counts_inputs }
 }
 
-
 /*
  * Construct the Annotation Input Channel
  */
@@ -1923,6 +2055,7 @@ if (params.reference_type == "rat") {
       .set{counts_annotations}
 }
 
+//TODO (iaguilar:) Check why rat has its own object (and it says mouse...)
 if(params.reference_type != "rat") {
 
     rat_annotations
@@ -1954,13 +2087,14 @@ if(params.reference_type == "human") {
 
 /*
  * Step 7a: Create Count Objects
- */
+*/
 
-process sampleCreateCountObjects {
+process CountObjects {
 
     echo true
-    tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
-    publishDir "${params.basedir}/Count_Objects",mode:'copy'
+	//// This tag generates long names for the job
+////    tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
+    publishDir "${params.basedir}/Count_Objects",'mode':'copy'
 
     input:
     file counts_input from counts_inputs
@@ -1968,6 +2102,7 @@ process sampleCreateCountObjects {
     file create_counts from create_counts
     file ercc_actual_conc from ercc_actual_conc
     file counts_sample_manifest from counts_samples_manifest
+	file check_R_packages_script from check_R_packages_script
 
     output:
     file "*"
@@ -2000,7 +2135,9 @@ process sampleCreateCountObjects {
     counts_prefix = "${params.experiment_prefix}"
     counts_dir = "./"
     '''
-    Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
+	## Run the script to check for missing rpackages
+	Rscript !{check_R_packages_script} \
+    && Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
     '''
 }
 
@@ -2020,17 +2157,19 @@ if (params.fullCov) {
      * Step 7b: Create Full Coverage Objects
      */
 
-    process sampleCreateCoverageObjects {
+    process CoverageObjects {
 
         echo true
-        tag "Creating Coverage Objects [ $full_coverage_input ]"
-        publishDir "${params.basedir}/Coverage_Objects",mode:'copy'
+		//// This tag generates long names for the job
+        ////tag "Creating Coverage Objects [ $full_coverage_input ]"
+        publishDir "${params.basedir}/Coverage_Objects",'mode':'copy'
 
         input:
         file fullCov_file from fullCov_file
         file fullCov_samples_manifest from fullCov_samples_manifest
         file full_coverage_input from full_coverage_inputs
         file inferred_strand_R_object from inferred_strand_objects
+		file check_R_packages_script from check_R_packages_script
 
         output:
         file "*"
@@ -2048,7 +2187,9 @@ if (params.fullCov) {
         coverage_prefix = "${params.experiment_prefix}"
         coverage_fullCov = "TRUE"
         '''
-        Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
+        ## Run the script to check for missing rpackages
+		Rscript !{check_R_packages_script} \
+		&&Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
         '''
     }
 }
@@ -2057,18 +2198,19 @@ if (params.step8) {
 
     /*
      * Step 8: Call Variants
-     */
+    */
 
     variant_calls_bam
       .combine(snvbed)
       .combine(variant_assembly)
       .set{ variant_calls }
 
-    process sampleVariantCalls {
+    process VariantCalls {
 
         echo true
-        tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
-        publishDir "${params.basedir}/Variant_Calls",mode:'copy'
+		//// This tag generates long job names that crash sge
+        ////tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
+        publishDir "${params.basedir}/Variant_Calls",'mode':'copy'
 
         input:
         set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai), file(snv_bed), file(variant_assembly_file) from variant_calls
@@ -2081,17 +2223,8 @@ if (params.step8) {
         snptmp = "${variant_bams_prefix}_tmp.vcf"
         snpoutgz = "${variant_bams_prefix}.vcf.gz"
         '''
-        samtools mpileup \
-        -l !{snv_bed} \
-        -AB \
-        -q0 \
-        -Q13 \
-        -d1000000 \
-        -uf !{variant_assembly_file} !{variant_calls_bam_file} \
-        -o !{snptmp}
-        bcftools call \
-        -mv \
-        -Oz !{snptmp} > !{snpoutgz}
+        samtools mpileup -l !{snv_bed} -AB -q0 -Q13 -d1000000 -uf !{variant_assembly_file} !{variant_calls_bam_file} -o !{snptmp}
+        bcftools call -mv -Oz !{snptmp} > !{snpoutgz}
         tabix -p vcf !{snpoutgz}
         '''
     }
@@ -2099,13 +2232,15 @@ if (params.step8) {
     compressed_variant_calls
       .flatten()
       .collect()
-      .toSortedList()
+// sorting was crashing the NF execution. There seems to be no need to sort
+//     .toSortedList()
       .set{ collected_variant_calls }
 
     compressed_variant_calls_tbi
       .flatten()
       .collect()
-      .toSortedList()
+// sorting was crashing the NF execution. There seems to be no need to sort
+//     .toSortedList()
       .set{ collected_variant_calls_tbi }
 
 
@@ -2113,11 +2248,11 @@ if (params.step8) {
      * Step 8b: Merge Variant Calls
      */
 
-    process sampleVariantCallsMerge {
+    process VariantsMerge {
 
         echo true
         tag "Samples: $collected_variants"
-        publishDir "${params.basedir}/Merged_Variants",mode:'copy'
+        publishDir "${params.basedir}/Merged_Variants",'mode':'copy'
 
         input:
         file collected_variants from collected_variant_calls
@@ -2137,7 +2272,7 @@ if (params.step8) {
  * Step 9: Expressed Regions
  */
 
-process sampleExpressedRegions {
+process ExpressedRegions {
 
     echo true
     tag "Sample: $expressed_regions_mean_bigwig"
