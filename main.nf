@@ -1042,7 +1042,7 @@ if (params.merge) {
       .ifEmpty{ error "Could not find file pairs for merging"}
       .set{ unmerged_pairs }
 
-      process sampleMerging {
+      process Merging {
 
         echo true
         tag "prefix: $merging_prefix | Sample Pair: [ $unmerged_pair ]"
@@ -1124,7 +1124,7 @@ if (params.ercc) {
         }
     }
 
-     process sampleERCC {
+     process ERCC {
 
         echo true
         tag "Prefix: $ercc_prefix | Sample: [ $ercc_input ]"
@@ -1203,7 +1203,7 @@ if (!params.merge) {
  * Step C1: Individual Sample Manifest
  */
 
-process sampleIndividualManifest {
+process IndividualManifest {
 
     echo true
     tag "Individual Manifest: $manifest_samples $samples_prefix > samples.manifest.${samples_prefix}"
@@ -1230,7 +1230,7 @@ individual_manifests
  * Step C2: Sample Manifest
  */
 
-process sampleManifest {
+process Manifest {
 
     echo true
     tag "Aggregate Manifest: $individual_manifests > samples.manifest"
@@ -1252,7 +1252,7 @@ process sampleManifest {
  * Step 1: Untrimmed Quality Report
  */
 
-process sampleQualityUntrimmed {
+process QualityUntrimmed {
 
     echo true
     tag "Prefix: $untrimmed_prefix | Sample: [ $fastqc_untrimmed_input ]"
@@ -1296,7 +1296,7 @@ if (params.sample == "single") {
       .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Single Adaptive Trimming" }
       .set{ adaptive_trimming_single_inputs }
 
-    process sampleAdaptiveTrimSingleReads {
+    process AdaptiveTrimSingleReads {
 
       echo true
       tag "Prefix: $single_adaptive_prefix : Sample: [ $single_adaptive_fastq | $single_adaptive_summary ]"
@@ -1332,7 +1332,7 @@ if (params.sample == "paired") {
       .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Paired Adaptive Trimming" }
       .set{ adaptive_trimming_paired_inputs }
 
-    process sampleAdaptiveTrimPairedReads {
+    process AdaptiveTrimPairedReads {
 
       echo true
       tag "Prefix: $paired_adaptive_prefix | Sample: [ $paired_adaptive_fastq | $paired_adaptive_summary ]"
@@ -1413,7 +1413,7 @@ if (params.sample == "single") {
 
 //TODO (iaguilar): Not yet tested since no data with high adapter content has been found
 //TODO (iaguilar): run FASTQC on test data to see if it contains adapters not found due to list of adapter used by fastqc
-process sampleTrimming {
+process Trimming {
 
     echo true
     tag "Prefix: $trimming_prefix | Sample: [ $trimming_input ]"
@@ -1460,7 +1460,7 @@ process sampleTrimming {
  */
 
 // THE FOLLOWING BLOCK IS UNTESTED
-process sampleQualityTrimmed {
+process QualityTrimmed {
   
     echo true
     tag "$fastqc_trimmed_input"
@@ -1493,7 +1493,7 @@ if (params.sample == "single") {
       .set{ single_hisat_inputs }
 
 
-      process sampleSingleEndHISAT {
+      process SingleEndHISAT {
 
       echo true
       tag "Prefix: $single_hisat_prefix | Sample: $single_hisat_input"
@@ -1530,7 +1530,7 @@ if (params.sample == "paired") {
     no_trim_fastqs
       .set{ notrim_paired_hisat_inputs }
 
-    process samplePairedEndNoTrimHISAT {
+    process PairedEndNoTrimHISAT {
 
       echo true
       tag "Prefix: $paired_notrim_hisat_prefix | Sample: [ $paired_no_trim_hisat ]"
@@ -1576,7 +1576,7 @@ if (params.sample == "paired") {
       .set{ trim_paired_hisat_inputs }
 
 ////Bellow block is not tested yet
-     process samplePairedEndTrimmedHISAT {
+     process PairedEndTrimmedHISAT {
 
       echo true
       tag "Prefix: $paired_trimmed_prefix | Sample: $paired_trimmed_fastqs"
@@ -1635,7 +1635,7 @@ if (params.sample == "paired") {
  // */
 
 
-process sampleSamtoBam {
+process SamtoBam {
 
     echo true
     tag "Prefix: $sam_to_bam_prefix | Sample: $sam_to_bam_input"
@@ -1666,7 +1666,7 @@ infer_experiment_inputs
  // * Step 3c: Infer Experiment
  // */
 
-process sampleInferExperiment {
+process InferExperiment {
 
     echo true
     tag "Prefix: $infer_prefix | Sample: $bam_file | Index: $bam_index"
@@ -1699,7 +1699,7 @@ infer_experiment_outputs
  // * Step 3d: Infer Strandness
  // */
 
-process sampleInferStrandness {
+process InferStrandness {
 
     echo true
     tag "Sample: $infer_experiment_files"
@@ -1730,7 +1730,7 @@ feature_bam_inputs
  // * Step 4a: Feature Counts
  // */
 
-process sampleFeatureCounts {
+process FeatureCounts {
 
     echo true
     tag "Prefix: $feature_prefix | Sample: $feature_bam | Sample Index: $feature_index"
@@ -1778,7 +1778,7 @@ process sampleFeatureCounts {
  // * Step 4b: Primary Alignments
  // */
 
-process samplePrimaryAlignments {
+process PrimaryAlignments {
 
     echo true
     tag "Prefix: $alignment_prefix | Sample: [ $alignment_bam ]"
@@ -1802,7 +1802,7 @@ process samplePrimaryAlignments {
  // * Step 4c: Junctions
  // */
 
-process sampleJunctions {
+process Junctions {
 
     echo true
     tag "Prefix: $junction_prefix | Sample: [ $alignment_bam ]"
@@ -1831,7 +1831,7 @@ process sampleJunctions {
  // */
 
 ////small_test does not pass to this stage because its infer strandness file returns "NA"
-process sampleCoverage {
+process Coverage {
 
     echo true
     tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
@@ -1866,7 +1866,7 @@ process sampleCoverage {
  // * Step 5b: Wig to BigWig
  // */
 
-process sampleWigToBigWig {
+process WigToBigWig {
 
     echo true
     tag "Prefix: $wig_prefix | Sample: [ $wig_file ]"
@@ -1896,7 +1896,7 @@ coverage_bigwigs
  // * Step 5c: Mean Coverage
  // */
 
-process sampleMeanCoverage {
+process MeanCoverage {
 
     echo true
     tag "Samples: [ $mean_coverage_bigwig ]"
@@ -1931,7 +1931,7 @@ if (params.step6) {
      * Step 6: txQuant
      */
 
-     process sampleTXQuant {
+     process TXQuant {
 
         echo true
         tag "Prefix: $salmon_input_prefix | Sample: [ $salmon_inputs ]"
@@ -1999,7 +1999,7 @@ count_objects_bam_files // this puts sorted.bams and bais into the channel
   .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
   .mix(create_counts_gtf) // this puts gencode.v25.annotation.gtf file into the channel
   .mix(sample_counts) // !! this one puts sample_05_Gencode.v25.hg38_Exons.counts and sample_05_Gencode.v25.hg38_Genes.counts into the channel
-  .mix(regtools_outputs) // !! this one includes the missing *_junctions_primaryOnly_regtools.count files for the sampleCreateCountObjects process
+  .mix(regtools_outputs) // !! this one includes the missing *_junctions_primaryOnly_regtools.count files for the CountObjects process
   .collect()
   .flatten()
   .toSortedList()
@@ -2090,7 +2090,7 @@ if(params.reference_type == "human") {
  */
 ////Rscript searches for *_junctions_primaryOnly_regtools.count files
 ////said files does not seem to be in the input channel
-process sampleCreateCountObjects {
+process CountObjects {
 
     echo true
     tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
@@ -2157,7 +2157,7 @@ if (params.fullCov) {
      * Step 7b: Create Full Coverage Objects
      */
 
-    process sampleCreateCoverageObjects {
+    process CoverageObjects {
 
         echo true
         tag "Creating Coverage Objects [ $full_coverage_input ]"
@@ -2204,7 +2204,7 @@ if (params.step8) {
       .combine(variant_assembly)
       .set{ variant_calls }
 
-    process sampleVariantCalls {
+    process VariantCalls {
 
         echo true
         tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
@@ -2244,7 +2244,7 @@ if (params.step8) {
      * Step 8b: Merge Variant Calls
      */
 
-    process sampleVariantCallsMerge {
+    process VariantsMerge {
 
         echo true
         tag "Samples: $collected_variants"
@@ -2269,7 +2269,7 @@ if (params.step8) {
  // * Step 9: Expressed Regions
  // */
 
-process sampleExpressedRegions {
+process ExpressedRegions {
 
     echo true
     tag "Sample: $expressed_regions_mean_bigwig"
