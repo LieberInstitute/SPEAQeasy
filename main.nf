@@ -1575,7 +1575,7 @@ if (params.sample == "paired") {
       .groupTuple()
       .set{ trim_paired_hisat_inputs }
 
-////Bellow block is not tested yet
+//Bellow block is not tested yet
      process PairedEndTrimmedHISAT {
 
       echo true
@@ -1617,7 +1617,7 @@ if (params.sample == "paired") {
       2> !${paired_trimmed_prefix}_align_summary.txt
       '''
     }
-////Bellow block is not tested yet
+//Bellow block is not tested yet
      hisat_paired_notrim_output
       .mix(hisat_paired_trim_output)
       .flatten()
@@ -1630,9 +1630,9 @@ if (params.sample == "paired") {
       .set{ alignment_summaries } // think this is causing conflicts...
 }
 
-// /*
- // * Step 3b: Sam to Bam 
- // */
+/*
+ * Step 3b: Sam to Bam 
+ */
 
 
 process SamtoBam {
@@ -1662,9 +1662,9 @@ infer_experiment_inputs
   .combine(bedfile)
   .set{ infer_experiments }
 
-// /*
- // * Step 3c: Infer Experiment
- // */
+/*
+ * Step 3c: Infer Experiment
+ */
 
 process InferExperiment {
 
@@ -1695,9 +1695,9 @@ infer_experiment_outputs
   .toSortedList()
   .set{ infer_experiment_output }
 
-// /*
- // * Step 3d: Infer Strandness
- // */
+/*
+ * Step 3d: Infer Strandness
+ */
 
 process InferStrandness {
 
@@ -1726,9 +1726,9 @@ feature_bam_inputs
   .combine(gencode_feature_gtf)
   .set{ feature_counts_inputs }
 
-// /*
- // * Step 4a: Feature Counts
- // */
+/*
+ * Step 4a: Feature Counts
+ */
 
 process FeatureCounts {
 
@@ -1774,9 +1774,9 @@ process FeatureCounts {
     """
 }
 
-// /*
- // * Step 4b: Primary Alignments
- // */
+/*
+ * Step 4b: Primary Alignments
+ */
 
 process PrimaryAlignments {
 
@@ -1798,9 +1798,9 @@ process PrimaryAlignments {
     """
 }
 
-// /*
- // * Step 4c: Junctions
- // */
+/*
+ * Step 4c: Junctions
+ */
 
 process Junctions {
 
@@ -1815,7 +1815,7 @@ process Junctions {
     output:
     file "*"
     file("*.count") into regtools_outputs
-//	needs to pass the count files to a channel
+	//needs to pass the count files to a channel
 
     shell:
     outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
@@ -1826,11 +1826,10 @@ process Junctions {
     '''
 }
 
-// /*
- // * Step 5a: Coverage
- // */
+/*
+ * Step 5a: Coverage
+ */
 
-////small_test does not pass to this stage because its infer strandness file returns "NA"
 process Coverage {
 
     echo true
@@ -1862,9 +1861,9 @@ process Coverage {
     '''
 }
 
-// /*
- // * Step 5b: Wig to BigWig
- // */
+/*
+ * Step 5b: Wig to BigWig
+ */
 
 process WigToBigWig {
 
@@ -1892,9 +1891,9 @@ coverage_bigwigs
   .toSortedList()
   .into{ mean_coverage_bigwigs;full_coverage_bigwigs }
 
-// /*
- // * Step 5c: Mean Coverage
- // */
+/*
+ * Step 5c: Mean Coverage
+ */
 
 process MeanCoverage {
 
@@ -1925,8 +1924,9 @@ process MeanCoverage {
     '''
 }
 
-////for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true during Define Reference Paths/Scripts + Reference Dependent Parameters
+//for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true during Define Reference Paths/Scripts + Reference Dependent Parameters
 if (params.step6) {
+
     /*
      * Step 6: txQuant
      */
@@ -1986,9 +1986,9 @@ if (params.step6) {
     }
 }
 
-// /*
- // * Construct the Counts Objects Input Channel
- // */
+/*
+ * Construct the Counts Objects Input Channel
+ */
 
 count_objects_bam_files // this puts sorted.bams and bais into the channel
   .flatten()
@@ -2037,9 +2037,9 @@ if (!params.ercc) {
       .set{ counts_inputs }
 }
 
-// /*
- // * Construct the Annotation Input Channel
- // */
+/*
+ * Construct the Annotation Input Channel
+ */
 
 junction_annotation_ensembl
   .collect()
@@ -2055,7 +2055,7 @@ if (params.reference_type == "rat") {
       .set{counts_annotations}
 }
 
-////TODO (iaguilar:) Check why rat has its own object (and it says mouse...
+//TODO (iaguilar:) Check why rat has its own object (and it says mouse...)
 if(params.reference_type != "rat") {
 
     rat_annotations
@@ -2087,13 +2087,13 @@ if(params.reference_type == "human") {
 
 /*
  * Step 7a: Create Count Objects
- */
-////Rscript searches for *_junctions_primaryOnly_regtools.count files
-////said files does not seem to be in the input channel
+*/
+
 process CountObjects {
 
     echo true
-    tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
+	//// This tag generates long names for the job
+////    tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
     publishDir "${params.basedir}/Count_Objects",'mode':'copy'
 
     input:
@@ -2160,7 +2160,8 @@ if (params.fullCov) {
     process CoverageObjects {
 
         echo true
-        tag "Creating Coverage Objects [ $full_coverage_input ]"
+		//// This tag generates long names for the job
+        ////tag "Creating Coverage Objects [ $full_coverage_input ]"
         publishDir "${params.basedir}/Coverage_Objects",'mode':'copy'
 
         input:
@@ -2197,7 +2198,7 @@ if (params.step8) {
 
     /*
      * Step 8: Call Variants
-     */
+    */
 
     variant_calls_bam
       .combine(snvbed)
@@ -2207,7 +2208,8 @@ if (params.step8) {
     process VariantCalls {
 
         echo true
-        tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
+		//// This tag generates long job names that crash sge
+        ////tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
         publishDir "${params.basedir}/Variant_Calls",'mode':'copy'
 
         input:
@@ -2230,13 +2232,15 @@ if (params.step8) {
     compressed_variant_calls
       .flatten()
       .collect()
-//      .toSortedList()
+// sorting was crashing the NF execution. There seems to be no need to sort
+//     .toSortedList()
       .set{ collected_variant_calls }
 
     compressed_variant_calls_tbi
       .flatten()
       .collect()
-//      .toSortedList()
+// sorting was crashing the NF execution. There seems to be no need to sort
+//     .toSortedList()
       .set{ collected_variant_calls_tbi }
 
 
@@ -2264,10 +2268,9 @@ if (params.step8) {
     }
 }
 
-
-// /*
- // * Step 9: Expressed Regions
- // */
+/*
+ * Step 9: Expressed Regions
+ */
 
 process ExpressedRegions {
 
