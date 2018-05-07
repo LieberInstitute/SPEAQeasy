@@ -287,16 +287,16 @@ params.scripts = "./scripts"
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //##TODO(iaguilar): Add brief descriptions for what are the cores used (parallelization level, by sample, by chunck, etc) (Doc ######)
 params.cores = '1'
-params.ercc_cores = '8'
-params.trimming_cores = '8'
-params.hisat_cores = '8'
-params.samtobam_cores = '8'
-params.featurecounts_cores = '8'
-params.alignments_cores = '8'
-params.salmon_cores = '8'
-params.counts_cores = '5'
-params.coverage_cores = '5'
-params.expressedregion_cores = '8'
+params.ercc_cores = '1'
+params.trimming_cores = '1'
+params.hisat_cores = '1'
+params.samtobam_cores = '1'
+params.featurecounts_cores = '1'
+params.alignments_cores = '1'
+params.salmon_cores = '1'
+params.counts_cores = '1'
+params.coverage_cores = '1'
+params.expressedregion_cores = '1'
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1514,12 +1514,7 @@ if (params.sample == "single") {
       hisat_cores = "${params.hisat_cores}"
 	  // Phred Quality is hardcoded, if it will be so, it should be pointed in the README.md
       '''
-      hisat2 \
-      -p !{hisat_cores} \
-      -x !{hisat_prefix} \
-      -U !{single_hisat_input} \
-      -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 \
-      2> !{single_hisat_prefix}_align_summary.txt
+      hisat2 -p !{hisat_cores} -x !{hisat_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
       '''
     }
 
@@ -1580,7 +1575,7 @@ if (params.sample == "paired") {
       .groupTuple()
       .set{ trim_paired_hisat_inputs }
 
-// Bellow block is not tested yet
+////Bellow block is not tested yet
      process samplePairedEndTrimmedHISAT {
 
       echo true
@@ -1622,7 +1617,7 @@ if (params.sample == "paired") {
       2> !${paired_trimmed_prefix}_align_summary.txt
       '''
     }
-// Bellow block is not tested yet
+////Bellow block is not tested yet
      hisat_paired_notrim_output
       .mix(hisat_paired_trim_output)
       .flatten()
@@ -1632,12 +1627,12 @@ if (params.sample == "paired") {
     paired_trim_alignment_summaries
       .mix(paired_notrim_alignment_summaries)
       .flatten()
-      .set{ alignment_summaries }
+      .set{ alignment_summaries } // think this is causing conflicts...
 }
 
-/*
- * Step 3b: Sam to Bam 
- */
+// /*
+ // * Step 3b: Sam to Bam 
+ // */
 
 
 process sampleSamtoBam {
@@ -1667,9 +1662,9 @@ infer_experiment_inputs
   .combine(bedfile)
   .set{ infer_experiments }
 
-/*
- * Step 3c: Infer Experiment
- */
+// /*
+ // * Step 3c: Infer Experiment
+ // */
 
 process sampleInferExperiment {
 
@@ -1700,9 +1695,9 @@ infer_experiment_outputs
   .toSortedList()
   .set{ infer_experiment_output }
 
-/*
- * Step 3d: Infer Strandness
- */
+// /*
+ // * Step 3d: Infer Strandness
+ // */
 
 process sampleInferStrandness {
 
@@ -1731,9 +1726,9 @@ feature_bam_inputs
   .combine(gencode_feature_gtf)
   .set{ feature_counts_inputs }
 
-/*
- * Step 4a: Feature Counts
- */
+// /*
+ // * Step 4a: Feature Counts
+ // */
 
 process sampleFeatureCounts {
 
@@ -1779,9 +1774,9 @@ process sampleFeatureCounts {
     """
 }
 
-/*
- * Step 4b: Primary Alignments
- */
+// /*
+ // * Step 4b: Primary Alignments
+ // */
 
 process samplePrimaryAlignments {
 
@@ -1803,9 +1798,9 @@ process samplePrimaryAlignments {
     """
 }
 
-/*
- * Step 4c: Junctions
- */
+// /*
+ // * Step 4c: Junctions
+ // */
 
 process sampleJunctions {
 
@@ -1820,7 +1815,7 @@ process sampleJunctions {
     output:
     file "*"
     file("*.count") into regtools_outputs
-	// needs to pass the count files to a channel
+//	needs to pass the count files to a channel
 
     shell:
     outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
@@ -1831,11 +1826,11 @@ process sampleJunctions {
     '''
 }
 
-/*
- * Step 5a: Coverage
- */
+// /*
+ // * Step 5a: Coverage
+ // */
 
-//small_test does not pass to this stage because its infer strandness file returns "NA"
+////small_test does not pass to this stage because its infer strandness file returns "NA"
 process sampleCoverage {
 
     echo true
@@ -1867,9 +1862,9 @@ process sampleCoverage {
     '''
 }
 
-/*
- * Step 5b: Wig to BigWig
- */
+// /*
+ // * Step 5b: Wig to BigWig
+ // */
 
 process sampleWigToBigWig {
 
@@ -1897,9 +1892,9 @@ coverage_bigwigs
   .toSortedList()
   .into{ mean_coverage_bigwigs;full_coverage_bigwigs }
 
-/*
- * Step 5c: Mean Coverage
- */
+// /*
+ // * Step 5c: Mean Coverage
+ // */
 
 process sampleMeanCoverage {
 
@@ -1930,7 +1925,7 @@ process sampleMeanCoverage {
     '''
 }
 
-// for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true during Define Reference Paths/Scripts + Reference Dependent Parameters
+////for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true during Define Reference Paths/Scripts + Reference Dependent Parameters
 if (params.step6) {
     /*
      * Step 6: txQuant
@@ -1964,7 +1959,7 @@ if (params.step6) {
             if (params.strand == "reverse" )
                 salmon_strand = "SR"
             }
-		// needs testing for paired
+		//needs testing for paired
         if (params.sample == "paired") {
             sample_command = "-1 ${salmon_input_prefix}_1.fastq.gz -2 ${salmon_input_prefix}_2.fastq.gz"
             if (params.strand == "unstranded" ) {
@@ -1991,9 +1986,9 @@ if (params.step6) {
     }
 }
 
-/*
- * Construct the Counts Objects Input Channel
- */
+// /*
+ // * Construct the Counts Objects Input Channel
+ // */
 
 count_objects_bam_files // this puts sorted.bams and bais into the channel
   .flatten()
@@ -2042,10 +2037,9 @@ if (!params.ercc) {
       .set{ counts_inputs }
 }
 
-
-/*
- * Construct the Annotation Input Channel
- */
+// /*
+ // * Construct the Annotation Input Channel
+ // */
 
 junction_annotation_ensembl
   .collect()
@@ -2061,7 +2055,7 @@ if (params.reference_type == "rat") {
       .set{counts_annotations}
 }
 
-//TODO (iaguilar:) Check why rat has its own object (and it says mouse...
+////TODO (iaguilar:) Check why rat has its own object (and it says mouse...
 if(params.reference_type != "rat") {
 
     rat_annotations
@@ -2094,8 +2088,8 @@ if(params.reference_type == "human") {
 /*
  * Step 7a: Create Count Objects
  */
-// Rscript searches for *_junctions_primaryOnly_regtools.count files
-// said files does not seem to be in the input channel
+////Rscript searches for *_junctions_primaryOnly_regtools.count files
+////said files does not seem to be in the input channel
 process sampleCreateCountObjects {
 
     echo true
@@ -2163,17 +2157,18 @@ if (params.fullCov) {
      * Step 7b: Create Full Coverage Objects
      */
 
-/*     process sampleCreateCoverageObjects {
+    process sampleCreateCoverageObjects {
 
         echo true
         tag "Creating Coverage Objects [ $full_coverage_input ]"
-        publishDir "${params.basedir}/Coverage_Objects",mode:'copy'
+        publishDir "${params.basedir}/Coverage_Objects",'mode':'copy'
 
         input:
         file fullCov_file from fullCov_file
         file fullCov_samples_manifest from fullCov_samples_manifest
         file full_coverage_input from full_coverage_inputs
         file inferred_strand_R_object from inferred_strand_objects
+		file check_R_packages_script from check_R_packages_script
 
         output:
         file "*"
@@ -2191,18 +2186,20 @@ if (params.fullCov) {
         coverage_prefix = "${params.experiment_prefix}"
         coverage_fullCov = "TRUE"
         '''
-        Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
+        ## Run the script to check for missing rpackages
+		Rscript !{check_R_packages_script} \
+		&&Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
         '''
     }
-} */
+}
 
-/* if (params.step8) { */
+if (params.step8) {
 
     /*
      * Step 8: Call Variants
      */
 
-/*     variant_calls_bam
+    variant_calls_bam
       .combine(snvbed)
       .combine(variant_assembly)
       .set{ variant_calls }
@@ -2211,7 +2208,7 @@ if (params.fullCov) {
 
         echo true
         tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
-        publishDir "${params.basedir}/Variant_Calls",mode:'copy'
+        publishDir "${params.basedir}/Variant_Calls",'mode':'copy'
 
         input:
         set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai), file(snv_bed), file(variant_assembly_file) from variant_calls
@@ -2224,43 +2221,34 @@ if (params.fullCov) {
         snptmp = "${variant_bams_prefix}_tmp.vcf"
         snpoutgz = "${variant_bams_prefix}.vcf.gz"
         '''
-        samtools mpileup \
-        -l !{snv_bed} \
-        -AB \
-        -q0 \
-        -Q13 \
-        -d1000000 \
-        -uf !{variant_assembly_file} !{variant_calls_bam_file} \
-        -o !{snptmp}
-        bcftools call \
-        -mv \
-        -Oz !{snptmp} > !{snpoutgz}
+        samtools mpileup -l !{snv_bed} -AB -q0 -Q13 -d1000000 -uf !{variant_assembly_file} !{variant_calls_bam_file} -o !{snptmp}
+        bcftools call -mv -Oz !{snptmp} > !{snpoutgz}
         tabix -p vcf !{snpoutgz}
         '''
-    } */
+    }
 
-/*     compressed_variant_calls
+    compressed_variant_calls
       .flatten()
       .collect()
-      .toSortedList()
+//      .toSortedList()
       .set{ collected_variant_calls }
 
     compressed_variant_calls_tbi
       .flatten()
       .collect()
-      .toSortedList()
-      .set{ collected_variant_calls_tbi } */
+//      .toSortedList()
+      .set{ collected_variant_calls_tbi }
 
 
     /*
      * Step 8b: Merge Variant Calls
      */
 
-/*     process sampleVariantCallsMerge {
+    process sampleVariantCallsMerge {
 
         echo true
         tag "Samples: $collected_variants"
-        publishDir "${params.basedir}/Merged_Variants",mode:'copy'
+        publishDir "${params.basedir}/Merged_Variants",'mode':'copy'
 
         input:
         file collected_variants from collected_variant_calls
@@ -2274,13 +2262,14 @@ if (params.fullCov) {
         vcf-merge !{collected_variants} | bgzip -c > mergedVariants.vcf.gz
         '''
     }
-} */
+}
 
-/*
- * Step 9: Expressed Regions
- */
 
-/* process sampleExpressedRegions {
+// /*
+ // * Step 9: Expressed Regions
+ // */
+
+process sampleExpressedRegions {
 
     echo true
     tag "Sample: $expressed_regions_mean_bigwig"
@@ -2304,4 +2293,3 @@ if (params.fullCov) {
     -c !{expressed_regions_cores}
     '''
 }
- */
