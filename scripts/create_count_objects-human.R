@@ -653,8 +653,10 @@ juncCounts = lapply(juncCounts, function(x) x[jIndex,])
 
 ############ anno/jMap
 anno = juncCounts$anno
-seqlevels(anno, force=TRUE) = paste0("chr", c(1:22,"X","Y","M"))
-
+### seqlevels(force= argument seems to require an updated version of R, and bioconductor)
+### For compatibility with the testing server, line has been changed to use the pruning.mode="coarse" argument
+##seqlevels(anno, force=TRUE) = paste0("chr", c(1:22,"X","Y","M"))
+seqlevels(anno, pruning.mode="coarse") = paste0("chr", c(1:22,"X","Y","M"))
 ## add additional annotation
 anno$inGencode = countOverlaps(anno, theJunctions, type="equal") > 0
 anno$inGencodeStart = countOverlaps(anno, theJunctions, type="start") > 0

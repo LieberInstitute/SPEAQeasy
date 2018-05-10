@@ -1830,6 +1830,22 @@ process Junctions {
  * Step 5a: Coverage
  */
 
+//
+if (params.strand == "unstranded")
+{
+	params.strandprefix=""
+}
+else
+{
+	if (params.strand == "forward")
+	{
+		params.strandprefix=".Forward"
+	}
+	else
+	{
+		params.strandprefix=".Reverse"
+	}
+}
 process Coverage {
 
     echo true
@@ -1842,7 +1858,7 @@ process Coverage {
     file chr_sizes from chr_sizes
 
     output:
-    set val("${coverage_prefix}"), file("${coverage_prefix}.wig") into wig_files
+    set val("${coverage_prefix}"), file("${coverage_prefix}${params.strandprefix}.wig") into wig_files
 
     shell:
     '''
@@ -1864,6 +1880,7 @@ process Coverage {
 /*
  * Step 5b: Wig to BigWig
  */
+
 
 process WigToBigWig {
 
@@ -2248,7 +2265,7 @@ if (params.step8) {
      * Step 8b: Merge Variant Calls
      */
 
-    process VariantsMerge {
+    /*process VariantsMerge {
 
         echo true
         tag "Samples: $collected_variants"
@@ -2265,7 +2282,7 @@ if (params.step8) {
         '''
         vcf-merge !{collected_variants} | bgzip -c > mergedVariants.vcf.gz
         '''
-    }
+    }*/
 }
 
 /*
@@ -2289,10 +2306,13 @@ process ExpressedRegions {
     shell:
     expressed_regions_cores = "${params.expressedregion_cores}"
     '''
-    Rscript !{expressedRegions_file} \
-    -m !{expressed_regions_mean_bigwig} \
-    -o . \
-    -i !{chr_sizes} \
-    -c !{expressed_regions_cores}
+    for meanfile in ./mean*.bw
+    do
+    	Rscript !{expressedRegions_file} \
+    	-m ${meanfile} \
+    	-o . \
+    	-i !{chr_sizes} \
+    	-c !{expressed_regions_cores}
+    done
     '''
 }
