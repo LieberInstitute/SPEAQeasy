@@ -204,7 +204,7 @@ write.csv(metrics, file = file.path(
 
 ###############
 ### exon counts
-exonFn <- file.path(paste0(metrics$SAMPLE_ID, '_Ensembl.rnor6.0.rn6_Exons.counts'))
+exonFn <- file.path(paste0(metrics$SAMPLE_ID, '_Rnor_6.0.86_Exons.counts'))
 names(exonFn) = metrics$SAMPLE_ID
 stopifnot(all(file.exists(exonFn)))
 
