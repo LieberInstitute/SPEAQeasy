@@ -2109,7 +2109,7 @@ if(params.reference_type == "human") {
 */
 process CountObjects {
 
-	errorStrategy 'ignore'
+	//errorStrategy 'ignore'
 	echo true
 	//This tag generates long names for the job
 	//tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
