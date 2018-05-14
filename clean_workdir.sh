@@ -2,4 +2,5 @@
 
 rm -r work/
 rm -rf .nextflow*
-rm -rf results/
+rm flowchart.png* report.html*
+#rm -rf results/
