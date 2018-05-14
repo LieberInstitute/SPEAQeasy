@@ -1,11 +1,11 @@
-# IEBER INSTITUTE JAFFE LAB RNA - SEQ ANALYSIS PIPELINE #
+# LIEBER INSTITUTE JAFFE LAB RNA - SEQ ANALYSIS PIPELINE #
 
 
 ### Summary ###
 
 ### Version description ###
 
-* Version 3.0 (current)
+* Version 0.7.3 (current)
 
  + 
 
@@ -31,9 +31,19 @@
 
 ### Configuration ###
 
-### Databases and reference files ###
+### Reference files ###
 
-### test run ###
+### Test run ###
+
+### Process description ###
+
+### Input data formats ###
+
+### Output data formats ###
+
+### Launching a real run ###
+
+### Pipeline directory structure ###
 
 ### Contact ###
 
