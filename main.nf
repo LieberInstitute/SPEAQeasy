@@ -474,10 +474,16 @@ if (!params.output) {
 infer_strandness = file("${params.scripts}/step3b_infer_strandness.R")
 prep_bed = file("${params.scripts}/prep_bed.R")
 bed_to_juncs = file("${params.scripts}/bed_to_juncs.py")
-fullCov_file = file("${params.scripts}/create_fullCov_object.R")
 //TODO(iaguilar) change _file for _script in the variable expressedRegions_file (###Dev)
 expressedRegions_file = file("${params.scripts}/step9-find_expressed_regions.R")
 check_R_packages_script = file("${params.scripts}/check_R_packages.R")
+
+// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
+if (params.small_test ) {
+	fullCov_file = file("${params.scripts}/create_fullCov_object.R.WG_compatible")
+} else {
+	fullCov_file = file("${params.scripts}/create_fullCov_object.R")
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define Reference Paths/Scripts + Reference Dependent Parameters
@@ -528,7 +534,12 @@ if (params.reference == "hg38") {
 	junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
 	feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
 	feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
-	create_counts = file("${params.scripts}/create_count_objects-human.R")
+	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
+	if (params.small_test ) {
+		create_counts = file("${params.scripts}/create_count_objects-human.R.WG_compatible")
+	} else {
+		create_counts = file("${params.scripts}/create_count_objects-human.R")
+	}
 
 	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg38...  (Doc ######)
@@ -576,7 +587,12 @@ if (params.reference == "hg19") {
 	junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
 	feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
 	feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
-	create_counts = file("${params.scripts}/create_count_objects-human.R")
+	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
+	if (params.small_test ) {
+		create_counts = file("${params.scripts}/create_count_objects-human.R.WG_compatible")
+	} else {
+		create_counts = file("${params.scripts}/create_count_objects-human.R")
+	}
 
 	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg19...  (Doc ######)
@@ -621,7 +637,12 @@ if (params.reference == "mm10") {
 	// Step 7: Make R objects
 	junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
 	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
-	create_counts = file("${params.scripts}/create_count_objects-mouse.R")
+	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
+	if (params.small_test ) {
+		create_counts = file("${params.scripts}/create_count_objects-mouse.R.WG_compatible")
+	} else {
+		create_counts = file("${params.scripts}/create_count_objects-mouse.R")
+	}
 
 	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is disabled if reference is mm10...  (Doc ######)
@@ -654,7 +675,12 @@ if (params.reference == "rn6") {
 
 	// Step 7: Make R objects
 	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
-	create_counts = file("${params.scripts}/create_count_objects-rat.R")
+	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
+	if (params.small_test ) {
+		create_counts = file("${params.scripts}/create_count_objects-rat.R.WG_compatible")
+	} else {
+		create_counts = file("${params.scripts}/create_count_objects-rat.R")
+	}
 
 	//Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is rn6...  (Doc ######)
