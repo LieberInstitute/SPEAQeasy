@@ -22,18 +22,6 @@ _##TODO##_: describe in what OS this has been tested
 _##TODO##_: Finish software and versions, according to what is installed in WG test server. a lot of software is missing
 
 * [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc)
-* [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic)
-* [BWA](http://bio-bwa.sourceforge.net/)
-* [Picard tools](http://broadinstitute.github.io/picard/)
-* [GATK](https://www.broadinstitute.org/gatk/)
-* [muTect](https://www.broadinstitute.org/cancer/cga/mutect)
-* [Pindel](http://gmt.genome.wustl.edu/packages/pindel/)
-* [samtools](http://samtools.sourceforge.net/)
-* [tabix](http://www.htslib.org/doc/tabix.html)
-* [vcftools](http://vcftools.sourceforge.net/)
-* [bedtools](http://bedtools.readthedocs.org/en/latest/)
-* [snpEff](http://snpeff.sourceforge.net/)
-* [mk](https://github.com/dcjones/mk)
 
 ### Configuration ###
 
