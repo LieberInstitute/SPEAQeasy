@@ -11,6 +11,7 @@ library('jaffelab')
 library('getopt')
 library('rafalib')
 library('devtools')
+library('SummarizedExperiment')
 
 ## Specify parameters
 spec <- matrix(c(
