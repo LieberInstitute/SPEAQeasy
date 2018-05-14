@@ -9,13 +9,13 @@
 #nextflow main.nf --small_test --sample "single" --reference "hg19" --strand "unstranded" --ercc --fullCov -profile sge -with-report -with-dag flowchart.png -resume
 
 ## hg38 Simple test with SGE (no docker)
-#nextflow main.nf --small_test --sample "single" --reference "hg38" --strand "unstranded" --ercc --fullCov -profile sge -resume -with-report -with-dag flowchart.png
+nextflow main.nf --small_test --sample "single" --reference "hg38" --strand "unstranded" --ercc --fullCov -profile sge -resume -with-report -with-dag flowchart.png
 
 ## mm10 Simple test with SGE, (no docker)
 #nextflow main.nf --small_test --sample "single" --reference "mm10" --strand "unstranded" --ercc --fullCov -profile sge -with-report -with-dag flowchart.png -resume
 
 ## rn6 Simple test with SGE, (no docker)
-nextflow main.nf --small_test --sample "single" --reference "rn6" --strand "unstranded" --ercc --fullCov -profile sge -with-report -with-dag flowchart.png -resume
+#nextflow main.nf --small_test --sample "single" --reference "rn6" --strand "unstranded" --ercc --fullCov -profile sge -with-report -with-dag flowchart.png -resume
 
 ### Testing reference block of NF pipeline
 #nextflow main.nf --sample "single" --reference "hg38" --strand "unstranded" -with-report -with-dag \
