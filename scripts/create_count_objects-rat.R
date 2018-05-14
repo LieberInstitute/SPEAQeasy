@@ -316,7 +316,10 @@ load(file.path(RDIR, "junction_annotation_rn6_ensembl_v86.rda"))
 
 ############ anno/jMap	
 anno = juncCounts$anno
-seqlevels(anno,force=TRUE) = c(1:20,"X","Y","MT")
+### seqlevels(force= argument seems to require an updated version of R, and bioconductor)
+### For compatibility with the testing server, line has been changed to use the pruning.mode="coarse" argument
+##seqlevels(anno,force=TRUE) = c(1:20,"X","Y","MT")
+seqlevels(anno, pruning.mode="coarse") = paste0("chr", c(1:20,"X","Y","M"))
 seqlevels(anno) = paste0("chr", c(1:20,"X","Y","M"))
 
 ## add additional annotation
