@@ -3,7 +3,7 @@
 vim: syntax=groovy
 -*- mode: groovy;-*-
 ===================================================================================================================================
-                       LIEBER INSTITUTE JAFFE-LAB     R N A - S E Q     A N A L Y S I S     P I P E L I N E  
+					LIEBER INSTITUTE JAFFE-LAB	 R N A - S E Q	 A N A L Y S I S	 P I P E L I N E  
 ===================================================================================================================================
  RNA-Seq Multi-Input Analysis Pipeline. Nextflow Version: Started December 2017.
  #### Homepage / Documentation
@@ -25,158 +25,158 @@ vim: syntax=groovy
  Pipeline Overview:
 
    Preprocessing:
-    -   Ia: Download Assembly FA
-    -   Ib: Build HISAT Index
-    -  IIa: Download GENCODE GTF File
-    -  IIb: Build Bed File
-    - IIIa: Download Salmon TX FA
-    - IIIb: Build Salmon Index
-   Sample Processing:
-    -   A: File Merging (Optional)
-    -   B: ERCC Quality Analysis (Optional)
-    -  C1: Individual Sample Manifest
-    -  C2: Sample Manifest
-    -   1: FastQC Quality Analysis
-    -  2a: Adaptive Trimming Filter (Sample Dependent)
-    -  2b: File Trimming (Sample Dependent)
-    -  2c: FastQC Trimmed Quality Analysis (Sample Dependent)
-    -  3a: Hisat2 Index Creation
-    -  3b: Convert Sam to Bam
-    -  3c: Infer Experiment
-    -  3d: Infer Strandness
-    -  4a: Feature Counts
-    -  4b: Primary Alignments
-    -  4c: Junctions
-    -  5a: Coverage
-    -  5b: WigtoBigWig
-    -  5c: Mean Coverage
-    -   6: Salmon TXQuant
-    -  7a: Create Counts Objects
-    -  7b: Create Coverage Objects
-    -  8a: Call Variants
-    -  8b: Merge Called Variants
-    -   9: Expressed Regions
+	-   Ia: Download Assembly FA
+	-   Ib: Build HISAT Index
+	-  IIa: Download GENCODE GTF File
+	-  IIb: Build Bed File
+	- IIIa: Download Salmon TX FA
+	- IIIb: Build Salmon Index
+	Sample Processing:
+	-   A: File Merging (Optional)
+	-   B: ERCC Quality Analysis (Optional)
+	-  C1: Individual Sample Manifest
+	-  C2: Sample Manifest
+	-   1: FastQC Quality Analysis
+	-  2a: Adaptive Trimming Filter (Sample Dependent)
+	-  2b: File Trimming (Sample Dependent)
+	-  2c: FastQC Trimmed Quality Analysis (Sample Dependent)
+	-  3a: Hisat2 Index Creation
+	-  3b: Convert Sam to Bam
+	-  3c: Infer Experiment
+	-  3d: Infer Strandness
+	-  4a: Feature Counts
+	-  4b: Primary Alignments
+	-  4c: Junctions
+	-  5a: Coverage
+	-  5b: WigtoBigWig
+	-  5c: Mean Coverage
+	-   6: Salmon TXQuant
+	-  7a: Create Counts Objects
+	-  7b: Create Coverage Objects
+	-  8a: Call Variants
+	-  8b: Merge Called Variants
+	-   9: Expressed Regions
 -----------------------------------------------------------------------------------------------------------------------------------
 */
 
 def helpMessage() {
-    log.info"""
-    =============================================================
-     LIEBER INSTITUTE JAFFE-LAB RNA-seq : RNA-Seq Multi-Input Analysis v${version}
-    =============================================================
-    Usage:
-    The typical command for running the pipeline is as follows:
+	log.info"""
+	=============================================================
+	 LIEBER INSTITUTE JAFFE-LAB RNA-seq : RNA-Seq Multi-Input Analysis v${version}
+	=============================================================
+	Usage:
+	The typical command for running the pipeline is as follows:
 
-    nextflow run main.nf --sample "single" --strand "unstranded" --reference "hg19" --merge --ercc --fullCov -profile standard
+	nextflow run main.nf --sample "single" --strand "unstranded" --reference "hg19" --merge --ercc --fullCov -profile standard
 
-    NOTES: The pipeline accepts single or paired end reads. These reads can be stranded or unstranded, and must follow the following naming structure:
+	NOTES: The pipeline accepts single or paired end reads. These reads can be stranded or unstranded, and must follow the following naming structure:
 
-    merge: "*_read{1,2}.fastq.gz"
-    paired: "*_{1,2}.fastq.gz"
+	merge: "*_read{1,2}.fastq.gz"
+	paired: "*_{1,2}.fastq.gz"
 
-    NOTE: File names can not have "." in the name due to the prefix functions in between process
+	NOTE: File names can not have "." in the name due to the prefix functions in between process
 
-    nextflow run main.nf {CORE} {OPTIONS}
-         {CORE}:
-            --sample "single/paired"
-              single <- reads files individually "*"
-              paired <- reads files paired "*_{1,2}"
-            --reference
-              hg38 <- uses human reference hg38
-              hg19 <- uses human reference hg19
-              mm10 <- uses mouse reference mm10
-              rn6  <- uses rat reference rn6
-	    --strand "forward"/"reverse"/"unstranded"
-              forward <- uses forward stranding
-              reverse <- uses reverse stranding
-              unstranded <- uses pipeine inferencing
-         {OPTIONS}:
-            --merge <- assumes fastq.gz files require merging "*_read{1,2}.fastq.gz"
+	nextflow run main.nf {CORE} {OPTIONS}
+		 {CORE}:
+			--sample "single/paired"
+			  single <- reads files individually "*"
+			  paired <- reads files paired "*_{1,2}"
+			--reference
+			  hg38 <- uses human reference hg38
+			  hg19 <- uses human reference hg19
+			  mm10 <- uses mouse reference mm10
+			  rn6  <- uses rat reference rn6
+		--strand "forward"/"reverse"/"unstranded"
+			  forward <- uses forward stranding
+			  reverse <- uses reverse stranding
+			  unstranded <- uses pipeine inferencing
+		 {OPTIONS}:
+			--merge <- assumes fastq.gz files require merging "*_read{1,2}.fastq.gz"
 	##TODO(iaguilar): Check that THIS IS what --merge means (Docummentation ######)
-            --ercc  <- performs ercc quantification
-            --fullCov <- performs fullCov R analysis
-	    --help <- shows this message
-             etc...
+			--ercc  <- performs ercc quantification
+			--fullCov <- performs fullCov R analysis
+		--help <- shows this message
+			 etc...
 	##TODO(iaguilar): Finish the brief help descriptors (Docummentation ######)
-    
-    Mandatory Options:
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --sample                      Runs the pipeline for "single" or "paired" end reads
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --strand                      Runs pipeline for "unstranded, forward, reverse" read types
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --reference                   Select the desired reference for the run (hg38, hg19, mm10, rn6)
-    -----------------------------------------------------------------------------------------------------------------------------------
 
-    Optional Parameters:
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --experiment                  Name of the experiment being run (ex: "alzheimer"). Defaults to FALSE
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --prefix                      Defines the prefix of the input files (not used to detect files)
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --input                       Defines the input folder for the files. Defaults to "./input"
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --output                      Defines the output folder for the files. Defaults to "./results"
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --merge                       Flag option if files need to be merged. Defaults to FALSE
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --unalign                     Give the option to not algin the reads against a reference in HISAT step. Defaults to FALSE 
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --annotation                  Path to the folder containing pipeline annotations. Defaults to "./Annotations"
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --indexing                    Path to the base directory containing pipeline indexes. Defaults to --annotation path
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --genotype                    Path to the folder containing pipeline genotypes. Defaults to "./Genotyping"
+	Mandatory Options:
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--sample					  Runs the pipeline for "single" or "paired" end reads
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--strand					  Runs pipeline for "unstranded, forward, reverse" read types
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--reference				   Select the desired reference for the run (hg38, hg19, mm10, rn6)
+	-----------------------------------------------------------------------------------------------------------------------------------
+
+	Optional Parameters:
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--experiment				  Name of the experiment being run (ex: "alzheimer"). Defaults to FALSE
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--prefix					  Defines the prefix of the input files (not used to detect files)
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--input					   Defines the input folder for the files. Defaults to "./input"
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--output					  Defines the output folder for the files. Defaults to "./results"
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--merge					   Flag option if files need to be merged. Defaults to FALSE
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--unalign					 Give the option to not algin the reads against a reference in HISAT step. Defaults to FALSE 
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--annotation				  Path to the folder containing pipeline annotations. Defaults to "./Annotations"
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--indexing					Path to the base directory containing pipeline indexes. Defaults to --annotation path
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--genotype					Path to the folder containing pipeline genotypes. Defaults to "./Genotyping"
 	##TODO(iaguilar): Expand genotype description. what are they used for? (Docummentation ######)
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --email                       Parameter to get a summary e-mail with details of the run sent to you when the workflow exits
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--email					   Parameter to get a summary e-mail with details of the run sent to you when the workflow exits
 	##TODO(iaguilar): Check if this works for failed executions (Docummentation ######)
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --name                        Name for the pipeline run. If not specified, name is set to experiment
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--name						Name for the pipeline run. If not specified, name is set to experiment
 	##TODO(iaguilar): What is this used for? (Docummentation ######)
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --ercc                        Flag to enable ERCC quantification with Kallisto
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --k_lm                        Kallisto ERCC Length Mean Value for Single End Reads (defaults to 200)
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --k_sd                        Kallisto ERCC Standard Deviation Value for Single End Reads (defaults to 30)
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --fullCov                     Flag to perform full coverage in step 7b
-    -----------------------------------------------------------------------------------------------------------------------------------
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--ercc						Flag to enable ERCC quantification with Kallisto
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--k_lm						Kallisto ERCC Length Mean Value for Single End Reads (defaults to 200)
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--k_sd						Kallisto ERCC Standard Deviation Value for Single End Reads (defaults to 30)
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--fullCov					 Flag to perform full coverage in step 7b
+	-----------------------------------------------------------------------------------------------------------------------------------
 #################
 	##TODO(iaguilar): change this commands to perform quick tests on every posible version of the input data (maybe a quick human test, and a whole species tests)(Docummentation ######)
-    --small_test                  Runs the pipeline as a small test run on sample files located in the test folder
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --test                        Runs the pipeline as a test run on sample files located on winter server 
-    -----------------------------------------------------------------------------------------------------------------------------------
-    """.stripIndent()
+	--small_test				  Runs the pipeline as a small test run on sample files located in the test folder
+	-----------------------------------------------------------------------------------------------------------------------------------
+	--test						Runs the pipeline as a test run on sample files located on winter server 
+	-----------------------------------------------------------------------------------------------------------------------------------
+	""".stripIndent()
 }
 /*
  * SET UP CONFIGURATION VARIABLES
  */
 
 // Pipeline version
-version = "0.7.1"
+version = "0.7.2"
 
 // Show help message
 params.help = false
 if (params.help){
-    helpMessage()
-    exit 0
+	helpMessage()
+	exit 0
 }
 // Check that Nextflow version is up to date enough
 // try / throw / catch works for NF versions < 0.25 when this was implemented
 nf_required_version = '0.25.0'
 try {
-    if( ! nextflow.version.matches(">= $nf_required_version") ){
-        throw GroovyException('Nextflow version too old')
-    }
+	if( ! nextflow.version.matches(">= $nf_required_version") ){
+		throw GroovyException('Nextflow version too old')
+	}
 } catch (all) {
-    log.error "====================================================\n" +
-              "  Nextflow version $nf_required_version required! You are running v$workflow.nextflow.version.\n" +
-              "  Pipeline execution will continue, but things may break.\n" +
-              "  Please run `nextflow self-update` to update Nextflow.\n" +
-              "============================================================"
+	log.error "====================================================\n" +
+			"  Nextflow version $nf_required_version required! You are running v$workflow.nextflow.version.\n" +
+			"  Pipeline execution will continue, but things may break.\n" +
+			"  Please run `nextflow self-update` to update Nextflow.\n" +
+			"============================================================"
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,62 +217,62 @@ params.k_sd = false
 //##// MANDATORY PARAMS BLOCK
 // Sample Selection Validation
 if (!params.sample || (params.sample != "single" && params.sample != "paired")) {
-    exit 1, "Sample Type Not Provided or Invalid Choice. Please Provide a Valid Sample Type"
+	exit 1, "Sample Type Not Provided or Invalid Choice. Please Provide a Valid Sample Type"
 }
 
 // Strand Selection Validation
 if (!params.strand || (params.strand != "forward" && params.strand != "reverse" && params.strand != "unstranded")) {
-    exit 1, "Strand Type Not Provided or Invalid Choice. Please Provide a Valid Strand Type"
+	exit 1, "Strand Type Not Provided or Invalid Choice. Please Provide a Valid Strand Type"
 }
 
 // Reference Selection Validation
 if (!params.reference) {
-    exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
+	exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
 }
 if (params.reference == "hg19" || params.reference == "hg38" ) {
-    params.reference_type = "human"
+	params.reference_type = "human"
 }
 if (params.reference == "mm10") {
-    params.reference_type = "mouse"
+	params.reference_type = "mouse"
 }
 if (params.reference == "rn6") {
-    params.reference_type = "rat"
+	params.reference_type = "rat"
 }
 
 //##// OPTIONAL PARAMS BLOCK
 // Annotation Path Validation
 if (!params.annotation) {
-    params.annotations = "./Annotation"
+	params.annotations = "./Annotation"
 }
 
 // Indexing Path Validation
 if (!params.indexing && !params.test) {
-    params.indexing = "${params.annotations}"
+	params.indexing = "${params.annotations}"
 }
 
 // Genotype Path Validation
 if (!params.genotype) {
-    params.genotypes = "./Genotyping"
+	params.genotypes = "./Genotyping"
 }
 
 // Experiment/Workflow Name Validation
 if (!params.name) {
-    if (!params.experiment) {
-        workflow.runName = "RNAsp_run"
-        params.experiments = "Jlab_experiment"
-    }
-    if (params.experiment) {
-        workflow.runName = params.experiment
-        params.experiments = params.experiment
-    }
+	if (!params.experiment) {
+		workflow.runName = "RNAsp_run"
+		params.experiments = "Jlab_experiment"
+	}
+	if (params.experiment) {
+		workflow.runName = params.experiment
+		params.experiments = params.experiment
+	}
 }
 
 // Prefix
 if (!params.prefix) {
-    params.experiment_prefix = "pref"
+	params.experiment_prefix = "pref"
 }
 if (params.prefix) {
-    params.experiment_prefix = params.prefix
+	params.experiment_prefix = params.prefix
 //  params.experiment_prefix = "Yas"
 }
 
@@ -286,17 +286,17 @@ params.scripts = "./scripts"
 // Core Options
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //##TODO(iaguilar): Add brief descriptions for what are the cores used (parallelization level, by sample, by chunck, etc) (Doc ######)
-params.cores = '1'
-params.ercc_cores = '1'
-params.trimming_cores = '1'
-params.hisat_cores = '1'
-params.samtobam_cores = '1'
-params.featurecounts_cores = '1'
-params.alignments_cores = '1'
-params.salmon_cores = '1'
-params.counts_cores = '1'
-params.coverage_cores = '1'
-params.expressedregion_cores = '1'
+params.cores = '4'
+params.ercc_cores = '4'
+params.trimming_cores = '4'
+params.hisat_cores = '4'
+params.samtobam_cores = '4'
+params.featurecounts_cores = '4'
+params.alignments_cores = '4'
+params.salmon_cores = '4'
+params.counts_cores = '4'
+params.coverage_cores = '4'
+params.expressedregion_cores = '4'
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -307,68 +307,68 @@ params.expressedregion_cores = '1'
 //##TODO(iaguilar): Explain how the input files must be ordered or located inside the input data directory (Doc ######)
 //##TODO(iaguilar): INCLUDE IN THE README: a tree with file strcture description (Doc ######)
 if (!params.input && !params.test && !params.small_test) {
-    if (params.input) {
-        params.inputs = "${params.input}"
-    }
-    else {
-        params.inputs = "./input"
-// originally was        params.inputs = "./inputs"
+	if (params.input) {
+		params.inputs = "${params.input}"
+	}
+	else {
+		params.inputs = "./input"
+// originally was		params.inputs = "./inputs"
 // but it does not seem to be a "inputs" dir in the repo, only "input", without the s
-    }
+	}
 }
 
 // Testing Paths for Rat
 //##TODO(iaguilar): Complete with data for rat, by vlarios (Dev ######)
-if (params.reference_type == "rat") {
-    exit 1, "There are no sample files for rat. Please add sample files and then run again"
-}
+//if (params.reference_type == "rat") {
+//	exit 1, "There are no sample files for rat. Please add sample files and then run again"
+//}
 
 // Real File Test Paths (Human & Mouse)
 //##TODO(iaguilar): This could change to a general test param that runs on every species and genome version (Dev ######)
 if (params.test && !params.small_test) {
-    if (params.reference_type == "mouse") {
-        params.inputs = "/media/genomics/disco3/dataLieber/raw/${params.reference_type}/${params.sample}"
-    }
+	if (params.reference_type == "mouse") {
+		params.inputs = "/media/genomics/disco3/dataLieber/raw/${params.reference_type}/${params.sample}"
+	}
 //##TODO(iaguilar): Check what does raw mean (Dev ######)
 //##TODO(iaguilar): It means data in need of trimming (Dev ######)
 //##TODO(iaguilar): These paths should point to the test data created by Lieber or vlarios (Dev ######)
 //##TODO(iaguilar): A minimal test-data directory should be versionated with the pipeline (Dev ######)
-    if (params.reference_type == "human") {
-        if (params.raw) {
-            params.inputs = "/media/genomics/disco3/dataLieber/raw/human/paired"
-        }
-        if (!params.raw) {
-            params.inputs = "/media/genomics/disco3/dataLieber/human"
-        }
-    }
+	if (params.reference_type == "human") {
+		if (params.raw) {
+			params.inputs = "/media/genomics/disco3/dataLieber/raw/human/paired"
+		}
+		if (!params.raw) {
+			params.inputs = "/media/genomics/disco3/dataLieber/human"
+		}
+	}
 }
 
 // Dummy File Test Paths
 //##TODO(iaguilar): this seems to complex to have to specifiy the test and the type of stranded data (Dev ######)
 //##TODO(iaguilar): One or two test runs with multiple species, genome versions, and minimal data should be defined in a single flag (like: "quick_test" and "full_test"  (Dev ######)
 if (params.small_test && !params.test) {
-    if (params.strand != "unstranded") {
-        if (params.merge) {
-            params.inputs = "./test/merge/${params.sample}/stranded"
-        }
-        if (!params.merge) {
-            params.inputs = "./test/${params.sample}/stranded"
-        }
-    }
-    if (params.strand == "unstranded") {
-        if (params.merge) {
-            params.inputs = "./test/merge/${params.sample}/unstranded"
-        }
-        if (!params.merge) {
-            params.inputs = "./test/${params.sample}/unstranded"
-        }
-    }
+	if (params.strand != "unstranded") {
+		if (params.merge) {
+			params.inputs = "./test/${params.reference_type}/merge/${params.sample}/stranded"
+		}
+		if (!params.merge) {
+			params.inputs = "./test/${params.reference_type}/${params.sample}/stranded"
+		}
+	}
+	if (params.strand == "unstranded") {
+		if (params.merge) {
+			params.inputs = "./test/${params.reference_type}/merge/${params.sample}/unstranded"
+		}
+		if (!params.merge) {
+			params.inputs = "./test/${params.reference_type}/${params.sample}/unstranded"
+		}
+	}
 }
 
 // Conflicting Test Options
 //##TODO(iaguilar): Modify for quick_test vs full_test (Dev ######)
 if (params.small_test && params.test) {
-    exit 1, "You've selected 'small_test' and 'test' ... Please choose one and run again"
+	exit 1, "You've selected 'small_test' and 'test' ... Please choose one and run again"
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -377,59 +377,59 @@ if (params.small_test && params.test) {
 
 //##TODO(iaguilar): Check if kallisto parameters belong on the stranded option params block, or deserve their own block (Doc ######)
 if (!params.k_lm) {
-    params.k_length_mean = 200
+	params.k_length_mean = 200
 }
 if (!params.k_sd) {
-    params.k_standard_deviation = 30
+	params.k_standard_deviation = 30
 }
 if (params.k_lm){
-    params.k_length_mean = params.k_lm
+	params.k_length_mean = params.k_lm
 }
 if (params.k_sd) {
-    params.k_standard_deviation = params.k_sd
+	params.k_standard_deviation = params.k_sd
 }
 //##TODO(iaguilar): Expand what is every param used for and why is this value assigned (Doc ######)
 if (params.strand == "unstranded") {
-    if (params.sample == "single") {
-        params.kallisto_strand = "--single -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
-        params.hisat_strand = ""
-        params.feature_strand = "0"
-        params.trim_sample = "SE"
-    }
-    if (params.sample == "paired") {
-        params.kallisto_strand = ""
-        params.hisat_strand = ""
-        params.feature_strand = "0"
-        params.trim_sample = "PE"
-    }
+	if (params.sample == "single") {
+		params.kallisto_strand = "--single -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
+		params.hisat_strand = ""
+		params.feature_strand = "0"
+		params.trim_sample = "SE"
+	}
+	if (params.sample == "paired") {
+		params.kallisto_strand = ""
+		params.hisat_strand = ""
+		params.feature_strand = "0"
+		params.trim_sample = "PE"
+	}
 }
 if (params.strand == "forward") {
-    if (params.sample == "single") {
-        params.kallisto_strand = "--single --fr-stranded -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
-        params.hisat_strand = "--rna-strandness F"
-        params.feature_strand = "1"
-        params.trim_sample = "SE"
-    }
-    if (params.sample == "paired") {
-        params.kallisto_strand = "--fr-stranded"
-        params.hisat_strand = "--rna-strandness FR"
-        params.feature_strand = "1"
-        params.trim_sample = "PE"
-    }
+	if (params.sample == "single") {
+		params.kallisto_strand = "--single --fr-stranded -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
+		params.hisat_strand = "--rna-strandness F"
+		params.feature_strand = "1"
+		params.trim_sample = "SE"
+	}
+	if (params.sample == "paired") {
+		params.kallisto_strand = "--fr-stranded"
+		params.hisat_strand = "--rna-strandness FR"
+		params.feature_strand = "1"
+		params.trim_sample = "PE"
+	}
 }
 if (params.strand == "reverse") {
-    if (params.sample == "single") {
-        params.kallisto_strand = "--single --rf-stranded -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
-        params.hisat_strand = "--rna-strandness R"
-        params.feature_strand = "2"
-        params.trim_sample = "SE"
-    }
-    if (params.sample == "paired") {
-        params.kallisto_strand = "--rf-stranded"
-        params.hisat_strand = "--rna-strandness RF"
-        params.feature_strand = "2"
-        params.trim_sample = "PE"
-    }
+	if (params.sample == "single") {
+		params.kallisto_strand = "--single --rf-stranded -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
+		params.hisat_strand = "--rna-strandness R"
+		params.feature_strand = "2"
+		params.trim_sample = "SE"
+	}
+	if (params.sample == "paired") {
+		params.kallisto_strand = "--rf-stranded"
+		params.hisat_strand = "--rna-strandness RF"
+		params.feature_strand = "2"
+		params.trim_sample = "PE"
+	}
 }
 
 
@@ -438,33 +438,33 @@ if (params.strand == "reverse") {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 if (params.output) {
-    params.basedir = "${params.output}"
+	params.basedir = "${params.output}"
 //##TODO(iaguilar): Check if this is necessary or it is best to manage the ./Annotations dir by default (Dev ######)
-    params.index_out = "${params.annotations}"
+	params.index_out = "${params.annotations}"
 }
 if (!params.output) {
 //##TODO(iaguilar): What is params.production_baseout used for? (Doc ######)
-    params.production_baseout = "."
+	params.production_baseout = "."
 //##TODO(iaguilar): What is params.test_baseout used for? (Doc ######)
-    params.test_baseout = "."
-    if (params.test) {
-        params.index_out = "${params.test_baseout}/Annotation"
-        if (params.merge) {
-            params.basedir = "${params.test_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}/merge"
-        }
-        if (!params.merge) {
-            params.basedir = "${params.test_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}"
-        }
-    }
-    if (!params.test) {
-        params.index_out = "${params.production_baseout}/Annotation"
-        if (params.merge) {
-            params.basedir = "${params.production_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}/merge"
-        }
-        if (!params.merge) {
+	params.test_baseout = "."
+	if (params.test) {
+		params.index_out = "${params.test_baseout}/Annotation"
+		if (params.merge) {
+			params.basedir = "${params.test_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}/merge"
+		}
+		if (!params.merge) {
+			params.basedir = "${params.test_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}"
+		}
+	}
+	if (!params.test) {
+		params.index_out = "${params.production_baseout}/Annotation"
+		if (params.merge) {
+			params.basedir = "${params.production_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}/merge"
+		}
+		if (!params.merge) {
 		params.basedir = "${params.production_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}"
-        }
-    }
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -485,178 +485,180 @@ check_R_packages_script = file("${params.scripts}/check_R_packages.R")
 
 // ERCC
 if (params.ercc) {
-    erccidx = file("${params.annotations}/ERCC/ERCC92.idx")
+	erccidx = file("${params.annotations}/ERCC/ERCC92.idx")
 }
 
 // ERCC Concentrations
 ercc_actual_conc = file("${params.annotations}/ercc_actual_conc.txt")
 
 if (params.reference == "hg38") {
-    
-    // Step 3: hisat2
+	
+	// Step 3: hisat2
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
-    params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz"
-    params.fa_gz = "GRCh38.primary_assembly.genome.fa.gz"
-    params.fa = "GRCh38.primary_assembly.genome.fa"
-    params.hisat_prefix = "hisat2_GRCh38primary"
-    params.hisat_assembly = "GENCODE/GRCh38_hg38/assembly"
+	params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz"
+	params.fa_gz = "GRCh38.primary_assembly.genome.fa.gz"
+	params.fa = "GRCh38.primary_assembly.genome.fa"
+	params.hisat_prefix = "hisat2_GRCh38primary"
+	params.hisat_assembly = "GENCODE/GRCh38_hg38/assembly"
 
-    // Step 4: gencode gtf
+	// Step 4: gencode gtf
 //##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
-    params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz"
-    params.gencode_gtf_gz = "gencode.v25.annotation.gtf.gz"
-    params.gencode_gtf = "gencode.v25.annotation.gtf"
-    params.feature_output_prefix = "Gencode.v25.hg38"
+	params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz"
+	params.gencode_gtf_gz = "gencode.v25.annotation.gtf.gz"
+	params.gencode_gtf = "gencode.v25.annotation.gtf"
+	params.feature_output_prefix = "Gencode.v25.hg38"
 
-    // Step 5: python coverage
+	// Step 5: python coverage
 //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-    chr_sizes = file("${params.annotations}/chrom_sizes/hg38.chrom.sizes.gencode")
+	chr_sizes = file("${params.annotations}/chrom_sizes/hg38.chrom.sizes.gencode")
 
-    // Step 6: salmon
+	// Step 6: salmon
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg38...  (Doc ######)
-    params.step6 = true
+	params.step6 = true
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
-    params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
-    params.tx_fa_gz = "gencode.v25.transcripts.fa.gz"
-    params.tx_fa = "gencode.v25.transcripts.fa"
-    params.salmon_prefix = "salmon_0.8.2_index_gencode.v25.transcripts"
-    params.salmon_assembly = "GENCODE/GRCh38_hg38/transcripts"
+	params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
+	params.tx_fa_gz = "gencode.v25.transcripts.fa.gz"
+	params.tx_fa = "gencode.v25.transcripts.fa"
+	params.salmon_prefix = "salmon_0.8.2_index_gencode.v25.transcripts"
+	params.salmon_assembly = "GENCODE/GRCh38_hg38/transcripts"
 
-    // Step 7: Make R objects    
-    junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_gencode_v25.rda")
-    junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_ensembl_v85.rda")
-    junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
-    feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
-    feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
-    create_counts = file("${params.scripts}/create_count_objects-human.R")
+	// Step 7: Make R objects	
+	junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_gencode_v25.rda")
+	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_ensembl_v85.rda")
+	junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
+	feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
+	feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
+	create_counts = file("${params.scripts}/create_count_objects-human.R")
 
-    // Step 8: call variants
+	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg38...  (Doc ######)
-    params.step8 = true
+	params.step8 = true
 //##TODO(iaguilar): Explain the need to define the channel from this block  (Doc ######)
-    Channel
-      .fromPath("${params.genotypes}/common_missense_SNVs_hg38.bed")
-      .set{ snvbed }
+	Channel
+	.fromPath("${params.genotypes}/common_missense_SNVs_hg38.bed")
+	.set{ snvbed }
 
 }
 if (params.reference == "hg19") {
-    
-    // Step 3: hisat2
+	
+	// Step 3: hisat2
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
-    params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
-    params.fa_gz = "GRCh37.primary_assembly.genome.fa.gz"
-    params.fa = "GRCh37.primary_assembly.genome.fa"
-    params.hisat_prefix = "hisat2_GRCh37primary"
-    params.hisat_assembly = "GENCODE/GRCh37_hg19/assembly"
-    
-    // Step 4: gencode gtf
+	params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
+	params.fa_gz = "GRCh37.primary_assembly.genome.fa.gz"
+	params.fa = "GRCh37.primary_assembly.genome.fa"
+	params.hisat_prefix = "hisat2_GRCh37primary"
+	params.hisat_assembly = "GENCODE/GRCh37_hg19/assembly"
+	
+	// Step 4: gencode gtf
 //##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
-    params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"
-    params.gencode_gtf_gz = "gencode.v25lift37.annotation.gtf.gz"
-    params.gencode_gtf = "gencode.v25lift37.annotation.gtf"
-    params.feature_output_prefix = "Gencode.v25lift37.hg19"
+	params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"
+	params.gencode_gtf_gz = "gencode.v25lift37.annotation.gtf.gz"
+	params.gencode_gtf = "gencode.v25lift37.annotation.gtf"
+	params.feature_output_prefix = "Gencode.v25lift37.hg19"
 
-    // Step 5: python coverage
+	// Step 5: python coverage
 //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-    chr_sizes = file("${params.annotations}/chrom_sizes/hg19.chrom.sizes.gencode")
+	chr_sizes = file("${params.annotations}/chrom_sizes/hg19.chrom.sizes.gencode")
 
-    // Step 6: salmon
+	// Step 6: salmon
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg19...  (Doc ######)
-    params.step6 = true
+	params.step6 = true
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
-    params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
-    params.tx_fa_gz = "gencode.v25lift37.transcripts.fa.gz"
-    params.tx_fa = "gencode.v25lift37.transcripts.fa"
-    params.salmon_prefix = "salmon_0.8.2_index_gencode.v25lift37.transcripts"
-    params.salmon_assembly = "GENCODE/GRCh37_hg19/transcripts"
+	params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
+	params.tx_fa_gz = "gencode.v25lift37.transcripts.fa.gz"
+	params.tx_fa = "gencode.v25lift37.transcripts.fa"
+	params.salmon_prefix = "salmon_0.8.2_index_gencode.v25lift37.transcripts"
+	params.salmon_assembly = "GENCODE/GRCh37_hg19/transcripts"
 
-    // Step 7: Make R objects
-    junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_gencode_v25lift37.rda")
-    junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_ensembl_v75.rda")
-    junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
-    feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
-    feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
-    create_counts = file("${params.scripts}/create_count_objects-human.R")
+	// Step 7: Make R objects
+	junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_gencode_v25lift37.rda")
+	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_ensembl_v75.rda")
+	junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
+	feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
+	feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
+	create_counts = file("${params.scripts}/create_count_objects-human.R")
 
-    // Step 8: call variants
+	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg19...  (Doc ######)
-    params.step8 = true
+	params.step8 = true
 //##TODO(iaguilar): Explain the need to define the channel from this block  (Doc ######)
-    Channel
-      .fromPath("${params.genotypes}/common_missense_SNVs_hg19.bed")
-      .set{ snvbed }
+	Channel
+	.fromPath("${params.genotypes}/common_missense_SNVs_hg19.bed")
+	.set{ snvbed }
 
 }
 if (params.reference == "mm10") {
 
-    // Step 3: hisat2
+	// Step 3: hisat2
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
-    params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/GRCm38.primary_assembly.genome.fa.gz"
-    params.fa_gz = "GRCm38.primary_assembly.genome.fa.gz"
-    params.fa = "GRCm38.primary_assembly.genome.fa"
-    params.hisat_prefix = "GRCm38_mmhisat2_GRCm38primary"
-    params.hisat_assembly = "GENCODE/GRCm38_mm10/assembly"
+	params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/GRCm38.primary_assembly.genome.fa.gz"
+	params.fa_gz = "GRCm38.primary_assembly.genome.fa.gz"
+	params.fa = "GRCm38.primary_assembly.genome.fa"
+	params.hisat_prefix = "GRCm38_mmhisat2_GRCm38primary"
+	params.hisat_assembly = "GENCODE/GRCm38_mm10/assembly"
 
-    // Step 4: gencode gtf
+	// Step 4: gencode gtf
 //##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
-    params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/gencode.vM11.annotation.gtf.gz"
-    params.gencode_gtf_gz = "gencode.vM11.annotation.gtf.gz"
-    params.gencode_gtf = "gencode.vM11.annotation.gtf"
-    params.feature_output_prefix = "Gencode.M11.mm10"
+	params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/gencode.vM11.annotation.gtf.gz"
+	params.gencode_gtf_gz = "gencode.vM11.annotation.gtf.gz"
+	params.gencode_gtf = "gencode.vM11.annotation.gtf"
+	params.feature_output_prefix = "Gencode.M11.mm10"
 
-    // Step 5: python coverage
+	// Step 5: python coverage
 //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-    chr_sizes = file("${params.annotations}/chrom_sizes/mm10.chrom.sizes.gencode")
-    
-    // Step 6: salmon
+	chr_sizes = file("${params.annotations}/chrom_sizes/mm10.chrom.sizes.gencode")
+
+	// Step 6: salmon
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is mm10...  (Doc ######)
-    params.step6 = true
+	params.step6 = true
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gz value (Dev ######)
-    params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
-    params.tx_fa_gz = "gencode.vM11.transcripts.fa.gz"
-    params.tx_fa = "gencode.vM11.transcripts.fa"
-    params.salmon_prefix = "salmon_0.8.2_index_gencode.vM11.transcripts"
-    params.salmon_assembly = "GENCODE/GRCm38_mm10/transcripts"
+	params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
+	params.tx_fa_gz = "gencode.vM11.transcripts.fa.gz"
+	params.tx_fa = "gencode.vM11.transcripts.fa"
+	params.salmon_prefix = "salmon_0.8.2_index_gencode.vM11.transcripts"
+	params.salmon_assembly = "GENCODE/GRCm38_mm10/transcripts"
 
-    // Step 7: Make R objects
-    junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
-    junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
-    create_counts = file("${params.scripts}/create_count_objects-mouse.R")
+	// Step 7: Make R objects
+	junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
+	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
+	create_counts = file("${params.scripts}/create_count_objects-mouse.R")
 
-    // Step 8: call variants
+	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is disabled if reference is mm10...  (Doc ######)
-    params.step8 = false
+	params.step8 = false
 }
 if (params.reference == "rn6") {
 
-    // Step 3: hisat2
+	// Step 3: hisat2
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gz value (Dev ######)
-    params.fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
-    params.fa_gz = "Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
-    params.fa = "Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa"
-    params.hisat_prefix = "hisat2_Rnor6.0toplevel"
-    params.hisat_assembly = "ensembl/Rnor_6.0"
-    
-    
-    // Step 4: gencode gtf (ensembl for rn6)
+	params.fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
+	params.fa_gz = "Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
+	params.fa = "Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa"
+	params.hisat_prefix = "hisat2_Rnor6.0toplevel"
+	params.hisat_assembly = "ensembl/Rnor_6.0"
+
+	// Step 4: gencode gtf (ensembl for rn6)
 //##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes gtf_gz value (Dev ######)
-    params.gencode_gtf_link = "ftp://ftp.ensembl.org/pub/release-86/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
-    params.gencode_gtf_gz = "Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
-    params.gencode_gtf = "Rattus_norvegicus.Rnor_6.0.86.gtf"
-    params.feature_output_prefix = "Rnor_6.0.86"
+	params.gencode_gtf_link = "ftp://ftp.ensembl.org/pub/release-86/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
+	params.gencode_gtf_gz = "Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
+	params.gencode_gtf = "Rattus_norvegicus.Rnor_6.0.86.gtf"
+	params.feature_output_prefix = "Rnor_6.0.86"
 
-    // Step 5: python coverage
+	// Step 5: python coverage
 //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-    chr_sizes = file("${params.annotations}/chrom_sizes/rn6.chrom.sizes.ensembl")
-    
-    // Step 6: Salmon
+	chr_sizes = file("${params.annotations}/chrom_sizes/rn6.chrom.sizes.ensembl")
+	
+	// Step 6: Salmon
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is rn6...  (Doc ######)
-    params.step6 = false
+	params.step6 = false
 
+	// Step 7: Make R objects
+	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
+	create_counts = file("${params.scripts}/create_count_objects-rat.R")
 
-    //Step 8: call variants
+	//Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is rn6...  (Doc ######)
-    params.step8 = false
+	params.step8 = false
 
 }
 
@@ -698,14 +700,14 @@ log.info "============================================================="
 log.info " LIBD-RNAseq : Multi-Input RNA-Seq Best Practice v${version}"
 log.info "============================================================="
 def summary = [:]
-summary['Run Name']            = workflow.runName
-summary['Reference Type']      = params.reference_type
-summary['Sample']              = params.sample
-summary['Reference']           = params.reference
-summary['Strand']              = params.strand
-summary['Annotations']         = params.annotations
-summary['Genotypes']           = params.genotypes
-summary['Input']               = params.inputs
+summary['Run Name']			= workflow.runName
+summary['Reference Type']	  = params.reference_type
+summary['Sample']			  = params.sample
+summary['Reference']		   = params.reference
+summary['Strand']			  = params.strand
+summary['Annotations']		 = params.annotations
+summary['Genotypes']		   = params.genotypes
+summary['Input']			   = params.inputs
 if(params.ercc) summary['ERCC Index'] = erccidx
 if(params.experiments) summary['Experiment'] = params.experiments
 if(params.email) summary['E-mail Address'] = params.email
@@ -713,11 +715,11 @@ if(params.merge) summary['Merge'] = "True"
 if(params.unalign) summary['Align'] = "True"
 if(params.fullCov) summary['Full Coverage'] = "True"
 if(params.test) summary['Test'] = "True"
-summary['Output dir']          = params.basedir
-summary['Working dir']         = workflow.workDir
-summary['Current home']        = "$HOME"
-summary['Current user']        = "$USER"
-summary['Current path']        = "$PWD"
+summary['Output dir']		  = params.basedir
+summary['Working dir']		 = workflow.workDir
+summary['Current home']		= "$HOME"
+summary['Current user']		= "$USER"
+summary['Current path']		= "$PWD"
 log.info summary.collect { k,v -> "${k.padRight(15)}: $v" }.join("\n")
 log.info "==========================================="
 
@@ -734,10 +736,11 @@ log.info "==========================================="
 params.hisat_idx_output = "${params.index_out}/${params.hisat_assembly}"
 
 // get the number of *fa files in the reference directory
+// ${params.hisat_idx_output} value changes accordingly to the genome and version used
 Channel
-  .fromPath("${params.hisat_idx_output}/fa/*.fa")
-  .set{ assembly_fa_trigger }
-  
+	.fromPath("${params.hisat_idx_output}/fa/*.fa")
+	.set{ assembly_fa_trigger }
+
 // Use the number of fa files in the reference directory to set the aseembly channel, efectively skipping this step when running the pipeline
 // If the count of files in the assembly_fa_trigger is more than zero, the assembly_fa_download channel wont be set
 // else assembly_fa_download channel is set, and pipeline starts by downloading the ref genome
@@ -745,37 +748,33 @@ assembly_fa_trigger.count().filter{ it == 0 }.set{ assembly_fa_download }
 
 process pullGENCODEassemblyfa {
 
-    echo true
-    tag "Downloading Assembly FA File: ${params.fa}"
-    publishDir "${params.hisat_idx_output}/fa",'mode':'copy'
+	echo true
+	tag "Downloading Assembly FA File: ${params.fa}"
+	publishDir "${params.hisat_idx_output}/fa",'mode':'copy'
 
 	input:
 	val(assembly_fa_val) from assembly_fa_download
 
-    output:
-    file("${params.fa}") into reference_fa
+	output:
+	file("${params.fa}") into reference_fa
 
-    script:
-    fa_gz_file_link = "${params.fa_link}"
-    fa_gz = "${params.fa_gz}"
-	fa_file = "${params.fa}"
-	fa_file_build = "${fa_file}_build"
+	script:
+	fa_gz_file_link = "${params.fa_link}"
+	fa_gz = "${params.fa_gz}"
+
 	"""
-		## Download and unzip the ref genome
-		## *_build lock added as intermediate file to be able to quickly find if a process was interrupted in the workdir
-		wget "$fa_gz_file_link" \
-		&& gunzip -c "$fa_gz" > "$fa_file_build" \
-		&& mv "$fa_file_build" "$fa_file"
+		wget "$fa_gz_file_link"
+		gunzip "$fa_gz"
 	"""
 }
 
 Channel
-  .fromPath("${params.hisat_idx_output}/fa/${params.fa}")
-  .mix(reference_fa)
-  .toSortedList()
-  .flatten()
-  .distinct()
-  .into{ reference_assembly; variant_assembly }
+	.fromPath("${params.hisat_idx_output}/fa/${params.fa}")
+	.mix(reference_fa)
+	.toSortedList()
+	.flatten()
+	.distinct()
+	.into{ reference_assembly; variant_assembly }
 
 /*
  * Step Ib: Build HISAT Index
@@ -783,46 +782,46 @@ Channel
 
  // Another trigger to check if the next step is necessary
 Channel
-  .fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
-  .set{ hisat_builds_trigger }
+	.fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
+	.set{ hisat_builds_trigger }
 
-  // Check if less than 8 files were found in the previous trigger definition
- // If the count of files in the trigger is less than eigth, the channel wont be set
- // else the channel is set, and pipeline performs this step
+// Check if less than 8 files were found in the previous trigger definition
+// If the count of files in the trigger is less than eigth, the channel wont be set
+// else the channel is set, and pipeline performs this step
 hisat_builds_trigger.count().filter{ it < 8 }.set{ hisat_trigger_build }
 
 process buildHISATindex {
 
-    echo true
-    tag "Building HISAT2 Index: ${params.hisat_prefix}"
-    publishDir "${params.hisat_idx_output}/index",'mode':'copy'
+	echo true
+	tag "Building HISAT2 Index: ${params.hisat_prefix}"
+	publishDir "${params.hisat_idx_output}/index",'mode':'copy'
 
-    input:
-    val(hisat_trigger_val) from hisat_trigger_build
-    file reference_fasta from reference_assembly
+	input:
+	val(hisat_trigger_val) from hisat_trigger_build
+	file reference_fasta from reference_assembly
 
-    output:
-    file("${params.hisat_prefix}.*") into hisat_index_built
+	output:
+	file("${params.hisat_prefix}.*") into hisat_index_built
 
-    script:
-    prefix = "${params.hisat_prefix}"
+	script:
+	prefix = "${params.hisat_prefix}"
 	// Here, number of threads in the -p option does not seem to be assigned by variable (### Dev)
 	// $prefix is "the hisat2_index_base  write ht2 data to files with this dir/basename"
-    """
-		hisat2-build -p 3 $reference_fasta $prefix
-    """
+	"""
+		hisat2-build -p "${params.cores}" $reference_fasta $prefix
+	"""
 }
 
 // Read the hisat index file from path, and/or mix with the channel output from the buildHISATindex process
 // This effectively means that whether the index was created or it was already present, the flow can continue
 Channel
-  .fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
-  .mix(hisat_index_built)
-  .toSortedList()
-  .flatten()
-  .distinct()
-  .toSortedList()
-  .set{ hisat_index }
+	.fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
+	.mix(hisat_index_built)
+	.toSortedList()
+	.flatten()
+	.distinct()
+	.toSortedList()
+	.set{ hisat_index }
 
 /*
  * Step IIa: GENCODE GTF Download
@@ -831,51 +830,49 @@ Channel
 // Define the putput dir for download of the GTF reference
 params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
 
- // Another trigger to check if the next step is necessary
- // Will look for a .gtf file in the gtf annotation directory.
- // If it finds it, gencode_gtf_download_trigger will be set; If it does not find it, it will be empty
+// Another trigger to check if the next step is necessary
+// Will look for a .gtf file in the gtf annotation directory.
+// If it finds it, gencode_gtf_download_trigger will be set; If it does not find it, it will be empty
 Channel
-  .fromPath("${params.gencode_gtf_out}/gtf/*.gtf")
-  .set{ gencode_gtf_download_trigger }
+	.fromPath("${params.gencode_gtf_out}/gtf/*.gtf")
+	.set{ gencode_gtf_download_trigger }
 
- // If the count of files in the trigger is different from zero, the channel wont be set
- // else the channel is set, and pipeline performs this step
+// If the count of files in the trigger is different from zero, the channel wont be set
+// else the channel is set, and pipeline performs this step
 gencode_gtf_download_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_download }
 
 process pullGENCODEgtf {
 
-    echo true
-    tag "Downloading GTF File: ${params.gencode_gtf}"
-    publishDir "${params.gencode_gtf_out}/gtf",'mode':'copy'
+	echo true
+	tag "Downloading GTF File: ${params.gencode_gtf}"
+	publishDir "${params.gencode_gtf_out}/gtf",'mode':'copy'
 
-    input:
-    val(gencode_gtf_bed_val) from gencode_gtf_trigger_download
+	input:
+	val(gencode_gtf_bed_val) from gencode_gtf_trigger_download
 
-    output:
-    file("${params.gencode_gtf}") into gencode_gtf_downloaded
+	output:
+	file("${params.gencode_gtf}") into gencode_gtf_downloaded
 
-    script:
-    gencode_gtf_link = "${params.gencode_gtf_link}"
-    gencode_gtf_gz = "${params.gencode_gtf_gz}"
+	script:
+	gencode_gtf_link = "${params.gencode_gtf_link}"
+	gencode_gtf_gz = "${params.gencode_gtf_gz}"
 	gencode_gtf_file = "${params.gencode_gtf}"
-	gencode_gtf_file_build = "${gencode_gtf_file}_build"
-    """
-    wget "$gencode_gtf_link" \
-	&& gunzip -c "$gencode_gtf_gz" > "$gencode_gtf_file_build" \
-	&& mv "$gencode_gtf_file_build" "$gencode_gtf_file"
-    """
+	"""
+		wget "$gencode_gtf_link"
+		gunzip "$gencode_gtf_gz"
+	"""
 	// May add afterscript to clean the .gz? or the .gtf also if it copies the results BEFORE performing afterscript routines
 }
 
 // Read the gencode gtf file from path, and/or mix with the channel output from the pullGENCODEgtf process
 // This effectively means that whether the gtf was created or it was already present, the flow can continue
 Channel
-  .fromPath("${params.gencode_gtf_out}/gtf/${params.gencode_gtf}")
-  .mix(gencode_gtf_downloaded)
-  .toSortedList()
-  .flatten()
-  .distinct()
-  .into{ gencode_gtf; create_counts_gtf; gencode_feature_gtf }
+	.fromPath("${params.gencode_gtf_out}/gtf/${params.gencode_gtf}")
+	.mix(gencode_gtf_downloaded)
+	.toSortedList()
+	.flatten()
+	.distinct()
+	.into{ gencode_gtf; create_counts_gtf; gencode_feature_gtf }
 
 /*
  * Step IIb: Build Bed File
@@ -883,146 +880,143 @@ Channel
 
 // Define the putput dir for download of the bed file used by http://rseqc.sourceforge.net/#infer-experiment-py
 Channel
-  .fromPath("${params.gencode_gtf_out}/bed/*")
-  .set{ gencode_gtf_bed_trigger }
+	.fromPath("${params.gencode_gtf_out}/bed/*")
+	.set{ gencode_gtf_bed_trigger }
 
 // Create a trigger to check if the file exist, similar to previous triggers
 gencode_gtf_bed_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_bed }
 
 process buildPrepBED {
 
-    echo true
-    tag "Building Bed File: ${params.reference}"
-    publishDir "${params.gencode_gtf_out}/bed",'mode':'copy'
+	echo true
+	tag "Building Bed File: ${params.reference}"
+	publishDir "${params.gencode_gtf_out}/bed",'mode':'copy'
 
-    input:
-    val(gencode_gtf_bed_val) from gencode_gtf_trigger_bed
-    file gencode_gtf from gencode_gtf
-    file prep_bed from prep_bed
+	input:
+	val(gencode_gtf_bed_val) from gencode_gtf_trigger_bed
+	file gencode_gtf from gencode_gtf
+	file prep_bed from prep_bed
 	file check_R_packages_script from check_R_packages_script
 
-    output:
-    file("${name}.bed") into bedfile_built
+	output:
+	file("${name}.bed") into bedfile_built
 
-    shell:
-    name = "${params.reference}"
-    '''
-	## Run the script to check for missing rpackages
+	shell:
+	name = "${params.reference}"
+	'''
 	Rscript !{check_R_packages_script} \
-	&& Rscript !{prep_bed} -f !{gencode_gtf} -n !{name} \
-	// does the resulting bed it need to have permissions 775?
-	// currently it is created with 664 (-rw-rw-r--)
-    '''
+	&& Rscript !{prep_bed} -f !{gencode_gtf} -n !{name}
+	'''
 }
 
 // Read the bed file from path, and/or mix with the channel output from the bedfile_built process
 // This effectively means that whether the bed was created in this run or it was already present, the flow can continue
 Channel
-  .fromPath("${params.gencode_gtf_out}/bed/*")
-  .mix(bedfile_built)
-  .toSortedList()
-  .flatten()
-  .distinct()
-  .set{ bedfile }
+	.fromPath("${params.gencode_gtf_out}/bed/*")
+	.mix(bedfile_built)
+	.toSortedList()
+	.flatten()
+	.distinct()
+	.set{ bedfile }
 
 // for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true 
 // during Define Reference Paths/Scripts + Reference Dependent Parameters
 if (params.step6) {
 
-    params.salmon_idx_output = "${params.index_out}/${params.salmon_assembly}"
+	params.salmon_idx_output = "${params.index_out}/${params.salmon_assembly}"
 
-    /*
-     * Step IIIa: GENCODE TX FA Download
-     */
+	/*
+	 * Step IIIa: GENCODE TX FA Download
+	 */
 
 	// get the number of *fa files in the reference directory
-     Channel
-      .fromPath("${params.salmon_idx_output}/fa/*.fa")
-      .set{ transcript_fa_download }
+	 Channel
+	  .fromPath("${params.salmon_idx_output}/fa/*.fa")
+	  .set{ transcript_fa_download }
 
 	// Use the number of fa files in the reference directory to set the aseembly channel, efectively skipping this step when running the pipeline
 	// If the count of files in the transcript_download_trigger is more than zero, the transcript_download channel wont be set
 	// else transcript_download channel is set, and pipeline starts by downloading the ref transcriptome
-    transcript_fa_download.count().filter{ it == 0 }.set{ transcript_download_trigger }
+	transcript_fa_download.count().filter{ it == 0 }.set{ transcript_download_trigger }
 
-    process pullGENCODEtranscripts {
+	process pullGENCODEtranscripts {
 
-        echo true
-        tag "Downloading TX FA File: ${params.tx_fa}"
-        publishDir "${params.salmon_idx_output}/fa",mode:'copy'
+		echo true
+		tag "Downloading TX FA File: ${params.tx_fa}"
+		publishDir "${params.salmon_idx_output}/fa",mode:'copy'
 
-        input:
-        val(transcript_trigger_val) from transcript_download_trigger
+		input:
+		val(transcript_trigger_val) from transcript_download_trigger
 
-        output:
-        file("${params.tx_fa}") into tx_fa_downloaded
+		output:
+		file("${params.tx_fa}") into tx_fa_downloaded
 		//TODO (iaguilar) put shell code in same style as for fasta reference download (Dev ###)
-        script:
-        tx_fa_link = "${params.tx_fa_link}"
-        tx_fa_gz = "${params.tx_fa_gz}"
-        tx_fa = "${params.tx_fa}"
-        """
-        wget $tx_fa_link
-        gunzip $tx_fa_gz
-        """
-    }
+		script:
+		tx_fa_link = "${params.tx_fa_link}"
+		tx_fa_gz = "${params.tx_fa_gz}"
+		tx_fa = "${params.tx_fa}"
+		"""
+			wget $tx_fa_link
+			gunzip $tx_fa_gz
+		"""
+	}
 
 	// Read the salmon reference from path, and/or mix with the channel output from the pullGENCODEtranscripts process
 	// This effectively means that whether the reference was created or it was already present, the flow can continue
-     Channel
-      .fromPath("${params.salmon_idx_output}/fa/${params.tx_fa}")
-      .mix(tx_fa_downloaded)
-      .toSortedList()
-      .flatten()
-      .distinct()
-      .set{ transcript_fa }
+	 Channel
+		.fromPath("${params.salmon_idx_output}/fa/${params.tx_fa}")
+		.mix(tx_fa_downloaded)
+		.toSortedList()
+		.flatten()
+		.distinct()
+		.set{ transcript_fa }
 
-    /*
-     * Step IIIb: Salmon Transcript Build
-     */
+	/*
+	 * Step IIIb: Salmon Transcript Build
+	 */
 
 	// get the number of * files in the reference directory
-     Channel
-      .fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
-      .set{ salmon_build_trigger }
+	Channel
+		.fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
+		.set{ salmon_build_trigger }
 
 	// Use the number of files in the reference directory to set the salmon trigger channel
 	// If the count of files in the salmon_build_trigger is more than zero, the transcript_download channel wont be set
 	// else transcript_download channel is set, and pipeline starts by downloading the ref transcriptome
-    salmon_build_trigger.count().filter{ it == 0 }.set{ salmon_trigger_build}
+	salmon_build_trigger.count().filter{ it == 0 }.set{ salmon_trigger_build}
 
-    process buildSALMONindex {
+	process buildSALMONindex {
 
-        echo true
-        tag "Building Salmon Index: ${params.salmon_prefix}"
-        publishDir "${params.salmon_idx_output}/salmon",mode:'copy'
+		echo true
+		tag "Building Salmon Index: ${params.salmon_prefix}"
+		publishDir "${params.salmon_idx_output}/salmon",mode:'copy'
 
-        input:
-        file tx_file from transcript_fa
-        val(salmon_trigger_val) from salmon_trigger_build
+		input:
+		file tx_file from transcript_fa
+		val(salmon_trigger_val) from salmon_trigger_build
 
-        output:
-        file("${params.salmon_prefix}") into salmon_index_built
+		output:
+		file("${params.salmon_prefix}") into salmon_index_built
 
-        script:
-        salmon_idx = "${params.salmon_prefix}"
+		script:
+		salmon_idx = "${params.salmon_prefix}"
 		// in the code execution, -p option is hardcoded to 1 thread
 	// TODO (iaguilar): make thread assignation dynamic by using a configurable variable
-        """
-        salmon index -t $tx_file -i $salmon_idx -p 1 --type quasi -k 31
-        """
-    }
+		"""
+			salmon index -t $tx_file -i $salmon_idx -p 1 --type quasi -k 31
+		"""
+	}
 
 	// Read the salmon index from path, and/or mix with the channel output from the buildSALMONindex process
 	// This effectively means that whether the index was created or it was already present, the flow can continue
-     Channel
-      .fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
-      .mix(salmon_index_built)
-      .toSortedList()
-      .flatten()
-      .distinct()
-      .toSortedList()
-      .set{ salmon_index }
+	 Channel
+		.fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
+		.mix(salmon_index_built)
+		.toSortedList()
+		.flatten()
+		.distinct()
+		.toSortedList()
+		.set{ salmon_index }
 }
 
 /*
@@ -1058,7 +1052,6 @@ if (params.merge) {
         '''
 		## Use of a local prefiz variable helps to avoid generating dump data in input dir due to fullpaths being captured by merging_prefix NF variable
 		local_prefix=`echo !{merging_prefix} | rev | cut -d "/" -f1 | rev`
-		## To follow illumina naming conventions,_read1 and _read2 will be changed to R1 and R2
 		read1="${local_prefix}_read1.fastq.gz"
 		read2="${local_prefix}_read2.fastq.gz"
         zcat "${read1}" "${read2}" \
@@ -1321,6 +1314,7 @@ if (params.sample == "single") {
       '''
     }
 }
+
 //TODO following block still not tested
 if (params.sample == "paired") {
 
@@ -1455,6 +1449,7 @@ process Trimming {
     """
 } // finishes untested block
 
+
 /*
  * Step 2c: Run FastQC Quality Check on Trimmed Files
  */
@@ -1491,7 +1486,6 @@ if (params.sample == "single") {
       .mix(no_trim_fastqs)
       .ifEmpty{ error "Single End Channel for HISAT is empty" }
       .set{ single_hisat_inputs }
-
 
       process SingleEndHISAT {
 
@@ -1973,7 +1967,7 @@ if (params.step6) {
             }
         }
         '''
-        mkdir !{salmon_index_prefix}
+        mkdir -p !{salmon_index_prefix}
         cp !{salmon_index} !{salmon_index_prefix}/.
         salmon quant \
         -i !{salmon_index_prefix} \
@@ -2088,12 +2082,12 @@ if(params.reference_type == "human") {
 /*
  * Step 7a: Create Count Objects
 */
-
 process CountObjects {
 
+	errorStrategy 'ignore'
     echo true
-	//// This tag generates long names for the job
-////    tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
+	//This tag generates long names for the job
+    //tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
     publishDir "${params.basedir}/Count_Objects",'mode':'copy'
 
     input:
@@ -2160,7 +2154,7 @@ if (params.fullCov) {
     process CoverageObjects {
 
         echo true
-		//// This tag generates long names for the job
+		//// This tag generates long names for the job, SGE does not like long job names
         ////tag "Creating Coverage Objects [ $full_coverage_input ]"
         publishDir "${params.basedir}/Coverage_Objects",'mode':'copy'
 
@@ -2187,9 +2181,8 @@ if (params.fullCov) {
         coverage_prefix = "${params.experiment_prefix}"
         coverage_fullCov = "TRUE"
         '''
-        ## Run the script to check for missing rpackages
-		Rscript !{check_R_packages_script} \
-		&&Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
+		Rscript !{check_R_packages_script}
+		Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
         '''
     }
 }

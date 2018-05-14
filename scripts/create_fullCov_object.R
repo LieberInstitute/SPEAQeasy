@@ -27,14 +27,14 @@ if (!is.null(opt$help)) {
 EXPNAME <- paste0(opt$experiment, "_", opt$prefix)
 
 if(opt$fullcov) {
-    ## read in pheno	
+    ## read in pheno
     manifest <- read.table(file.path(opt$maindir, 'samples.manifest'),
         sep = ' ', header = FALSE, stringsAsFactors = FALSE)
     info <- data.frame('SAMPLE_ID' = manifest[, ncol(manifest)],
         stringsAsFactors = FALSE)
     N <- length(info$SAMPLE_ID)
 
-    ### add bigwig and bam files
+    ## add bigwig and bam files
     info$bamFile <- file.path(opt$maindir, paste0(info$SAMPLE_ID,
         '_accepted_hits.sorted.bam'))
     info$bwFile <- file.path(opt$maindir, paste0(info$SAMPLE_ID,
@@ -52,11 +52,12 @@ if(opt$fullcov) {
     stopifnot(grepl('M', CHR[length(CHR)]))
 
     ###################################################################
-    
+
     ## Uses BAM files if the bigwigs are strand specific
     strandrule <- readLines(file.path(opt$maindir,
         'inferred_strandness_pattern.txt'))
-    
+    ## iaguilar: if any of the chr is not pressent in the input files, this script fails.
+    ## CHR should be set automatically to the chr names pressent in the input files...
     if(strandrule == 'none') {
         fullCov <- fullCoverage(files = info$bwFile, chrs = CHR,
             mc.cores = opt$cores)
@@ -65,13 +66,13 @@ if(opt$fullcov) {
         fullCov <- fullCoverage(files = info$bamFile, chrs = CHR,
             mc.cores = opt$cores)
     }
-    
+
     save(fullCov, file = file.path(opt$maindir, paste0('fullCoverage_', EXPNAME,
         '_n', N, '.rda')))
 }
 
 
-## Reproducibility information
+# Reproducibility information
 print('Reproducibility information:')
 Sys.time()
 proc.time()
