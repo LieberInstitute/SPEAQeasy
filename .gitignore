@@ -2,15 +2,29 @@
 *nextflow.log*
 *.nextflow/
 *pipeline_log/
-*work/
+work*
 *results/
 
 ## ignore big reference files
 Annotation/GENCODE/GRCh38_hg38/assembly/fa/*.fa
 Annotation/GENCODE/GRCh38_hg38/assembly/index/*.ht2
-Annotation/RSeQC/hg38/gtf/gencode.v25.annotation.gtf
 Annotation/GENCODE/GRCh38_hg38/transcripts/fa/gencode.v25.transcripts.fa
 Annotation/GENCODE/GRCh38_hg38/transcripts/salmon/salmon_0.8.2_index_gencode.v25.transcripts/
+
+Annotation/GENCODE/GRCh37_hg19/assembly/fa/GRCh37.primary_assembly.genome.fa
+Annotation/GENCODE/GRCh37_hg19/assembly/index/*.ht2
+Annotation/GENCODE/GRCh37_hg19/transcripts/fa/gencode.v25lift37.transcripts.fa
+Annotation/GENCODE/GRCh37_hg19/transcripts/salmon/salmon_0.8.2_index_gencode.v25lift37.transcripts/
+
+Annotation/GENCODE/GRCm38_mm10/assembly/fa/GRCm38.primary_assembly.genome.fa
+Annotation/GENCODE/GRCm38_mm10/assembly/index/*.ht2
+Annotation/GENCODE/GRCm38_mm10/transcripts/fa/gencode.vM11.transcripts.fa
+Annotation/GENCODE/GRCm38_mm10/transcripts/salmon/salmon_0.8.2_index_gencode.vM11.transcripts/
+
+Annotation/ensembl/Rnor_6.0/fa/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa
+Annotation/ensembl/Rnor_6.0/index/*.ht2
+
+Annotation/RSeQC/*/gtf/*.gtf
 
 ## diagnostic html report and png flowcharts produced by the NF tes run
 report.html*
