@@ -36,7 +36,7 @@ if (!is.null(opt$help)) {
 
 stopifnot(opt$stranded %in% c('FALSE', 'forward', 'reverse'))
 
-RDIR="/dcl01/lieber/ajaffe/Emily/RNAseq-pipeline/Annotation/junction_txdb"
+RDIR="./"
 EXPNAME = paste0(opt$experiment,"_",opt$prefix)
 
 ## read in pheno	
