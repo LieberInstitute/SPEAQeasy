@@ -63,7 +63,7 @@ if(opt$fullcov) {
             mc.cores = opt$cores)
     } else {
         warning('Using the BAM files instead of the strand-specific BigWigs. You might want to run fullCoverage on the strand-specific BigWigs for your analysis purposes')
-        fullCov <- fullCoverage(files = info$bamFile, chrs = "chr1",
+        fullCov <- fullCoverage(files = info$bamFile, chrs = c("chr1"),
             mc.cores = opt$cores)
     }
 
