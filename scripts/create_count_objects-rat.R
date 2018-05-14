@@ -52,7 +52,7 @@ if (opt$ercc == TRUE ){
 
 	##observed kallisto tpm
 	erccTPM = sapply(sampIDs, function(x) {
-	  read.table(file.path(paste0(x, "_abundance.tsv"),header = TRUE)$tpm
+	  read.table(file.path(".", paste0(x, "_abundance.tsv")),header = TRUE)$tpm
 	})
 	rownames(erccTPM) = read.table(file.path(paste0(sampIDs[1], "_abundance.tsv")),
 							header = TRUE)$target_id
@@ -146,7 +146,7 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped +  metrics$totalMap
 
 ###############
 ### gene counts
-geneFn <- file.path(paste0(metrics$SAMPLE_ID, '_Ensembl.rnor6.0.rn6_Genes.counts'))
+geneFn <- file.path(paste0(metrics$SAMPLE_ID, '_Rnor_6.0.86_Genes.counts'))
 names(geneFn) = metrics$SAMPLE_ID
 stopifnot(all(file.exists(geneFn)))
 
