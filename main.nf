@@ -474,10 +474,16 @@ if (!params.output) {
 infer_strandness = file("${params.scripts}/step3b_infer_strandness.R")
 prep_bed = file("${params.scripts}/prep_bed.R")
 bed_to_juncs = file("${params.scripts}/bed_to_juncs.py")
-fullCov_file = file("${params.scripts}/create_fullCov_object.R")
 //TODO(iaguilar) change _file for _script in the variable expressedRegions_file (###Dev)
 expressedRegions_file = file("${params.scripts}/step9-find_expressed_regions.R")
 check_R_packages_script = file("${params.scripts}/check_R_packages.R")
+
+// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
+if (params.small_test ) {
+	fullCov_file = file("${params.scripts}/create_fullCov_object.R.WG_compatible")
+} else {
+	fullCov_file = file("${params.scripts}/create_fullCov_object.R")
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define Reference Paths/Scripts + Reference Dependent Parameters
@@ -528,7 +534,12 @@ if (params.reference == "hg38") {
 	junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
 	feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
 	feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
-	create_counts = file("${params.scripts}/create_count_objects-human.R")
+	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
+	if (params.small_test ) {
+		create_counts = file("${params.scripts}/create_count_objects-human.R.WG_compatible")
+	} else {
+		create_counts = file("${params.scripts}/create_count_objects-human.R")
+	}
 
 	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg38...  (Doc ######)
@@ -576,7 +587,12 @@ if (params.reference == "hg19") {
 	junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
 	feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
 	feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
-	create_counts = file("${params.scripts}/create_count_objects-human.R")
+	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
+	if (params.small_test ) {
+		create_counts = file("${params.scripts}/create_count_objects-human.R.WG_compatible")
+	} else {
+		create_counts = file("${params.scripts}/create_count_objects-human.R")
+	}
 
 	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg19...  (Doc ######)
@@ -621,7 +637,12 @@ if (params.reference == "mm10") {
 	// Step 7: Make R objects
 	junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
 	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
-	create_counts = file("${params.scripts}/create_count_objects-mouse.R")
+	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
+	if (params.small_test ) {
+		create_counts = file("${params.scripts}/create_count_objects-mouse.R.WG_compatible")
+	} else {
+		create_counts = file("${params.scripts}/create_count_objects-mouse.R")
+	}
 
 	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is disabled if reference is mm10...  (Doc ######)
@@ -654,7 +675,12 @@ if (params.reference == "rn6") {
 
 	// Step 7: Make R objects
 	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
-	create_counts = file("${params.scripts}/create_count_objects-rat.R")
+	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
+	if (params.small_test ) {
+		create_counts = file("${params.scripts}/create_count_objects-rat.R.WG_compatible")
+	} else {
+		create_counts = file("${params.scripts}/create_count_objects-rat.R")
+	}
 
 	//Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is rn6...  (Doc ######)
@@ -726,7 +752,6 @@ log.info "==========================================="
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // BEGIN PIPELINE
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 
 /*
@@ -808,7 +833,7 @@ process buildHISATindex {
 	// Here, number of threads in the -p option does not seem to be assigned by variable (### Dev)
 	// $prefix is "the hisat2_index_base  write ht2 data to files with this dir/basename"
 	"""
-		hisat2-build -p "${params.cores}" $reference_fasta $prefix
+		${params.hisat2build} -p "${params.cores}" $reference_fasta $prefix
 	"""
 }
 
@@ -1003,7 +1028,7 @@ if (params.step6) {
 		// in the code execution, -p option is hardcoded to 1 thread
 	// TODO (iaguilar): make thread assignation dynamic by using a configurable variable
 		"""
-			salmon index -t $tx_file -i $salmon_idx -p 1 --type quasi -k 31
+			${params.salmon} index -t $tx_file -i $salmon_idx -p 1 --type quasi -k 31
 		"""
 	}
 
@@ -1027,37 +1052,37 @@ if (params.step6) {
 // currently not working, requires testing and debugging
 if (params.merge) {
 
-    Channel
-      .fromPath("${params.inputs}/*.fastq.gz")
-      .toSortedList()
-      .flatten()
-      .map{file -> tuple(get_merging_prefix(file), file) }
-      .groupTuple()
-      .ifEmpty{ error "Could not find file pairs for merging"}
-      .set{ unmerged_pairs }
+	Channel
+	  .fromPath("${params.inputs}/*.fastq.gz")
+	  .toSortedList()
+	  .flatten()
+	  .map{file -> tuple(get_merging_prefix(file), file) }
+	  .groupTuple()
+	  .ifEmpty{ error "Could not find file pairs for merging"}
+	  .set{ unmerged_pairs }
 
-      process Merging {
+	  process Merging {
 
-        echo true
-        tag "prefix: $merging_prefix | Sample Pair: [ $unmerged_pair ]"
-        publishDir "${params.basedir}/merged_fastq",'mode':'copy'
+		echo true
+		tag "prefix: $merging_prefix | Sample Pair: [ $unmerged_pair ]"
+		publishDir "${params.basedir}/merged_fastq",'mode':'copy'
 
-        input:
-        set val(merging_prefix), file(unmerged_pair) from unmerged_pairs
+		input:
+		set val(merging_prefix), file(unmerged_pair) from unmerged_pairs
 
-        output:
-        file "*.fastq.gz" into ercc_merged_inputs, fastqc_merged_inputs
+		output:
+		file "*.fastq.gz" into ercc_merged_inputs, fastqc_merged_inputs
 
 		shell:
-        '''
+		'''
 		## Use of a local prefiz variable helps to avoid generating dump data in input dir due to fullpaths being captured by merging_prefix NF variable
 		local_prefix=`echo !{merging_prefix} | rev | cut -d "/" -f1 | rev`
 		read1="${local_prefix}_read1.fastq.gz"
 		read2="${local_prefix}_read2.fastq.gz"
-        zcat "${read1}" "${read2}" \
+		zcat "${read1}" "${read2}" \
 		| gzip -c > "${local_prefix}.fastq.gz"
-        '''
-    }
+		'''
+	}
 }
 
 /*
@@ -1066,130 +1091,130 @@ if (params.merge) {
 
 if (params.ercc) {
 
-    if (params.merge) {
+	if (params.merge) {
 
-        if (params.sample == "single") {
+		if (params.sample == "single") {
 
-            ercc_merged_inputs
-              .flatten()
-              .toSortedList()
-              .flatten()
-              .map{ file -> tuple(get_prefix(file), file) }
-              .ifEmpty{ error "Could not find Channel for Merged Single Sample Files for ERCC" }
-              .set{ ercc_inputs }
-        }
-        if (params.sample == "paired") {
+			ercc_merged_inputs
+			  .flatten()
+			  .toSortedList()
+			  .flatten()
+			  .map{ file -> tuple(get_prefix(file), file) }
+			  .ifEmpty{ error "Could not find Channel for Merged Single Sample Files for ERCC" }
+			  .set{ ercc_inputs }
+		}
+		if (params.sample == "paired") {
 
-            ercc_merged_inputs
-              .flatten()
-              .toSortedList()
-              .flatten()
-              .map{file -> tuple(get_paired_prefix(file), file) }
-              .groupTuple()
-              .ifEmpty{ error "Could not find Channel for Merged Paired Sample Files for ERCC" }
-              .set{ ercc_inputs }
-        }
-    }
-    if (!params.merge) {
+			ercc_merged_inputs
+			  .flatten()
+			  .toSortedList()
+			  .flatten()
+			  .map{file -> tuple(get_paired_prefix(file), file) }
+			  .groupTuple()
+			  .ifEmpty{ error "Could not find Channel for Merged Paired Sample Files for ERCC" }
+			  .set{ ercc_inputs }
+		}
+	}
+	if (!params.merge) {
 
-        if (params.sample == "single") {
+		if (params.sample == "single") {
 
-            Channel
-              .fromPath("${params.inputs}/*.fastq.gz")
-              .flatten()
-              .toSortedList()
-              .flatten()
-              .map{ file -> tuple(get_prefix(file), file) }
-              .ifEmpty{ error "Could not Find Unmerged Sample Files for ERCC"}
-              .set{ ercc_inputs }
-        }
-        if (params.sample == "paired") {
+			Channel
+			  .fromPath("${params.inputs}/*.fastq.gz")
+			  .flatten()
+			  .toSortedList()
+			  .flatten()
+			  .map{ file -> tuple(get_prefix(file), file) }
+			  .ifEmpty{ error "Could not Find Unmerged Sample Files for ERCC"}
+			  .set{ ercc_inputs }
+		}
+		if (params.sample == "paired") {
 
-            Channel
-              .fromPath("${params.inputs}/*.fastq.gz")
-              .flatten()
-              .toSortedList()
-              .flatten()
-              .map{ file -> tuple(get_paired_prefix(file), file) }
-              .groupTuple()
-              .ifEmpty{ error "Could not Find Unmerged Sample Files for ERCC"}
-              .set{ ercc_inputs }
-        }
-    }
+			Channel
+			  .fromPath("${params.inputs}/*.fastq.gz")
+			  .flatten()
+			  .toSortedList()
+			  .flatten()
+			  .map{ file -> tuple(get_paired_prefix(file), file) }
+			  .groupTuple()
+			  .ifEmpty{ error "Could not Find Unmerged Sample Files for ERCC"}
+			  .set{ ercc_inputs }
+		}
+	}
 
-     process ERCC {
+	 process ERCC {
 
-        echo true
-        tag "Prefix: $ercc_prefix | Sample: [ $ercc_input ]"
-        publishDir "${params.basedir}/ercc/${ercc_prefix}",'mode':'copy'
+		echo true
+		tag "Prefix: $ercc_prefix | Sample: [ $ercc_input ]"
+		publishDir "${params.basedir}/ercc/${ercc_prefix}",'mode':'copy'
 
-        input:
-        file erccidx from erccidx
-        set val(ercc_prefix), file(ercc_input) from ercc_inputs
+		input:
+		file erccidx from erccidx
+		set val(ercc_prefix), file(ercc_input) from ercc_inputs
 
-        output:
-//        file "*_abundance.tsv" into ercc_abundances
-        file("${ercc_prefix}_abundance.tsv") into ercc_abundances
+		output:
+//		file "*_abundance.tsv" into ercc_abundances
+		file("${ercc_prefix}_abundance.tsv") into ercc_abundances
 
-        script:
-        ercc_cores = "${params.ercc_cores}"
-        strand_option = "${params.kallisto_strand}"
-        """
-        kallisto quant -i $erccidx -t $ercc_cores -o . $strand_option $ercc_input \
+		script:
+		ercc_cores = "${params.ercc_cores}"
+		strand_option = "${params.kallisto_strand}"
+		"""
+		${params.kallisto} quant -i $erccidx -t $ercc_cores -o . $strand_option $ercc_input \
 		&& cp abundance.tsv ${ercc_prefix}_abundance.tsv
-        """
-    }
+		"""
+	}
 }
 
 if (params.merge) {
 
-    if (params.sample == "single") {
+	if (params.sample == "single") {
 
-        fastqc_merged_inputs
-          .flatten()
-          .toSortedList()
-          .flatten()
-          .map{file -> tuple(get_prefix(file), file) }
-          .ifEmpty{ error "Could not find Channel for Merged Sample Files for FastQC" }
-          .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
-    }
-    if (params.sample == "paired") {
+		fastqc_merged_inputs
+		  .flatten()
+		  .toSortedList()
+		  .flatten()
+		  .map{file -> tuple(get_prefix(file), file) }
+		  .ifEmpty{ error "Could not find Channel for Merged Sample Files for FastQC" }
+		  .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
+	}
+	if (params.sample == "paired") {
 
-        fastqc_merged_inputs
-          .flatten()
-          .toSortedList()
-          .flatten()
-          .map{file -> tuple(get_paired_prefix(file), file) }
-          .groupTuple()
-          .ifEmpty{ error "Could not find Channel for Merged Sample Files for FastQC" }
-          .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
-    }
+		fastqc_merged_inputs
+		  .flatten()
+		  .toSortedList()
+		  .flatten()
+		  .map{file -> tuple(get_paired_prefix(file), file) }
+		  .groupTuple()
+		  .ifEmpty{ error "Could not find Channel for Merged Sample Files for FastQC" }
+		  .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
+	}
 }
 if (!params.merge) {
 
-    if (params.sample == "single") {
+	if (params.sample == "single") {
 
-        Channel
-          .fromPath("${params.inputs}/*.fastq.gz")
-          .flatten()
-          .toSortedList()
-          .flatten()
-          .map{file -> tuple(get_prefix(file), file) }
-          .ifEmpty{ error "Could not Find Unmerged Untrimmed Single Sample Files for FastQC"}
-          .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
-    }
-    if (params.sample == "paired") {
+		Channel
+		  .fromPath("${params.inputs}/*.fastq.gz")
+		  .flatten()
+		  .toSortedList()
+		  .flatten()
+		  .map{file -> tuple(get_prefix(file), file) }
+		  .ifEmpty{ error "Could not Find Unmerged Untrimmed Single Sample Files for FastQC"}
+		  .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
+	}
+	if (params.sample == "paired") {
 
-        Channel
-          .fromPath("${params.inputs}/*.fastq.gz")
-          .flatten()
-          .toSortedList()
-          .flatten()
-          .map{file -> tuple(get_paired_prefix(file), file) }
-          .groupTuple()
-          .ifEmpty{ error "Could not Find Unmerged Untrimmed Paired Sample Files for FastQC"}
-          .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
-    }
+		Channel
+		  .fromPath("${params.inputs}/*.fastq.gz")
+		  .flatten()
+		  .toSortedList()
+		  .flatten()
+		  .map{file -> tuple(get_paired_prefix(file), file) }
+		  .groupTuple()
+		  .ifEmpty{ error "Could not Find Unmerged Untrimmed Paired Sample Files for FastQC"}
+		  .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
+	}
 }
 
 /*
@@ -1198,20 +1223,20 @@ if (!params.merge) {
 
 process IndividualManifest {
 
-    echo true
-    tag "Individual Manifest: $manifest_samples $samples_prefix > samples.manifest.${samples_prefix}"
-    publishDir "${params.basedir}/manifest",'mode':'copy'
+	echo true
+	tag "Individual Manifest: $manifest_samples $samples_prefix > samples.manifest.${samples_prefix}"
+	publishDir "${params.basedir}/manifest",'mode':'copy'
 
-    input:
-    set val(samples_prefix), file(manifest_samples) from manifest_creation
+	input:
+	set val(samples_prefix), file(manifest_samples) from manifest_creation
 
-    output:
-    file "samples.manifest.${samples_prefix}" into individual_manifests
+	output:
+	file "samples.manifest.${samples_prefix}" into individual_manifests
 
-    script:
-    """
-    printf "${manifest_samples} ${samples_prefix}\n" >> "samples.manifest.${samples_prefix}"
-    """
+	script:
+	"""
+	printf "${manifest_samples} ${samples_prefix}\n" >> "samples.manifest.${samples_prefix}"
+	"""
 }
 
 individual_manifests
@@ -1225,20 +1250,20 @@ individual_manifests
 
 process Manifest {
 
-    echo true
-    tag "Aggregate Manifest: $individual_manifests > samples.manifest"
-    publishDir "${params.basedir}/manifest",mode:'copy'
+	echo true
+	tag "Aggregate Manifest: $individual_manifests > samples.manifest"
+	publishDir "${params.basedir}/manifest",mode:'copy'
 
-    input:
-    file individual_manifests from individual_manifest_files
+	input:
+	file individual_manifests from individual_manifest_files
 
-    output:
-    file "samples.manifest" into counts_samples_manifest, fullCov_samples_manifest
+	output:
+	file "samples.manifest" into counts_samples_manifest, fullCov_samples_manifest
 
-    script:
-    """
-    cat ${individual_manifests} > "samples.manifest"
-    """
+	script:
+	"""
+	cat ${individual_manifests} > "samples.manifest"
+	"""
 }
 
 /*
@@ -1247,32 +1272,32 @@ process Manifest {
 
 process QualityUntrimmed {
 
-    echo true
-    tag "Prefix: $untrimmed_prefix | Sample: [ $fastqc_untrimmed_input ]"
-    publishDir "${params.basedir}/FastQC/Untrimmed",mode:'copy'
+	echo true
+	tag "Prefix: $untrimmed_prefix | Sample: [ $fastqc_untrimmed_input ]"
+	publishDir "${params.basedir}/FastQC/Untrimmed",mode:'copy'
 
-    input:
-    set val(untrimmed_prefix), file(fastqc_untrimmed_input) from fastqc_untrimmed_inputs 
+	input:
+	set val(untrimmed_prefix), file(fastqc_untrimmed_input) from fastqc_untrimmed_inputs 
 
-    output:
-    file "*"
-    file "*_summary.txt" into quality_reports, count_objects_quality_reports
-    file "*_fastqc_data.txt" into count_objects_quality_metrics
+	output:
+	file "*"
+	file "*_summary.txt" into quality_reports, count_objects_quality_reports
+	file "*_fastqc_data.txt" into count_objects_quality_metrics
 
-    script:
-    if (params.sample == "single") {
-        copy_command = "cp ${untrimmed_prefix}_fastqc/summary.txt ${untrimmed_prefix}_summary.txt"
-        data_command = "cp ${untrimmed_prefix}_fastqc/fastqc_data.txt ${untrimmed_prefix}_fastqc_data.txt"
-    }
-    if (params.sample == "paired") {
-        copy_command = "cp ${untrimmed_prefix}_1_fastqc/summary.txt ${untrimmed_prefix}_1_summary.txt && cp ${untrimmed_prefix}_2_fastqc/summary.txt ${untrimmed_prefix}_2_summary.txt"
-        data_command = "cp ${untrimmed_prefix}_1_fastqc/fastqc_data.txt ${untrimmed_prefix}_1_fastqc_data.txt && cp ${untrimmed_prefix}_2_fastqc/fastqc_data.txt ${untrimmed_prefix}_2_fastqc_data.txt"
-    }
-    """
-    fastqc $fastqc_untrimmed_input --extract
-    $copy_command
-    $data_command
-    """
+	script:
+	if (params.sample == "single") {
+		copy_command = "cp ${untrimmed_prefix}_fastqc/summary.txt ${untrimmed_prefix}_summary.txt"
+		data_command = "cp ${untrimmed_prefix}_fastqc/fastqc_data.txt ${untrimmed_prefix}_fastqc_data.txt"
+	}
+	if (params.sample == "paired") {
+		copy_command = "cp ${untrimmed_prefix}_1_fastqc/summary.txt ${untrimmed_prefix}_1_summary.txt && cp ${untrimmed_prefix}_2_fastqc/summary.txt ${untrimmed_prefix}_2_summary.txt"
+		data_command = "cp ${untrimmed_prefix}_1_fastqc/fastqc_data.txt ${untrimmed_prefix}_1_fastqc_data.txt && cp ${untrimmed_prefix}_2_fastqc/fastqc_data.txt ${untrimmed_prefix}_2_fastqc_data.txt"
+	}
+	"""
+	${params.fastqc} $fastqc_untrimmed_input --extract
+	$copy_command
+	$data_command
+	"""
 }
 
 /*
@@ -1282,82 +1307,82 @@ process QualityUntrimmed {
 
 if (params.sample == "single") {
 
-    quality_reports
-      .flatten()
-      .map{ file -> tuple(get_summary_prefix(file), file) }
-      .join(adaptive_trimming_fastqs)
-      .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Single Adaptive Trimming" }
-      .set{ adaptive_trimming_single_inputs }
+	quality_reports
+	  .flatten()
+	  .map{ file -> tuple(get_summary_prefix(file), file) }
+	  .join(adaptive_trimming_fastqs)
+	  .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Single Adaptive Trimming" }
+	  .set{ adaptive_trimming_single_inputs }
 
-    process AdaptiveTrimSingleReads {
+	process AdaptiveTrimSingleReads {
 
-      echo true
-      tag "Prefix: $single_adaptive_prefix : Sample: [ $single_adaptive_fastq | $single_adaptive_summary ]"
-      publishDir "${params.basedir}/Adaptive_Trim",'mode':'copy'
+	  echo true
+	  tag "Prefix: $single_adaptive_prefix : Sample: [ $single_adaptive_fastq | $single_adaptive_summary ]"
+	  publishDir "${params.basedir}/Adaptive_Trim",'mode':'copy'
 
-      input:
-      set val(single_adaptive_prefix), file(single_adaptive_summary), file(single_adaptive_fastq) from adaptive_trimming_single_inputs
+	  input:
+	  set val(single_adaptive_prefix), file(single_adaptive_summary), file(single_adaptive_fastq) from adaptive_trimming_single_inputs
 
-      output:
-      file "*" into trimming_fastqs, no_trimming_fastqs
+	  output:
+	  file "*" into trimming_fastqs, no_trimming_fastqs
 
-      shell:
-      single_quality_report = single_adaptive_prefix.toString() + "_summary.txt"
-      single_trimming_input = single_adaptive_prefix.toString() + ".fastq.gz"
-      '''
-      export result=$(grep "Adapter Content" !{single_quality_report} | cut -f1)
-      if [ $result == "FAIL" ] ; then
-          mv !{single_trimming_input} "!{single_adaptive_prefix}_TR.fastq.gz"
-      else
-          mv !{single_trimming_input} "!{single_adaptive_prefix}_TNR.fastq.gz"
-      fi
-      '''
-    }
+	  shell:
+	  single_quality_report = single_adaptive_prefix.toString() + "_summary.txt"
+	  single_trimming_input = single_adaptive_prefix.toString() + ".fastq.gz"
+	  '''
+	  export result=$(grep "Adapter Content" !{single_quality_report} | cut -f1)
+	  if [ $result == "FAIL" ] ; then
+		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TR.fastq.gz"
+	  else
+		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TNR.fastq.gz"
+	  fi
+	  '''
+	}
 }
 
 //TODO following block still not tested
 if (params.sample == "paired") {
 
-    quality_reports
-      .flatten()
-      .map{ file -> tuple(get_summary_paired_prefix(file), file) }
-      .groupTuple()
-      .join(adaptive_trimming_fastqs)
-      .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Paired Adaptive Trimming" }
-      .set{ adaptive_trimming_paired_inputs }
+	quality_reports
+	  .flatten()
+	  .map{ file -> tuple(get_summary_paired_prefix(file), file) }
+	  .groupTuple()
+	  .join(adaptive_trimming_fastqs)
+	  .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Paired Adaptive Trimming" }
+	  .set{ adaptive_trimming_paired_inputs }
 
-    process AdaptiveTrimPairedReads {
+	process AdaptiveTrimPairedReads {
 
-      echo true
-      tag "Prefix: $paired_adaptive_prefix | Sample: [ $paired_adaptive_fastq | $paired_adaptive_summary ]"
-      publishDir "${params.basedir}/Adaptive_Trim",mode:'copy'
+	  echo true
+	  tag "Prefix: $paired_adaptive_prefix | Sample: [ $paired_adaptive_fastq | $paired_adaptive_summary ]"
+	  publishDir "${params.basedir}/Adaptive_Trim",mode:'copy'
 
-      input:
-      set val(paired_adaptive_prefix), file(paired_adaptive_summary), file(paired_adaptive_fastq) from adaptive_trimming_paired_inputs
+	  input:
+	  set val(paired_adaptive_prefix), file(paired_adaptive_summary), file(paired_adaptive_fastq) from adaptive_trimming_paired_inputs
 
-      output:
-      file "*" into trimming_fastqs, no_trimming_fastqs
+	  output:
+	  file "*" into trimming_fastqs, no_trimming_fastqs
 
-      shell:
-      quality_report_1 = paired_adaptive_prefix.toString() + "_1_summary.txt"
-      quality_report_2 = paired_adaptive_prefix.toString() + "_2_summary.txt"
-      trimming_input_1 = paired_adaptive_prefix.toString() + "_1.fastq.gz"
-      trimming_input_2 = paired_adaptive_prefix.toString() + "_2.fastq.gz"
-      adaptive_out_prefix_1 = paired_adaptive_prefix.toString() + "_1"
-      adaptive_out_prefix_2 = paired_adaptive_prefix.toString() + "_2"
+	  shell:
+	  quality_report_1 = paired_adaptive_prefix.toString() + "_1_summary.txt"
+	  quality_report_2 = paired_adaptive_prefix.toString() + "_2_summary.txt"
+	  trimming_input_1 = paired_adaptive_prefix.toString() + "_1.fastq.gz"
+	  trimming_input_2 = paired_adaptive_prefix.toString() + "_2.fastq.gz"
+	  adaptive_out_prefix_1 = paired_adaptive_prefix.toString() + "_1"
+	  adaptive_out_prefix_2 = paired_adaptive_prefix.toString() + "_2"
 
-      '''
-      export result1=$(grep "Adapter Content" !{quality_report_1} | cut -c1-4)
-      export result2=$(grep "Adapter Content" !{quality_report_2} | cut -c1-4)
-      if [ $result1 == "FAIL" || $result2 == "FAIL"] ; then
-          cp !{trimming_input_1} "!{adaptive_out_prefix_1}_TR.fastq.gz"
-          cp !{trimming_input_2} "!{adaptive_out_prefix_2}_TR.fastq.gz"
-      else
-          cp !{trimming_input_1} "!{adaptive_out_prefix_1}_TNR.fastq.gz"
-          cp !{trimming_input_2} "!{adaptive_out_prefix_2}_TNR.fastq.gz"
-      fi
-      '''
-    }
+	  '''
+	  export result1=$(grep "Adapter Content" !{quality_report_1} | cut -c1-4)
+	  export result2=$(grep "Adapter Content" !{quality_report_2} | cut -c1-4)
+	  if [ $result1 == "FAIL" || $result2 == "FAIL"] ; then
+		  cp !{trimming_input_1} "!{adaptive_out_prefix_1}_TR.fastq.gz"
+		  cp !{trimming_input_2} "!{adaptive_out_prefix_2}_TR.fastq.gz"
+	  else
+		  cp !{trimming_input_1} "!{adaptive_out_prefix_1}_TNR.fastq.gz"
+		  cp !{trimming_input_2} "!{adaptive_out_prefix_2}_TNR.fastq.gz"
+	  fi
+	  '''
+	}
 } // Finishes untested block
 
 /*
@@ -1366,39 +1391,39 @@ if (params.sample == "paired") {
 
 if (params.sample == "single") {
 
-    trimming_fastqs
-      .flatten()
-      .filter{ file -> file.name.toString() =~ /_TR.*/ }
-      .map{ file -> tuple(get_TR_prefix(file), file) }
-      .set{ trimming_inputs }
+	trimming_fastqs
+	  .flatten()
+	  .filter{ file -> file.name.toString() =~ /_TR.*/ }
+	  .map{ file -> tuple(get_TR_prefix(file), file) }
+	  .set{ trimming_inputs }
 
-    no_trimming_fastqs
-      .flatten()
-      .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-      .map{ file -> tuple(get_TNR_prefix(file), file) }
-      .set{ no_trim_fastqs }
+	no_trimming_fastqs
+	  .flatten()
+	  .filter{ file -> file.name.toString() =~ /_TNR.*/ }
+	  .map{ file -> tuple(get_TNR_prefix(file), file) }
+	  .set{ no_trim_fastqs }
   }
 
 // Following block is untested
   if (params.sample == "paired") {
 
-    trimming_fastqs
-      .flatten()
-      .filter{ file -> file.name.toString() =~ /_TR.*/ }
-      .toSortedList()
-      .flatten()
-      .map{ file -> tuple(get_TR_paired_prefix(file), file) }
-      .groupTuple()
-      .set{ trimming_inputs }
+	trimming_fastqs
+	  .flatten()
+	  .filter{ file -> file.name.toString() =~ /_TR.*/ }
+	  .toSortedList()
+	  .flatten()
+	  .map{ file -> tuple(get_TR_paired_prefix(file), file) }
+	  .groupTuple()
+	  .set{ trimming_inputs }
 
-    no_trimming_fastqs
-      .flatten()
-      .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-      .toSortedList()
-      .flatten()
-      .map{ file -> tuple(get_TNR_paired_prefix(file), file) }
-      .groupTuple()
-      .set{ no_trim_fastqs }
+	no_trimming_fastqs
+	  .flatten()
+	  .filter{ file -> file.name.toString() =~ /_TNR.*/ }
+	  .toSortedList()
+	  .flatten()
+	  .map{ file -> tuple(get_TNR_paired_prefix(file), file) }
+	  .groupTuple()
+	  .set{ no_trim_fastqs }
 } // finished ustested blocks
 
 /*
@@ -1409,44 +1434,44 @@ if (params.sample == "single") {
 //TODO (iaguilar): run FASTQC on test data to see if it contains adapters not found due to list of adapter used by fastqc
 process Trimming {
 
-    echo true
-    tag "Prefix: $trimming_prefix | Sample: [ $trimming_input ]"
-    publishDir "${params.basedir}/trimmed_fq",'mode':'copy'
+	echo true
+	tag "Prefix: $trimming_prefix | Sample: [ $trimming_input ]"
+	publishDir "${params.basedir}/trimmed_fq",'mode':'copy'
 
-    input:
-    set val(trimming_prefix), file(trimming_input) from trimming_inputs
+	input:
+	set val(trimming_prefix), file(trimming_input) from trimming_inputs
 
-    output:
-    file "*.fastq.gz" into trimmed_fastqc_inputs, trimmed_hisat_inputs
+	output:
+	file "*.fastq.gz" into trimmed_fastqc_inputs, trimmed_hisat_inputs
 
-    script:
-    trimming_cores = "${params.trimming_cores}"
-    sample_option = "${params.trim_sample}"
-    if (params.sample == "single") {
-        output_option = "${trimming_prefix}_trimmed.fastq.gz"
-    }
-    if (params.sample == "paired") {
-        output_option = "${trimming_prefix}_trimmed_forward_paired.fastq.gz ${trimming_prefix}_trimmed_forward_unpaired.fastq.gz ${trimming_prefix}_trimmed_reverse_paired.fastq.gz ${trimming_prefix}_trimmed_reverse_unpaired.fastq.gz"
-    }
+	script:
+	trimming_cores = "${params.trimming_cores}"
+	sample_option = "${params.trim_sample}"
+	if (params.sample == "single") {
+		output_option = "${trimming_prefix}_trimmed.fastq.gz"
+	}
+	if (params.sample == "paired") {
+		output_option = "${trimming_prefix}_trimmed_forward_paired.fastq.gz ${trimming_prefix}_trimmed_forward_unpaired.fastq.gz ${trimming_prefix}_trimmed_reverse_paired.fastq.gz ${trimming_prefix}_trimmed_reverse_unpaired.fastq.gz"
+	}
 	// Here trimmomatic is hardcoded into the script
 	// THIS MUST BE DINAMYCALLY directed
 	// Or, since trimmo is java, we should provide a .jar file in the lieber repository as software
 	// Above depends on jar size
 	// PATH to ILLUMINACLIP is hardcoded too, should be configurable
-    """
-    java -Xmx512M \
-    -jar /usr/local/bin/trimmomatic-0.36.jar \
-    $sample_option \
-    -threads $trimming_cores \
-    -phred33 \
-    $trimming_input \
-    $output_option \
-    ILLUMINACLIP:/usr/local/TruSeq2-PE.fa:2:30:10:1 \
-    LEADING:3 \
-    TRAILING:3 \
-    SLIDINGWINDOW:4:15 \
-    MINLEN:75
-    """
+	"""
+	java -Xmx512M \
+	-jar ${params.trimmomatic} \
+	$sample_option \
+	-threads $trimming_cores \
+	-phred33 \
+	$trimming_input \
+	$output_option \
+	ILLUMINACLIP:/usr/local/TruSeq2-PE.fa:2:30:10:1 \
+	LEADING:3 \
+	TRAILING:3 \
+	SLIDINGWINDOW:4:15 \
+	MINLEN:75
+	"""
 } // finishes untested block
 
 
@@ -1456,21 +1481,21 @@ process Trimming {
 
 // THE FOLLOWING BLOCK IS UNTESTED
 process QualityTrimmed {
-  
-    echo true
-    tag "$fastqc_trimmed_input"
-    publishDir "${params.basedir}/FastQC/Trimmed",mode:'copy'
 
-    input:
-    file fastqc_trimmed_input from trimmed_fastqc_inputs
+	echo true
+	tag "$fastqc_trimmed_input"
+	publishDir "${params.basedir}/FastQC/Trimmed",mode:'copy'
 
-    output:
-    file "*"
+	input:
+	file fastqc_trimmed_input from trimmed_fastqc_inputs
 
-    script:
-    """
-    fastqc $fastqc_trimmed_input --extract
-    """
+	output:
+	file "*"
+
+	script:
+	"""
+	fastqc $fastqc_trimmed_input --extract
+	"""
 } // finishes untested block
 
 /*
@@ -1480,148 +1505,148 @@ process QualityTrimmed {
 if (params.sample == "single") {
 
 //Here trimmed and not timmed data is mixed in a channel to ensure the flow of the pipeline
-    trimmed_hisat_inputs
-      .flatten()
-      .map{ file -> tuple(get_single_trimmed_prefix(file), file) }
-      .mix(no_trim_fastqs)
-      .ifEmpty{ error "Single End Channel for HISAT is empty" }
-      .set{ single_hisat_inputs }
+	trimmed_hisat_inputs
+	  .flatten()
+	  .map{ file -> tuple(get_single_trimmed_prefix(file), file) }
+	  .mix(no_trim_fastqs)
+	  .ifEmpty{ error "Single End Channel for HISAT is empty" }
+	  .set{ single_hisat_inputs }
 
-      process SingleEndHISAT {
+	  process SingleEndHISAT {
 
-      echo true
-      tag "Prefix: $single_hisat_prefix | Sample: $single_hisat_input"
-      publishDir "${params.basedir}/HISAT2_out",mode:'copy'
+	  echo true
+	  tag "Prefix: $single_hisat_prefix | Sample: $single_hisat_input"
+	  publishDir "${params.basedir}/HISAT2_out",mode:'copy'
 
-      input:
-      file hisat_index from hisat_index
-      set val(single_hisat_prefix), file(single_hisat_input) from single_hisat_inputs
+	  input:
+	  file hisat_index from hisat_index
+	  set val(single_hisat_prefix), file(single_hisat_input) from single_hisat_inputs
 
-      output:
-      file "*_hisat_out.sam" into hisat_single_output
-      file "*"
-      file "*_align_summary.txt" into alignment_summaries
+	  output:
+	  file "*_hisat_out.sam" into hisat_single_output
+	  file "*"
+	  file "*_align_summary.txt" into alignment_summaries
 
-      shell:
-      hisat_prefix = "${params.hisat_prefix}"
-      strand = "${params.hisat_strand}"
-      hisat_cores = "${params.hisat_cores}"
+	  shell:
+	  hisat_prefix = "${params.hisat_prefix}"
+	  strand = "${params.hisat_strand}"
+	  hisat_cores = "${params.hisat_cores}"
 	  // Phred Quality is hardcoded, if it will be so, it should be pointed in the README.md
-      '''
-      hisat2 -p !{hisat_cores} -x !{hisat_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
-      '''
-    }
+	  '''
+	  !{params.hisat2} -p !{hisat_cores} -x !{hisat_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
+	  '''
+	}
 
-    hisat_single_output
-      .flatten()
-      .map{ file -> tuple(get_hisat_prefix(file), file) }
-      .set{ sam_to_bam_inputs }
+	hisat_single_output
+	  .flatten()
+	  .map{ file -> tuple(get_hisat_prefix(file), file) }
+	  .set{ sam_to_bam_inputs }
 }
 
 // Bellow block is not tested yet
 if (params.sample == "paired") {
 
-    no_trim_fastqs
-      .set{ notrim_paired_hisat_inputs }
+	no_trim_fastqs
+	  .set{ notrim_paired_hisat_inputs }
 
-    process PairedEndNoTrimHISAT {
+	process PairedEndNoTrimHISAT {
 
-      echo true
-      tag "Prefix: $paired_notrim_hisat_prefix | Sample: [ $paired_no_trim_hisat ]"
-      publishDir "${params.basedir}/HISAT2_out",mode:'copy'
+	  echo true
+	  tag "Prefix: $paired_notrim_hisat_prefix | Sample: [ $paired_no_trim_hisat ]"
+	  publishDir "${params.basedir}/HISAT2_out",mode:'copy'
 
-      input:
-      file hisatidx from hisat_index
-      set val(paired_notrim_hisat_prefix), file(paired_no_trim_hisat) from notrim_paired_hisat_inputs
+	  input:
+	  file hisatidx from hisat_index
+	  set val(paired_notrim_hisat_prefix), file(paired_no_trim_hisat) from notrim_paired_hisat_inputs
 
-      output:
-      file "*_hisat_out.sam" into hisat_paired_notrim_output
-      file "*"
-      file "*_align_summary.txt" into paired_notrim_alignment_summaries
+	  output:
+	  file "*_hisat_out.sam" into hisat_paired_notrim_output
+	  file "*"
+	  file "*_align_summary.txt" into paired_notrim_alignment_summaries
 
-      shell:
-      hisat_prefix = "${params.hisat_prefix}"
-      strand = "${params.hisat_strand}"
-      hisat_cores = "${params.hisat_cores}"
-      sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR.fastq.gz"
-      sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR.fastq.gz"
-      if (params.unalign) {
-          unaligned_opt = "--un-conc ${paired_notrim_hisat_prefix}.fastq"
-      }
-      if (!params.unalign) {
-          unaligned_opt = ""
-      }
-      '''
-      hisat2 \
-      -p !{hisat_cores} \
-      -x !{hisat_prefix} \
-      -1 !{sample_1_hisat} \
-      -2 !{sample_2_hisat} \
-      -S !{paired_notrim_hisat_prefix}_hisat_out.sam !{strand} --phred33 \
-      !{unaligned_opt} \
-      2> !{paired_notrim_hisat_prefix}_align_summary.txt
-      '''
-    } // finishes untested block
+	  shell:
+	  hisat_prefix = "${params.hisat_prefix}"
+	  strand = "${params.hisat_strand}"
+	  hisat_cores = "${params.hisat_cores}"
+	  sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR.fastq.gz"
+	  sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR.fastq.gz"
+	  if (params.unalign) {
+		  unaligned_opt = "--un-conc ${paired_notrim_hisat_prefix}.fastq"
+	  }
+	  if (!params.unalign) {
+		  unaligned_opt = ""
+	  }
+	  '''
+	  !{params.hisat2} \
+	  -p !{hisat_cores} \
+	  -x !{hisat_prefix} \
+	  -1 !{sample_1_hisat} \
+	  -2 !{sample_2_hisat} \
+	  -S !{paired_notrim_hisat_prefix}_hisat_out.sam !{strand} --phred33 \
+	  !{unaligned_opt} \
+	  2> !{paired_notrim_hisat_prefix}_align_summary.txt
+	  '''
+	} // finishes untested block
 
-     trimmed_hisat_inputs
-      .flatten()
-      .map{ file -> tuple(get_paired_trimmed_prefix(file), file) }
-      .groupTuple()
-      .set{ trim_paired_hisat_inputs }
+	 trimmed_hisat_inputs
+	  .flatten()
+	  .map{ file -> tuple(get_paired_trimmed_prefix(file), file) }
+	  .groupTuple()
+	  .set{ trim_paired_hisat_inputs }
 
 //Bellow block is not tested yet
-     process PairedEndTrimmedHISAT {
+	 process PairedEndTrimmedHISAT {
 
-      echo true
-      tag "Prefix: $paired_trimmed_prefix | Sample: $paired_trimmed_fastqs"
-      publishDir "${params.basedir}/HISAT2_out",mode:'copy'
+	  echo true
+	  tag "Prefix: $paired_trimmed_prefix | Sample: $paired_trimmed_fastqs"
+	  publishDir "${params.basedir}/HISAT2_out",mode:'copy'
 
-      input:
-      file hisatidx from hisat_index
-      set val(paired_trimmed_prefix), file(paired_trimmed_fastqs) from trim_paired_hisat_inputs
+	  input:
+	  file hisatidx from hisat_index
+	  set val(paired_trimmed_prefix), file(paired_trimmed_fastqs) from trim_paired_hisat_inputs
 
-      output:
-      file "*_hisat_out.sam" into hisat_paired_trim_output
-      file "*"
-      file "*_align_summary.txt" into paired_trim_alignment_summaries
+	  output:
+	  file "*_hisat_out.sam" into hisat_paired_trim_output
+	  file "*"
+	  file "*_align_summary.txt" into paired_trim_alignment_summaries
 
-      shell:
-      hisat_prefix = "${params.hisat_prefix}"
-      strand = "${params.hisat_strand}"
-      hisat_cores = "${params.hisat_cores}"
-      forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq.gz"
-      reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq"
-      forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.fastq.gz"
-      reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.fastq.gz"
-      if (params.unalign) {
-          unaligned_opt = "--un-conc ${paired_trimmed_prefix}.fastq"
-      }
-      if (!params.unalign) {
-          unaligned_opt = ""
-      }
-      '''
-      hisat2 \
-      -p !{hisat_cores} \
-      -x !{hisat_prefix} \
-      -1 !{forward_paired} \
-      -2 !{reverse_paired} \
-      -U !{forward_unpaired} , !{reverse_unpaired} \
-      -S !{paired_trimmed_prefix}_hisat_out.sam !{strand} --phred33 \
-      !{unaligned_opt} \
-      2> !${paired_trimmed_prefix}_align_summary.txt
-      '''
-    }
+	  shell:
+	  hisat_prefix = "${params.hisat_prefix}"
+	  strand = "${params.hisat_strand}"
+	  hisat_cores = "${params.hisat_cores}"
+	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq.gz"
+	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq"
+	  forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.fastq.gz"
+	  reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.fastq.gz"
+	  if (params.unalign) {
+		  unaligned_opt = "--un-conc ${paired_trimmed_prefix}.fastq"
+	  }
+	  if (!params.unalign) {
+		  unaligned_opt = ""
+	  }
+	  '''
+	  !{params.hisat2} \
+	  -p !{hisat_cores} \
+	  -x !{hisat_prefix} \
+	  -1 !{forward_paired} \
+	  -2 !{reverse_paired} \
+	  -U !{forward_unpaired} , !{reverse_unpaired} \
+	  -S !{paired_trimmed_prefix}_hisat_out.sam !{strand} --phred33 \
+	  !{unaligned_opt} \
+	  2> !${paired_trimmed_prefix}_align_summary.txt
+	  '''
+	}
 //Bellow block is not tested yet
-     hisat_paired_notrim_output
-      .mix(hisat_paired_trim_output)
-      .flatten()
-      .map{ file -> tuple(get_hisat_prefix(file), file) }
-      .set{ sam_to_bam_inputs }
+	 hisat_paired_notrim_output
+	  .mix(hisat_paired_trim_output)
+	  .flatten()
+	  .map{ file -> tuple(get_hisat_prefix(file), file) }
+	  .set{ sam_to_bam_inputs }
 
-    paired_trim_alignment_summaries
-      .mix(paired_notrim_alignment_summaries)
-      .flatten()
-      .set{ alignment_summaries } // think this is causing conflicts...
+	paired_trim_alignment_summaries
+	  .mix(paired_notrim_alignment_summaries)
+	  .flatten()
+	  .set{ alignment_summaries } // think this is causing conflicts...
 }
 
 /*
@@ -1631,25 +1656,25 @@ if (params.sample == "paired") {
 
 process SamtoBam {
 
-    echo true
-    tag "Prefix: $sam_to_bam_prefix | Sample: $sam_to_bam_input"
-    publishDir "${params.basedir}/HISAT2_out/sam_to_bam",'mode':'copy'
+	echo true
+	tag "Prefix: $sam_to_bam_prefix | Sample: $sam_to_bam_input"
+	publishDir "${params.basedir}/HISAT2_out/sam_to_bam",'mode':'copy'
 
-    input:
-    set val(sam_to_bam_prefix), file(sam_to_bam_input) from sam_to_bam_inputs
+	input:
+	set val(sam_to_bam_prefix), file(sam_to_bam_input) from sam_to_bam_inputs
 
-    output:
-    set val("${sam_to_bam_prefix}"), file("${sam_to_bam_prefix}*.sorted.bam"), file("${sam_to_bam_prefix}*.sorted.bam.bai") into infer_experiment_inputs, feature_bam_inputs, alignment_bam_inputs, coverage_bam_inputs, full_coverage_bams, count_objects_bam_files, variant_calls_bam
+	output:
+	set val("${sam_to_bam_prefix}"), file("${sam_to_bam_prefix}*.sorted.bam"), file("${sam_to_bam_prefix}*.sorted.bam.bai") into infer_experiment_inputs, feature_bam_inputs, alignment_bam_inputs, coverage_bam_inputs, full_coverage_bams, count_objects_bam_files, variant_calls_bam
 
-    script:
-    original_bam = "${sam_to_bam_prefix}_accepted_hits.bam"
-    sorted_bam = "${sam_to_bam_prefix}_accepted_hits.sorted"
-    samtobam_cores = "${params.samtobam_cores}"
-    """
-    samtools view -bh -F 4 $sam_to_bam_input > $original_bam
-    samtools sort -T temporary -@ $samtobam_cores $original_bam -o ${sorted_bam}.bam
-    samtools index ${sorted_bam}.bam
-    """
+	script:
+	original_bam = "${sam_to_bam_prefix}_accepted_hits.bam"
+	sorted_bam = "${sam_to_bam_prefix}_accepted_hits.sorted"
+	samtobam_cores = "${params.samtobam_cores}"
+	"""
+	${params.samtools} view -bh -F 4 $sam_to_bam_input > $original_bam
+	${params.samtools} sort -T temporary -@ $samtobam_cores $original_bam -o ${sorted_bam}.bam
+	${params.samtools} index ${sorted_bam}.bam
+	"""
 }
 
 infer_experiment_inputs
@@ -1662,25 +1687,25 @@ infer_experiment_inputs
 
 process InferExperiment {
 
-    echo true
-    tag "Prefix: $infer_prefix | Sample: $bam_file | Index: $bam_index"
-    publishDir "${params.basedir}/HISAT2_out/infer_experiment",'mode':'copy'
+	echo true
+	tag "Prefix: $infer_prefix | Sample: $bam_file | Index: $bam_index"
+	publishDir "${params.basedir}/HISAT2_out/infer_experiment",'mode':'copy'
 
-    input:
-    set val(infer_prefix), file(bam_file), file(bam_index), file(bed_file) from infer_experiments
+	input:
+	set val(infer_prefix), file(bam_file), file(bam_index), file(bed_file) from infer_experiments
 
-    output:
-    file "*"
-    file "*_experiment.txt" into infer_experiment_outputs
+	output:
+	file "*"
+	file "*_experiment.txt" into infer_experiment_outputs
 
-    shell:
-    '''
-    python /usr/local/bin/infer_experiment.py \
-    -i !{bam_file} \
-    -r !{bed_file} \
-    1> !{infer_prefix}_experiment.txt \
-    2> !{infer_prefix}_experiment_summary_out.txt
-    '''
+	shell:
+	'''
+	!{params.infer_experiment} \
+	-i !{bam_file} \
+	-r !{bed_file} \
+	1> !{infer_prefix}_experiment.txt \
+	2> !{infer_prefix}_experiment_summary_out.txt
+	'''
 }
 
 infer_experiment_outputs
@@ -1695,25 +1720,25 @@ infer_experiment_outputs
 
 process InferStrandness {
 
-    echo true
-    tag "Sample: $infer_experiment_files"
-    publishDir "${params.basedir}/HISAT2_out/infer_strandness/",'mode':'copy'
+	echo true
+	tag "Sample: $infer_experiment_files"
+	publishDir "${params.basedir}/HISAT2_out/infer_strandness/",'mode':'copy'
 
-    input:
-    file infer_strandness from infer_strandness
-    file infer_experiment_files from infer_experiment_output
+	input:
+	file infer_strandness from infer_strandness
+	file infer_experiment_files from infer_experiment_output
 	file check_R_packages_script from check_R_packages_script
 
-    output:
-    file "*"
-    file "inferred_strandness_pattern.txt" into inferred_strand_coverage, inferred_strand_mean_coverage, inferred_strand_objects
+	output:
+	file "*"
+	file "inferred_strandness_pattern.txt" into inferred_strand_coverage, inferred_strand_mean_coverage, inferred_strand_objects
 
-    shell:
-    inferred_strandness_pattern = "inferred_strandness_pattern.txt"
-    '''
+	shell:
+	inferred_strandness_pattern = "inferred_strandness_pattern.txt"
+	'''
 	Rscript !{check_R_packages_script} \
-    && Rscript !{infer_strandness} -p !{inferred_strandness_pattern}
-    '''
+	&& Rscript !{infer_strandness} -p !{inferred_strandness_pattern}
+	'''
 }
 
 feature_bam_inputs
@@ -1726,46 +1751,46 @@ feature_bam_inputs
 
 process FeatureCounts {
 
-    echo true
-    tag "Prefix: $feature_prefix | Sample: $feature_bam | Sample Index: $feature_index"
-    publishDir "${params.basedir}/Counts",'mode':'copy'
+	echo true
+	tag "Prefix: $feature_prefix | Sample: $feature_bam | Sample Index: $feature_index"
+	publishDir "${params.basedir}/Counts",'mode':'copy'
 
-    input:
-    set val(feature_prefix), file(feature_bam), file(feature_index), file(gencode_gtf_feature) from feature_counts_inputs
+	input:
+	set val(feature_prefix), file(feature_bam), file(feature_index), file(gencode_gtf_feature) from feature_counts_inputs
 
-    output:
-    file "*"
-    file "*.counts*" into sample_counts
+	output:
+	file "*"
+	file "*.counts*" into sample_counts
 
-    script:
-    if (params.sample == "single") {
-        sample_option = ""
-    }
-    if (params.sample == "paired") {
-        sample_option = "-p"
-    }
-    feature_out = "${feature_prefix}_${params.feature_output_prefix}"
-    featurecounts_cores = "${params.featurecounts_cores}"
-    feature_strand = "${params.feature_strand}"
-    """ 
-    featureCounts \
-    -s $feature_strand \
-    $sample_option \
-    -T $featurecounts_cores \
-    -a $gencode_gtf_feature \
-    -o ${feature_out}_Genes.counts \
-    $feature_bam
+	script:
+	if (params.sample == "single") {
+		sample_option = ""
+	}
+	if (params.sample == "paired") {
+		sample_option = "-p"
+	}
+	feature_out = "${feature_prefix}_${params.feature_output_prefix}"
+	featurecounts_cores = "${params.featurecounts_cores}"
+	feature_strand = "${params.feature_strand}"
+	"""
+	${params.featureCounts} \
+	-s $feature_strand \
+	$sample_option \
+	-T $featurecounts_cores \
+	-a $gencode_gtf_feature \
+	-o ${feature_out}_Genes.counts \
+	$feature_bam
 
-    featureCounts \
-    -s $feature_strand \
-    $sample_option \
-    -O \
-    -f \
-    -T $featurecounts_cores \
-    -a $gencode_gtf_feature \
-    -o ${feature_out}_Exons.counts \
-    $feature_bam
-    """
+	${params.featureCounts} \
+	-s $feature_strand \
+	$sample_option \
+	-O \
+	-f \
+	-T $featurecounts_cores \
+	-a $gencode_gtf_feature \
+	-o ${feature_out}_Exons.counts \
+	$feature_bam
+	"""
 }
 
 /*
@@ -1774,22 +1799,22 @@ process FeatureCounts {
 
 process PrimaryAlignments {
 
-    echo true
-    tag "Prefix: $alignment_prefix | Sample: [ $alignment_bam ]"
-    publishDir "${params.basedir}/Counts/junction/primary_aligments",'mode':'copy'
+	echo true
+	tag "Prefix: $alignment_prefix | Sample: [ $alignment_bam ]"
+	publishDir "${params.basedir}/Counts/junction/primary_aligments",'mode':'copy'
 
-    input:
-    set val(alignment_prefix), file(alignment_bam), file(alignment_index) from alignment_bam_inputs
+	input:
+	set val(alignment_prefix), file(alignment_bam), file(alignment_index) from alignment_bam_inputs
 
-    output:
-    set val("${alignment_prefix}"), file("${alignment_prefix}.bam"), file("${alignment_prefix}.bam.bai") into primary_alignments
+	output:
+	set val("${alignment_prefix}"), file("${alignment_prefix}.bam"), file("${alignment_prefix}.bam.bai") into primary_alignments
 
-    script:
-    alignments_cores = "${params.alignments_cores}"
-    """
-    samtools view -@ $alignments_cores -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
-    samtools index ${alignment_prefix}.bam
-    """
+	script:
+	alignments_cores = "${params.alignments_cores}"
+	"""
+	${params.samtools} view -@ $alignments_cores -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
+	${params.samtools} index ${alignment_prefix}.bam
+	"""
 }
 
 /*
@@ -1798,26 +1823,26 @@ process PrimaryAlignments {
 
 process Junctions {
 
-    echo true
-    tag "Prefix: $junction_prefix | Sample: [ $alignment_bam ]"
-    publishDir "${params.basedir}/Counts/junction",'mode':'copy'
+	echo true
+	tag "Prefix: $junction_prefix | Sample: [ $alignment_bam ]"
+	publishDir "${params.basedir}/Counts/junction",'mode':'copy'
 
-    input:
-    file bed_to_juncs from bed_to_juncs
-    set val(junction_prefix), file(alignment_bam), file(alignment_index) from primary_alignments
+	input:
+	file bed_to_juncs from bed_to_juncs
+	set val(junction_prefix), file(alignment_bam), file(alignment_index) from primary_alignments
 
-    output:
-    file "*"
-    file("*.count") into regtools_outputs
+	output:
+	file "*"
+	file("*.count") into regtools_outputs
 	//needs to pass the count files to a channel
 
-    shell:
-    outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
-    outcount = "${junction_prefix}_junctions_primaryOnly_regtools.count"
-    '''
-    regtools junctions extract -i 9 -o !{outjxn} !{alignment_bam}
-    python !{bed_to_juncs} < !{outjxn} > !{outcount}
-    '''
+	shell:
+	outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
+	outcount = "${junction_prefix}_junctions_primaryOnly_regtools.count"
+	'''
+	!{params.regtools} junctions extract -i 9 -o !{outjxn} !{alignment_bam}
+	python !{bed_to_juncs} < !{outjxn} > !{outcount}
+	'''
 }
 
 /*
@@ -1826,33 +1851,33 @@ process Junctions {
 
 process Coverage {
 
-    echo true
-    tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
-    publishDir "${params.basedir}/Coverage/wigs",mode:'copy'
+	echo true
+	tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
+	publishDir "${params.basedir}/Coverage/wigs",mode:'copy'
 
-    input:
-    file inferred_strand from inferred_strand_coverage
-    set val(coverage_prefix), file(sorted_coverage_bam), file(sorted_bam_index) from coverage_bam_inputs
-    file chr_sizes from chr_sizes
+	input:
+	file inferred_strand from inferred_strand_coverage
+	set val(coverage_prefix), file(sorted_coverage_bam), file(sorted_bam_index) from coverage_bam_inputs
+	file chr_sizes from chr_sizes
 
-    output:
-    set val("${coverage_prefix}"), file("${coverage_prefix}.wig") into wig_files
+	output:
+	set val("${coverage_prefix}"), file("${coverage_prefix}.wig") into wig_files
 
-    shell:
-    '''
-    export coverage_strand_rule=$(cat !{inferred_strand})
-    if [ $coverage_strand_rule == "none" ] ; then
-        python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix}
-    elif [ $coverage_strand_rule == "1++,1--,2+-,2-+" ] ; then
-        python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1++,1--,2+-,2-+"
-    elif [ $coverage_strand_rule == "1+-,1-+,2++,2--" ] ; then
-        python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1+-,1-+,2++,2--"
-    elif [ $coverage_strand_rule == "++,--" ] ; then
-      python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "++,--"
-    elif [ $coverage_strand_rule == "+-,-+" ] ; then
-        python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "+-,-+"
-    fi
-    '''
+	shell:
+	'''
+	export coverage_strand_rule=$(cat !{inferred_strand})
+	if [ $coverage_strand_rule == "none" ] ; then
+		!{params.bam2wig} -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix}
+	elif [ $coverage_strand_rule == "1++,1--,2+-,2-+" ] ; then
+		!{params.bam2wig} -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1++,1--,2+-,2-+"
+	elif [ $coverage_strand_rule == "1+-,1-+,2++,2--" ] ; then
+		!{params.bam2wig} -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1+-,1-+,2++,2--"
+	elif [ $coverage_strand_rule == "++,--" ] ; then
+	  !{params.bam2wig} -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "++,--"
+	elif [ $coverage_strand_rule == "+-,-+" ] ; then
+		!{params.bam2wig} -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "+-,-+"
+	fi
+	'''
 }
 
 /*
@@ -1861,21 +1886,21 @@ process Coverage {
 
 process WigToBigWig {
 
-    echo true
-    tag "Prefix: $wig_prefix | Sample: [ $wig_file ]"
-    publishDir "${params.basedir}/Coverage/BigWigs",mode:'copy'
+	echo true
+	tag "Prefix: $wig_prefix | Sample: [ $wig_file ]"
+	publishDir "${params.basedir}/Coverage/BigWigs",mode:'copy'
 
-    input:
-    set val(wig_prefix), file(wig_file) from wig_files
-    file chr_sizes from chr_sizes
+	input:
+	set val(wig_prefix), file(wig_file) from wig_files
+	file chr_sizes from chr_sizes
 
-    output:
-    file "*.bw" into coverage_bigwigs
+	output:
+	file "*.bw" into coverage_bigwigs
 
-    shell:
-    '''
-    /usr/local/bin/wigToBigWig !{wig_file} !{chr_sizes} !{wig_prefix}.bw
-    '''
+	shell:
+	'''
+	!{params.wigToBigWig} !{wig_file} !{chr_sizes} !{wig_prefix}.bw
+	'''
 
 }
 
@@ -1891,93 +1916,93 @@ coverage_bigwigs
 
 process MeanCoverage {
 
-    echo true
-    tag "Samples: [ $mean_coverage_bigwig ]"
-    publishDir "${params.basedir}/Coverage/mean",'mode':'copy'
+	echo true
+	tag "Samples: [ $mean_coverage_bigwig ]"
+	publishDir "${params.basedir}/Coverage/mean",'mode':'copy'
 
-    input:
-    file inferred_strand_file from inferred_strand_mean_coverage
-    file mean_coverage_bigwig from mean_coverage_bigwigs
-    file chr_sizes from chr_sizes
+	input:
+	file inferred_strand_file from inferred_strand_mean_coverage
+	file mean_coverage_bigwig from mean_coverage_bigwigs
+	file chr_sizes from chr_sizes
 
-    output:
-    file "mean*.bw" into mean_bigwigs, expressed_regions_mean_bigwigs
+	output:
+	file "mean*.bw" into mean_bigwigs, expressed_regions_mean_bigwigs
 
-    shell:
-    '''
-    export coverage_strand_rule=$(cat !{inferred_strand_file})
-    if [ $coverage_strand_rule == "none" ] ; then
-        /usr/local/bin/wiggletools write mean.wig mean !{mean_coverage_bigwig}
-        /usr/local/bin/wigToBigWig mean.wig !{chr_sizes} mean.bw
-    else
-        /usr/local/bin/wiggletools write mean.forward.wig mean !{mean_coverage_bigwig}
-        /usr/local/bin/wigToBigWig mean.forward.wig !{chr_sizes} mean.forward.bw
-        /usr/local/bin/wiggletools write mean.reverse.wig mean !{mean_coverage_bigwig}
-        /usr/local/bin/wigToBigWig mean.reverse.wig !{chr_sizes} mean.reverse.bw
-    fi
-    '''
+	shell:
+	'''
+	export coverage_strand_rule=$(cat !{inferred_strand_file})
+	if [ $coverage_strand_rule == "none" ] ; then
+		!{params.wiggletools} write mean.wig mean !{mean_coverage_bigwig}
+		!{params.wigToBigWig} mean.wig !{chr_sizes} mean.bw
+	else
+		!{params.wiggletools} write mean.forward.wig mean !{mean_coverage_bigwig}
+		!{params.wigToBigWig} mean.forward.wig !{chr_sizes} mean.forward.bw
+		!{params.wiggletools} write mean.reverse.wig mean !{mean_coverage_bigwig}
+		!{params.wigToBigWig} mean.reverse.wig !{chr_sizes} mean.reverse.bw
+	fi
+	'''
 }
 
 //for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true during Define Reference Paths/Scripts + Reference Dependent Parameters
 if (params.step6) {
 
-    /*
-     * Step 6: txQuant
-     */
+	/*
+	 * Step 6: txQuant
+	 */
 
-     process TXQuant {
+	 process TXQuant {
 
-        echo true
-        tag "Prefix: $salmon_input_prefix | Sample: [ $salmon_inputs ]"
-        publishDir "${params.basedir}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
+		echo true
+		tag "Prefix: $salmon_input_prefix | Sample: [ $salmon_inputs ]"
+		publishDir "${params.basedir}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
 
-        input:
-        file salmon_index from salmon_index
-        set val(salmon_input_prefix), file(salmon_inputs) from salmon_inputs
+		input:
+		file salmon_index from salmon_index
+		set val(salmon_input_prefix), file(salmon_inputs) from salmon_inputs
 
-        output:
-        file "${salmon_input_prefix}/*"
-        file("${salmon_input_prefix}_quant.sf") into salmon_quants
+		output:
+		file "${salmon_input_prefix}/*"
+		file("${salmon_input_prefix}_quant.sf") into salmon_quants
 
-        shell:
-        salmon_cores = "${params.salmon_cores}"
-        salmon_index_prefix = "${params.salmon_prefix}"
-        if (params.sample == "single") {
-            sample_command = "-r ${salmon_input_prefix}.fastq.gz"
-            if (params.strand == "unstranded" ) {
-                salmon_strand = "U"
-            }
-            if (params.strand == "forward" ) {
-                salmon_strand = "SF"
-            }
-            if (params.strand == "reverse" )
-                salmon_strand = "SR"
-            }
+		shell:
+		salmon_cores = "${params.salmon_cores}"
+		salmon_index_prefix = "${params.salmon_prefix}"
+		if (params.sample == "single") {
+			sample_command = "-r ${salmon_input_prefix}.fastq.gz"
+			if (params.strand == "unstranded" ) {
+				salmon_strand = "U"
+			}
+			if (params.strand == "forward" ) {
+				salmon_strand = "SF"
+			}
+			if (params.strand == "reverse" )
+				salmon_strand = "SR"
+			}
 		//needs testing for paired
-        if (params.sample == "paired") {
-            sample_command = "-1 ${salmon_input_prefix}_1.fastq.gz -2 ${salmon_input_prefix}_2.fastq.gz"
-            if (params.strand == "unstranded" ) {
-                salmon_strand = "IU"
-            }
-            if (params.strand == "forward" ) {
-                salmon_strand = "ISF"
-            }
-            if (params.strand == "reverse" ) {
-                salmon_strand = "ISR"
-            }
-        }
-        '''
-        mkdir -p !{salmon_index_prefix}
-        cp !{salmon_index} !{salmon_index_prefix}/.
-        salmon quant \
-        -i !{salmon_index_prefix} \
-        -p !{salmon_cores} \
-        -l !{salmon_strand} \
-        !{sample_command} \
-        -o !{salmon_input_prefix}
-        cp !{salmon_input_prefix}/quant.sf !{salmon_input_prefix}_quant.sf
-        '''
-    }
+		if (params.sample == "paired") {
+			sample_command = "-1 ${salmon_input_prefix}_1.fastq.gz -2 ${salmon_input_prefix}_2.fastq.gz"
+			if (params.strand == "unstranded" ) {
+				salmon_strand = "IU"
+			}
+			if (params.strand == "forward" ) {
+				salmon_strand = "ISF"
+			}
+			if (params.strand == "reverse" ) {
+				salmon_strand = "ISR"
+			}
+		}
+		'''
+		mkdir -p !{salmon_index_prefix}
+		cp !{salmon_index} !{salmon_index_prefix}/.
+		!{params.salmon} quant \
+		-i !{salmon_index_prefix} \
+		-p !{salmon_cores} \
+		-l !{salmon_strand} \
+		!{sample_command} \
+		-o !{salmon_input_prefix}
+		cp !{salmon_input_prefix}/quant.sf !{salmon_input_prefix}_quant.sf
+		'''
+	}
 }
 
 /*
@@ -2001,34 +2026,34 @@ count_objects_bam_files // this puts sorted.bams and bais into the channel
 
 if (params.reference_type == "human" || params.reference_type == "mouse") {
 
-    counts_objects_channel
-      .mix(salmon_quants)
-      .collect()
-      .flatten()
-      .toSortedList()
-      .set{counts_objects_channel_1}
+	counts_objects_channel
+	  .mix(salmon_quants)
+	  .collect()
+	  .flatten()
+	  .toSortedList()
+	  .set{counts_objects_channel_1}
 }
 if (params.reference_type == "rat") {
 
-    counts_objects_channel
-      .set{counts_objects_channel_1}
+	counts_objects_channel
+	  .set{counts_objects_channel_1}
 }
 if (params.ercc) {
-        
-    counts_objects_channel_1
-      .mix(ercc_abundances)
-      .collect()
-      .flatten()
-      .toSortedList()
-      .set{ counts_inputs }
+		
+	counts_objects_channel_1
+	  .mix(ercc_abundances)
+	  .collect()
+	  .flatten()
+	  .toSortedList()
+	  .set{ counts_inputs }
 }
 if (!params.ercc) {
 
-    counts_objects_channel_1
-      .collect()
-      .flatten()
-      .toSortedList()
-      .set{ counts_inputs }
+	counts_objects_channel_1
+	  .collect()
+	  .flatten()
+	  .toSortedList()
+	  .set{ counts_inputs }
 }
 
 /*
@@ -2042,41 +2067,41 @@ junction_annotation_ensembl
   .set{rat_annotations}
 
 if (params.reference_type == "rat") {
-    rat_annotations
-      .collect()
-      .flatten()
-      .toSortedList()
-      .set{counts_annotations}
+	rat_annotations
+	  .collect()
+	  .flatten()
+	  .toSortedList()
+	  .set{counts_annotations}
 }
 
 //TODO (iaguilar:) Check why rat has its own object (and it says mouse...)
 if(params.reference_type != "rat") {
 
-    rat_annotations
-      .mix(junction_annotation_gencode)
-      .collect()
-      .flatten()
-      .toSortedList()
-      .set{mouse_annotations}
+	rat_annotations
+	  .mix(junction_annotation_gencode)
+	  .collect()
+	  .flatten()
+	  .toSortedList()
+	  .set{mouse_annotations}
 }
 
 if(params.reference_type == "mouse") {
-    mouse_annotations
-      .collect()
-      .flatten()
-      .toSortedList()
-      .set{counts_annotations}
+	mouse_annotations
+	  .collect()
+	  .flatten()
+	  .toSortedList()
+	  .set{counts_annotations}
 }
 
 if(params.reference_type == "human") {
-    mouse_annotations
-      .mix(junction_annotation_genes)
-      .mix(feature_to_tx_gencode)
-      .mix(feature_to_tx_ensembl)
-      .collect()
-      .flatten()
-      .toSortedList()
-      .set{counts_annotations}
+	mouse_annotations
+	  .mix(junction_annotation_genes)
+	  .mix(feature_to_tx_gencode)
+	  .mix(feature_to_tx_ensembl)
+	  .collect()
+	  .flatten()
+	  .toSortedList()
+	  .set{counts_annotations}
 }
 
 /*
@@ -2084,181 +2109,181 @@ if(params.reference_type == "human") {
 */
 process CountObjects {
 
-	errorStrategy 'ignore'
-    echo true
+	//errorStrategy 'ignore'
+	echo true
 	//This tag generates long names for the job
-    //tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
-    publishDir "${params.basedir}/Count_Objects",'mode':'copy'
+	//tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
+	publishDir "${params.basedir}/Count_Objects",'mode':'copy'
 
-    input:
-    file counts_input from counts_inputs
-    file counts_annotation from counts_annotations
-    file create_counts from create_counts
-    file ercc_actual_conc from ercc_actual_conc
-    file counts_sample_manifest from counts_samples_manifest
+	input:
+	file counts_input from counts_inputs
+	file counts_annotation from counts_annotations
+	file create_counts from create_counts
+	file ercc_actual_conc from ercc_actual_conc
+	file counts_sample_manifest from counts_samples_manifest
 	file check_R_packages_script from check_R_packages_script
 
-    output:
-    file "*"
+	output:
+	file "*"
 
-    shell:
-    if (params.ercc) {
-        ercc_bool = "TRUE"
-    }
-    if (!params.ercc) {
-        ercc_bool = "FALSE"
-    }
-    if (params.sample == "paired") {
-        counts_pe = "TRUE"
-    }
-    if (params.sample == "single") {
-        counts_pe = "FALSE"
-    }
-    if (params.strand == "unstranded") {
-        counts_strand = "-s FALSE"
-    }
-    if (params.strand == "forward") {
-        counts_strand = "-s forward"
-    }
-    if (params.strand == "reverse") {
-        counts_strand = "-s reverse"
-    }
-    counts_cores = "${params.counts_cores}"
-    counts_reference = "${params.reference}"
-    counts_experiment = "${params.experiments}"
-    counts_prefix = "${params.experiment_prefix}"
-    counts_dir = "./"
-    '''
+	shell:
+	if (params.ercc) {
+		ercc_bool = "TRUE"
+	}
+	if (!params.ercc) {
+		ercc_bool = "FALSE"
+	}
+	if (params.sample == "paired") {
+		counts_pe = "TRUE"
+	}
+	if (params.sample == "single") {
+		counts_pe = "FALSE"
+	}
+	if (params.strand == "unstranded") {
+		counts_strand = "-s FALSE"
+	}
+	if (params.strand == "forward") {
+		counts_strand = "-s forward"
+	}
+	if (params.strand == "reverse") {
+		counts_strand = "-s reverse"
+	}
+	counts_cores = "${params.counts_cores}"
+	counts_reference = "${params.reference}"
+	counts_experiment = "${params.experiments}"
+	counts_prefix = "${params.experiment_prefix}"
+	counts_dir = "./"
+	'''
 	## Run the script to check for missing rpackages
 	Rscript !{check_R_packages_script} \
-    && Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
-    '''
+	&& Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
+	'''
 }
 
 if (params.fullCov) {
 
-    full_coverage_bams
-      .flatten()
-      .buffer(size:2,skip:1)
-      .flatten()
-      .mix(full_coverage_bigwigs)
-      .collect()
-      .flatten()
-      .toSortedList()
-      .set{ full_coverage_inputs }
+	full_coverage_bams
+	  .flatten()
+	  .buffer(size:2,skip:1)
+	  .flatten()
+	  .mix(full_coverage_bigwigs)
+	  .collect()
+	  .flatten()
+	  .toSortedList()
+	  .set{ full_coverage_inputs }
   
-    /*
-     * Step 7b: Create Full Coverage Objects
-     */
+	/*
+	 * Step 7b: Create Full Coverage Objects
+	 */
 
-    process CoverageObjects {
+	process CoverageObjects {
 
-        echo true
+		echo true
 		//// This tag generates long names for the job, SGE does not like long job names
-        ////tag "Creating Coverage Objects [ $full_coverage_input ]"
-        publishDir "${params.basedir}/Coverage_Objects",'mode':'copy'
+		////tag "Creating Coverage Objects [ $full_coverage_input ]"
+		publishDir "${params.basedir}/Coverage_Objects",'mode':'copy'
 
-        input:
-        file fullCov_file from fullCov_file
-        file fullCov_samples_manifest from fullCov_samples_manifest
-        file full_coverage_input from full_coverage_inputs
-        file inferred_strand_R_object from inferred_strand_objects
+		input:
+		file fullCov_file from fullCov_file
+		file fullCov_samples_manifest from fullCov_samples_manifest
+		file full_coverage_input from full_coverage_inputs
+		file inferred_strand_R_object from inferred_strand_objects
 		file check_R_packages_script from check_R_packages_script
 
-        output:
-        file "*"
+		output:
+		file "*"
 
-        shell:
-        if (params.sample == "paired") {
-            coverage_pe = "TRUE"
-        }
-        if (params.sample == "single") {
-            coverage_pe = "FALSE"
-        }
-        coverage_cores = "${params.coverage_cores}"
-        coverage_reference = "${params.reference}"
-        coverage_experiment = "${params.experiment}"
-        coverage_prefix = "${params.experiment_prefix}"
-        coverage_fullCov = "TRUE"
-        '''
+		shell:
+		if (params.sample == "paired") {
+			coverage_pe = "TRUE"
+		}
+		if (params.sample == "single") {
+			coverage_pe = "FALSE"
+		}
+		coverage_cores = "${params.coverage_cores}"
+		coverage_reference = "${params.reference}"
+		coverage_experiment = "${params.experiment}"
+		coverage_prefix = "${params.experiment_prefix}"
+		coverage_fullCov = "TRUE"
+		'''
 		Rscript !{check_R_packages_script}
 		Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
-        '''
-    }
+		'''
+	}
 }
 
 if (params.step8) {
 
-    /*
-     * Step 8: Call Variants
-    */
+	/*
+	 * Step 8: Call Variants
+	*/
 
-    variant_calls_bam
-      .combine(snvbed)
-      .combine(variant_assembly)
-      .set{ variant_calls }
+	variant_calls_bam
+	  .combine(snvbed)
+	  .combine(variant_assembly)
+	  .set{ variant_calls }
 
-    process VariantCalls {
+	process VariantCalls {
 
-        echo true
+		echo true
 		//// This tag generates long job names that crash sge
-        ////tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
-        publishDir "${params.basedir}/Variant_Calls",'mode':'copy'
+		////tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
+		publishDir "${params.basedir}/Variant_Calls",'mode':'copy'
 
-        input:
-        set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai), file(snv_bed), file(variant_assembly_file) from variant_calls
+		input:
+		set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai), file(snv_bed), file(variant_assembly_file) from variant_calls
 
-        output:
-        file "${variant_bams_prefix}.vcf.gz" into compressed_variant_calls
-        file "${variant_bams_prefix}.vcf.gz.tbi" into compressed_variant_calls_tbi
+		output:
+		file "${variant_bams_prefix}.vcf.gz" into compressed_variant_calls
+		file "${variant_bams_prefix}.vcf.gz.tbi" into compressed_variant_calls_tbi
 
-        shell:
-        snptmp = "${variant_bams_prefix}_tmp.vcf"
-        snpoutgz = "${variant_bams_prefix}.vcf.gz"
-        '''
-        samtools mpileup -l !{snv_bed} -AB -q0 -Q13 -d1000000 -uf !{variant_assembly_file} !{variant_calls_bam_file} -o !{snptmp}
-        bcftools call -mv -Oz !{snptmp} > !{snpoutgz}
-        tabix -p vcf !{snpoutgz}
-        '''
-    }
+		shell:
+		snptmp = "${variant_bams_prefix}_tmp.vcf"
+		snpoutgz = "${variant_bams_prefix}.vcf.gz"
+		'''
+		!{params.samtools} mpileup -l !{snv_bed} -AB -q0 -Q13 -d1000000 -uf !{variant_assembly_file} !{variant_calls_bam_file} -o !{snptmp}
+		!{params.bcftools} call -mv -Oz !{snptmp} > !{snpoutgz}
+		!{params.tabix} -p vcf !{snpoutgz}
+		'''
+	}
 
-    compressed_variant_calls
-      .flatten()
-      .collect()
+	compressed_variant_calls
+	  .flatten()
+	  .collect()
 // sorting was crashing the NF execution. There seems to be no need to sort
-//     .toSortedList()
-      .set{ collected_variant_calls }
+//	 .toSortedList()
+	  .set{ collected_variant_calls }
 
-    compressed_variant_calls_tbi
-      .flatten()
-      .collect()
+	compressed_variant_calls_tbi
+	  .flatten()
+	  .collect()
 // sorting was crashing the NF execution. There seems to be no need to sort
-//     .toSortedList()
-      .set{ collected_variant_calls_tbi }
+//	 .toSortedList()
+	  .set{ collected_variant_calls_tbi }
 
 
-    /*
-     * Step 8b: Merge Variant Calls
-     */
+	/*
+	 * Step 8b: Merge Variant Calls
+	 */
 
-    process VariantsMerge {
+	process VariantsMerge {
 
-        echo true
-        tag "Samples: $collected_variants"
-        publishDir "${params.basedir}/Merged_Variants",'mode':'copy'
+		echo true
+		tag "Samples: $collected_variants"
+		publishDir "${params.basedir}/Merged_Variants",'mode':'copy'
 
-        input:
-        file collected_variants from collected_variant_calls
-        file collected_variants_tbi from collected_variant_calls_tbi
+		input:
+		file collected_variants from collected_variant_calls
+		file collected_variants_tbi from collected_variant_calls_tbi
 
-        output:
-        file "*"
+		output:
+		file "*"
 
-        shell:
-        '''
-        vcf-merge !{collected_variants} | bgzip -c > mergedVariants.vcf.gz
-        '''
-    }
+		shell:
+		'''
+		!{params.vcfmerge} !{collected_variants} | bgzip -c > mergedVariants.vcf.gz
+		'''
+	}
 }
 
 /*
@@ -2267,25 +2292,25 @@ if (params.step8) {
 
 process ExpressedRegions {
 
-    echo true
-    tag "Sample: $expressed_regions_mean_bigwig"
-    publishDir "${params.basedir}/Expressed_Regions",mode:'copy'
+	echo true
+	tag "Sample: $expressed_regions_mean_bigwig"
+	publishDir "${params.basedir}/Expressed_Regions",mode:'copy'
 
-    input:
-    file expressedRegions_file from expressedRegions_file
-    file chr_sizes from chr_sizes
-    file expressed_regions_mean_bigwig from expressed_regions_mean_bigwigs
+	input:
+	file expressedRegions_file from expressedRegions_file
+	file chr_sizes from chr_sizes
+	file expressed_regions_mean_bigwig from expressed_regions_mean_bigwigs
 
-    output:
-    file "*" 
+	output:
+	file "*" 
 
-    shell:
-    expressed_regions_cores = "${params.expressedregion_cores}"
-    '''
-    Rscript !{expressedRegions_file} \
-    -m !{expressed_regions_mean_bigwig} \
-    -o . \
-    -i !{chr_sizes} \
-    -c !{expressed_regions_cores}
-    '''
+	shell:
+	expressed_regions_cores = "${params.expressedregion_cores}"
+	'''
+	Rscript !{expressedRegions_file} \
+	-m !{expressed_regions_mean_bigwig} \
+	-o . \
+	-i !{chr_sizes} \
+	-c !{expressed_regions_cores}
+	'''
 }
