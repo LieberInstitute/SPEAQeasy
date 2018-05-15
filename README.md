@@ -1,374 +1,225 @@
-Lieber Institute Jaffe-lab RNA-Seq Analysis Pipeline
-====================================
+# LIEBER INSTITUTE JAFFE LAB RNA - SEQ ANALYSIS PIPELINE #
 
-## Nextflow 
+### Summary ###
 
-This RNA-Seq pipeline runs on the distributed processing framework, [Nextflow](https://www.nextflow.io/docs/latest/getstarted.html). 
+Aenean sodales velit at elementum blandit. Donec lobortis tempor aliquam. Maecenas tempor egestas ipsum eget congue. In arcu magna, venenatis efficitur sapien nec, feugiat mattis urna...
 
-	Installation Instructions:
+_##**TODO**##_: Brief description of the pipeline
 
-	```
-	Nextflow is distributed as a self-contained executable package, which means that it does not
-	require any special installation procedure.
+_##**TODO**##_: Show a simplified workflow of the pipeline, from a notes/*.png image (done in draw.io or something similar)
 
-	It only needs two easy steps:
+### Version description ###
 
-	  1. Download the executable package by copying and pasting the following command in your
-	  terminal window: wget -qO- https://get.nextflow.io | bash. It will create the nextflow
-	  main executable file in the current directory.
-	  2. Optionally, move the nextflow file to a directory accessible by your $PATH variable
-	  (this is only required to avoid remembering and typing the full path to nextflow each time
-	  you need to run it).
-	```
-
-The pipeline works by reading a main.nf file, and using the nexflow.config file to determine the execution and processing environment. Additionally, the nextflow.config file decalres logging parameters, and points to the execution specific config files located in the '''./conf''' folder. The development profile is set to ```standard``` and uses __docker__ to execute and maintain the required software versions. __BEFORE EXECUTING: The development enviornment and subsequent memory and cpu requirements defined for each task is held in the mem.config file, and is declared for an environment with the available resources: 8 Cores, 16 GB Memory__ The pipeline works by declaring parameters in the form ```params.parameter_name``` that can be used as command line options. These parameters can be used to define the pathway of the pipeline, and declare subsequent inputs and values. Files in this pipeline are ingested through input files and values in the form of __channels and declarations__.
-
-
-__Process Overview__
+* Version 0.7.5 (current)
 
-	```
-	Channels/Declarations(1) -> Process(1) -> Channel(2)
-	Channel(2) + Channels/Declarations(3)-> Process(2)
-	```
-	Where channels represent the flow of input and output files in a list ingestion structure.
-
-
-__Channels__
-
-	```
-	This method operates by generating lists of values in the form of integers, values and
-	files. Channels can be manipulated by operators to form single value channels, paired
-	value channels, prefix grouped channels, and many more forms of aggregation into the
-	processing pipeline. These values can range from integers and strings, to files and lists of
-	files grouped by similar name. Nextflow creates a reverse dependecy map for the whole
-	pipeline to determine where to expect file outputs, where outputs from previous tasks need
-	to be ingested into consecutive processes, as well as where to look for existing files for
-	ingestion. Channels can be manipulated with operators that are used to group/split/
-	merge/etc. the channels into different sized lists and values. This is the best way to
-	ingest multiple files into a single process for scenarios such as sample aggregations and
-	index ingestion. For examples, look to the pipeline_breakdown.txt for more details on how
-	channels, operators work and processes.
-	```
-
-__Declarations__
-
-	```
-	This method operates simply by declaring a variable to be equal to a value such as a string
-	of integer, or declaring it as a file() with a path. This method acts as a constant
-	input, and can be reused by multiple processes without re-declaration. Look to the
-	main.nf file starting at line 437 to see reference specific file inputs and parameter
-	declarations.
-	```
-
-
-### Process
-
-Processes are the content and commands of the pipeline, and represent the actual execution of pipeline steps. After a process is declared, the following segments define the way information is handled:
-
-__echo__
-
-	```
-	Boolean used to echo the command processes to the log
-	Ex:
-	    echo true
-	```
-
-__tag__
-
-	```
-	String passed to the process to be used as the process label when a process is executed
-	Ex: 
-	    tag "Prefix: $untrimmed_prefix | Sample: [ $fastqc_untrimmed_input ]"
-	```
-
-__publishDir__
-
-	```
-	The publishDir is used to determine where to copy or move the output files from the process
-	Ex: 
-	    publishDir "${params.basedir}/FastQC/Untrimmed",mode:'copy'
-	```
-
-__input__
-
-	```
-	Statements that ingest files from channels or declarations
-	Ex:
-	    set val(samples_prefix), file(manifest_samples) from manifest_creation
-	    file hisat_index from hisat_index
-	```
+    + **Test run validation**:  for hg38, hg10, mm10, and rn6; with the command:  
+`--small_test --sample "single" --strand "unstranded" --ercc -with-report -with-dag -N user@email.com`
+    + **Test run validation**: --fullCov option working for hg38, hg19 and mm10; _rn6 **requires debugging in create_count_objects-rat.R** script_.
+    + **Process validation**: All procceses for Annotation references construction, validated for hg38, hg19, mm10, and rn6.
+    + **Portability feature**: added conf/command paths.config file for defining paths to commands and essential .py scripts.
+    + **Basic feature**: --ercc and --fullcov options functional.
+    + **Documentation expansion**: reestructured README.md; added basic dependencies info; added test run instructions; added email notification info; added Reference files info; added notes on Reference file directories; added some configuration info; added author info.
 
-__output__
-
-	```
-	Statements that define the output files into channels, and will be copied to the publish directory
-	Ex:
-	    file "*"
-	    set val("${sam_to_bam_prefix}"), file("${sam_to_bam_prefix}*.sorted.bam"), file("${sam_to_bam_prefix}*.sorted.bam.bai") into infer_experiment_inputs
-	```
+### Installation ###
 
-__script__
+##### Working OS #####
 
-	```
-	Using script to define the process environment creates a sudo-bash script that is executed in the following way
-	Ex:
-	    script:
-	    original_bam = "${sam_to_bam_prefix}_accepted_hits.bam"
-	    sorted_bam = "${sam_to_bam_prefix}_accepted_hits.sorted"
-	    samtobam_cores = "${params.samtobam_cores}"
-	    """
-	    samtools view -bh -F 4 $sam_to_bam_input > $original_bam
-	    samtools sort -@ $samtobam_cores $original_bam -o ${sorted_bam}.bam
-	    samtools index ${sorted_bam}.bam
-	    """
-	```
+This pipeline has been successfully run in the following Operative System(s):
 
-__shell__
-
-	```
-	Using shell to define the process environment creates a sudo-shell to execute commands and custom scripts
-	Ex:
-	    shell:
-	    '''
-	    python /usr/local/bin/infer_experiment.py \
-	    -i !{bam_file} \
-	    -r !{bedfile} \
-	    1> !{infer_prefix}_experiment.txt \
-	    2> !{infer_prefix}_experiment_summary_out.txt
-	    '''
-	```
+* [Ubuntu 16.04.4 LTS](https://www.ubuntu.com/download/alternative-downloads)
 
-__workdir__
-
-	```
-	The work directory is the place in which Nextflow saves the input files and values, runs the
-	individual process on the sample files, and then captures the output files into channels and
-	the publishDir. This directory will take up a lot of space as it copies all files needed
-	each time it is run. The workDir can be changed with a flag on the nextflow command:
-	Ex:
-	    -w "/dump/work"
-	```
+##### Dependencies: Bioinformatics software #####
 
+Please verify that your system has the following tools and versions:
 
-## Docker
+Software | Version | Command used by the pipeline |
+|:-------------:| -----:| -----: |
+|[bcftools](http://www.htslib.org/download/) | 1.6 | `bcftools` |
+|[fastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.4 | `fastqc` |
+|[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.0.4 | `hisat2`, `hisat2-build` |
+|[htslib](http://www.htslib.org/download/) | 1.2 | `tabix` |
+|[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
+|[kallisto](https://pachterlab.github.io/kallisto/source) | 0.44.0 | `kallisto` |
+|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | 0.29.1.4804 | `nextflow` |
+|[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.4.4 | `Rscript` |
+|[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.0 | `regtools` |
+|[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `infer_experiment.py`, `bam2wig.py`|
+|[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 0.9.1 | `salmon` |
+|[samtools](http://www.htslib.org/download/) | 1.2 | `samtools` |
+|[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 1.6.0 | `featureCounts` |
+|[trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) | 0.36 | `java -jar path/to/trimmomatic.jar` |
+|[vcf-tools](https://vcftools.github.io/index.html) | 0.1.15 | `vcf-merge` |
+|[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2 | `wiggletools` |
+|[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 
-The development version of this pipeline is written using docker as the local execution environmnet. Install Docker in your local environmnet if you'd like to use this feature.
+_##**TODO**##_: Add optional dependencies for SGE
 
-	__Version Info__ (during development)
 
-	```
-	Client:
-	  Version:	17.12.1-ce
-	    API version:	1.35
-	    Go version:	go1.9.4
-	 	Git commit:	7390fc6
-	 	Built:	Tue Feb 27 22:17:40 2018
-	 	OS/Arch:	linux/amd64
+_##**TODO**##_: Add optional dependencies for docker
 
-	Server:
-	  Engine:
-	  	Version:	17.12.1-ce
-	  	API version:	1.35 (minimum version 1.12)
-	  	Go version:	go1.9.4
-	  	Git commit:	7390fc6
-	  	Built:	Tue Feb 27 22:16:13 2018
-	  	OS/Arch:	linux/amd64
-	  	Experimental:	false
-	```
+### Pipeline setup ###
 
+Once the previous dependencies have been met, clone this repository via:
 
-Once Docker is installed, the dockerfiles for each piece of software can be found in the ```./dockerfiles``` folder, and are built using versioning to maintain reproducibility. Docker Images can be obtained locally in 1 of 2 ways:
+````
+        git clone https://github.com/LieberInstitute/RNAsp.git
+````
 
-__Pull__
+Continue with the Configuration step in preparation for a test run.
 
-	```
-	make pull
-	```
+### Configuration ###
 
-__Build__
+Thanks to the nextflow framework this pipeline can run on your local machine, or in a SGE cluster; with or without using docker containers.
 
-	```
-	make build
-	```	
+But first, you need to configure some variables in the following files:
 
-An example build and deploy of all the images can be found in ./dockerfiles/make.log
+* **conf/command_paths.config**: this file defines the paths used by the pipeline to make some required command calls.  
+    + **Important**: change the values to match your system environment.
+    + This conf file can allow you to test the pipeline even if some dependencies are not globally installed or available on the PATH.
 
+* **conf/sge.config**: this file defines variables used by SGE during job submitions.
+    + **Important**: change the ***queue*** variable to a valid queue where your user is allowed to submit jobs.
+    + **Important**: change the ***penv*** variable to a valid parallel environment according to your cluster setup.
 
-## Usage
+.
 
-command Example:
+_##**TODO**##_: describe conf/docker.config
 
-```
-nextflow main.nf --sample "single" --reference "hg38" --strand "unstranded" --ercc --fullCov -w "/dump/work" -profiles standard
-```
+_##**TODO**##_: describe conf/mem.config
 
-This command will read files from ```./input```, run as __single__ samples, with __hg38__ as the reference, __unstranded__ samples, __ercc__ process will run and so will the __fullCoverage__ process. The work directory has been set to the path ```/dump/work``` and the __standard__ profile has been selected.
+_##**TODO**##_: describe conf/sge_large.config
 
-This RNA-Seq pipeline can handle several combinations of single/paired read, human/mouse/rat reference, and unstranded'forward/reverse options. The following __mandatory__ options are available:
+### Test run ###
 
-__sample__
+* Local simple test
 
-	```
-	--sample "single"
-	  OR
-	--sample "paired"
-	```
+After proper configuration has been made in the _**conf/command_paths.config**_ file, you can launch a test by executing:
 
-__reference__
+````
+bash run_test_simple.sh [-N user@email.com]
+````
 
-	```
-	Human:
-	--reference "hg38"
-	  OR
-	--reference "hg19"
+This will launch a **local run** of the complete pipeline.
 
-	Mouse:
-	--reference "mm10"
+* SGE simple test
 
-	Rat:
-	--reference "rn6"
-	```
+After proper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/sge.config**_ files, launch this test by executing:
 
-__stranded__
+````
+bash run_test_sge.sh [-N user@email.com]
+````
 
-	```
-	Stranded:
-	--strand "forward"
-	  OR
-	--strand "reverse"
+* Docker simple test (**NOT IMPLEMENTED YET**)
 
-	Unstranded:
-	--strand "unstranded"
-	```
+**NOTE**: First read the _**Run with Docker**_ section of this readme.
 
 
-### File Naming
+After propper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/docker.config**_ files, launch this test by executing:
 
-NOTICE: File names can not contain "." in the name because the pipeline operates on file names by splitting along the "." to determine prefixes. Change all "." to "\_"
+````
+bash run_test_docker.sh [-N user@email.com]
+````
 
-The pipeline can handle merging required samples and files should be named in the following format:
+### Reference files ###
 
-### Merging Required
+The pipeline uses many reference files during a run. Due to size limitations in git repositories, not every reference file can be versionated.
 
-__single__
+The basic Annotation and Genotyping directories are cloned with this repository. On the first run (test run or real run) for a particular species (i. e. hg38, h19, mm10 or rn6), the missing annotation files are built in a species-dependent manner.
 
-	```
-	Read 1: "{prefix}_read1.fastq.gz"
-	Read 2: "{prefix}_read2.fastq.gz"
-	```
+A tree view for full Annotation and Genotyping directories can be consulted in ***notes/reference_directories_structure.md***.
 
-__paired__
+### Process description ###
 
-	```
-	Pair 1, Read 1: "{prefix}_1_read1.fastq.gz"
-	Pair 1, Read 2: "{prefix}_1_read2.fastq.gz"
-	Pair 2, Read 1: "{prefix}_2_read1.fastq.gz"
-	Pair 2, Read 2: "{prefix}_2_read2.fastq.gz"
-	```
+Sed dictum tristique bibendum. Nulla posuere lacus nec auctor consequat. Ut a sodales orci.
+ 
+_##**TODO**##_: Describe for every process step of the pipeline, what it does (order it accordingly to what it is described in the main.nf header)
 
+### Input data formats ###
 
-To see what other commands and options the pipeline can handle, type:
+Sed bibendum felis eu consequat aliquet. Donec elementum rhoncus massa, et egestas tortor condimentum volutpat. Nam nunc sapien, laoreet quis pulvinar in, finibus vel mauris. Etiam et tellus ligula...
 
-```
-nextflow main.nf --help
-```
+_##**TODO**##_: describe species and data types (single, paired, etc.) accepted by the pipeline.
 
+_##**TODO**##_: Make notes about file naming, for normal runs, and for --merged runs
 
+_##**TODO**##_: Make notes about disabled modules for mm10 and rn6, if any
 
-## Software
+### Output data formats ###
 
-The following software versions are used in this pipeline. For the Ubuntu Base and R Base images, look to the dockerfiles to see specifics on installed packages.
+Quisque vitae venenatis lorem. Nulla id dui euismod, semper ipsum a, auctor magna. Fusce eget feugiat augue, ut mattis felis...
 
-__R Base__
+_##**TODO**##_: describe the many output files produced by the pipeline.
 
-	```
-	R_IMAGE = r3.4.3_base
-	```
+_##**TODO**##_: Consult with Lieber which files are final outputs and which are temporary files
 
-__Ubuntu Base__
+### Launching a real run ###
 
-	```
-	UBUNTU_BASE_IMAGE = ubuntu16.04_base
-	```
+Suspendisse porttitor, nibh id euismod consectetur, lectus nisl posuere nisi, et egestas dui tellus quis dui. Suspendisse dignissim justo ac aliquam efficitur...
 
-__Kallisto__
+_##**TODO**##_: describe how to launch a normal run
 
-	```
-	ERCC_IMAGE = kallisto_v0.43.1
-	```
+_##**TODO**##_: describe the many options of the pipeline, the flags and what they mean
 
-__FastQC__
+### Email notifications
 
-	```
-	QUALITY_IMAGE = fastqc_v0.11.5
-	```
+We use the built-in notification system form nextflow, as described [here](https://www.nextflow.io/docs/latest/mail.html?highlight=email#workflow-notification) :
 
-__Trimmomatic__
+> Nextflow includes a built-in workflow notification features that automatically sends a notification message when a workflow execution terminates.   
+To enable simply specify the -N option when launching the pipeline execution. For example:  
 
-	```
-	TRIM_IMAGE = trimmomatic-0.36
-	```
+````
+nextflow run main.nf <pipeline options> -N <recipient email address>
+````  
 
-__HISAT__
+This will send a notification mail when the execution completes.  
 
-	```
-	HISAT_IMAGE = hisat2-2.0.4
-	```
+**Warning**: By default the notification message is sent by using the `sendmail` system tool which is assumed to be available in the computer where Nextflow is running. Make sure it's properly installed and configured.
 
-__RSeQC__
+### Run with Docker ###
 
-	```
-	RSEQC_IMAGE = rseqc-v2.6.4
-	```
+Duis imperdiet, nisl ac imperdiet vehicula, ipsum arcu dictum justo, vitae sollicitudin tellus tortor a ligula. Curabitur id sapien faucibus, luctus neque vitae, convallis purus...
 
-__Samtools__
+_##**TODO**##_: describe how docker integration works in this pipeline
 
-	```
-	SAMTOOLS_IMAGE = samtools-1.3.1
-	```
+_##**TODO**##_: describe how to build or pull the dockers.
 
-__Salmon__
+_##**TODO**##_: describe the --with-docker flag
 
-	```
-	SALMON_IMAGE = salmon-0.9.1
-	```
+### Run with SGE ###
 
-__Regtools__
+Nulla ultrices ligula et nunc laoreet pretium. Suspendisse placerat sapien velit, a vulputate justo volutpat sit amet. Praesent massa dui, varius id sodales a, maximus eget tortor...
 
-	```
-	REGTOOLS_IMAGE = regtools-0.3.0
-	```
+_##**TODO**##_: describe how SGE integration works in this pipeline
 
-__SubRead__
+_##**TODO**##_: describe how to configure the cong/sge* configuration files, regarding queue, profile and resources request
 
-	```
-	SUBREAD_IMAGE = subread-1.6.0
-	```
+### Pipeline directory structure ###
 
-__Wiggletools__
+Proin euismod ligula ac est sagittis, ac egestas ante malesuada. Nam hendrerit dui eu nunc molestie maximus. Aliquam faucibus sapien eget ante cursus, non accumsan ligula tincidunt...
 
-	```
-	WIGGLETOOLS_IMAGE = wiggletools-1.2
-	```
+_##**TODO**##_: make a tree view of a final directory print from all the sucessfull runs.
 
-__BCFTools__
+_##**TODO**##_: describe in brief wvery file in the tree
 
-	```
-	BCFTOOLS_IMAGE = bcftools-1.3.1
-	```
+### Authors ###
 
-__VCFTOols__
+_##**TODO**##_: complete email adresses for the Lieber team
 
-	```
-	VCFTOOLS_IMAGE = vcftools-v0.1.15
-	```
+Original Pipeline
 
+ [Emily Burke](user@email.com>),
+ [Leonardo Collado-Tores](fellgernon@gmail.com),
+ [Andrew Jaffee](user@email.com),
+ [BaDoi Phan](user@email.com)  
+ 
+Nextflow Port
 
-#### Potential Issues
+ [Jacob Leonard](leonard.jacob09@gmail.com),
+ [Israel Aguilar](iaguilaror@gmail.com),
+ [Violeta Larios](siedracko@gmail.com),
+ [Everardo Gutierrez](ever.gmillan@gmail.com)
 
-1) R-Base Dockerfile: This dockerfile holds all of the R packages needed throughout the pipeline. In order to maintain a specific version combination for required software, all packages are manually installed from source. However, this causes the dockerfile to have numerous commit layers, and risks reaching maximum depth ~125 layers. In this case, packages can be consolidated and installed by name (rather than source link) to decrease the number of layers. OR, the existing docker image can be squashed using --squash (with docker in --experimental mode) to flatten the existing image
-2) The dockerfiles declare specific versions of the required software, and as software becomes outdated and links need to be updated, the dockerfiles will become less likely to build successfully. In this case its much easier to simply run ```make pull``` in the dockerfiles directory to pull the current working version of each image.
+### Contact ###
 
-#### Further Development
-
-When the pipeline is completed, the output log files in ```./pipeline_log``` will show the process details for each task. From this information, resource requirements can be defined more accurately to speed up the pipeline execution.
+* [Leonardo Collado Torres](http://lcolladotor.github.io/)
+* [Winter Genomics Team](http://www.wintergenomics.com)

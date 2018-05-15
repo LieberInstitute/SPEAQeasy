@@ -1,5 +1,6 @@
 #!/bin/bash
 
+<<<<<<< HEAD
 #bash clean_workdir.sh
 
 ## Simple test (no docker, no sge)
@@ -42,3 +43,17 @@ nextflow main.nf --small_test --sample "single" --reference "hg38" --strand "uns
 #&& nextflow main.nf --sample "single" --reference "rn6" --strand "unstranded" -with-report -with-dag
 
 >>>>>>> db8537e0a1fad35d2cfec1e639ed1ae34bc1b96f
+=======
+## hg38 Simple test (no docker, no sge)
+nextflow main.nf \
+	--small_test \
+	--sample "single" \
+	--reference "hg38" \
+	--strand "unstranded" \
+	--ercc \
+	--fullCov \
+	-profile standard \
+	-with-report \
+	-with-dag flowchart.png \
+	$1
+>>>>>>> release/0.7.5
