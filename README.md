@@ -137,17 +137,14 @@ _##**TODO**##_: describe the many options of the pipeline, the flags and what th
 
 We use the built-in notification system form nextflow, as described [here](https://www.nextflow.io/docs/latest/mail.html?highlight=email#workflow-notification) :
 
-> Nextflow includes a built-in workflow notification features that automatically sends a notification message when a workflow execution terminates.
+> Nextflow includes a built-in workflow notification features that automatically sends a notification message when a workflow execution terminates.   
+To enable simply specify the -N option when launching the pipeline execution. For example:  
+````
+nextflow run main.nf <pipeline options> -N <recipient email address>
+````  
+It will send a notification mail when the execution completes.  
 
-> To enable simply specify the -N option when launching the pipeline execution. For example:
-
-> ````
-  nextflow run main.nf <pipeline options> -N <recipient email address>
-> ````
-
-> It will send a notification mail when the execution completes.
-
-> **Warning**: By default the notification message is sent by using the `sendmail` system tool which is assumed to be available in the computer where Nextflow is running. Make sure it's properly installed and configured.
+**Warning**: By default the notification message is sent by using the `sendmail` system tool which is assumed to be available in the computer where Nextflow is running. Make sure it's properly installed and configured.
 
 ### Run with Docker ###
 
