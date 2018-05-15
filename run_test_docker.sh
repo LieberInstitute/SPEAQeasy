@@ -8,8 +8,8 @@ nextflow main.nf \
 	--strand "unstranded" \
 	--ercc \
 	--fullCov \
-        -profile docker,quick \
+        -profile docker \
 	-with-report \
 	-with-dag flowchart.png \
 	-resume \
-	$1
+	$@
