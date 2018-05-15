@@ -156,7 +156,7 @@ def helpMessage() {
  */
 
 // Pipeline version
-version = "0.7.3"
+version = "0.7.5"
 
 // Show help message
 params.help = false
