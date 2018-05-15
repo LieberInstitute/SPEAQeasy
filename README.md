@@ -57,6 +57,10 @@ _##**TODO**##_: Add optional dependencies for SGE
 
 _##**TODO**##_: Add optional dependencies for docker
 
+Install docker
+
+https://docs.docker.com/install/
+
 ### Pipeline setup ###
 
 Once the previous dependencies have been met, clone this repository via:
@@ -128,6 +132,7 @@ The basic Annotation and Genotyping directories are cloned with this repository.
 
 A tree view for full Annotation and Genotyping directories can be consulted in ***notes/reference_directories_structure.md***.
 
+
 ### Process description ###
 
 Sed dictum tristique bibendum. Nulla posuere lacus nec auctor consequat. Ut a sodales orci.
@@ -139,6 +144,15 @@ _##**TODO**##_: Describe for every process step of the pipeline, what it does (o
 Sed bibendum felis eu consequat aliquet. Donec elementum rhoncus massa, et egestas tortor condimentum volutpat. Nam nunc sapien, laoreet quis pulvinar in, finibus vel mauris. Etiam et tellus ligula...
 
 _##**TODO**##_: describe species and data types (single, paired, etc.) accepted by the pipeline.
+
+## Genomes
+
+| Genome Build | Organism |
+|--------|------|
+|hg19| human |
+|hg38| human |
+|mm10| mouse |
+|rna6| rat |
 
 _##**TODO**##_: Make notes about file naming, for normal runs, and for --merged runs
 
