@@ -18,7 +18,7 @@ _##**TODO**##_: Show a simplified workflow of the pipeline, from a notes/*.png i
     + **Process validation**: All procceses for Annotation references construction, validated for hg38, hg19, mm10, and rn6.
     + **Portability feature**: added conf/command paths.config file for defining paths to commands and essential .py scripts.
     + **Basic feature**: --ercc and --fullcov options functional.
-    + **Documentation expansion**: reestructured README.md; added basic dependencies info; added test run instructions; added email notification info; added Reference files info; added notes on Reference file directories.
+    + **Documentation expansion**: reestructured README.md; added basic dependencies info; added test run instructions; added email notification info; added Reference files info; added notes on Reference file directories; added some configuration info; added author info.
 
 ### Installation ###
 
