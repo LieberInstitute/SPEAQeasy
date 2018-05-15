@@ -57,36 +57,42 @@ _##**TODO**##_: Add optional dependencies for SGE
 
 _##**TODO**##_: Add optional dependencies for docker
 
+### Pipeline setup ###
+
+Once the previous dependencies have been met, clone this repository via:
+
+````
+        git clone https://github.com/LieberInstitute/RNAsp.git
+````
+
+Continue with the Configuration step in preparation for a test run.
+
 ### Configuration ###
 
-Vestibulum ac dolor malesuada, dictum eros ac, rhoncus nisi. Vivamus facilisis ipsum eget mauris porta, et imperdiet sem tincidunt...
+Thanks to the nextflow framework this pipeline can run on your local machine, or in a SGE cluster; with or without using docker containers.
 
-* _##**TODO**##_: describe nextflow.config file
+But first, you need to configure some variables in the following files:
 
-* _##**TODO**##_: describe conf/command_paths.config
+* **conf/command_paths.config**: this file defines the paths used by the pipeline to make some required command calls.  
+ + Change the values to match your system environment.
+ + This conf file can allow you to test the pipeline even if some dependencies are not globally installed or available on the PATH.
 
-* _##**TODO**##_: describe conf/docker.config
+* **conf/sge.config**: this file defines variables used by SGE during job submitions.
+ + **Important**: change the ***queue*** variable to a valid queue where your user is allowed to submit jobs.
 
-* _##**TODO**##_: describe conf/mem.config
+.
 
-* _##**TODO**##_: describe conf/sge.config
+_##**TODO**##_: describe conf/docker.config
 
-* _##**TODO**##_: describe conf/sge_large.config
+_##**TODO**##_: describe conf/mem.config
 
-### Reference files ###
-
-The pipeline uses many reference files during a run. Due to size limitations in git repositories, not every reference file can be versionated.
-
-The basic Annotation and Genotyping directories are cloned with this repository. On the first run (test run or real run) for a particular species (i. e. hg38, h19, mm10 or rn6), the missing annotation files are built in a species-dependent manner.
-
-A tree view for full Annotation and Genotyping directories can be consulted in ***notes/reference_directories_structure.md***.
-
+_##**TODO**##_: describe conf/sge_large.config
 
 ### Test run ###
 
 * Local simple test
 
-After proper configuration has been made to the _**conf/command_paths.config**_ file, you can launch a test by executing:
+After proper configuration has been made in the _**conf/command_paths.config**_ file, you can launch a test by executing:
 
 ````
 bash run_test_simple.sh
@@ -96,7 +102,7 @@ This will launch a **local run** of the complete pipeline.
 
 * SGE simple test
 
-After proper configuration has been made to the _**conf/command_paths.config**_ AND the _**conf/sge.config**_ files, launch this test by executing:
+After proper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/sge.config**_ files, launch this test by executing:
 
 ````
 bash run_test_sge.sh
@@ -107,11 +113,19 @@ bash run_test_sge.sh
 **NOTE**: First read the _**Run with Docker**_ section of this readme.
 
 
-After propper configuration has been made to the _**conf/command_paths.config**_ AND the _**conf/docker.config**_ files, launch this test by executing:
+After propper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/docker.config**_ files, launch this test by executing:
 
 ````
 bash run_test_docker.sh
 ````
+
+### Reference files ###
+
+The pipeline uses many reference files during a run. Due to size limitations in git repositories, not every reference file can be versionated.
+
+The basic Annotation and Genotyping directories are cloned with this repository. On the first run (test run or real run) for a particular species (i. e. hg38, h19, mm10 or rn6), the missing annotation files are built in a species-dependent manner.
+
+A tree view for full Annotation and Genotyping directories can be consulted in ***notes/reference_directories_structure.md***.
 
 ### Process description ###
 
@@ -188,9 +202,21 @@ _##**TODO**##_: describe in brief wvery file in the tree
 
 ### Authors ###
 
-Aliquam faucibus sapien eget ante cursus, non accumsan ligula tincidunt. Phasellus eget nisl nec risus egestas fringilla. Maecenas eu ligula ipsum. Nam quam sapien, vehicula ut feugiat id, mattis in nibh.
+_##**TODO**##_: complete email adresses for the Lieber team
 
-_##**TODO**##_: add author list
+Original Pipeline
+
+ [Emily Burke](user@email.com>),
+ [Leonardo Collado-Tores](fellgernon@gmail.com),
+ [Andrew Jaffee](user@email.com),
+ [BaDoi Phan](user@email.com)  
+ 
+Nextflow Port
+
+ [Jacob Leonard](leonard.jacob09@gmail.com),
+ [Israel Aguilar](iaguilaror@gmail.com),
+ [Violeta Larios](siedracko@gmail.com),
+ [Everardo Gutierrez](ever.gmillan@gmail.com)
 
 ### Contact ###
 
