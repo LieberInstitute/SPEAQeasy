@@ -14,7 +14,7 @@ _##**TODO**##_: Show a simplified workflow of the pipeline, from a notes/*.png i
 
     + **Test run validation**:  for hg38, hg10, mm10, and rn6; with the command:  
 `--small_test --sample "single" --strand "unstranded" --ercc -with-report -with-dag -N user@email.com`
-    + **Test run validation**: --fullCov option working for hg38, hg19 and mm10; _rn6 requires debugging in **create_count_objects-rat.R** script_.
+    + **Test run validation**: --fullCov option working for hg38, hg19 and mm10; _rn6 **requires debugging in create_count_objects-rat.R** script_.
     + **Process validation**: All procceses for Annotation references construction, validated for hg38, hg19, mm10, and rn6.
     + **Portability feature**: added conf/command paths.config file for defining paths to commands and essential .py scripts.
     + **Basic feature**: --ercc and --fullcov options functional.
