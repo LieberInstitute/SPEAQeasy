@@ -26,27 +26,25 @@ This pipeline has been successfully run in the following Operative System(s):
 
 Please verify that your system has the following tools and versions:
 
-* _##**TODO**##_: finish the table
-
 Software | Version | Command used by the pipeline |
 |:-------------:| -----:| -----: |
-|[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.4 | `fastqc` |
-|[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.0.4 | `hisat2`, `hisat2-build` |
-|[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 0.9.1 | `salmon` |
-|[kallisto](https://pachterlab.github.io/kallisto/source) | 0.44.0 | `kallisto` |
-|[trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) | 0.36 | `java -jar path/to/trimmomatic.jar` |
-|[samtools](http://www.htslib.org/download/) | 1.2 | `samtools` |
-|[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.0 | `regtools` |
 |[bcftools](http://www.htslib.org/download/) | 1.6 | `bcftools` |
+|[fastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.4 | `fastqc` |
+|[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.0.4 | `hisat2`, `hisat2-build` |
 |[htslib](http://www.htslib.org/download/) | 1.2 | `tabix` |
-|[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2 | `wiggletools` |
-|[vcf-tools](https://vcftools.github.io/index.html) | 0.1.15 | `vcf-merge` |
-|[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.4.4 | `Rscript` |
-|[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `infer_experiment.py`, `bam2wig.py`|
-|[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 1.6.0 | `featureCounts` |
-|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | 0.29.1.4804 | `nextflow` |
-|[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 |[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
+|[kallisto](https://pachterlab.github.io/kallisto/source) | 0.44.0 | `kallisto` |
+|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | 0.29.1.4804 | `nextflow` |
+|[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.4.4 | `Rscript` |
+|[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.0 | `regtools` |
+|[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `infer_experiment.py`, `bam2wig.py`|
+|[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 0.9.1 | `salmon` |
+|[samtools](http://www.htslib.org/download/) | 1.2 | `samtools` |
+|[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 1.6.0 | `featureCounts` |
+|[trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) | 0.36 | `java -jar path/to/trimmomatic.jar` |
+|[vcf-tools](https://vcftools.github.io/index.html) | 0.1.15 | `vcf-merge` |
+|[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2 | `wiggletools` |
+|[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 
 ### Configuration ###
 
