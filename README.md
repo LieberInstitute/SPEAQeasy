@@ -10,7 +10,7 @@ _##**TODO**##_: Show a simplified workflow of the pipeline, from a notes/*.png i
 
 ### Version description ###
 
-* Version 0.7.3 (current)
+* Version 0.7.5 (current)
 
  + _##**TODO**##_: put in the features up to this version
 
