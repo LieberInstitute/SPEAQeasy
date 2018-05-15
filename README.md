@@ -18,7 +18,7 @@ _##**TODO**##_: Show a simplified workflow of the pipeline, from a notes/*.png i
  + **Process validation**: All procceses for Annotation references construction, validated for hg38, hg19, mm10, and rn6.
  + **Portability feature**: added conf/command paths.config file for defining paths to commands and essential .py scripts.
  + **Basic feature**: --ercc and --fullcov options functional.
- + **Documentation expansion**: reestructured README.md; added basic dependencies info; added test run instructions; added email notification info.
+ + **Documentation expansion**: reestructured README.md; added basic dependencies info; added test run instructions; added email notification info; added Reference files info; added notes on Reference file directories.
 
 ### Installation ###
 
@@ -75,11 +75,12 @@ Vestibulum ac dolor malesuada, dictum eros ac, rhoncus nisi. Vivamus facilisis i
 
 ### Reference files ###
 
- Aliquam erat volutpat. Duis et neque vel ante maximus dapibus in quis diam. Aenean et ultricies risus, hendrerit elementum purus...
+The pipeline uses many reference files during a run. Due to size limitations in git repositories, not every reference file can be versionated.
 
-_##**TODO**##_: Briefly describe Anno and Genotyping directories
+The basic Annotation and Genotyping directories are cloned with this repository. On the first run (test run or real run) for a particular species (i. e. hg38, h19, mm10 or rn6), the missing annotation files are built in a species-dependent manner.
 
-_##**TODO**##_: Show a tree view of the directories, showing which files are versioned and which are built by the pipeline
+A tree view for full Annotation and Genotyping directories can be consulted in ***notes/reference_directories_structure.md***.
+
 
 ### Test run ###
 
