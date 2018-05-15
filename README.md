@@ -12,13 +12,13 @@ _##**TODO**##_: Show a simplified workflow of the pipeline, from a notes/*.png i
 
 * Version 0.7.5 (current)
 
- + **Test run validation**:  for hg38, hg10, mm10, and rn6; with the command:  
+    + **Test run validation**:  for hg38, hg10, mm10, and rn6; with the command:  
 `--small_test --sample "single" --strand "unstranded" --ercc -with-report -with-dag -N user@email.com`
- + **Test run validation**: --fullCov option working for hg38, hg19 and mm10; _rn6 requires debugging in **create_count_objects-rat.R** script_.
- + **Process validation**: All procceses for Annotation references construction, validated for hg38, hg19, mm10, and rn6.
- + **Portability feature**: added conf/command paths.config file for defining paths to commands and essential .py scripts.
- + **Basic feature**: --ercc and --fullcov options functional.
- + **Documentation expansion**: reestructured README.md; added basic dependencies info; added test run instructions; added email notification info; added Reference files info; added notes on Reference file directories.
+    + **Test run validation**: --fullCov option working for hg38, hg19 and mm10; _rn6 requires debugging in **create_count_objects-rat.R** script_.
+    + **Process validation**: All procceses for Annotation references construction, validated for hg38, hg19, mm10, and rn6.
+    + **Portability feature**: added conf/command paths.config file for defining paths to commands and essential .py scripts.
+    + **Basic feature**: --ercc and --fullcov options functional.
+    + **Documentation expansion**: reestructured README.md; added basic dependencies info; added test run instructions; added email notification info; added Reference files info; added notes on Reference file directories.
 
 ### Installation ###
 
@@ -74,11 +74,11 @@ Thanks to the nextflow framework this pipeline can run on your local machine, or
 But first, you need to configure some variables in the following files:
 
 * **conf/command_paths.config**: this file defines the paths used by the pipeline to make some required command calls.  
- + Change the values to match your system environment.
- + This conf file can allow you to test the pipeline even if some dependencies are not globally installed or available on the PATH.
+    + Change the values to match your system environment.
+    + This conf file can allow you to test the pipeline even if some dependencies are not globally installed or available on the PATH.
 
 * **conf/sge.config**: this file defines variables used by SGE during job submitions.
- + **Important**: change the ***queue*** variable to a valid queue where your user is allowed to submit jobs.
+    + **Important**: change the ***queue*** variable to a valid queue where your user is allowed to submit jobs.
 
 .
 
