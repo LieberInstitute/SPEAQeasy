@@ -102,7 +102,6 @@ if (opt$paired==TRUE) {
 	fileNames = data.frame('read1' = basename(manifest[,1]), 
 					'read2' = basename(manifest[,2]), stringsAsFactors = FALSE)
 	fileNames = as.data.frame(sapply(fileNames[,1:2], function(x) gsub(".fq.gz|.fq|.fastq.gz|.fastq", "", x) ) )
-	
 	#### Summary flags (PASS/WARN/FAIL) ####
 	qcFlagsR1 = file.path(".", paste0(fileNames$read1,"_summary.txt"))
 	qcFlagsR2 = file.path(".", paste0(fileNames$read2,"_summary.txt"))
@@ -137,7 +136,7 @@ if (opt$paired==TRUE) {
 		names(R) = metrics$SAMPLE_ID
 		## Split list into sublists of metric categories
 		zz = lapply(R, function(x) splitAt(x, which(x==">>END_MODULE")+1))
-		
+		print (zz)
 		# sequence length
 		seqlen = lapply(zz, function(x) x[[1]][9])
 		seqlen = sapply(seqlen, function(x) ss(x, "\t", 2))
@@ -146,7 +145,7 @@ if (opt$paired==TRUE) {
 		gcp = sapply(gcp, function(x) ss(x, "\t", 2))
 		
 		# median phred scores (at roughly 1/4, 1/2, 3/4, and end of seq length)
-		# get positions 
+		# get positions
 		len = round((length(zz[[1]][[2]])-3) / 4)
 		pos = c(len+3, 2*len+3, 3*len+3, length(zz[[1]][[2]])-1)
 		nameSuf = ss(zz[[1]][[2]][pos], "\t", 1)
