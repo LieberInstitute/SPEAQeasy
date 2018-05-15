@@ -207,17 +207,17 @@ _##**TODO**##_: complete email adresses for the Lieber team
 
 Original Pipeline
 
- [Emily Burke](user@email.com>),
- [Leonardo Collado-Tores](fellgernon@gmail.com),
- [Andrew Jaffee](user@email.com),
- [BaDoi Phan](user@email.com)  
+ [Emily Burke](mailto:user@email.com>),
+ [Leonardo Collado-Tores](mailto:fellgernon@gmail.com),
+ [Andrew Jaffee](mailto:user@email.com),
+ [BaDoi Phan](mailto:user@email.com) 
  
 Nextflow Port
 
- [Jacob Leonard](leonard.jacob09@gmail.com),
- [Israel Aguilar](iaguilaror@gmail.com),
- [Violeta Larios](siedracko@gmail.com),
- [Everardo Gutierrez](ever.gmillan@gmail.com)
+ [Jacob Leonard](mailto:leonard.jacob09@gmail.com),
+ [Israel Aguilar](mailto:iaguilaror@gmail.com),
+ [Violeta Larios](mailto:siedracko@gmail.com),
+ [Everardo Gutierrez](mailto:ever.gmillan@gmail.com)
 
 ### Contact ###
 
