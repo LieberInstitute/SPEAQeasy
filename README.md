@@ -74,11 +74,12 @@ Thanks to the nextflow framework this pipeline can run on your local machine, or
 But first, you need to configure some variables in the following files:
 
 * **conf/command_paths.config**: this file defines the paths used by the pipeline to make some required command calls.  
-    + Change the values to match your system environment.
+    + **Important**: change the values to match your system environment.
     + This conf file can allow you to test the pipeline even if some dependencies are not globally installed or available on the PATH.
 
 * **conf/sge.config**: this file defines variables used by SGE during job submitions.
     + **Important**: change the ***queue*** variable to a valid queue where your user is allowed to submit jobs.
+    + **Important**: change the ***penv*** variable to a valid parallel environment according to your cluster setup.
 
 .
 
