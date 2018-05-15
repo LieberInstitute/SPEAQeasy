@@ -10,4 +10,5 @@ nextflow main.nf \
 	--fullCov \
 	-with-report \
 	-with-dag flowchart.png \
+	-resume \
 	$1
