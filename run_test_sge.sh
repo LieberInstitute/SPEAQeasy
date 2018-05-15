@@ -11,4 +11,4 @@ nextflow main.nf \
 	-profile sge \
 	-with-report \
 	-with-dag flowchart.png \
-	$1
+	$@
