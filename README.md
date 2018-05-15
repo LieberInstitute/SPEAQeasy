@@ -12,7 +12,13 @@ _##**TODO**##_: Show a simplified workflow of the pipeline, from a notes/*.png i
 
 * Version 0.7.5 (current)
 
- + _##**TODO**##_: put in the features up to this version
+ + **Test run validation**:  for hg38, hg10, mm10, and rn6; with the command:  
+`--small_test --sample "single" --strand "unstranded" --ercc -with-report -with-dag -N user@email.com`
+ + **Test run validation**: --fullCov option working for hg38, hg19 and mm10; _rn6 requires debugging in **create_count_objects-rat.R** script_.
+ + **Process validation**: All procceses for Annotation references construction, validated for hg38, hg19, mm10, and rn6.
+ + **Portability feature**: added conf/command paths.config file for defining paths to commands and essential .py scripts.
+ + **Basic feature**: --ercc and --fullcov options functional.
+ + **Documentation expansion**: reestructured README.md; added basic dependencies info; added test run instructions; added email notification info.
 
 ### Installation ###
 
@@ -46,6 +52,11 @@ Software | Version | Command used by the pipeline |
 |[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2 | `wiggletools` |
 |[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 
+_##**TODO**##_: Add optional dependencies for SGE
+
+
+_##**TODO**##_: Add optional dependencies for docker
+
 ### Configuration ###
 
 Vestibulum ac dolor malesuada, dictum eros ac, rhoncus nisi. Vivamus facilisis ipsum eget mauris porta, et imperdiet sem tincidunt...
@@ -74,7 +85,7 @@ _##**TODO**##_: Show a tree view of the directories, showing which files are ver
 
 * Local simple test
 
-After propper configuration has been made to the _**conf/command_paths.config**_ file, you can launch a test by executing:
+After proper configuration has been made to the _**conf/command_paths.config**_ file, you can launch a test by executing:
 
 ````
 bash run_test_simple.sh
@@ -84,7 +95,7 @@ This will launch a **local run** of the complete pipeline.
 
 * SGE simple test
 
-After propper configuration has been made to the _**conf/command_paths.config**_ AND the _**conf/sge.config**_ files, launch this test by executing:
+After proper configuration has been made to the _**conf/command_paths.config**_ AND the _**conf/sge.config**_ files, launch this test by executing:
 
 ````
 bash run_test_sge.sh
