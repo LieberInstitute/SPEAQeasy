@@ -1,0 +1,3 @@
+## POTENTIAL ISSUES about the use of the "-N email@adress" built-in option of nextflow to report pipeline completion via email
+
+As of version 0.7.5, this feature has not been validated since it requires a properly configurated `sendmail` tool.
