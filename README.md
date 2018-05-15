@@ -30,24 +30,23 @@ Please verify that your system has the following tools and versions:
 
 Software | Version | Command used by the pipeline |
 |:-------------:| -----:| -----: |
-|[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | v0.11.4 | `fastqc` |
-|[hisat2](INSERT:LINK) | version 2.0.4 | `hisat2`, `hisat2-build` |
-|[salmon](INSERT:LINK) | 0.9.1 | `salmon` |
-|[kallisto](INSERT:LINK) | 0.44.0 | `kallisto` |
-|[trimmomatic](INSERT:LINK) | 0.36 | `java -jar path/to/trimmomatic.jar` |
-|[samtools](INSERT:LINK) | 1.2 | `samtools` |
-|[regtools](INSERT:LINK) | 0.5.0 | `regtools` |
-|[bam2wig.py](INSERT:LINK) |  | `` |
-|[wigToBigWig](INSERT:LINK) | 4 | `wigToBigWig` |
-|[bcftools](INSERT:LINK) | 1.6 | `bcftools` |
-|[tabix](INSERT:LINK) | 1.2 | `tabix` |
-|[wiggletools](INSERT:LINK) | 1.2 | `wiggletools` |
-|[vcf-tools](INSERT:LINK) | 0.1.15 | `vcf-merge` |
-|[R](INSERT:LINK) | 3.4.4 | `Rscript` |
-|[RSeQC](INSERT:LINK) | v2.6.4 | `infer_experiment.py` |
-|[SubRead](INSERT:LINK) | 1.6.0 | `featureCounts` |
-|[nextflow](INSERT:LINK) | 0.29.1.4804 | `nextflow` |
+|[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.4 | `fastqc` |
+|[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.0.4 | `hisat2`, `hisat2-build` |
+|[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 0.9.1 | `salmon` |
+|[kallisto](https://pachterlab.github.io/kallisto/source) | 0.44.0 | `kallisto` |
+|[trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) | 0.36 | `java -jar path/to/trimmomatic.jar` |
+|[samtools](http://www.htslib.org/download/) | 1.2 | `samtools` |
+|[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.0 | `regtools` |
+|[bcftools](http://www.htslib.org/download/) | 1.6 | `bcftools` |
+|[htslib](http://www.htslib.org/download/) | 1.2 | `tabix` |
+|[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2 | `wiggletools` |
+|[vcf-tools](https://vcftools.github.io/index.html) | 0.1.15 | `vcf-merge` |
+|[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.4.4 | `Rscript` |
+|[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `infer_experiment.py`, `bam2wig.py`|
+|[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 1.6.0 | `featureCounts` |
+|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | 0.29.1.4804 | `nextflow` |
 |[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
+|[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
 
 ### Configuration ###
 
