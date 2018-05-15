@@ -18,15 +18,36 @@ _##**TODO**##_: Show a simplified workflow of the pipeline, from a notes/*.png i
 
 ##### Working OS #####
 
-_##**TODO**##_: describe in what OS this has been tested
+This pipeline has been successfully run in the following Operative System(s):
 
-##### Dependencies: Bioinformatic software #####
+* [Ubuntu 16.04.4 LTS](https://www.ubuntu.com/download/alternative-downloads)
 
-Donec malesuada turpis vel massa porttitor, sed tempus tellus vestibulum...
+##### Dependencies: Bioinformatics software #####
 
-_##**TODO**##_: Finish software and versions, according to what is installed in WG test server. a lot of software is missing
+Please verify that your system has the following tools and versions:
 
-* [FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc)
+* _##**TODO**##_: finish the table
+
+Software | Version | Command used by the pipeline |
+|:-------------:| -----:| -----: |
+|[FastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | v0.11.4 | `fastqc` |
+|[hisat2](INSERT:LINK) | version 2.0.4 | `hisat2`, `hisat2-build` |
+|[salmon](INSERT:LINK) | 0.9.1 | `salmon` |
+|[kallisto](INSERT:LINK) | 0.44.0 | `kallisto` |
+|[trimmomatic](INSERT:LINK) | 0.36 | `java -jar path/to/trimmomatic.jar` |
+|[samtools](INSERT:LINK) | 1.2 | `samtools` |
+|[regtools](INSERT:LINK) | 0.5.0 | `regtools` |
+|[bam2wig.py](INSERT:LINK) |  | `` |
+|[wigToBigWig](INSERT:LINK) | 4 | `wigToBigWig` |
+|[bcftools](INSERT:LINK) | 1.6 | `bcftools` |
+|[tabix](INSERT:LINK) | 1.2 | `tabix` |
+|[wiggletools](INSERT:LINK) | 1.2 | `wiggletools` |
+|[vcf-tools](INSERT:LINK) | 0.1.15 | `vcf-merge` |
+|[R](INSERT:LINK) | 3.4.4 | `Rscript` |
+|[RSeQC](INSERT:LINK) | v2.6.4 | `infer_experiment.py` |
+|[SubRead](INSERT:LINK) | 1.6.0 | `featureCounts` |
+|[nextflow](INSERT:LINK) | 0.29.1.4804 | `nextflow` |
+|[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 
 ### Configuration ###
 
@@ -113,7 +134,7 @@ Suspendisse porttitor, nibh id euismod consectetur, lectus nisl posuere nisi, et
 
 _##**TODO**##_: describe how to launch a normal run
 
-_##**TODO**##_: describe the many options of the pipeline, and the flags, and what they mean
+_##**TODO**##_: describe the many options of the pipeline, the flags and what they mean
 
 ### Email notifications
 
