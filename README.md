@@ -95,7 +95,7 @@ _##**TODO**##_: describe conf/sge_large.config
 After proper configuration has been made in the _**conf/command_paths.config**_ file, you can launch a test by executing:
 
 ````
-bash run_test_simple.sh
+bash run_test_simple.sh [-N user@email.com]
 ````
 
 This will launch a **local run** of the complete pipeline.
@@ -105,7 +105,7 @@ This will launch a **local run** of the complete pipeline.
 After proper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/sge.config**_ files, launch this test by executing:
 
 ````
-bash run_test_sge.sh
+bash run_test_sge.sh [-N user@email.com]
 ````
 
 * Docker simple test (**NOT IMPLEMENTED YET**)
@@ -116,7 +116,7 @@ bash run_test_sge.sh
 After propper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/docker.config**_ files, launch this test by executing:
 
 ````
-bash run_test_docker.sh
+bash run_test_docker.sh [-N user@email.com]
 ````
 
 ### Reference files ###
