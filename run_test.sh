@@ -8,7 +8,6 @@ nextflow main.nf \
 	--strand "unstranded" \
 	--ercc \
 	--fullCov \
-	-profile standard \
 	-with-report \
 	-with-dag flowchart.png \
 	$1

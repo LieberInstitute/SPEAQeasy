@@ -1866,36 +1866,6 @@ else
 	}
 }
 process Coverage {
-
-<<<<<<< HEAD
-    echo true
-    tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
-    publishDir "${params.basedir}/Coverage/wigs",mode:'copy'
-
-    input:
-    file inferred_strand from inferred_strand_coverage
-    set val(coverage_prefix), file(sorted_coverage_bam), file(sorted_bam_index) from coverage_bam_inputs
-    file chr_sizes from chr_sizes
-
-    output:
-    set val("${coverage_prefix}"), file("${coverage_prefix}${params.strandprefix}.wig") into wig_files
-
-    shell:
-    '''
-    export coverage_strand_rule=$(cat !{inferred_strand})
-    if [ $coverage_strand_rule == "none" ] ; then
-        python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix}
-    elif [ $coverage_strand_rule == "1++,1--,2+-,2-+" ] ; then
-        python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1++,1--,2+-,2-+"
-    elif [ $coverage_strand_rule == "1+-,1-+,2++,2--" ] ; then
-        python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1+-,1-+,2++,2--"
-    elif [ $coverage_strand_rule == "++,--" ] ; then
-      python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "++,--"
-    elif [ $coverage_strand_rule == "+-,-+" ] ; then
-        python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "+-,-+"
-    fi
-    '''
-=======
 	echo true
 	tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
 	publishDir "${params.basedir}/Coverage/wigs",mode:'copy'
@@ -1906,7 +1876,7 @@ process Coverage {
 	file chr_sizes from chr_sizes
 
 	output:
-	set val("${coverage_prefix}"), file("${coverage_prefix}.wig") into wig_files
+	set val("${coverage_prefix}"), file("${coverage_prefix}${params.strandprefix}.wig") into wig_files
 
 	shell:
 	'''
@@ -1923,7 +1893,6 @@ process Coverage {
 		!{params.bam2wig} -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "+-,-+"
 	fi
 	'''
->>>>>>> db8537e0a1fad35d2cfec1e639ed1ae34bc1b96f
 }
 
 /*
@@ -2313,11 +2282,7 @@ if (params.step8) {
 	 * Step 8b: Merge Variant Calls
 	 */
 
-<<<<<<< HEAD
-    /*process VariantsMerge {
-=======
 	process VariantsMerge {
->>>>>>> db8537e0a1fad35d2cfec1e639ed1ae34bc1b96f
 
 		echo true
 		tag "Samples: $collected_variants"
@@ -2330,19 +2295,11 @@ if (params.step8) {
 		output:
 		file "*"
 
-<<<<<<< HEAD
-        shell:
-        '''
-        vcf-merge !{collected_variants} | bgzip -c > mergedVariants.vcf.gz
-        '''
-    }*/
-=======
 		shell:
 		'''
 		!{params.vcfmerge} !{collected_variants} | bgzip -c > mergedVariants.vcf.gz
 		'''
 	}
->>>>>>> db8537e0a1fad35d2cfec1e639ed1ae34bc1b96f
 }
 
 /*
@@ -2351,7 +2308,6 @@ if (params.step8) {
 
 process ExpressedRegions {
 
-<<<<<<< HEAD
     echo true
     tag "Sample: $expressed_regions_mean_bigwig"
     publishDir "${params.basedir}/Expressed_Regions",mode:'copy'
@@ -2376,27 +2332,4 @@ process ExpressedRegions {
     	-c !{expressed_regions_cores}
     done
     '''
-=======
-	echo true
-	tag "Sample: $expressed_regions_mean_bigwig"
-	publishDir "${params.basedir}/Expressed_Regions",mode:'copy'
-
-	input:
-	file expressedRegions_file from expressedRegions_file
-	file chr_sizes from chr_sizes
-	file expressed_regions_mean_bigwig from expressed_regions_mean_bigwigs
-
-	output:
-	file "*" 
-
-	shell:
-	expressed_regions_cores = "${params.expressedregion_cores}"
-	'''
-	Rscript !{expressedRegions_file} \
-	-m !{expressed_regions_mean_bigwig} \
-	-o . \
-	-i !{chr_sizes} \
-	-c !{expressed_regions_cores}
-	'''
->>>>>>> db8537e0a1fad35d2cfec1e639ed1ae34bc1b96f
 }
