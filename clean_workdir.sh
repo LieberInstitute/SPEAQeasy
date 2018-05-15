@@ -3,3 +3,4 @@
 rm -r work/
 rm -rf .nextflow*
 rm -rf results/
+rm flowchart*
