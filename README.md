@@ -59,7 +59,37 @@ _##**TODO**##_: Add optional dependencies for docker
 
 Install docker
 
-https://docs.docker.com/install/
+A set of instructions for different operating systems are available on the Docker link **(https://docs.docker.com/installation/).
+
+**Create a docker group**
+
+```bash
+sudo addgroup docker
+```
+
+**Add user to docker group**  
+
+Here user is ``ec2-user``
+
+```bash
+sudo usermod -aG docker ec2-user
+```
+Log out and log back in.
+
+This ensures your user is running with the correct permissions.
+
+Verify your work by running ``docker`` without ``sudo``.
+
+```bash
+docker run hello-world
+```
+## Docker Security...
+
+This post reviews the various security implications of using Docker to run applications within containers, and how to address them:
+[How Secure are Containers?](https://blog.docker.com/2013/08/containers-docker-how-secure-are-they/#more-697)
+
+> Docker containers are, by default, quite secure; especially if you take care of running your processes inside the containers as non-privileged users (i.e. non root).
+
 
 ### Pipeline setup ###
 
@@ -196,6 +226,49 @@ Duis imperdiet, nisl ac imperdiet vehicula, ipsum arcu dictum justo, vitae solli
 _##**TODO**##_: describe how docker integration works in this pipeline
 
 _##**TODO**##_: describe how to build or pull the dockers.
+
+Once Docker is installed,images can be pulled down from **[DockerHub] (https://hub.docker.com/u/libdocker/)**. The dockerfiles for each container can be found in the ./dockerfiles folder, and are built using versioning to maintain reproducibility and base on best practices in writting dockers ** (https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)**. Docker Images can be obtained locally in 1 of 2 ways.
+
+* Containers
+
+The following conatainers versions are used in this pipeline. For the Ubuntu Base and R Base images, look to the dockerfiles to see specifics on installed packages.
+
+| Container | tag | software |
+|:-------------:| -----:| -----: |
+| r3.4.3_base | 1_v3 | R Base |
+| ubuntu16.04_base | 1_v3 | Ubuntu Base |
+| kallisto_v0.43.1 | 1_v3 | Kallisto |
+| fastqc_v0.11.5 | 1_v3 | FastQC |
+| trimmomatic-0.36 | 1_v3 | Trimmomatic |
+| hisat2-2.0.4 | 1_v3 | HISAT |
+| rseqc-v2.6.4 | 1_v3 | RSeQC |
+| samtools-1.3.1 | 1_v3 | Samtools |
+| salmon-0.9.1 | 1_v3 | Salmon |
+| regtools-0.3.0 | 1_v3 | Regtools |
+| subread-1.6.0 | 1_v3 | SubRead |
+| wiggletools-1.2 | 1_v3 | Wiggletools |
+| bcftools-1.3.1 | 1_v3 | BCFTools |
+| vcftools-v0.1.15 | 1_v3 | VCFTOols |
+
+Docker pull command
+
+```
+docker pull libdocker/${CONTAINER}
+```
+
+Docker build command
+
+```
+docker build -t libdocker/${CONTAINER} .
+```	
+
+An example build and deploy of all the images can be found in ./dockerfiles/make.log
+
+Potential Issues
+
+R-Base Dockerfile: This dockerfile holds all of the R packages needed throughout the pipeline. In order to maintain a specific version combination for required software, all packages are manually installed from source. However, this causes the dockerfile to have numerous commit layers, and risks reaching maximum depth ~125 layers. In this case, packages can be consolidated and installed by name (rather than source link) to decrease the number of layers. OR, the existing docker image can be squashed using --squash (with docker in --experimental mode) to flatten the existing image
+
+The dockerfiles declare specific versions of the required software, and as software becomes outdated and links need to be updated, the dockerfiles will become less likely to build successfully. In this case its much easier to simply run make pull in the dockerfiles directory to pull the current working version of each image.
 
 _##**TODO**##_: describe the --with-docker flag
 
