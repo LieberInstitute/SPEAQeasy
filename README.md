@@ -54,10 +54,11 @@ Software | Version | Command used by the pipeline |
 
 _##**TODO**##_: Add optional dependencies for SGE
 
+##### Working DOCKER #####
 
 _##**TODO**##_: Add optional dependencies for docker
 
-Install docker
+##### Install docker #####
 
 A set of instructions for different operating systems are available on the Docker link **(https://docs.docker.com/installation/).
 
@@ -69,26 +70,31 @@ sudo addgroup docker
 
 **Add user to docker group**  
 
-Here user is ``ec2-user``
+Here user is ``wg-user``
 
 ```bash
-sudo usermod -aG docker ec2-user
+sudo usermod -aG docker wg-user
 ```
+
+**Checking installation**
+
 Log out and log back in.
 
 This ensures your user is running with the correct permissions.
 
-Verify your work by running ``docker`` without ``sudo``.
+Test installation by running ``docker`` without ``sudo``.
 
 ```bash
 docker run hello-world
 ```
-## Docker Security...
+You can finf more information about the test in docker web *https://docs.docker.com/get-started/#test-docker-installation*
 
-This post reviews the various security implications of using Docker to run applications within containers, and how to address them:
-[How Secure are Containers?](https://blog.docker.com/2013/08/containers-docker-how-secure-are-they/#more-697)
+#### Docker Security ####
 
-> Docker containers are, by default, quite secure; especially if you take care of running your processes inside the containers as non-privileged users (i.e. non root).
+This post reviews the various security implications of using Docker to run applications within containers, see
+*https://docs.docker.com/engine/security/security/*
+
+- Docker containers are, by default, quite secure; especially if you take care of running your processes inside the containers as non-privileged users (i.e. non root). -
 
 
 ### Pipeline setup ###
@@ -120,6 +126,11 @@ But first, you need to configure some variables in the following files:
 _##**TODO**##_: describe conf/docker.config
 
 _##**TODO**##_: describe conf/mem.config
+
+mode: groovy
+
+This is Nextflow base config file a 'blank slate' config file, appropriate for general use on most high performace compute environments. Assumes that all software is installed and available on the PATH. Runs in `local` mode - all jobs will be run on the logged in environment. Assumes the local environment has 16G of memory and 8 CPUs
+ 
 
 _##**TODO**##_: describe conf/sge_large.config
 
