@@ -11,4 +11,4 @@ nextflow main.nf \
 	-with-report \
 	-with-dag flowchart.png \
 	-resume \
-	$1
+	$@

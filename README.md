@@ -303,14 +303,12 @@ _##**TODO**##_: describe in brief wvery file in the tree
 
 ### Authors ###
 
-_##**TODO**##_: complete email adresses for the Lieber team
-
 Original Pipeline
 
- [Emily Burke](mailto:user@email.com>),
+ [Emily Burke](mailto:emily.burke@libd.org>),
  [Leonardo Collado-Tores](mailto:fellgernon@gmail.com),
- [Andrew Jaffee](mailto:user@email.com),
- [BaDoi Phan](mailto:user@email.com) 
+ [Andrew Jaffee](mailto:andrew.jaffe@libd.org),
+ [BaDoi Phan](mailto:badoi.phan@pitt.edu) 
  
 Nextflow Port
 
