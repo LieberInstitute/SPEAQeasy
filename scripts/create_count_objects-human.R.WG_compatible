@@ -146,7 +146,7 @@ if (opt$paired==TRUE) {
 		gcp = sapply(gcp, function(x) ss(x, "\t", 2))
 		
 		# median phred scores (at roughly 1/4, 1/2, 3/4, and end of seq length)
-		# get positions 
+		# get positions
 		len = round((length(zz[[1]][[2]])-3) / 4)
 		pos = c(len+3, 2*len+3, 3*len+3, length(zz[[1]][[2]])-1)
 		nameSuf = ss(zz[[1]][[2]][pos], "\t", 1)
