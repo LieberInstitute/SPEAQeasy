@@ -28,9 +28,14 @@ This pipeline has been successfully run in the following Operative System(s):
 
 * [Ubuntu 16.04.4 LTS](https://www.ubuntu.com/download/alternative-downloads)
 
-##### Dependencies: Bioinformatics software #####
+**Note on dependencies:** This pipeline can run in System mode (using tools installed in the system), 
+or in Docker mode (using docker to handle software dependencies). Install dependencies accordingly.
 
-Please verify that your system has the following tools and versions:
+##### System mode #####
+
+* Dependencies: Bioinformatics software
+
+If you are going to run this pipeline without Docker mode enabled, please verify that your system has the following tools and versions:
 
 Software | Version | Command used by the pipeline |
 |:-------------:| -----:| -----: |
@@ -52,10 +57,39 @@ Software | Version | Command used by the pipeline |
 |[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2 | `wiggletools` |
 |[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 
+
+##### Docker mode #####
+
+This pipeline can run using docker containers to avoid the installation of system wide dependencies. Just follow this instructions:
+
+* Install docker
+
+A set of instructions for different operating systems are available on the [Docker site](https://docs.docker.com/installation/).
+
+* Create a docker group
+
+```bash
+sudo addgroup docker
+```
+
+* Add user to docker group
+
+```bash
+sudo usermod -aG docker <your_user>
+```
+
+* Checking installation
+
+Log out and log back in to ensure your user is running with the correct permissions.
+
+[Test installation](https://docs.docker.com/get-started/#test-docker-installation) by running:
+
+```bash
+docker run hello-world
+```
+You can find more information about this setup test in the [docker site](https://docs.docker.com/get-started/#test-docker-installation)
+
 _##**TODO**##_: Add optional dependencies for SGE
-
-
-_##**TODO**##_: Add optional dependencies for docker
 
 ### Pipeline setup ###
 
@@ -77,21 +111,24 @@ But first, you need to configure some variables in the following files:
     + **Important**: change the values to match your system environment.
     + This conf file can allow you to test the pipeline even if some dependencies are not globally installed or available on the PATH.
 
-* **conf/sge.config**: this file defines variables used by SGE during job submitions.
+* **conf/mem.config**: this file defines the amount of computational resources that Nextflow requests for every process.
+    + By default, this configuration file assumes the local environment has 16G of memory and 8 CPUs
+
+* **conf/docker.config**:  
+    + **Important**: this conf file is not used by default. It must be requested by using the `-profile docker` option of the nextflow command.  
+_##**TODO**##_: expand description of conf/docker.config
+
+* **conf/sge.config**: this file defines variables used by SGE during job submitions, mainly computational resources.
     + **Important**: change the ***queue*** variable to a valid queue where your user is allowed to submit jobs.
     + **Important**: change the ***penv*** variable to a valid parallel environment according to your cluster setup.
+    + **Important**: this conf file is not used by default. It must be requested by using the `-profile sge` option of the nextflow command.
 
-.
-
-_##**TODO**##_: describe conf/docker.config
-
-_##**TODO**##_: describe conf/mem.config
-
-_##**TODO**##_: describe conf/sge_large.config
+* **conf/sge_large.config**: see **sge.config**, this file is similar but it requests more computational resources.
+    + **Important**: this conf file is not used by default. It must be requested by using the `-profile sge_large` option of the nextflow command.
 
 ### Test run ###
 
-* Local simple test
+* System mode simple test
 
 After proper configuration has been made in the _**conf/command_paths.config**_ file, you can launch a test by executing:
 
@@ -101,7 +138,7 @@ bash run_test_simple.sh [-N user@email.com]
 
 This will launch a **local run** of the complete pipeline.
 
-* SGE simple test
+* System + SGE simple test
 
 After proper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/sge.config**_ files, launch this test by executing:
 
@@ -113,6 +150,11 @@ bash run_test_sge.sh [-N user@email.com]
 
 **NOTE**: First read the _**Run with Docker**_ section of this readme.
 
+After propper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/docker.config**_ files, launch this test by executing:
+
+* Docker + SGE simple test
+
+**NOTE**: First read the _**Run with Docker**_ section of this readme.
 
 After propper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/docker.config**_ files, launch this test by executing:
 
@@ -128,6 +170,7 @@ The basic Annotation and Genotyping directories are cloned with this repository.
 
 A tree view for full Annotation and Genotyping directories can be consulted in ***notes/reference_directories_structure.md***.
 
+
 ### Process description ###
 
 Sed dictum tristique bibendum. Nulla posuere lacus nec auctor consequat. Ut a sodales orci.
@@ -139,6 +182,17 @@ _##**TODO**##_: Describe for every process step of the pipeline, what it does (o
 Sed bibendum felis eu consequat aliquet. Donec elementum rhoncus massa, et egestas tortor condimentum volutpat. Nam nunc sapien, laoreet quis pulvinar in, finibus vel mauris. Etiam et tellus ligula...
 
 _##**TODO**##_: describe species and data types (single, paired, etc.) accepted by the pipeline.
+
+## Genomes
+
+This pipeline works for the following genomes and versions:
+
+| Genome Build | Organism |
+|--------|------|
+|hg19| human |
+|hg38| human |
+|mm10| mouse |
+|rna6| rat |
 
 _##**TODO**##_: Make notes about file naming, for normal runs, and for --merged runs
 
@@ -177,13 +231,59 @@ This will send a notification mail when the execution completes.
 
 ### Run with Docker ###
 
-Duis imperdiet, nisl ac imperdiet vehicula, ipsum arcu dictum justo, vitae sollicitudin tellus tortor a ligula. Curabitur id sapien faucibus, luctus neque vitae, convallis purus...
+* Containers
 
-_##**TODO**##_: describe how docker integration works in this pipeline
+The following container versions are used in this pipeline.
 
-_##**TODO**##_: describe how to build or pull the dockers.
+| Container | tag | software |
+|:-------------:| -----:| -----: |
+| r3.4.3_base | 1_v3 | R Base |
+| ubuntu16.04_base | 1_v3 | Ubuntu Base |
+| kallisto_v0.43.1 | 1_v3 | Kallisto |
+| fastqc_v0.11.5 | 1_v3 | FastQC |
+| trimmomatic-0.36 | 1_v3 | Trimmomatic |
+| hisat2-2.0.4 | 1_v3 | HISAT |
+| rseqc-v2.6.4 | 1_v3 | RSeQC |
+| samtools-1.3.1 | 1_v3 | Samtools |
+| salmon-0.9.1 | 1_v3 | Salmon |
+| regtools-0.3.0 | 1_v3 | Regtools |
+| subread-1.6.0 | 1_v3 | SubRead |
+| wiggletools-1.2 | 1_v3 | Wiggletools |
+| bcftools-1.3.1 | 1_v3 | BCFTools |
+| vcftools-v0.1.15 | 1_v3 | VCFTOols |
 
-_##**TODO**##_: describe the --with-docker flag
+Once Docker is installed, required docker images can be pulled down from **[DockerHub](https://hub.docker.com/u/libdocker/)**, 
+or built locally. The dockerfiles for each container can be found in the ./dockerfiles folder, and are built 
+using versioning to maintain reproducibility, based on [best practices for writting dockers](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/).
+
+Docker Images can be obtained locally in 1 of 2 ways.
+
+Docker pull command
+
+```
+docker pull libdocker/${CONTAINER}
+```
+
+Docker build command
+
+```
+docker build -t libdocker/${CONTAINER} .
+```	
+
+An example of how to build and deploy all the required docker images can be found in ./dockerfiles/make.log
+
+Potential Issues
+
+R-Base Dockerfile: This dockerfile holds all of the R packages needed throughout the pipeline. 
+In order to maintain a specific version combination for required software, all packages are manually installed 
+from source. However, this causes the dockerfile to have numerous commit layers, and risks reaching maximum depth ~125 
+layers. In this case, packages can be consolidated and installed by name (rather than source link) to decrease the 
+number of layers. OR, the existing docker image can be squashed using --squash (with docker in --experimental mode) to 
+flatten the existing image
+
+The dockerfiles declare specific versions of the required software, since software becomes outdated and links need to 
+be updated, the dockerfiles will become less likely to build successfully. In this case its much easier to simply run 
+make pull in the dockerfiles directory to pull the current working version of each image.
 
 ### Run with SGE ###
 
