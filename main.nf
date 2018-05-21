@@ -156,7 +156,7 @@ def helpMessage() {
  */
 
 // Pipeline version
-version = "0.7.5"
+version = "0.7.6"
 
 // Show help message
 params.help = false
@@ -753,196 +753,165 @@ log.info "==========================================="
 // BEGIN PIPELINE
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
+ * Step Ia: GENCODE Assembly FA
+ */
+
+/* ###################################
+
+	STARTS REFERENCES BUILDING BLOCK 
+
+################################### */
 
 /*
  * Step Ia: GENCODE Assembly FA
  */
 
+// Define the output directory path for Genome Reference dir, and hisat2 index dir, based on previously defined parameters
 params.hisat_idx_output = "${params.index_out}/${params.hisat_assembly}"
 
-// get the number of *fa files in the reference directory
-// ${params.hisat_idx_output} value changes accordingly to the genome and version used
-Channel
-	.fromPath("${params.hisat_idx_output}/fa/*.fa")
-	.set{ assembly_fa_trigger }
+if ( ! file("${params.hisat_idx_output}/fa/${params.fa}").exists() ){ 
+//If file does not exists, launch process to create it
+	process pullGENCODEassemblyfa {
 
-// Use the number of fa files in the reference directory to set the aseembly channel, efectively skipping this step when running the pipeline
-// If the count of files in the assembly_fa_trigger is more than zero, the assembly_fa_download channel wont be set
-// else assembly_fa_download channel is set, and pipeline starts by downloading the ref genome
-assembly_fa_trigger.count().filter{ it == 0 }.set{ assembly_fa_download }
-
-process pullGENCODEassemblyfa {
-
-	echo true
+	
 	tag "Downloading Assembly FA File: ${params.fa}"
 	publishDir "${params.hisat_idx_output}/fa",'mode':'copy'
 
-	input:
-	val(assembly_fa_val) from assembly_fa_download
-
 	output:
-	file("${params.fa}") into reference_fa
+	file("${params.fa}") into reference_assembly
+	file("${params.fa}") into variant_assembly
 
 	script:
 	fa_gz_file_link = "${params.fa_link}"
 	fa_gz = "${params.fa_gz}"
-
 	"""
 		wget "$fa_gz_file_link"
 		gunzip "$fa_gz"
 	"""
+		}
+} else {
+		//If file already exists, load it from path into the corresponding channel
+		println "[WG-LOG] Skipping download process for ${params.hisat_idx_output}/fa/${params.fa}, file already exist"
+		Channel
+			.fromPath("${params.hisat_idx_output}/fa/${params.fa}")
+			.into{ reference_assembly; variant_assembly }
 }
-
-Channel
-	.fromPath("${params.hisat_idx_output}/fa/${params.fa}")
-	.mix(reference_fa)
-	.toSortedList()
-	.flatten()
-	.distinct()
-	.into{ reference_assembly; variant_assembly }
 
 /*
  * Step Ib: Build HISAT Index
  */
 
- // Another trigger to check if the next step is necessary
-Channel
-	.fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
-	.set{ hisat_builds_trigger }
+/*Check if the Hisat2 index directory exists*/
+if ( ! file("${params.hisat_idx_output}/index").exists() ) {
+/* If the index directory does not exist, launch process to create them */
+	println "[WG-LOG] building hisat2 index at ${params.hisat_idx_output}/index/"
+	process buildHISATindex {
 
-// Check if less than 8 files were found in the previous trigger definition
-// If the count of files in the trigger is less than eigth, the channel wont be set
-// else the channel is set, and pipeline performs this step
-hisat_builds_trigger.count().filter{ it < 8 }.set{ hisat_trigger_build }
+		
+		tag "Building HISAT2 Index: ${params.hisat_prefix}"
+		publishDir "${params.hisat_idx_output}/index",'mode':'copy'
 
-process buildHISATindex {
+		input:
+		file reference_fasta from reference_assembly
 
-	echo true
-	tag "Building HISAT2 Index: ${params.hisat_prefix}"
-	publishDir "${params.hisat_idx_output}/index",'mode':'copy'
+		output:
+		file("${params.hisat_prefix}.*") into hisat_index_built
 
-	input:
-	val(hisat_trigger_val) from hisat_trigger_build
-	file reference_fasta from reference_assembly
-
-	output:
-	file("${params.hisat_prefix}.*") into hisat_index_built
-
-	script:
-	prefix = "${params.hisat_prefix}"
-	// Here, number of threads in the -p option does not seem to be assigned by variable (### Dev)
-	// $prefix is "the hisat2_index_base  write ht2 data to files with this dir/basename"
-	"""
-		${params.hisat2build} -p "${params.cores}" $reference_fasta $prefix
-	"""
+		script:
+		prefix = "${params.hisat_prefix}"
+		/* $prefix is "the hisat2_index_base. Write ht2 data to files with this dir/basename" */
+		"""
+			${params.hisat2build} -p "${params.hisat_cores}" $reference_fasta $prefix
+		"""
+	}
+} else {
+/* If index already exists, load files from path into the corresponding channel */
+	println "[WG-LOG] Skipping hisat2 index process for ${params.hisat_idx_output}/index/, index files already exist"
+	Channel
+		.fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
+		.set{ hisat_index_built }
 }
 
-// Read the hisat index file from path, and/or mix with the channel output from the buildHISATindex process
-// This effectively means that whether the index was created or it was already present, the flow can continue
-Channel
-	.fromPath("${params.hisat_idx_output}/index/${params.hisat_prefix}.*.ht2")
-	.mix(hisat_index_built)
-	.toSortedList()
-	.flatten()
-	.distinct()
-	.toSortedList()
-	.set{ hisat_index }
+/* Channel post-processing */
+hisat_index_built // get every *.ht2 file in this channel
+	.toSortedList() // group every *.ht2 item into a single, sorted list
+	// /* .dump() */ //For debug, make channel content informative if you use the -dump-channels option of NF
+	.set{ hisat_index } // pass *.ht2 list to a new channel
 
 /*
  * Step IIa: GENCODE GTF Download
  */
 
-// Define the putput dir for download of the GTF reference
+// Define the output directory path for GTF file, and the prep bed, based on previously defined parameters
 params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
 
-// Another trigger to check if the next step is necessary
-// Will look for a .gtf file in the gtf annotation directory.
-// If it finds it, gencode_gtf_download_trigger will be set; If it does not find it, it will be empty
-Channel
-	.fromPath("${params.gencode_gtf_out}/gtf/*.gtf")
-	.set{ gencode_gtf_download_trigger }
+if ( ! file("${params.gencode_gtf_out}/gtf/${params.gencode_gtf}").exists() ){
+//If file does not exists, launch process to create it
+println "[WG-LOG] downloading ${params.gencode_gtf_out}/gtf/${params.gencode_gtf}"
+	process pullGENCODEgtf {
 
-// If the count of files in the trigger is different from zero, the channel wont be set
-// else the channel is set, and pipeline performs this step
-gencode_gtf_download_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_download }
+		
+		tag "Downloading GTF File: ${params.gencode_gtf}"
+		publishDir "${params.gencode_gtf_out}/gtf",'mode':'copy'
 
-process pullGENCODEgtf {
+		output:
+		file("${params.gencode_gtf}") into gencode_gtf
+		file("${params.gencode_gtf}") into create_counts_gtf
+		file("${params.gencode_gtf}") into gencode_feature_gtf
 
-	echo true
-	tag "Downloading GTF File: ${params.gencode_gtf}"
-	publishDir "${params.gencode_gtf_out}/gtf",'mode':'copy'
-
-	input:
-	val(gencode_gtf_bed_val) from gencode_gtf_trigger_download
-
-	output:
-	file("${params.gencode_gtf}") into gencode_gtf_downloaded
-
-	script:
-	gencode_gtf_link = "${params.gencode_gtf_link}"
-	gencode_gtf_gz = "${params.gencode_gtf_gz}"
-	gencode_gtf_file = "${params.gencode_gtf}"
-	"""
-		wget "$gencode_gtf_link"
-		gunzip "$gencode_gtf_gz"
-	"""
-	// May add afterscript to clean the .gz? or the .gtf also if it copies the results BEFORE performing afterscript routines
+		script:
+		gencode_gtf_link = "${params.gencode_gtf_link}"
+		gencode_gtf_gz = "${params.gencode_gtf_gz}"
+		gencode_gtf_file = "${params.gencode_gtf}"
+		"""
+			wget "$gencode_gtf_link"
+			gunzip "$gencode_gtf_gz"
+		"""
+	}
+} else {
+	//If file already exists, load it from path into the corresponding channel
+	println "[WG-LOG] Skipping download process for ${params.gencode_gtf_out}/gtf/${params.gencode_gtf}, file already exists"
+	Channel
+		.fromPath("${params.gencode_gtf_out}/gtf/${params.gencode_gtf}")
+		.into{ gencode_gtf; create_counts_gtf; gencode_feature_gtf }
 }
-
-// Read the gencode gtf file from path, and/or mix with the channel output from the pullGENCODEgtf process
-// This effectively means that whether the gtf was created or it was already present, the flow can continue
-Channel
-	.fromPath("${params.gencode_gtf_out}/gtf/${params.gencode_gtf}")
-	.mix(gencode_gtf_downloaded)
-	.toSortedList()
-	.flatten()
-	.distinct()
-	.into{ gencode_gtf; create_counts_gtf; gencode_feature_gtf }
 
 /*
  * Step IIb: Build Bed File
  */
 
-// Define the putput dir for download of the bed file used by http://rseqc.sourceforge.net/#infer-experiment-py
-Channel
-	.fromPath("${params.gencode_gtf_out}/bed/*")
-	.set{ gencode_gtf_bed_trigger }
+if ( ! file("${params.gencode_gtf_out}/bed/${params.reference}.bed").exists() ){
+//If file does not exists, launch process to create it
+println "[WG-LOG] building ${params.gencode_gtf_out}/bed/${params.reference}.bed"
+	process buildPrepBED {
 
-// Create a trigger to check if the file exist, similar to previous triggers
-gencode_gtf_bed_trigger.count().filter{ it == 0 }.set{ gencode_gtf_trigger_bed }
+		
+		tag "Building Bed File: ${params.reference}"
+		publishDir "${params.gencode_gtf_out}/bed",'mode':'copy'
 
-process buildPrepBED {
+		input:
+		file gencode_gtf from gencode_gtf
+		file prep_bed from prep_bed
+		file check_R_packages_script from check_R_packages_script
 
-	echo true
-	tag "Building Bed File: ${params.reference}"
-	publishDir "${params.gencode_gtf_out}/bed",'mode':'copy'
+		output:
+		file("${name}.bed") into bedfile
 
-	input:
-	val(gencode_gtf_bed_val) from gencode_gtf_trigger_bed
-	file gencode_gtf from gencode_gtf
-	file prep_bed from prep_bed
-	file check_R_packages_script from check_R_packages_script
-
-	output:
-	file("${name}.bed") into bedfile_built
-
-	shell:
-	name = "${params.reference}"
-	'''
-	Rscript !{check_R_packages_script} \
-	&& Rscript !{prep_bed} -f !{gencode_gtf} -n !{name}
-	'''
+		shell:
+		name = "${params.reference}"
+		'''
+		Rscript !{check_R_packages_script} \
+		&& Rscript !{prep_bed} -f !{gencode_gtf} -n !{name}
+		'''
+	}
+} else {
+		//If file already exists, load it from path into the corresponding channel
+		println "[WG-LOG] Skipping build process for ${params.gencode_gtf_out}/bed/${params.reference}.bed, file already exists"
+		Channel
+			.fromPath("${params.gencode_gtf_out}/bed/${params.reference}.bed")
+			.set{ bedfile }
 }
-
-// Read the bed file from path, and/or mix with the channel output from the bedfile_built process
-// This effectively means that whether the bed was created in this run or it was already present, the flow can continue
-Channel
-	.fromPath("${params.gencode_gtf_out}/bed/*")
-	.mix(bedfile_built)
-	.toSortedList()
-	.flatten()
-	.distinct()
-	.set{ bedfile }
 
 // for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true 
 // during Define Reference Paths/Scripts + Reference Dependent Parameters
@@ -953,53 +922,71 @@ if (params.step6) {
 	/*
 	 * Step IIIa: GENCODE TX FA Download
 	 */
+	// use the file operator to find if a file exists in the system
+	if ( ! file("${params.salmon_idx_output}/fa/${params.tx_fa}").exists() ) {
+		//If file does not exists, launch process for download
+		println "[WG-LOG] downloading ${params.salmon_idx_output}/fa/${params.tx_fa}"
+		process pullGENCODEtranscripts {
 
-	// get the number of *fa files in the reference directory
-	 Channel
-	  .fromPath("${params.salmon_idx_output}/fa/*.fa")
-	  .set{ transcript_fa_download }
+			
+			tag "Downloading TX FA File: ${params.tx_fa}"
+			publishDir "${params.salmon_idx_output}/fa",'mode':'copy'
 
-	// Use the number of fa files in the reference directory to set the aseembly channel, efectively skipping this step when running the pipeline
-	// If the count of files in the transcript_download_trigger is more than zero, the transcript_download channel wont be set
-	// else transcript_download channel is set, and pipeline starts by downloading the ref transcriptome
-	transcript_fa_download.count().filter{ it == 0 }.set{ transcript_download_trigger }
-
-	process pullGENCODEtranscripts {
-
-		echo true
-		tag "Downloading TX FA File: ${params.tx_fa}"
-		publishDir "${params.salmon_idx_output}/fa",mode:'copy'
-
-		input:
-		val(transcript_trigger_val) from transcript_download_trigger
-
-		output:
-		file("${params.tx_fa}") into tx_fa_downloaded
-		//TODO (iaguilar) put shell code in same style as for fasta reference download (Dev ###)
-		script:
-		tx_fa_link = "${params.tx_fa_link}"
-		tx_fa_gz = "${params.tx_fa_gz}"
-		tx_fa = "${params.tx_fa}"
-		"""
-			wget $tx_fa_link
-			gunzip $tx_fa_gz
-		"""
+			output:
+			file("${params.tx_fa}") into transcript_fa
+			//TODO (iaguilar) put shell code in same style as for fasta reference download (Dev ###)
+			script:
+			tx_fa_link = "${params.tx_fa_link}"
+			tx_fa_gz = "${params.tx_fa_gz}"
+			"""
+				wget $tx_fa_link
+				gunzip $tx_fa_gz
+			"""
+		}
+	} else {
+		//If file already exists, load it from path into the corresponding channel
+		println "[WG-LOG] Skipping download process for ${params.salmon_idx_output}/fa/${params.tx_fa}, file already exists"
+		Channel
+			.fromPath("${params.salmon_idx_output}/fa/${params.tx_fa}")
+			.set{ transcript_fa }
 	}
-
-	// Read the salmon reference from path, and/or mix with the channel output from the pullGENCODEtranscripts process
-	// This effectively means that whether the reference was created or it was already present, the flow can continue
-	 Channel
-		.fromPath("${params.salmon_idx_output}/fa/${params.tx_fa}")
-		.mix(tx_fa_downloaded)
-		.toSortedList()
-		.flatten()
-		.distinct()
-		.set{ transcript_fa }
 
 	/*
 	 * Step IIIb: Salmon Transcript Build
 	 */
 
+/* 	NOT FULLY WORKING; seems the salmon_index channel manipulation in this version affects the TXQUANT process; only one sample gets processed
+if ( ! file("${params.salmon_idx_output}/salmon/${params.salmon_prefix}").exists() ){
+		//If file does not exists, launch process to create it
+		println "[WG-LOG] creating ${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*"
+		process buildSALMONindex {
+
+			
+			tag "Building Salmon Index: ${params.salmon_prefix}"
+			publishDir "${params.salmon_idx_output}/salmon",'mode':'copy'
+
+			input:
+			file tx_file from transcript_fa
+
+			output:
+			file("${params.salmon_prefix}") into salmon_index
+
+			script:
+			salmon_idx = "${params.salmon_prefix}"
+			"""
+				${params.salmon} index -t $tx_file -i $salmon_idx -p ${params.salmon_cores} --type quasi -k 31
+			"""
+		}
+	} else {
+		//If directory already exists, load it from path into the corresponding channel
+		println "[WG-LOG] Skipping build process for ${params.salmon_idx_output}/salmon/${params.salmon_prefix}, directory already exist"
+		Channel
+			.fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}")
+			.set{ salmon_index }
+	}
+} */
+
+/* Using the old way of triggering reference constructions */
 	// get the number of * files in the reference directory
 	Channel
 		.fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
@@ -1028,7 +1015,7 @@ if (params.step6) {
 		// in the code execution, -p option is hardcoded to 1 thread
 	// TODO (iaguilar): make thread assignation dynamic by using a configurable variable
 		"""
-			${params.salmon} index -t $tx_file -i $salmon_idx -p 1 --type quasi -k 31
+			${params.salmon} index -t $tx_file -i $salmon_idx -p ${params.salmon_cores} --type quasi -k 31
 		"""
 	}
 
@@ -1063,7 +1050,7 @@ if (params.merge) {
 
 	  process Merging {
 
-		echo true
+		
 		tag "prefix: $merging_prefix | Sample Pair: [ $unmerged_pair ]"
 		publishDir "${params.basedir}/merged_fastq",'mode':'copy'
 
@@ -1144,7 +1131,7 @@ if (params.ercc) {
 
 	 process ERCC {
 
-		echo true
+		
 		tag "Prefix: $ercc_prefix | Sample: [ $ercc_input ]"
 		publishDir "${params.basedir}/ercc/${ercc_prefix}",'mode':'copy'
 
@@ -1223,7 +1210,7 @@ if (!params.merge) {
 
 process IndividualManifest {
 
-	echo true
+	
 	tag "Individual Manifest: $manifest_samples $samples_prefix > samples.manifest.${samples_prefix}"
 	publishDir "${params.basedir}/manifest",'mode':'copy'
 
@@ -1250,7 +1237,7 @@ individual_manifests
 
 process Manifest {
 
-	echo true
+	
 	tag "Aggregate Manifest: $individual_manifests > samples.manifest"
 	publishDir "${params.basedir}/manifest",mode:'copy'
 
@@ -1272,7 +1259,7 @@ process Manifest {
 
 process QualityUntrimmed {
 
-	echo true
+	
 	tag "Prefix: $untrimmed_prefix | Sample: [ $fastqc_untrimmed_input ]"
 	publishDir "${params.basedir}/FastQC/Untrimmed",mode:'copy'
 
@@ -1316,7 +1303,7 @@ if (params.sample == "single") {
 
 	process AdaptiveTrimSingleReads {
 
-	  echo true
+	  
 	  tag "Prefix: $single_adaptive_prefix : Sample: [ $single_adaptive_fastq | $single_adaptive_summary ]"
 	  publishDir "${params.basedir}/Adaptive_Trim",'mode':'copy'
 
@@ -1353,7 +1340,7 @@ if (params.sample == "paired") {
 
 	process AdaptiveTrimPairedReads {
 
-	  echo true
+	  
 	  tag "Prefix: $paired_adaptive_prefix | Sample: [ $paired_adaptive_fastq | $paired_adaptive_summary ]"
 	  publishDir "${params.basedir}/Adaptive_Trim",mode:'copy'
 
@@ -1434,7 +1421,7 @@ if (params.sample == "single") {
 //TODO (iaguilar): run FASTQC on test data to see if it contains adapters not found due to list of adapter used by fastqc
 process Trimming {
 
-	echo true
+	
 	tag "Prefix: $trimming_prefix | Sample: [ $trimming_input ]"
 	publishDir "${params.basedir}/trimmed_fq",'mode':'copy'
 
@@ -1482,7 +1469,7 @@ process Trimming {
 // THE FOLLOWING BLOCK IS UNTESTED
 process QualityTrimmed {
 
-	echo true
+	
 	tag "$fastqc_trimmed_input"
 	publishDir "${params.basedir}/FastQC/Trimmed",mode:'copy'
 
@@ -1514,7 +1501,7 @@ if (params.sample == "single") {
 
 	  process SingleEndHISAT {
 
-	  echo true
+	  
 	  tag "Prefix: $single_hisat_prefix | Sample: $single_hisat_input"
 	  publishDir "${params.basedir}/HISAT2_out",mode:'copy'
 
@@ -1551,7 +1538,7 @@ if (params.sample == "paired") {
 
 	process PairedEndNoTrimHISAT {
 
-	  echo true
+	  
 	  tag "Prefix: $paired_notrim_hisat_prefix | Sample: [ $paired_no_trim_hisat ]"
 	  publishDir "${params.basedir}/HISAT2_out",mode:'copy'
 
@@ -1597,7 +1584,7 @@ if (params.sample == "paired") {
 //Bellow block is not tested yet
 	 process PairedEndTrimmedHISAT {
 
-	  echo true
+	  
 	  tag "Prefix: $paired_trimmed_prefix | Sample: $paired_trimmed_fastqs"
 	  publishDir "${params.basedir}/HISAT2_out",mode:'copy'
 
@@ -1656,7 +1643,7 @@ if (params.sample == "paired") {
 
 process SamtoBam {
 
-	echo true
+	
 	tag "Prefix: $sam_to_bam_prefix | Sample: $sam_to_bam_input"
 	publishDir "${params.basedir}/HISAT2_out/sam_to_bam",'mode':'copy'
 
@@ -1687,7 +1674,7 @@ infer_experiment_inputs
 
 process InferExperiment {
 
-	echo true
+	
 	tag "Prefix: $infer_prefix | Sample: $bam_file | Index: $bam_index"
 	publishDir "${params.basedir}/HISAT2_out/infer_experiment",'mode':'copy'
 
@@ -1720,7 +1707,7 @@ infer_experiment_outputs
 
 process InferStrandness {
 
-	echo true
+	
 	tag "Sample: $infer_experiment_files"
 	publishDir "${params.basedir}/HISAT2_out/infer_strandness/",'mode':'copy'
 
@@ -1751,7 +1738,7 @@ feature_bam_inputs
 
 process FeatureCounts {
 
-	echo true
+	
 	tag "Prefix: $feature_prefix | Sample: $feature_bam | Sample Index: $feature_index"
 	publishDir "${params.basedir}/Counts",'mode':'copy'
 
@@ -1799,7 +1786,7 @@ process FeatureCounts {
 
 process PrimaryAlignments {
 
-	echo true
+	
 	tag "Prefix: $alignment_prefix | Sample: [ $alignment_bam ]"
 	publishDir "${params.basedir}/Counts/junction/primary_aligments",'mode':'copy'
 
@@ -1823,7 +1810,7 @@ process PrimaryAlignments {
 
 process Junctions {
 
-	echo true
+	
 	tag "Prefix: $junction_prefix | Sample: [ $alignment_bam ]"
 	publishDir "${params.basedir}/Counts/junction",'mode':'copy'
 
@@ -1866,7 +1853,7 @@ else
 	}
 }
 process Coverage {
-	echo true
+	
 	tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
 	publishDir "${params.basedir}/Coverage/wigs",mode:'copy'
 
@@ -1902,7 +1889,7 @@ process Coverage {
 
 process WigToBigWig {
 
-	echo true
+	
 	tag "Prefix: $wig_prefix | Sample: [ $wig_file ]"
 	publishDir "${params.basedir}/Coverage/BigWigs",mode:'copy'
 
@@ -1932,7 +1919,7 @@ coverage_bigwigs
 
 process MeanCoverage {
 
-	echo true
+	
 	tag "Samples: [ $mean_coverage_bigwig ]"
 	publishDir "${params.basedir}/Coverage/mean",'mode':'copy'
 
@@ -1968,7 +1955,6 @@ if (params.step6) {
 
 	 process TXQuant {
 
-		echo true
 		tag "Prefix: $salmon_input_prefix | Sample: [ $salmon_inputs ]"
 		publishDir "${params.basedir}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
 
@@ -2123,11 +2109,10 @@ if(params.reference_type == "human") {
 /*
  * Step 7a: Create Count Objects
 */
+
 process CountObjects {
 
-	//errorStrategy 'ignore'
-	echo true
-	//This tag generates long names for the job
+	//This tag generates long names for the job; SGE does not like long names
 	//tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
 	publishDir "${params.basedir}/Count_Objects",'mode':'copy'
 
@@ -2194,7 +2179,7 @@ if (params.fullCov) {
 
 	process CoverageObjects {
 
-		echo true
+		
 		//// This tag generates long names for the job, SGE does not like long job names
 		////tag "Creating Coverage Objects [ $full_coverage_input ]"
 		publishDir "${params.basedir}/Coverage_Objects",'mode':'copy'
@@ -2241,7 +2226,7 @@ if (params.step8) {
 
 	process VariantCalls {
 
-		echo true
+		
 		//// This tag generates long job names that crash sge
 		////tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
 		publishDir "${params.basedir}/Variant_Calls",'mode':'copy'
@@ -2284,7 +2269,7 @@ if (params.step8) {
 
 	process VariantsMerge {
 
-		echo true
+		
 		tag "Samples: $collected_variants"
 		publishDir "${params.basedir}/Merged_Variants",'mode':'copy'
 
@@ -2305,10 +2290,10 @@ if (params.step8) {
 /*
  * Step 9: Expressed Regions
  */
-
+ 
 process ExpressedRegions {
 
-    echo true
+    
     tag "Sample: $expressed_regions_mean_bigwig"
     publishDir "${params.basedir}/Expressed_Regions",mode:'copy'
 
