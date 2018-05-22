@@ -92,7 +92,6 @@ def helpMessage() {
 			  unstranded <- uses pipeine inferencing
 		 {OPTIONS}:
 			--merge <- assumes fastq.gz files require merging "*_read{1,2}.fastq.gz"
-	##TODO(iaguilar): Check that THIS IS what --merge means (Docummentation ######)
 			--ercc  <- performs ercc quantification
 			--fullCov <- performs fullCov R analysis
 		--help <- shows this message
@@ -101,53 +100,46 @@ def helpMessage() {
 
 	Mandatory Options:
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--sample					  Runs the pipeline for "single" or "paired" end reads
+	--sample		Runs the pipeline for "single" or "paired" end reads
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--strand					  Runs pipeline for "unstranded, forward, reverse" read types
+	--strand		Runs pipeline for "unstranded, forward, reverse" read types
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--reference				   Select the desired reference for the run (hg38, hg19, mm10, rn6)
+	--reference		Select the desired reference for the run (hg38, hg19, mm10, rn6)
 	-----------------------------------------------------------------------------------------------------------------------------------
 
 	Optional Parameters:
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--experiment				  Name of the experiment being run (ex: "alzheimer"). Defaults to FALSE
+	--experiment	Name of the experiment being run (ex: "alzheimer"). Defaults to FALSE
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--prefix					  Defines the prefix of the input files (not used to detect files)
+	--prefix		Defines the prefix of the input files (not used to detect files)
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--input					   Defines the input folder for the files. Defaults to "./input"
+	--input			Defines the input folder for the files. Defaults to "./input"
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--output					  Defines the output folder for the files. Defaults to "./results"
+	--output		Defines the output folder for the files. Defaults to "./results"
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--merge					   Flag option if files need to be merged. Defaults to FALSE
+	--merge			Flag option if files need to be merged. Defaults to FALSE
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--unalign					 Give the option to not algin the reads against a reference in HISAT step. Defaults to FALSE 
+	--unalign		Give the option to not algin the reads against a reference in HISAT step. Defaults to FALSE 
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--annotation				  Path to the folder containing pipeline annotations. Defaults to "./Annotations"
+	--annotation	Path to the folder containing pipeline annotations. Defaults to "./Annotations"
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--indexing					Path to the base directory containing pipeline indexes. Defaults to --annotation path
+	--indexing		Path to the base directory containing pipeline indexes. Defaults to --annotation path
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--genotype					Path to the folder containing pipeline genotypes. Defaults to "./Genotyping"
-	##TODO(iaguilar): Expand genotype description. what are they used for? (Docummentation ######)
+	--genotype		Path to the folder containing pipeline genotypes. Defaults to "./Genotyping"
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--email					   Parameter to get a summary e-mail with details of the run sent to you when the workflow exits
-	##TODO(iaguilar): Check if this works for failed executions (Docummentation ######)
+	--name			Name for the pipeline run. If not specified, name is set to experiment
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--name						Name for the pipeline run. If not specified, name is set to experiment
-	##TODO(iaguilar): What is this used for? (Docummentation ######)
+	--ercc			Flag to enable ERCC quantification with Kallisto
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--ercc						Flag to enable ERCC quantification with Kallisto
+	--k_lm			Kallisto ERCC Length Mean Value for Single End Reads (defaults to 200)
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--k_lm						Kallisto ERCC Length Mean Value for Single End Reads (defaults to 200)
+	--k_sd			Kallisto ERCC Standard Deviation Value for Single End Reads (defaults to 30)
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--k_sd						Kallisto ERCC Standard Deviation Value for Single End Reads (defaults to 30)
+	--fullCov		Flag to perform full coverage in step 7b
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--fullCov					 Flag to perform full coverage in step 7b
+	--small_test	Runs the pipeline as a small test run on sample files located in the test folder
 	-----------------------------------------------------------------------------------------------------------------------------------
-#################
-	##TODO(iaguilar): change this commands to perform quick tests on every posible version of the input data (maybe a quick human test, and a whole species tests)(Docummentation ######)
-	--small_test				  Runs the pipeline as a small test run on sample files located in the test folder
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--test						Runs the pipeline as a test run on sample files located on winter server 
+	--test			Runs the pipeline as a test run on sample files located on winter server 
 	-----------------------------------------------------------------------------------------------------------------------------------
 	""".stripIndent()
 }
@@ -156,7 +148,7 @@ def helpMessage() {
  */
 
 // Pipeline version
-version = "0.7.6"
+version = "0.7.7"
 
 // Show help message
 params.help = false
@@ -195,20 +187,13 @@ params.annotation = false
 params.indexing = false
 params.genotype = false
 params.output = false
-params.email = false
 params.name = false
-//##TODO(iaguilar): what is params raw? not described in documentation (Doc ######)
-//##TODO(iaguilar): raw seems to mean that data requires trimming (Doc ######)
-//##TODO(iaguilar): since the pipeline can detect if trimming is necessary, there should not be an option to direct trimming  (Doc ######)
-params.raw = false
 params.ercc = false
 params.fullCov = false
 params.test = false
 params.small_test = false
 params.k_lm = false
 params.k_sd = false
-//##TODO(iaguilar): Check that no parameter definition is missing (Dev ######)
-//  ##TODO(iaguilar): seems that params.scripts is missing (Dev ######)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validate Inputs
@@ -217,12 +202,12 @@ params.k_sd = false
 //##// MANDATORY PARAMS BLOCK
 // Sample Selection Validation
 if (!params.sample || (params.sample != "single" && params.sample != "paired")) {
-	exit 1, "Sample Type Not Provided or Invalid Choice. Please Provide a Valid Sample Type"
+	exit 1, "Sample Type Not Provided or Invalid Choice. Please Provide a Valid Sample Type. Valid types are single or paired "
 }
 
 // Strand Selection Validation
 if (!params.strand || (params.strand != "forward" && params.strand != "reverse" && params.strand != "unstranded")) {
-	exit 1, "Strand Type Not Provided or Invalid Choice. Please Provide a Valid Strand Type"
+	exit 1, "Strand Type Not Provided or Invalid Choice. Please Provide a Valid Strand Type. Valid types are unstranded, forward or reverse"
 }
 
 // Reference Selection Validation
@@ -265,6 +250,14 @@ if (!params.name) {
 		workflow.runName = params.experiment
 		params.experiments = params.experiment
 	}
+} else {
+	workflow.runName = params.name
+	if (!params.experiment) {
+		params.experiments = "Jlab_experiment"
+	}
+	if (params.experiment) {
+		params.experiments = params.experiment
+	}
 }
 
 // Prefix
@@ -273,19 +266,17 @@ if (!params.prefix) {
 }
 if (params.prefix) {
 	params.experiment_prefix = params.prefix
-//  params.experiment_prefix = "Yas"
 }
 
 // External Script Path Validation
 //##TODO(iaguilar): This param was not defined neither in help nor in the variable definition block (Dev ######)
-//##TODO(iaguilar): Comment in original devp was: "It's the directory where the shell files are located at. You only need to specify it if you cloned this repository somewhere else"; since this scripts folder will be versioned with the NF pipeline, there is no need to allow it to be on another directory (Dev ######)
-//##TODO(iaguilar): remove this param? only if it is not used by any block, may be replaced by a good old variable to construct paths for script execution (Dev ######)
+//##TODO(iaguilar): Comment in original dev was: "It's the directory where the shell files are located at. You only need to specify it if you cloned this repository somewhere else"; since this scripts folder will be versioned with the NF pipeline, there is no need to allow it to be on another directory (Dev ######)
 params.scripts = "./scripts"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Core Options
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//##TODO(iaguilar): Add brief descriptions for what are the cores used (parallelization level, by sample, by chunck, etc) (Doc ######)
+//##TODO(iaguilar): Add brief descriptions for what are the cores used (parallelization level, by sample, by chunk, etc) (Doc ######)
 params.cores = '4'
 params.ercc_cores = '4'
 params.trimming_cores = '4'
@@ -304,48 +295,25 @@ params.expressedregion_cores = '4'
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Base Input Path Options
-//##TODO(iaguilar): Explain how the input files must be ordered or located inside the input data directory (Doc ######)
-//##TODO(iaguilar): INCLUDE IN THE README: a tree with file strcture description (Doc ######)
-if (!params.input && !params.test && !params.small_test) {
+// if this runis not a test or small test...
+if (!params.test && !params.small_test) {
+	// checks if an inputh path was given
 	if (params.input) {
 		params.inputs = "${params.input}"
 	}
+	// if no input option is provided, default input dir is ./input
 	else {
 		params.inputs = "./input"
-// originally was		params.inputs = "./inputs"
-// but it does not seem to be a "inputs" dir in the repo, only "input", without the s
 	}
 }
-
-// Testing Paths for Rat
-//##TODO(iaguilar): Complete with data for rat, by vlarios (Dev ######)
-//if (params.reference_type == "rat") {
-//	exit 1, "There are no sample files for rat. Please add sample files and then run again"
-//}
 
 // Real File Test Paths (Human & Mouse)
-//##TODO(iaguilar): This could change to a general test param that runs on every species and genome version (Dev ######)
-if (params.test && !params.small_test) {
-	if (params.reference_type == "mouse") {
-		params.inputs = "/media/genomics/disco3/dataLieber/raw/${params.reference_type}/${params.sample}"
-	}
-//##TODO(iaguilar): Check what does raw mean (Dev ######)
-//##TODO(iaguilar): It means data in need of trimming (Dev ######)
-//##TODO(iaguilar): These paths should point to the test data created by Lieber or vlarios (Dev ######)
-//##TODO(iaguilar): A minimal test-data directory should be versionated with the pipeline (Dev ######)
-	if (params.reference_type == "human") {
-		if (params.raw) {
-			params.inputs = "/media/genomics/disco3/dataLieber/raw/human/paired"
-		}
-		if (!params.raw) {
-			params.inputs = "/media/genomics/disco3/dataLieber/human"
-		}
-	}
-}
+//##TODO(iaguilar): Redefine data paths for test
+//if (params.test && !params.small_test) {
+//	params.inputs = "/media/genomics/disco3/dataLieber/human"
+//}
 
 // Dummy File Test Paths
-//##TODO(iaguilar): this seems to complex to have to specifiy the test and the type of stranded data (Dev ######)
-//##TODO(iaguilar): One or two test runs with multiple species, genome versions, and minimal data should be defined in a single flag (like: "quick_test" and "full_test"  (Dev ######)
 if (params.small_test && !params.test) {
 	if (params.strand != "unstranded") {
 		if (params.merge) {
@@ -366,7 +334,6 @@ if (params.small_test && !params.test) {
 }
 
 // Conflicting Test Options
-//##TODO(iaguilar): Modify for quick_test vs full_test (Dev ######)
 if (params.small_test && params.test) {
 	exit 1, "You've selected 'small_test' and 'test' ... Please choose one and run again"
 }
@@ -375,7 +342,6 @@ if (params.small_test && params.test) {
 // Strand Option Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//##TODO(iaguilar): Check if kallisto parameters belong on the stranded option params block, or deserve their own block (Doc ######)
 if (!params.k_lm) {
 	params.k_length_mean = 200
 }
@@ -439,7 +405,6 @@ if (params.strand == "reverse") {
 
 if (params.output) {
 	params.basedir = "${params.output}"
-//##TODO(iaguilar): Check if this is necessary or it is best to manage the ./Annotations dir by default (Dev ######)
 	params.index_out = "${params.annotations}"
 }
 if (!params.output) {
@@ -706,7 +671,7 @@ def get_TR_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1
 
 def get_TR_paired_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_TR_A1s2o2s1A" + "_A1s2o2s1A" - "_1_A1s2o2s1A" - "_2_A1s2o2s1A" }
 
-def get_TNR_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_TNR_A1s2o2s1A" } 
+def get_TNR_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_TNR_A1s2o2s1A" }
 
 def get_TNR_paired_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_TNR_A1s2o2s1A" + "_A1s2o2s1A" - "_1_A1s2o2s1A" - "_2_A1s2o2s1A" }
 
@@ -736,7 +701,6 @@ summary['Genotypes']		   = params.genotypes
 summary['Input']			   = params.inputs
 if(params.ercc) summary['ERCC Index'] = erccidx
 if(params.experiments) summary['Experiment'] = params.experiments
-if(params.email) summary['E-mail Address'] = params.email
 if(params.merge) summary['Merge'] = "True"
 if(params.unalign) summary['Align'] = "True"
 if(params.fullCov) summary['Full Coverage'] = "True"
@@ -1289,7 +1253,6 @@ process QualityUntrimmed {
 
 /*
  * Step 2a: Adaptive Trimming
- * Merge the quality reports channel and trimming input channels
  */
 
 if (params.sample == "single") {
@@ -1318,7 +1281,8 @@ if (params.sample == "single") {
 	  single_trimming_input = single_adaptive_prefix.toString() + ".fastq.gz"
 	  '''
 	  export result=$(grep "Adapter Content" !{single_quality_report} | cut -f1)
-	  if [ $result == "FAIL" ] ; then
+	  ##if [ $result == "FAIL" ] ; then
+	  if [ $result == "PASS" ] ; then ##For DEV purposes
 		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TR.fastq.gz"
 	  else
 		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TNR.fastq.gz"
@@ -1327,7 +1291,6 @@ if (params.sample == "single") {
 	}
 }
 
-//TODO following block still not tested
 if (params.sample == "paired") {
 
 	quality_reports
@@ -1362,6 +1325,7 @@ if (params.sample == "paired") {
 	  export result1=$(grep "Adapter Content" !{quality_report_1} | cut -c1-4)
 	  export result2=$(grep "Adapter Content" !{quality_report_2} | cut -c1-4)
 	  if [ $result1 == "FAIL" || $result2 == "FAIL"] ; then
+	  ##if [ $result1 == "PASS" || $result2 == "FAIL"] ; then ## for DEV purposes
 		  cp !{trimming_input_1} "!{adaptive_out_prefix_1}_TR.fastq.gz"
 		  cp !{trimming_input_2} "!{adaptive_out_prefix_2}_TR.fastq.gz"
 	  else
@@ -1370,7 +1334,7 @@ if (params.sample == "paired") {
 	  fi
 	  '''
 	}
-} // Finishes untested block
+}
 
 /*
  * Modify the Trimming Input Channel 
@@ -1391,7 +1355,6 @@ if (params.sample == "single") {
 	  .set{ no_trim_fastqs }
   }
 
-// Following block is untested
   if (params.sample == "paired") {
 
 	trimming_fastqs
@@ -1411,14 +1374,12 @@ if (params.sample == "single") {
 	  .map{ file -> tuple(get_TNR_paired_prefix(file), file) }
 	  .groupTuple()
 	  .set{ no_trim_fastqs }
-} // finished ustested blocks
+}
 
 /*
  * Step 2b: Trimming 
  */
 
-//TODO (iaguilar): Not yet tested since no data with high adapter content has been found
-//TODO (iaguilar): run FASTQC on test data to see if it contains adapters not found due to list of adapter used by fastqc
 process Trimming {
 
 	
@@ -1440,11 +1401,7 @@ process Trimming {
 	if (params.sample == "paired") {
 		output_option = "${trimming_prefix}_trimmed_forward_paired.fastq.gz ${trimming_prefix}_trimmed_forward_unpaired.fastq.gz ${trimming_prefix}_trimmed_reverse_paired.fastq.gz ${trimming_prefix}_trimmed_reverse_unpaired.fastq.gz"
 	}
-	// Here trimmomatic is hardcoded into the script
-	// THIS MUST BE DINAMYCALLY directed
-	// Or, since trimmo is java, we should provide a .jar file in the lieber repository as software
-	// Above depends on jar size
-	// PATH to ILLUMINACLIP is hardcoded too, should be configurable
+	// PATH to ILLUMINACLIP is implicitly hardcoded too, should be configurable
 	"""
 	java -Xmx512M \
 	-jar ${params.trimmomatic} \
@@ -1459,19 +1416,18 @@ process Trimming {
 	SLIDINGWINDOW:4:15 \
 	MINLEN:75
 	"""
-} // finishes untested block
+}
 
 
 /*
  * Step 2c: Run FastQC Quality Check on Trimmed Files
  */
 
-// THE FOLLOWING BLOCK IS UNTESTED
 process QualityTrimmed {
 
 	
 	tag "$fastqc_trimmed_input"
-	publishDir "${params.basedir}/FastQC/Trimmed",mode:'copy'
+	publishDir "${params.basedir}/FastQC/Trimmed",'mode':'copy'
 
 	input:
 	file fastqc_trimmed_input from trimmed_fastqc_inputs
@@ -1483,7 +1439,7 @@ process QualityTrimmed {
 	"""
 	fastqc $fastqc_trimmed_input --extract
 	"""
-} // finishes untested block
+}
 
 /*
  * Step 3a: Hisat Sam File
@@ -2110,7 +2066,7 @@ if(params.reference_type == "human") {
  * Step 7a: Create Count Objects
 */
 
-process CountObjects {
+/* process CountObjects {
 
 	//This tag generates long names for the job; SGE does not like long names
 	//tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
@@ -2159,9 +2115,9 @@ process CountObjects {
 	Rscript !{check_R_packages_script} \
 	&& Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
 	'''
-}
+} */
 
-if (params.fullCov) {
+/*if (params.fullCov) {
 
 	full_coverage_bams
 	  .flatten()
@@ -2177,7 +2133,7 @@ if (params.fullCov) {
 	 * Step 7b: Create Full Coverage Objects
 	 */
 
-	process CoverageObjects {
+/*	process CoverageObjects {
 
 		
 		//// This tag generates long names for the job, SGE does not like long job names
@@ -2211,7 +2167,7 @@ if (params.fullCov) {
 		Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
 		'''
 	}
-}
+} */
 
 if (params.step8) {
 
@@ -2290,8 +2246,8 @@ if (params.step8) {
 /*
  * Step 9: Expressed Regions
  */
- 
-process ExpressedRegions {
+
+/* process ExpressedRegions {
 
     
     tag "Sample: $expressed_regions_mean_bigwig"
@@ -2317,4 +2273,4 @@ process ExpressedRegions {
     	-c !{expressed_regions_cores}
     done
     '''
-}
+} */
