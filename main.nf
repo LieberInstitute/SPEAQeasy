@@ -2066,7 +2066,7 @@ if(params.reference_type == "human") {
  * Step 7a: Create Count Objects
 */
 
-/* process CountObjects {
+process CountObjects {
 
 	//This tag generates long names for the job; SGE does not like long names
 	//tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
@@ -2115,9 +2115,9 @@ if(params.reference_type == "human") {
 	Rscript !{check_R_packages_script} \
 	&& Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
 	'''
-} */
+}
 
-/*if (params.fullCov) {
+if (params.fullCov) {
 
 	full_coverage_bams
 	  .flatten()
@@ -2133,7 +2133,7 @@ if(params.reference_type == "human") {
 	 * Step 7b: Create Full Coverage Objects
 	 */
 
-/*	process CoverageObjects {
+process CoverageObjects {
 
 		
 		//// This tag generates long names for the job, SGE does not like long job names
@@ -2167,7 +2167,7 @@ if(params.reference_type == "human") {
 		Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
 		'''
 	}
-} */
+}
 
 if (params.step8) {
 
@@ -2247,7 +2247,7 @@ if (params.step8) {
  * Step 9: Expressed Regions
  */
 
-/* process ExpressedRegions {
+process ExpressedRegions {
 
     
     tag "Sample: $expressed_regions_mean_bigwig"
@@ -2273,4 +2273,4 @@ if (params.step8) {
     	-c !{expressed_regions_cores}
     done
     '''
-} */
+}
