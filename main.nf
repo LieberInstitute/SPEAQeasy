@@ -1808,8 +1808,10 @@ else
 		params.strandprefix=".Reverse"
 	}
 }
+
 process Coverage {
-	
+
+	echo true
 	tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
 	publishDir "${params.basedir}/Coverage/wigs",mode:'copy'
 
@@ -1825,15 +1827,15 @@ process Coverage {
 	'''
 	export coverage_strand_rule=$(cat !{inferred_strand})
 	if [ $coverage_strand_rule == "none" ] ; then
-		!{params.bam2wig} -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix}
+		python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix}
 	elif [ $coverage_strand_rule == "1++,1--,2+-,2-+" ] ; then
-		!{params.bam2wig} -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1++,1--,2+-,2-+"
+		python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1++,1--,2+-,2-+"
 	elif [ $coverage_strand_rule == "1+-,1-+,2++,2--" ] ; then
-		!{params.bam2wig} -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1+-,1-+,2++,2--"
+		python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1+-,1-+,2++,2--"
 	elif [ $coverage_strand_rule == "++,--" ] ; then
-	  !{params.bam2wig} -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "++,--"
+		python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "++,--"
 	elif [ $coverage_strand_rule == "+-,-+" ] ; then
-		!{params.bam2wig} -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "+-,-+"
+		python /usr/local/bin/bam2wig.py -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "+-,-+"
 	fi
 	'''
 }
@@ -1864,10 +1866,10 @@ process WigToBigWig {
 }
 
 coverage_bigwigs
-  .collect()
-  .flatten()
-  .toSortedList()
-  .into{ mean_coverage_bigwigs;full_coverage_bigwigs }
+	.collect()
+	.flatten()
+	.toSortedList()
+	.into{ mean_coverage_bigwigs;full_coverage_bigwigs }
 
 /*
  * Step 5c: Mean Coverage
