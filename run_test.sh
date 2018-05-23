@@ -11,4 +11,5 @@ nextflow main.nf \
 	-with-report \
 	-with-dag flowchart.png \
 	-resume \
+	-profile quick \
 	$@

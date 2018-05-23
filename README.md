@@ -2,23 +2,26 @@
 
 ### Summary ###
 
-Aenean sodales velit at elementum blandit. Donec lobortis tempor aliquam. Maecenas tempor egestas ipsum eget congue. In arcu magna, venenatis efficitur sapien nec, feugiat mattis urna...
+This pipeline is a RNA-seq processing tool based on the [RNAseq-pipeline](https://github.com/LieberInstitute/RNAseq-pipeline). Build on nextflow, and capable of using Docker containers and SGE task managing, this port of the RNAseq-pipeline can be used in different computer environments.
 
-_##**TODO**##_: Brief description of the pipeline
+The main function of this pipeline is to produce comparable files to those used in [recount2](https://jhubiostatistics.shinyapps.io/recount/), a tool that provides gene, exon, exon-exon junction and base-pair level data.
 
-_##**TODO**##_: Show a simplified workflow of the pipeline, from a notes/*.png image (done in draw.io or something similar)
+This pipeline allows researchers to contribute data to the recount2 project even from outside the [JHPCE](https://jhpce.jhu.edu/).
 
 ### Version description ###
 
-* Version 0.7.5 (current)
+* Version 0.7.7 (current)
 
-    + **Test run validation**:  for hg38, hg10, mm10, and rn6; with the command:  
-`--small_test --sample "single" --strand "unstranded" --ercc -with-report -with-dag -N user@email.com`
-    + **Test run validation**: --fullCov option working for hg38, hg19 and mm10; _rn6 **requires debugging in create_count_objects-rat.R** script_.
-    + **Process validation**: All procceses for Annotation references construction, validated for hg38, hg19, mm10, and rn6.
-    + **Portability feature**: added conf/command paths.config file for defining paths to commands and essential .py scripts.
-    + **Basic feature**: --ercc and --fullcov options functional.
-    + **Documentation expansion**: reestructured README.md; added basic dependencies info; added test run instructions; added email notification info; added Reference files info; added notes on Reference file directories; added some configuration info; added author info.
+    + **Complete process validation**: for hg38, hg19, mm10, and rn6. Issues were found in some processes. See _notes/Process_validation_System_Mode.png_ for a summary of problematic processes.
+    + **Documentation expansion**: Added docker information to README.md; added _notes/Process_validation_System_Mode.png_ to register valid processes in every species tested; added pipeline summary.
+
+.
+
+* **Process validation status**. Green: validated process; Red: Process with issues; Gray: Process not used by that run.
+
+ + For System mode runs (no Docker, no SGE)
+ 
+![Validations](https://github.com/LieberInstitute/RNAsp/tree/master/notes/Process_validation_System_Mode.png)
 
 ### Installation ###
 
@@ -57,7 +60,6 @@ Software | Version | Command used by the pipeline |
 |[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2 | `wiggletools` |
 |[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 
-
 ##### Docker mode #####
 
 This pipeline can run using docker containers to avoid the installation of system wide dependencies. Just follow this instructions:
@@ -89,7 +91,11 @@ docker run hello-world
 ```
 You can find more information about this setup test in the [docker site](https://docs.docker.com/get-started/#test-docker-installation)
 
-_##**TODO**##_: Add optional dependencies for SGE
+##### SGE mode #####
+
+This pipeline can be scaled up using a Sun Grid Engine cluster or a compatible platform (Open Grid Engine, Univa Grid Engine, etc), as described [here](https://www.nextflow.io/docs/latest/executor.html#sge).
+
+Contact your computing cluster administration to ensure you have access to a queue for submiting jobs, and for information about the best practices for resource management during pipeline execution.
 
 ### Pipeline setup ###
 
@@ -170,18 +176,11 @@ The basic Annotation and Genotyping directories are cloned with this repository.
 
 A tree view for full Annotation and Genotyping directories can be consulted in ***notes/reference_directories_structure.md***.
 
-
-### Process description ###
-
-Sed dictum tristique bibendum. Nulla posuere lacus nec auctor consequat. Ut a sodales orci.
- 
-_##**TODO**##_: Describe for every process step of the pipeline, what it does (order it accordingly to what it is described in the main.nf header)
-
 ### Input data formats ###
 
-Sed bibendum felis eu consequat aliquet. Donec elementum rhoncus massa, et egestas tortor condimentum volutpat. Nam nunc sapien, laoreet quis pulvinar in, finibus vel mauris. Etiam et tellus ligula...
-
 _##**TODO**##_: describe species and data types (single, paired, etc.) accepted by the pipeline.
+
+_##**TODO**##_: Make notes about file naming, for normal runs, and for --merged runs
 
 ## Genomes
 
@@ -194,21 +193,15 @@ This pipeline works for the following genomes and versions:
 |mm10| mouse |
 |rna6| rat |
 
-_##**TODO**##_: Make notes about file naming, for normal runs, and for --merged runs
-
-_##**TODO**##_: Make notes about disabled modules for mm10 and rn6, if any
+_##**TODO**##_: Make notes about modules not available for mm10 and rn6, if any
 
 ### Output data formats ###
 
-Quisque vitae venenatis lorem. Nulla id dui euismod, semper ipsum a, auctor magna. Fusce eget feugiat augue, ut mattis felis...
-
 _##**TODO**##_: describe the many output files produced by the pipeline.
 
-_##**TODO**##_: Consult with Lieber which files are final outputs and which are temporary files
+_##**TODO**##_: Consult with Lieber team which files are final outputs and which are temporary files
 
 ### Launching a real run ###
-
-Suspendisse porttitor, nibh id euismod consectetur, lectus nisl posuere nisi, et egestas dui tellus quis dui. Suspendisse dignissim justo ac aliquam efficitur...
 
 _##**TODO**##_: describe how to launch a normal run
 
@@ -256,23 +249,25 @@ Once Docker is installed, required docker images can be pulled down from **[Dock
 or built locally. The dockerfiles for each container can be found in the ./dockerfiles folder, and are built 
 using versioning to maintain reproducibility, based on [best practices for writting dockers](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/).
 
-Docker Images can be obtained locally in 1 of 2 ways.
+* Docker Images
 
-Docker pull command
+Required docker containers can be obtained locally in 1 of 2 ways:
+
+1) Docker pull command
 
 ```
 docker pull libdocker/${CONTAINER}
 ```
 
-Docker build command
+2) Docker build command
 
 ```
 docker build -t libdocker/${CONTAINER} .
 ```	
 
-An example of how to build and deploy all the required docker images can be found in ./dockerfiles/make.log
+An example of how to build and deploy all the required docker images can be found in _dockerfiles/make.log_
 
-Potential Issues
+* Potential Issues with Docker
 
 R-Base Dockerfile: This dockerfile holds all of the R packages needed throughout the pipeline. 
 In order to maintain a specific version combination for required software, all packages are manually installed 
@@ -287,19 +282,9 @@ make pull in the dockerfiles directory to pull the current working version of ea
 
 ### Run with SGE ###
 
-Nulla ultrices ligula et nunc laoreet pretium. Suspendisse placerat sapien velit, a vulputate justo volutpat sit amet. Praesent massa dui, varius id sodales a, maximus eget tortor...
+For scalability, this pipeline uses the executor component from Nextflow, as described [here](https://www.nextflow.io/docs/latest/executor.html); especifically, we use the [SGE](https://www.nextflow.io/docs/latest/executor.html#sge) integration capabilities to manage process distribution and computational resources.
 
-_##**TODO**##_: describe how SGE integration works in this pipeline
-
-_##**TODO**##_: describe how to configure the cong/sge* configuration files, regarding queue, profile and resources request
-
-### Pipeline directory structure ###
-
-Proin euismod ligula ac est sagittis, ac egestas ante malesuada. Nam hendrerit dui eu nunc molestie maximus. Aliquam faucibus sapien eget ante cursus, non accumsan ligula tincidunt...
-
-_##**TODO**##_: make a tree view of a final directory print from all the sucessfull runs.
-
-_##**TODO**##_: describe in brief wvery file in the tree
+The _conf/sge.config_ and _conf/sge_large.config_ must be properly configured before launching SGE runs. This configuration files define variables regarding queue, parallelization environments and resources requested by every process in the pipeline. This allows the fine tunning of resource consumption.
 
 ### Authors ###
 
