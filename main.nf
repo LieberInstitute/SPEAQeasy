@@ -1324,8 +1324,8 @@ if (params.sample == "paired") {
 	  '''
 	  export result1=$(grep "Adapter Content" !{quality_report_1} | cut -c1-4)
 	  export result2=$(grep "Adapter Content" !{quality_report_2} | cut -c1-4)
-	  if [ $result1 == "FAIL" || $result2 == "FAIL"] ; then
-	  ##if [ $result1 == "PASS" || $result2 == "FAIL"] ; then ## for DEV purposes
+	  ##if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ] ; then
+	  if [ $result1 == "PASS" ] || [ $result2 == "PASS" ] ; then ## for DEV purposes
 		  cp !{trimming_input_1} "!{adaptive_out_prefix_1}_TR.fastq.gz"
 		  cp !{trimming_input_2} "!{adaptive_out_prefix_2}_TR.fastq.gz"
 	  else
@@ -1496,7 +1496,7 @@ if (params.sample == "paired") {
 
 	  
 	  tag "Prefix: $paired_notrim_hisat_prefix | Sample: [ $paired_no_trim_hisat ]"
-	  publishDir "${params.basedir}/HISAT2_out",mode:'copy'
+	  publishDir "${params.basedir}/HISAT2_out",'mode':'copy'
 
 	  input:
 	  file hisatidx from hisat_index
@@ -1542,7 +1542,7 @@ if (params.sample == "paired") {
 
 	  
 	  tag "Prefix: $paired_trimmed_prefix | Sample: $paired_trimmed_fastqs"
-	  publishDir "${params.basedir}/HISAT2_out",mode:'copy'
+	  publishDir "${params.basedir}/HISAT2_out",'mode':'copy'
 
 	  input:
 	  file hisatidx from hisat_index
@@ -1558,9 +1558,9 @@ if (params.sample == "paired") {
 	  strand = "${params.hisat_strand}"
 	  hisat_cores = "${params.hisat_cores}"
 	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq.gz"
-	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq"
+	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired.fastq.gz"
 	  forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.fastq.gz"
-	  reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.fastq.gz"
+	  reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_reverse_unpaired.fastq.gz"
 	  if (params.unalign) {
 		  unaligned_opt = "--un-conc ${paired_trimmed_prefix}.fastq"
 	  }
@@ -1573,10 +1573,10 @@ if (params.sample == "paired") {
 	  -x !{hisat_prefix} \
 	  -1 !{forward_paired} \
 	  -2 !{reverse_paired} \
-	  -U !{forward_unpaired} , !{reverse_unpaired} \
+	  -U !{forward_unpaired},!{reverse_unpaired} \
 	  -S !{paired_trimmed_prefix}_hisat_out.sam !{strand} --phred33 \
 	  !{unaligned_opt} \
-	  2> !${paired_trimmed_prefix}_align_summary.txt
+	  2> !{paired_trimmed_prefix}_align_summary.txt
 	  '''
 	}
 //Bellow block is not tested yet
