@@ -19,6 +19,10 @@ This pipeline allows researchers to contribute data to the recount2 project even
 
 * **Process validation status**. Green: validated process; Red: Process with issues; Gray: Process not used by that run.
 
+ + For System mode runs (no Docker, no SGE)
+ 
+![Validations](https://github.com/LieberInstitute/RNAsp/tree/master/notes/Process_validation_System_Mode.png)
+
 ### Installation ###
 
 ##### Working OS #####
