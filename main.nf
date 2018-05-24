@@ -1324,8 +1324,8 @@ if (params.sample == "paired") {
 	  '''
 	  export result1=$(grep "Adapter Content" !{quality_report_1} | cut -c1-4)
 	  export result2=$(grep "Adapter Content" !{quality_report_2} | cut -c1-4)
-	  ##if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ] ; then
-	  if [ $result1 == "PASS" ] || [ $result2 == "PASS" ] ; then ## for DEV purposes
+	  if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ] ; then
+	  ##if [ $result1 == "PASS" ] || [ $result2 == "PASS" ] ; then ## for DEV purposes
 		  cp !{trimming_input_1} "!{adaptive_out_prefix_1}_TR.fastq.gz"
 		  cp !{trimming_input_2} "!{adaptive_out_prefix_2}_TR.fastq.gz"
 	  else
