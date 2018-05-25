@@ -18,14 +18,14 @@
 #-with-report execution_reports/System_mode_noDocker_noSGE_hg38_nomerge_single_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg38_nomerge_single_reverse.png
 
 ## paired, no docker, no SGE, no Merge
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "unstranded" \
--with-report execution_reports/System_mode_noDocker_noSGE_hg38_nomerge_paired_unstranded.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg38_nomerge_paired_unstranded.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "unstranded" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_hg38_nomerge_paired_unstranded.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg38_nomerge_paired_unstranded.png
 
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "forward" \
--with-report execution_reports/System_mode_noDocker_noSGE_hg38_nomerge_paired_forward.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg38_nomerge_paired_forward.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "forward" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_hg38_nomerge_paired_forward.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg38_nomerge_paired_forward.png
 
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "reverse" \
--with-report execution_reports/System_mode_noDocker_noSGE_hg38_nomerge_paired_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg38_nomerge_paired_reverse.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "reverse" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_hg38_nomerge_paired_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg38_nomerge_paired_reverse.png
 
 #### mm10 block ####
 
@@ -40,14 +40,14 @@ nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --referen
 #-with-report execution_reports/System_mode_noDocker_noSGE_mm10_nomerge_single_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_mm10_nomerge_single_reverse.png
 
 ## paired, no docker, no SGE, no Merge
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "mm10" --sample "paired" --strand "unstranded" \
--with-report execution_reports/System_mode_noDocker_noSGE_mm10_nomerge_paired_unstranded.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_mm10_nomerge_paired_unstranded.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "mm10" --sample "paired" --strand "unstranded" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_mm10_nomerge_paired_unstranded.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_mm10_nomerge_paired_unstranded.png
 
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "mm10" --sample "paired" --strand "forward" \
--with-report execution_reports/System_mode_noDocker_noSGE_mm10_nomerge_paired_forward.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_mm10_nomerge_paired_forward.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "mm10" --sample "paired" --strand "forward" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_mm10_nomerge_paired_forward.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_mm10_nomerge_paired_forward.png
 
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "mm10" --sample "paired" --strand "reverse" \
--with-report execution_reports/System_mode_noDocker_noSGE_mm10_nomerge_paired_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_mm10_nomerge_paired_reverse.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "mm10" --sample "paired" --strand "reverse" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_mm10_nomerge_paired_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_mm10_nomerge_paired_reverse.png
 
 #### rn6 block ####
 
@@ -62,14 +62,14 @@ nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --referen
 #-with-report execution_reports/System_mode_noDocker_noSGE_rn6_nomerge_single_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_rn6_nomerge_single_reverse.png
 
 ## paired, no docker, no SGE, no Merge
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "rn6" --sample "paired" --strand "unstranded" \
--with-report execution_reports/System_mode_noDocker_noSGE_rn6_nomerge_paired_unstranded.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_rn6_nomerge_paired_unstranded.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "rn6" --sample "paired" --strand "unstranded" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_rn6_nomerge_paired_unstranded.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_rn6_nomerge_paired_unstranded.png
 
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "rn6" --sample "paired" --strand "forward" \
--with-report execution_reports/System_mode_noDocker_noSGE_rn6_nomerge_paired_forward.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_rn6_nomerge_paired_forward.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "rn6" --sample "paired" --strand "forward" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_rn6_nomerge_paired_forward.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_rn6_nomerge_paired_forward.png
 
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "rn6" --sample "paired" --strand "reverse" \
--with-report execution_reports/System_mode_noDocker_noSGE_rn6_nomerge_paired_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_rn6_nomerge_paired_reverse.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "rn6" --sample "paired" --strand "reverse" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_rn6_nomerge_paired_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_rn6_nomerge_paired_reverse.png
 
 #### hg19 block ####
 
@@ -84,14 +84,14 @@ nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --referen
 #-with-report execution_reports/System_mode_noDocker_noSGE_hg19_nomerge_single_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg19_nomerge_single_reverse.png
 
 ## paired, no docker, no SGE, no Merge
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg19" --sample "paired" --strand "unstranded" \
--with-report execution_reports/System_mode_noDocker_noSGE_hg19_nomerge_paired_unstranded.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg19_nomerge_paired_unstranded.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg19" --sample "paired" --strand "unstranded" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_hg19_nomerge_paired_unstranded.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg19_nomerge_paired_unstranded.png
 
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg19" --sample "paired" --strand "forward" \
--with-report execution_reports/System_mode_noDocker_noSGE_hg19_nomerge_paired_forward.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg19_nomerge_paired_forward.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg19" --sample "paired" --strand "forward" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_hg19_nomerge_paired_forward.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg19_nomerge_paired_forward.png
 
-nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg19" --sample "paired" --strand "reverse" \
--with-report execution_reports/System_mode_noDocker_noSGE_hg19_nomerge_paired_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg19_nomerge_paired_reverse.png
+#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg19" --sample "paired" --strand "reverse" \
+#-with-report execution_reports/System_mode_noDocker_noSGE_hg19_nomerge_paired_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg19_nomerge_paired_reverse.png
 
 #################################################
 ## SGE mode test (no docker)
@@ -183,3 +183,94 @@ nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --referen
 
 #nextflow main.nf  -resume -profile quick,sge --small_test --ercc --fullCov --reference "hg19" --sample "paired" --strand "reverse" \
 #-with-report execution_reports/SGE_mode_noDocker_hg19_nomerge_paired_reverse.html -with-dag execution_DAGs/SGE_mode_noDocker_hg19_nomerge_paired_reverse.png
+
+#################################################
+## Docker mode test (no sge)
+############################################
+#### hg38 block ####
+
+## singles, no docker, no SGE, no Merge
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg38" --sample "single" --strand "unstranded" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg38_nomerge_single_unstranded.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg38_nomerge_single_unstranded.png
+
+nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg38" --sample "single" --strand "forward" \
+-with-report execution_reports/DOCKER_mode_noSGE_hg38_nomerge_single_forward.html -with-dag execution_DAGs/execution_DAGsDOCKER_mode_noSGE_hg38_nomerge_single_forward.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg38" --sample "single" --strand "reverse" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg38_nomerge_single_reverse.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg38_nomerge_single_reverse.png
+
+## paired, no docker, no SGE, no Merge
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "unstranded" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg38_nomerge_paired_unstranded.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg38_nomerge_paired_unstranded.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "forward" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg38_nomerge_paired_forward.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg38_nomerge_paired_forward.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "reverse" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg38_nomerge_paired_reverse.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg38_nomerge_paired_reverse.png
+
+#### mm10 block ####
+
+## singles, no docker, no SGE, no Merge
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "mm10" --sample "single" --strand "unstranded" \
+#-with-report execution_reports/DOCKER_mode_noSGE_mm10_nomerge_single_unstranded.html -with-dag execution_DAGs/DOCKER_mode_noSGE_mm10_nomerge_single_unstranded.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "mm10" --sample "single" --strand "forward" \
+#-with-report execution_reports/DOCKER_mode_noSGE_mm10_nomerge_single_forward.html -with-dag execution_DAGs/DOCKER_mode_noSGE_mm10_nomerge_single_forward.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "mm10" --sample "single" --strand "reverse" \
+#-with-report execution_reports/DOCKER_mode_noSGE_mm10_nomerge_single_reverse.html -with-dag execution_DAGs/DOCKER_mode_noSGE_mm10_nomerge_single_reverse.png
+
+## paired, no docker, no SGE, no Merge
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "mm10" --sample "paired" --strand "unstranded" \
+#-with-report execution_reports/DOCKER_mode_noSGE_mm10_nomerge_paired_unstranded.html -with-dag execution_DAGs/DOCKER_mode_noSGE_mm10_nomerge_paired_unstranded.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "mm10" --sample "paired" --strand "forward" \
+#-with-report execution_reports/DOCKER_mode_noSGE_mm10_nomerge_paired_forward.html -with-dag execution_DAGs/DOCKER_mode_noSGE_mm10_nomerge_paired_forward.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "mm10" --sample "paired" --strand "reverse" \
+#-with-report execution_reports/DOCKER_mode_noSGE_mm10_nomerge_paired_reverse.html -with-dag execution_DAGs/DOCKER_mode_noSGE_mm10_nomerge_paired_reverse.png
+
+#### rn6 block ####
+
+## singles, no docker, no SGE, no Merge
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "rn6" --sample "single" --strand "unstranded" \
+#-with-report execution_reports/DOCKER_mode_noSGE_rn6_nomerge_single_unstranded.html -with-dag execution_DAGs/DOCKER_mode_noSGE_rn6_nomerge_single_unstranded.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "rn6" --sample "single" --strand "forward" \
+#-with-report execution_reports/DOCKER_mode_noSGE_rn6_nomerge_single_forward.html -with-dag execution_DAGs/DOCKER_mode_noSGE_rn6_nomerge_single_forward.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "rn6" --sample "single" --strand "reverse" \
+#-with-report execution_reports/DOCKER_mode_noSGE_rn6_nomerge_single_reverse.html -with-dag execution_DAGs/DOCKER_mode_noSGE_rn6_nomerge_single_reverse.png
+
+## paired, no docker, no SGE, no Merge
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "rn6" --sample "paired" --strand "unstranded" \
+#-with-report execution_reports/DOCKER_mode_noSGE_rn6_nomerge_paired_unstranded.html -with-dag execution_DAGs/DOCKER_mode_noSGE_rn6_nomerge_paired_unstranded.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "rn6" --sample "paired" --strand "forward" \
+#-with-report execution_reports/DOCKER_mode_noSGE_rn6_nomerge_paired_forward.html -with-dag execution_DAGs/DOCKER_mode_noSGE_rn6_nomerge_paired_forward.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "rn6" --sample "paired" --strand "reverse" \
+#-with-report execution_reports/DOCKER_mode_noSGE_rn6_nomerge_paired_reverse.html -with-dag execution_DAGs/DOCKER_mode_noSGE_rn6_nomerge_paired_reverse.png
+
+#### hg19 block ####
+
+## singles, no docker, no SGE, no Merge
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg19" --sample "single" --strand "unstranded" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg19_nomerge_single_unstranded.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg19_nomerge_single_unstranded.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg19" --sample "single" --strand "forward" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg19_nomerge_single_forward.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg19_nomerge_single_forward.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg19" --sample "single" --strand "reverse" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg19_nomerge_single_reverse.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg19_nomerge_single_reverse.png
+
+## paired, no docker, no SGE, no Merge
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg19" --sample "paired" --strand "unstranded" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg19_nomerge_paired_unstranded.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg19_nomerge_paired_unstranded.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg19" --sample "paired" --strand "forward" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg19_nomerge_paired_forward.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg19_nomerge_paired_forward.png
+
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg19" --sample "paired" --strand "reverse" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg19_nomerge_paired_reverse.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg19_nomerge_paired_reverse.png
