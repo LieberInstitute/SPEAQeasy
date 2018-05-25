@@ -6,9 +6,7 @@ nextflow main.nf \
 	--sample "single" \
 	--reference "hg38" \
 	--strand "unstranded" \
-	--ercc \
-	--fullCov \
-	-profile sge \
+	-profile sge,quick \
 	-with-report \
 	-with-dag flowchart.png \
 	$@
