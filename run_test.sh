@@ -8,8 +8,9 @@ nextflow main.nf \
 	--strand "unstranded" \
 	--ercc \
 	--fullCov \
-	-with-report \
-	-with-dag flowchart.png \
+	--wg_test \
+	-with-report test_report.html \
+	-with-dag test_flowchart.png \
 	-resume \
 	-profile quick \
 	$@
