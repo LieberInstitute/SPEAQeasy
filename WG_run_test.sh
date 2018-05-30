@@ -3,8 +3,14 @@
 #bash clean_workdir.sh
 
 #################################################
+## Real data test
+##############################################
+nextflow main.nf -resume --wg_test --ercc --fullCov --reference "hg38" --sample "single" --strand "unstranded" --merge \
+-with-report execution_reports/REAL_RUN_System_mode_noDocker_noSGE_hg38_nomerge_single_unstranded.html -with-dag execution_DAGs/REAL_RUN_System_mode_noDocker_noSGE_hg38_nomerge_single_unstranded.png
+
+#################################################
 ## System mode test (no docker, no sge)
-############################################
+#############################################
 #### hg38 block ####
 
 ## singles, no docker, no SGE, no Merge
@@ -193,8 +199,8 @@
 #nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg38" --sample "single" --strand "unstranded" \
 #-with-report execution_reports/DOCKER_mode_noSGE_hg38_nomerge_single_unstranded.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg38_nomerge_single_unstranded.png
 
-nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg38" --sample "single" --strand "forward" \
--with-report execution_reports/DOCKER_mode_noSGE_hg38_nomerge_single_forward.html -with-dag execution_DAGs/execution_DAGsDOCKER_mode_noSGE_hg38_nomerge_single_forward.png
+#nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg38" --sample "single" --strand "forward" \
+#-with-report execution_reports/DOCKER_mode_noSGE_hg38_nomerge_single_forward.html -with-dag execution_DAGs/execution_DAGsDOCKER_mode_noSGE_hg38_nomerge_single_forward.png
 
 #nextflow main.nf  -resume -profile quick,docker --small_test --ercc --fullCov --reference "hg38" --sample "single" --strand "reverse" \
 #-with-report execution_reports/DOCKER_mode_noSGE_hg38_nomerge_single_reverse.html -with-dag execution_DAGs/DOCKER_mode_noSGE_hg38_nomerge_single_reverse.png

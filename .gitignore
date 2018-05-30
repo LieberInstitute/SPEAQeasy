@@ -1,4 +1,5 @@
 ## ignore local files from local executions
+input*
 *nextflow.log*
 *.nextflow/
 *pipeline_log/
@@ -39,3 +40,4 @@ Annotation/RSeQC/hg19/bed/hg19.bed
 Annotation/RSeQC/hg38/bed/hg38.bed
 Annotation/RSeQC/mm10/bed/mm10.bed
 Annotation/RSeQC/rn6/bed/rn6.bed
+
