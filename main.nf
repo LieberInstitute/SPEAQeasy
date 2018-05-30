@@ -501,7 +501,7 @@ if (params.reference == "hg38") {
 	feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
 	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
 	if (params.wg_test ) {
-		create_counts = file("${params.scripts}/create_count_objects-human.R.WG_compatible")
+		create_counts = file("${params.scripts}/create_count_objects-human_v2.R.WG_compatible")
 	} else {
 		create_counts = file("${params.scripts}/create_count_objects-human.R")
 	}
