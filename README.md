@@ -8,6 +8,10 @@ The main function of this pipeline is to produce comparable files to those used 
 
 This pipeline allows researchers to contribute data to the recount2 project even from outside the [JHPCE](https://jhpce.jhu.edu/).
 
+### Workflow overview ###
+
+![General Workflow](General_Workflow.png)
+
 ### Version description ###
 
 * Version 0.7.7 (current)
