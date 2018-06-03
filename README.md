@@ -11,8 +11,7 @@ This pipeline allows researchers to contribute data to the recount2 project even
 
 ### Workflow overview ###
 
-![General Workflow](https://github.com/LieberInstitute/RNAsp/blob/feature/Code_revision/notes/General_Workflow.png)
-
+![General Workflow](https://github.com/LieberInstitute/RNAsp/blob/master/notes/General_Workflow.png)
 
 ### Version description ###
 

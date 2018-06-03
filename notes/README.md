@@ -66,4 +66,4 @@ Transcript Counts Rdata generation:
  
  Green: validated process; Yellow: process with a pinpointed bug; Red: Process with issues not pinpointed hitherto; Gray: Process not used by that run.
  
-![Validations](https://github.com/LieberInstitute/RNAsp/blob/feature/Code_revision/notes/Process_Validation_table.png)
+![Validations](https://github.com/LieberInstitute/RNAsp/blob/master/notes/Process_Validation_table.png)
