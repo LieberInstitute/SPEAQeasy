@@ -976,8 +976,6 @@ if ( ! file("${params.salmon_idx_output}/salmon/${params.salmon_prefix}").exists
 
 		script:
 		salmon_idx = "${params.salmon_prefix}"
-		// in the code execution, -p option is hardcoded to 1 thread
-	// TODO (iaguilar): make thread assignation dynamic by using a configurable variable
 		"""
 			${params.salmon} index -t $tx_file -i $salmon_idx -p ${params.salmon_cores} --type quasi -k 31
 		"""
@@ -986,7 +984,7 @@ if ( ! file("${params.salmon_idx_output}/salmon/${params.salmon_prefix}").exists
 	// Read the salmon index from path, and/or mix with the channel output from the buildSALMONindex process
 	// This effectively means that whether the index was created or it was already present, the flow can continue
 	 Channel
-		.fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*")
+		.fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}")
 		.mix(salmon_index_built)
 		.toSortedList()
 		.flatten()
@@ -1281,8 +1279,8 @@ if (params.sample == "single") {
 	  single_trimming_input = single_adaptive_prefix.toString() + ".fastq.gz"
 	  '''
 	  export result=$(grep "Adapter Content" !{single_quality_report} | cut -f1)
-	  ##if [ $result == "FAIL" ] ; then
-	  if [ $result == "PASS" ] ; then ##For DEV purposes
+	  if [ $result == "FAIL" ] ; then
+	  ##if [ $result == "PASS" ] ; then ##For DEV purposes
 		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TR.fastq.gz"
 	  else
 		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TNR.fastq.gz"
@@ -1952,10 +1950,10 @@ if (params.step6) {
 			}
 		}
 		'''
-		mkdir -p !{salmon_index_prefix}
-		cp !{salmon_index} !{salmon_index_prefix}/.
+		##mkdir -p !{salmon_index_prefix}
+		##cp !{salmon_index} !{salmon_index_prefix}/.
 		!{params.salmon} quant \
-		-i !{salmon_index_prefix} \
+		-i !{salmon_index} \
 		-p !{salmon_cores} \
 		-l !{salmon_strand} \
 		!{sample_command} \

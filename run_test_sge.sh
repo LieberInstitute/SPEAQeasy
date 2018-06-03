@@ -9,8 +9,8 @@ nextflow main.nf \
 	--ercc \
 	--fullCov \
 	--wg_test \
-	-with-report execution_reports/System_mode_test_run.html \
-	-with-dag execution_DAGs/System_mode_test_run.png \
+	-with-report execution_reports/SGE_mode_test_run.html \
+	-with-dag execution_DAGs/SGE_mode_test_run.png \
 	-resume \
 	-profile sge,quick \
 	$@

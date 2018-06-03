@@ -9,8 +9,8 @@ nextflow main.nf \
 	--ercc \
 	--fullCov \
 	--wg_test \
-	-with-report execution_reports/System_mode_test_run.html \
-	-with-dag execution_DAGs/System_mode_test_run.png \
+	-with-report execution_reports/Docker_mode_test_run.html \
+	-with-dag execution_DAGs/Docker_mode_test_run.png \
 	-resume \
 	-profile docker,quick \
 	$@
