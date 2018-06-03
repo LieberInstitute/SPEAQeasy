@@ -53,6 +53,13 @@ Transcript Counts Rdata generation:
  Bugs persist. Fixing requires testing and debugging in the Lieber Environment.
 ````
 
+## Developer configuration files ##
+* **conf/docker.config**:
+
+    + This file defines the names of the docker containers used by each process.
+    + IF process names, or docker container names change, they MUST be redefined in this file as well
+    + **Important**: this conf file is not used by default. It must be requested by using the `-profile docker` option of the nextflow command.  
+
 **Process validation status**.
 
   + For runs in any mode (System, Docker, and SGE)
