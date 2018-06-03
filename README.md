@@ -8,26 +8,25 @@ The main function of this pipeline is to produce comparable files to those used 
 
 This pipeline allows researchers to contribute data to the recount2 project even from outside the [JHPCE](https://jhpce.jhu.edu/).
 
+
 ### Workflow overview ###
 
 ![General Workflow](https://github.com/LieberInstitute/RNAsp/blob/feature/Code_revision/notes/General_Workflow.png)
 
+
 ### Version description ###
 
-* Version 0.7.7 (current)
+* Version 0.8.0 (current)
 
-    + **Complete process validation**: for hg38, hg19, mm10, and rn6. Issues were found in some processes. See _notes/Process_validation_System_Mode.png_ for a summary of problematic processes.
-    + **Documentation expansion**: Added docker information to README.md; added _notes/Process_validation_System_Mode.png_ to register valid processes in every species tested; added pipeline summary.
+    + Docker and SGE mode fully working.
 
-.
+    + Complete functionality for single-end type of data for human (hg19, hg38), and mouse (mm10).
 
-* **Process validation status**.
+        + Variant Calling 
+        + Expressed Regions detection
+        + Full Coverage Rdata generation
+        + Transcript Counts Rdata generation
 
-  + For runs in any mode (System, Docker, and SGE)
- 
- Green: validated process; Yellow: process with a pinpointed bug; Red: Process with issues not pinpointed hitherto; Gray: Process not used by that run.
- 
-![Validations](https://github.com/LieberInstitute/RNAsp/blob/feature/Code_revision/notes/Process_Validation_table.png)
 
 ### Installation ###
 
