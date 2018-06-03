@@ -8,22 +8,25 @@ The main function of this pipeline is to produce comparable files to those used 
 
 This pipeline allows researchers to contribute data to the recount2 project even from outside the [JHPCE](https://jhpce.jhu.edu/).
 
+
+### Workflow overview ###
+
+![General Workflow](https://github.com/LieberInstitute/RNAsp/blob/feature/Code_revision/notes/General_Workflow.png)
+
+
 ### Version description ###
 
-* Version 0.7.7 (current)
+* Version 0.8.0 (current)
 
-    + **Complete process validation**: for hg38, hg19, mm10, and rn6. Issues were found in some processes. See _notes/Process_validation_System_Mode.png_ for a summary of problematic processes.
-    + **Documentation expansion**: Added docker information to README.md; added _notes/Process_validation_System_Mode.png_ to register valid processes in every species tested; added pipeline summary.
+    + Docker and SGE mode fully working.
 
-.
+    + Complete functionality for single-end type of data for human (hg19, hg38), and mouse (mm10).
 
-* **Process validation status**.
+        + Variant Calling 
+        + Expressed Regions detection
+        + Full Coverage Rdata generation
+        + Transcript Counts Rdata generation
 
-  + For System mode runs (no Docker, no SGE)
- 
- Green: validated process; Red: Process with issues; Gray: Process not used by that run.
- 
-![Validations](https://github.com/LieberInstitute/RNAsp/blob/master/notes/Process_validation_System_Mode.png)
 
 ### Installation ###
 
@@ -86,7 +89,7 @@ sudo usermod -aG docker <your_user>
 
 Log out and log back in to ensure your user is running with the correct permissions.
 
-[Test installation](https://docs.docker.com/get-started/#test-docker-installation) by running:
+[Test Docker installation](https://docs.docker.com/get-started/#test-docker-installation) by running:
 
 ```bash
 docker run hello-world
@@ -116,22 +119,22 @@ Thanks to the nextflow framework this pipeline can run on your local machine, or
 But first, you need to configure some variables in the following files:
 
 * **conf/command_paths.config**: this file defines the paths used by the pipeline to make some required command calls.  
-    + **Important**: change the values to match your system environment.
-    + This conf file can allow you to test the pipeline even if some dependencies are not globally installed or available on the PATH.
 
-* **conf/mem.config**: this file defines the amount of computational resources that Nextflow requests for every process.
+    + This conf file can allow you to test the pipeline even if some dependencies are not globally installed or available on the PATH.
+    + **Important**: change the values to match your system environment.
+
+* **conf/mem.config**: this file defines the amount of computational resources that Nextflow requests for every process. This conf file is used by default if no other `-profile` is requested.
+
     + By default, this configuration file assumes the local environment has 16G of memory and 8 CPUs
 
-* **conf/docker.config**:  
-    + **Important**: this conf file is not used by default. It must be requested by using the `-profile docker` option of the nextflow command.  
-_##**TODO**##_: expand description of conf/docker.config
-
 * **conf/sge.config**: this file defines variables used by SGE during job submitions, mainly computational resources.
+
     + **Important**: change the ***queue*** variable to a valid queue where your user is allowed to submit jobs.
     + **Important**: change the ***penv*** variable to a valid parallel environment according to your cluster setup.
     + **Important**: this conf file is not used by default. It must be requested by using the `-profile sge` option of the nextflow command.
 
-* **conf/sge_large.config**: see **sge.config**, this file is similar but it requests more computational resources.
+* **conf/sge_large.config**: see **sge.config**, this file is similar but should be configured to request heavier use of computational resources.
+
     + **Important**: this conf file is not used by default. It must be requested by using the `-profile sge_large` option of the nextflow command.
 
 ### Test run ###
@@ -141,7 +144,7 @@ _##**TODO**##_: expand description of conf/docker.config
 After proper configuration has been made in the _**conf/command_paths.config**_ file, you can launch a test by executing:
 
 ````
-bash run_test_simple.sh [-N user@email.com]
+bash run_test_system.sh
 ````
 
 This will launch a **local run** of the complete pipeline.
@@ -151,23 +154,17 @@ This will launch a **local run** of the complete pipeline.
 After proper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/sge.config**_ files, launch this test by executing:
 
 ````
-bash run_test_sge.sh [-N user@email.com]
+bash run_test_sge.sh
 ````
 
-* Docker simple test (**NOT IMPLEMENTED YET**)
+* Docker simple test
 
 **NOTE**: First read the _**Run with Docker**_ section of this readme.
 
-After propper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/docker.config**_ files, launch this test by executing:
-
-* Docker + SGE simple test
-
-**NOTE**: First read the _**Run with Docker**_ section of this readme.
-
-After propper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/docker.config**_ files, launch this test by executing:
+Launch this test by executing:
 
 ````
-bash run_test_docker.sh [-N user@email.com]
+bash run_test_docker.sh
 ````
 
 ### Reference files ###
@@ -178,13 +175,7 @@ The basic Annotation and Genotyping directories are cloned with this repository.
 
 A tree view for full Annotation and Genotyping directories can be consulted in ***notes/reference_directories_structure.md***.
 
-### Input data formats ###
-
-_##**TODO**##_: describe species and data types (single, paired, etc.) accepted by the pipeline.
-
-_##**TODO**##_: Make notes about file naming, for normal runs, and for --merged runs
-
-## Genomes
+#### Genomes ####
 
 This pipeline works for the following genomes and versions:
 
@@ -195,19 +186,98 @@ This pipeline works for the following genomes and versions:
 |mm10| mouse |
 |rna6| rat |
 
-_##**TODO**##_: Make notes about modules not available for mm10 and rn6, if any
+### Input data formats ###
+
+This RNA-Seq pipeline can handle several combinations of single/paired read, human/mouse/rat reference, and unstranded'forward/reverse options. The following __mandatory__ options are available:
+
+__reference__
+
+````
+	Human:
+	--reference "hg38"
+	  OR
+	--reference "hg19"
+
+	Mouse:
+	--reference "mm10"
+
+	Rat:
+	--reference "rn6"
+````
+
+__sample__
+
+````
+	--sample "single"
+	  OR
+	--sample "paired"
+````
+
+__stranded__
+
+````
+	Stranded:
+	--strand "forward"
+	  OR
+	--strand "reverse"
+
+	Unstranded:
+	--strand "unstranded"
+````
+
+
+### File Naming ###
+
+NOTICE: File names must not contain "." in the name because the pipeline operates on file names by splitting along the "." to determine prefixes. If needed, change all "." characters to "\_"
+
+### Merging Required
+
+The pipeline can handle sample fastq.gz files that require merging. Files that need merging should be named in the following format:
+
+
+__single__
+
+````
+	Sample part 1: "{prefix}_read1.fastq.gz"
+	Sample part 2: "{prefix}_read2.fastq.gz"
+````
+
+__paired__
+
+````
+	First in pair, Sample part 1: "{prefix}_1_read1.fastq.gz"
+	First in pair, Sample part 2: "{prefix}_1_read2.fastq.gz"
+	Second in pair, Sample part 1: "{prefix}_2_read1.fastq.gz"
+	Second in pair, Sample part 2: "{prefix}_2_read2.fastq.gz"
+````
 
 ### Output data formats ###
 
-_##**TODO**##_: describe the many output files produced by the pipeline.
+**Variant Calling**
 
-_##**TODO**##_: Consult with Lieber team which files are final outputs and which are temporary files
++ VCF files per sample, and multi-sample
+
+**Expressed Regions detection**
+
++ Rdata file
+
+**Full Coverage Rdata generation**
+
++ Rdata file
+
+**Transcript Counts Rdata generation**
+
++ Rdata file
 
 ### Launching a real run ###
 
-_##**TODO**##_: describe how to launch a normal run
+Command Example:
 
-_##**TODO**##_: describe the many options of the pipeline, the flags and what they mean
+```
+nextflow main.nf --sample "single" --reference "hg38" --strand "unstranded" --ercc --fullCov -profile sge
+```
+
+This command will read files from `./input`, run as __single__ end __unstranded__ samples, with __hg38__ human genome and transcriptome as the reference, __ercc__ process for spiking quantification will also run, and so will the __fullCoverage__ process to create Coverge R data. The __sge__ profile has been selected, for execution under a SGE environment.
 
 ### Email notifications
 
@@ -286,7 +356,7 @@ make pull in the dockerfiles directory to pull the current working version of ea
 
 For scalability, this pipeline uses the executor component from Nextflow, as described [here](https://www.nextflow.io/docs/latest/executor.html); especifically, we use the [SGE](https://www.nextflow.io/docs/latest/executor.html#sge) integration capabilities to manage process distribution and computational resources.
 
-The _conf/sge.config_ and _conf/sge_large.config_ must be properly configured before launching SGE runs. This configuration files define variables regarding queue, parallelization environments and resources requested by every process in the pipeline. This allows the fine tunning of resource consumption.
+The _conf/sge.config_ and _conf/sge_large.config_ must be properly configured before launching SGE runs. Said configuration files define variables regarding queue, parallelization environments and resources requested by every process in the pipeline. This allows the fine tunning of resource consumption.
 
 ### Authors ###
 
