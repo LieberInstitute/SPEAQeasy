@@ -144,7 +144,7 @@ But first, you need to configure some variables in the following files:
 After proper configuration has been made in the _**conf/command_paths.config**_ file, you can launch a test by executing:
 
 ````
-bash run_test_simple.sh
+bash run_test_system.sh
 ````
 
 This will launch a **local run** of the complete pipeline.
