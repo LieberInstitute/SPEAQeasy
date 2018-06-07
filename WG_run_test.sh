@@ -5,8 +5,8 @@
 #################################################
 ## Real data test
 ##############################################
-nextflow main.nf -resume --wg_test --ercc --fullCov --reference "hg38" --sample "single" --strand "unstranded" --merge \
--with-report execution_reports/REAL_RUN_System_mode_noDocker_noSGE_hg38_nomerge_single_unstranded.html -with-dag execution_DAGs/REAL_RUN_System_mode_noDocker_noSGE_hg38_nomerge_single_unstranded.png
+#nextflow main.nf -resume --wg_test --ercc --fullCov --reference "hg38" --sample "single" --strand "unstranded" --merge \
+#-with-report execution_reports/REAL_RUN_System_mode_noDocker_noSGE_hg38_nomerge_single_unstranded.html -with-dag execution_DAGs/REAL_RUN_System_mode_noDocker_noSGE_hg38_nomerge_single_unstranded.png
 
 #################################################
 ## System mode test (no docker, no sge)
@@ -24,8 +24,8 @@ nextflow main.nf -resume --wg_test --ercc --fullCov --reference "hg38" --sample 
 #-with-report execution_reports/System_mode_noDocker_noSGE_hg38_nomerge_single_reverse.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg38_nomerge_single_reverse.png
 
 ## paired, no docker, no SGE, no Merge
-#nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "unstranded" \
-#-with-report execution_reports/System_mode_noDocker_noSGE_hg38_nomerge_paired_unstranded.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg38_nomerge_paired_unstranded.png
+nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "unstranded" \
+-with-report execution_reports/System_mode_noDocker_noSGE_hg38_nomerge_paired_unstranded.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg38_nomerge_paired_unstranded.png
 
 #nextflow main.nf  -resume -profile quick --small_test --ercc --fullCov --reference "hg38" --sample "paired" --strand "forward" \
 #-with-report execution_reports/System_mode_noDocker_noSGE_hg38_nomerge_paired_forward.html -with-dag execution_DAGs/System_mode_noDocker_noSGE_hg38_nomerge_paired_forward.png
