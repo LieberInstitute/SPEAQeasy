@@ -1,0 +1,670 @@
+digraph System_mode_noDocker_noSGE_hg38_nomerge_single_unstranded {
+p0 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p118 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p0 -> p118 [label="junction_annotation_gencode"];
+
+p1 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p115 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p1 -> p115 [label="junction_annotation_ensembl"];
+
+p2 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p122 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p2 -> p122 [label="junction_annotation_genes"];
+
+p3 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p123 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p3 -> p123 [label="feature_to_tx_gencode"];
+
+p4 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p124 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p4 -> p124 [label="feature_to_tx_ensembl"];
+
+p5 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p142 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p5 -> p142 [label="snvbed"];
+
+p6 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p7 [label="compress_files_to_gz"];
+p6 -> p7 [label="files_fastq"];
+
+p7 [label="compress_files_to_gz"];
+p8 [shape=point];
+p7 -> p8 [label="compress_files"];
+
+p9 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p10 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p9 -> p10;
+
+p10 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p11 [shape=point];
+p10 -> p11 [label="reference_assembly"];
+
+p10 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p143 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p10 -> p143 [label="variant_assembly"];
+
+p12 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p13 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p12 -> p13 [label="hisat_index_built"];
+
+p13 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p66 [label="SingleEndHISAT"];
+p13 -> p66 [label="hisat_index"];
+
+p14 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p15 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p14 -> p15;
+
+p15 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p16 [shape=point];
+p15 -> p16 [label="gencode_gtf"];
+
+p15 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p101 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p15 -> p101 [label="create_counts_gtf"];
+
+p15 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p78 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p15 -> p78 [label="gencode_feature_gtf"];
+
+p17 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p70 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p17 -> p70 [label="bedfile"];
+
+p18 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p22 [label="buildSALMONindex"];
+p18 -> p22 [label="transcript_fa"];
+
+p19 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p20 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="count"];
+p19 -> p20 [label="salmon_build_trigger"];
+
+p20 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="count"];
+p21 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="filter"];
+p20 -> p21;
+
+p21 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="filter"];
+p22 [label="buildSALMONindex"];
+p21 -> p22 [label="salmon_trigger_build"];
+
+p22 [label="buildSALMONindex"];
+p24 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p22 -> p24 [label="salmon_index_built"];
+
+p23 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p24 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p23 -> p24;
+
+p24 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p25 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p24 -> p25;
+
+p25 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p26 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p25 -> p26;
+
+p26 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p27 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="distinct"];
+p26 -> p27;
+
+p27 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="distinct"];
+p28 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p27 -> p28;
+
+p28 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p94 [label="TXQuant"];
+p28 -> p94 [label="salmon_index"];
+
+p29 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p30 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p29 -> p30;
+
+p30 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p31 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p30 -> p31;
+
+p31 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p32 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p31 -> p32;
+
+p32 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p33 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p32 -> p33;
+
+p33 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p34 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="ifEmpty"];
+p33 -> p34;
+
+p34 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="ifEmpty"];
+p36 [label="ERCC"];
+p34 -> p36 [label="ercc_inputs"];
+
+p35 [shape=point,label="",fixedsize=true,width=0.1];
+p36 [label="ERCC"];
+p35 -> p36 [label="erccidx"];
+
+p36 [label="ERCC"];
+p111 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p36 -> p111 [label="ercc_abundances"];
+
+p37 [shape=point,label="",fixedsize=true,width=0.1,xlabel="Channel.fromPath"];
+p38 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p37 -> p38;
+
+p38 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p39 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p38 -> p39;
+
+p39 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p40 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p39 -> p40;
+
+p40 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p41 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p40 -> p41;
+
+p41 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p42 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="ifEmpty"];
+p41 -> p42;
+
+p42 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="ifEmpty"];
+p43 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p42 -> p43;
+
+p43 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p48 [label="QualityUntrimmed"];
+p43 -> p48 [label="fastqc_untrimmed_inputs"];
+
+p43 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p51 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="join"];
+p43 -> p51 [label="adaptive_trimming_fastqs"];
+
+p43 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p44 [label="IndividualManifest"];
+p43 -> p44 [label="manifest_creation"];
+
+p43 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p94 [label="TXQuant"];
+p43 -> p94 [label="salmon_inputs"];
+
+p44 [label="IndividualManifest"];
+p45 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p44 -> p45 [label="individual_manifests"];
+
+p45 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p46 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p45 -> p46;
+
+p46 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p47 [label="Manifest"];
+p46 -> p47 [label="individual_manifest_files"];
+
+p47 [label="Manifest"];
+p131 [label="CountObjects"];
+p47 -> p131 [label="counts_samples_manifest"];
+
+p47 [label="Manifest"];
+p141 [label="CoverageObjects"];
+p47 -> p141 [label="fullCov_samples_manifest"];
+
+p48 [label="QualityUntrimmed"];
+p49 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p48 -> p49 [label="quality_reports"];
+
+p48 [label="QualityUntrimmed"];
+p98 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p48 -> p98 [label="count_objects_quality_reports"];
+
+p48 [label="QualityUntrimmed"];
+p99 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p48 -> p99 [label="count_objects_quality_metrics"];
+
+p49 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p50 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p49 -> p50;
+
+p50 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p51 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="join"];
+p50 -> p51;
+
+p51 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="join"];
+p52 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="ifEmpty"];
+p51 -> p52;
+
+p52 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="ifEmpty"];
+p53 [label="AdaptiveTrimSingleReads"];
+p52 -> p53 [label="adaptive_trimming_single_inputs"];
+
+p53 [label="AdaptiveTrimSingleReads"];
+p54 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p53 -> p54 [label="trimming_fastqs"];
+
+p53 [label="AdaptiveTrimSingleReads"];
+p57 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p53 -> p57 [label="no_trimming_fastqs"];
+
+p54 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p55 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="filter"];
+p54 -> p55;
+
+p55 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="filter"];
+p56 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p55 -> p56;
+
+p56 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p60 [label="Trimming"];
+p56 -> p60 [label="trimming_inputs"];
+
+p57 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p58 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="filter"];
+p57 -> p58;
+
+p58 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="filter"];
+p59 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p58 -> p59;
+
+p59 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p64 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p59 -> p64 [label="no_trim_fastqs"];
+
+p60 [label="Trimming"];
+p61 [label="QualityTrimmed"];
+p60 -> p61 [label="trimmed_fastqc_inputs"];
+
+p60 [label="Trimming"];
+p62 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p60 -> p62 [label="trimmed_hisat_inputs"];
+
+p62 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p63 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p62 -> p63;
+
+p63 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p64 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p63 -> p64;
+
+p64 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p65 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="ifEmpty"];
+p64 -> p65;
+
+p65 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="ifEmpty"];
+p66 [label="SingleEndHISAT"];
+p65 -> p66 [label="single_hisat_inputs"];
+
+p66 [label="SingleEndHISAT"];
+p67 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p66 -> p67 [label="hisat_single_output"];
+
+p66 [label="SingleEndHISAT"];
+p100 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p66 -> p100 [label="alignment_summaries"];
+
+p67 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p68 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p67 -> p68;
+
+p68 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="map"];
+p69 [label="SamtoBam"];
+p68 -> p69 [label="sam_to_bam_inputs"];
+
+p69 [label="SamtoBam"];
+p70 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p69 -> p70 [label="infer_experiment_inputs"];
+
+p69 [label="SamtoBam"];
+p78 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p69 -> p78 [label="feature_bam_inputs"];
+
+p69 [label="SamtoBam"];
+p80 [label="PrimaryAlignments"];
+p69 -> p80 [label="alignment_bam_inputs"];
+
+p69 [label="SamtoBam"];
+p84 [label="Coverage"];
+p69 -> p84 [label="coverage_bam_inputs"];
+
+p69 [label="SamtoBam"];
+p132 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p69 -> p132 [label="full_coverage_bams"];
+
+p69 [label="SamtoBam"];
+p95 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p69 -> p95 [label="count_objects_bam_files"];
+
+p69 [label="SamtoBam"];
+p142 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p69 -> p142 [label="variant_calls_bam"];
+
+p70 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p71 [label="InferExperiment"];
+p70 -> p71 [label="infer_experiments"];
+
+p71 [label="InferExperiment"];
+p72 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p71 -> p72 [label="infer_experiment_outputs"];
+
+p72 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p73 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p72 -> p73;
+
+p73 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p74 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p73 -> p74;
+
+p74 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p77 [label="InferStrandness"];
+p74 -> p77 [label="infer_experiment_output"];
+
+p75 [shape=point,label="",fixedsize=true,width=0.1];
+p77 [label="InferStrandness"];
+p75 -> p77 [label="infer_strandness"];
+
+p76 [shape=point,label="",fixedsize=true,width=0.1];
+p77 [label="InferStrandness"];
+p76 -> p77 [label="check_R_packages_script"];
+
+p77 [label="InferStrandness"];
+p84 [label="Coverage"];
+p77 -> p84 [label="inferred_strand_coverage"];
+
+p77 [label="InferStrandness"];
+p92 [label="MeanCoverage"];
+p77 -> p92 [label="inferred_strand_mean_coverage"];
+
+p77 [label="InferStrandness"];
+p141 [label="CoverageObjects"];
+p77 -> p141 [label="inferred_strand_objects"];
+
+p78 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p79 [label="FeatureCounts"];
+p78 -> p79 [label="feature_counts_inputs"];
+
+p79 [label="FeatureCounts"];
+p102 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p79 -> p102 [label="sample_counts"];
+
+p80 [label="PrimaryAlignments"];
+p82 [label="Junctions"];
+p80 -> p82 [label="primary_alignments"];
+
+p81 [shape=point,label="",fixedsize=true,width=0.1];
+p82 [label="Junctions"];
+p81 -> p82 [label="bed_to_juncs"];
+
+p82 [label="Junctions"];
+p103 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p82 -> p103 [label="regtools_outputs"];
+
+p83 [shape=point,label="",fixedsize=true,width=0.1];
+p84 [label="Coverage"];
+p83 -> p84 [label="chr_sizes"];
+
+p84 [label="Coverage"];
+p86 [label="WigToBigWig"];
+p84 -> p86 [label="wig_files"];
+
+p85 [shape=point,label="",fixedsize=true,width=0.1];
+p86 [label="WigToBigWig"];
+p85 -> p86 [label="chr_sizes"];
+
+p86 [label="WigToBigWig"];
+p87 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p86 -> p87 [label="coverage_bigwigs"];
+
+p87 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p88 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p87 -> p88;
+
+p88 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p89 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p88 -> p89;
+
+p89 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p90 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p89 -> p90;
+
+p90 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p92 [label="MeanCoverage"];
+p90 -> p92 [label="mean_coverage_bigwigs"];
+
+p90 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="into"];
+p135 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p90 -> p135 [label="full_coverage_bigwigs"];
+
+p91 [shape=point,label="",fixedsize=true,width=0.1];
+p92 [label="MeanCoverage"];
+p91 -> p92 [label="chr_sizes"];
+
+p92 [label="MeanCoverage"];
+p93 [shape=point];
+p92 -> p93 [label="mean_bigwigs"];
+
+p92 [label="MeanCoverage"];
+p152 [label="ExpressedRegions"];
+p92 -> p152 [label="expressed_regions_mean_bigwigs"];
+
+p94 [label="TXQuant"];
+p107 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p94 -> p107 [label="salmon_quants"];
+
+p95 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p96 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="buffer"];
+p95 -> p96;
+
+p96 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="buffer"];
+p97 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p96 -> p97;
+
+p97 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p98 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p97 -> p98;
+
+p98 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p99 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p98 -> p99;
+
+p99 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p100 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p99 -> p100;
+
+p100 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p101 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p100 -> p101;
+
+p101 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p102 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p101 -> p102;
+
+p102 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p103 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p102 -> p103;
+
+p103 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p104 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p103 -> p104;
+
+p104 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p105 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p104 -> p105;
+
+p105 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p106 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p105 -> p106;
+
+p106 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p107 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p106 -> p107 [label="counts_objects_channel"];
+
+p107 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p108 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p107 -> p108;
+
+p108 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p109 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p108 -> p109;
+
+p109 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p110 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p109 -> p110;
+
+p110 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p111 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p110 -> p111 [label="counts_objects_channel_1"];
+
+p111 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p112 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p111 -> p112;
+
+p112 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p113 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p112 -> p113;
+
+p113 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p114 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p113 -> p114;
+
+p114 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p131 [label="CountObjects"];
+p114 -> p131 [label="counts_inputs"];
+
+p115 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p116 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p115 -> p116;
+
+p116 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p117 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p116 -> p117;
+
+p117 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p118 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p117 -> p118 [label="rat_annotations"];
+
+p118 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p119 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p118 -> p119;
+
+p119 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p120 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p119 -> p120;
+
+p120 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p121 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p120 -> p121;
+
+p121 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p122 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p121 -> p122 [label="mouse_annotations"];
+
+p122 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p123 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p122 -> p123;
+
+p123 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p124 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p123 -> p124;
+
+p124 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p125 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p124 -> p125;
+
+p125 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p126 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p125 -> p126;
+
+p126 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p127 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p126 -> p127;
+
+p127 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p131 [label="CountObjects"];
+p127 -> p131 [label="counts_annotations"];
+
+p128 [shape=point,label="",fixedsize=true,width=0.1];
+p131 [label="CountObjects"];
+p128 -> p131 [label="create_counts"];
+
+p129 [shape=point,label="",fixedsize=true,width=0.1];
+p131 [label="CountObjects"];
+p129 -> p131 [label="ercc_actual_conc"];
+
+p130 [shape=point,label="",fixedsize=true,width=0.1];
+p131 [label="CountObjects"];
+p130 -> p131 [label="check_R_packages_script"];
+
+p132 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p133 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="buffer"];
+p132 -> p133;
+
+p133 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="buffer"];
+p134 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p133 -> p134;
+
+p134 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p135 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p134 -> p135;
+
+p135 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="mix"];
+p136 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p135 -> p136;
+
+p136 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p137 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p136 -> p137;
+
+p137 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p138 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p137 -> p138;
+
+p138 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="toSortedList"];
+p141 [label="CoverageObjects"];
+p138 -> p141 [label="full_coverage_inputs"];
+
+p139 [shape=point,label="",fixedsize=true,width=0.1];
+p141 [label="CoverageObjects"];
+p139 -> p141 [label="fullCov_file"];
+
+p140 [shape=point,label="",fixedsize=true,width=0.1];
+p141 [label="CoverageObjects"];
+p140 -> p141 [label="check_R_packages_script"];
+
+p142 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p143 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p142 -> p143;
+
+p143 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="combine"];
+p144 [label="VariantCalls"];
+p143 -> p144 [label="variant_calls"];
+
+p144 [label="VariantCalls"];
+p145 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p144 -> p145 [label="compressed_variant_calls"];
+
+p144 [label="VariantCalls"];
+p147 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p144 -> p147 [label="compressed_variant_calls_tbi"];
+
+p145 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p146 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p145 -> p146;
+
+p146 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p149 [label="VariantsMerge"];
+p146 -> p149 [label="collected_variant_calls"];
+
+p147 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="flatten"];
+p148 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p147 -> p148;
+
+p148 [shape=circle,label="",fixedsize=true,width=0.1,xlabel="collect"];
+p149 [label="VariantsMerge"];
+p148 -> p149 [label="collected_variant_calls_tbi"];
+
+p150 [shape=point,label="",fixedsize=true,width=0.1];
+p152 [label="ExpressedRegions"];
+p150 -> p152 [label="expressedRegions_file"];
+
+p151 [shape=point,label="",fixedsize=true,width=0.1];
+p152 [label="ExpressedRegions"];
+p151 -> p152 [label="chr_sizes"];
+
+}

@@ -717,6 +717,22 @@ log.info "==========================================="
 // BEGIN PIPELINE
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//Compress file fastq
+files_fastq = Channel.fromPath("${params.inputs}/*")
+process compress_files_to_gz {
+  publishDir "${params.inputs}/",mode:'copy'
+  input:
+  file fastq from files_fastq
+  output:
+  file "*.fastq.gz" into compress_files
+  when:
+  fastq.name =~ /fastq$/
+  script:
+  """
+   gzip -9 --force $fastq
+  """
+}
+
 /*
  * Step Ia: GENCODE Assembly FA
  */
