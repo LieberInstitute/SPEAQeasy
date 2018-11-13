@@ -1,0 +1,42 @@
+## main module file in mk format
+## This file controls the required tasks in a self-contained module
+## For a better understanding of the mk syntax, see https://9fans.github.io/plan9port/man/man1/mk.html
+
+## Load configuration variables
+## Uncomment for dev purposes only
+## Leave commented when the pipeline is in producction mode
+< config.mk
+
+##Variables used by the mkmodule
+# construct the fasta.gz name from the URL
+FASTA_GZ_NAME=`basename $REFERENCE_FASTA_URL`
+# AND construct the fasta name from the URL also
+# see man basename for more info
+FASTA_NAME=`basename $REFERENCE_FASTA_URL .gz`
+
+## run a virtual target (with the :V: option) to build hisat index
+## prerequirement fot this task is the gunzipped fasta
+## Preffix for hisat is built from the reference basename whitout the .fa extension"
+HISAT2_INDEX:V: $FASTA_NAME
+	echo "[DEBUGG] building hisat index using the reference: $FASTA_NAME"
+	hisat2-build -p $NUMBER_OF_THREADS $prereq `basename $prereq .fa`
+
+## gunzip the fasta reference
+## we use the --to-stdout  to redirect the compression output and be able to monitor via the $target.build mechanic when the task has been completed whitout error
+$FASTA_NAME:: $FASTA_GZ_NAME
+	echo "[DEBUGG] gunzipping fasta reference in preparation fo HISAT2 index building"
+	gunzip \
+		--to-stdout \
+		$prereq \
+	> $target.build \
+	&& mv $target.build $target
+
+## use wget to download the fasta from $REFERENCE_FASTA_URL
+## We use the --output-document=$target.build to quickly identify when the file has been fully downloaded
+## The $target.build ($FASTA_GZ_NAME.build , in practice) will be reanmed only if the wget finished without error, thanks to the && mv $target.build $target  line of code
+$FASTA_GZ_NAME::
+	echo "[DEBUGG] downloading $FASTA_GZ_NAME \n from $REFERENCE_FASTA_URL"
+	wget \
+		--output-document=$target.build \
+		$REFERENCE_FASTA_URL \
+	&& mv $target.build $target
