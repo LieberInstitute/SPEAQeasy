@@ -466,7 +466,7 @@ if (params.reference == "hg38") {
 	
 	// Step 3: hisat2
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
-	params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz"
+	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz"
 	params.fa_gz = "GRCh38.primary_assembly.genome.fa.gz"
 	params.fa = "GRCh38.primary_assembly.genome.fa"
 	params.hisat_prefix = "hisat2_GRCh38primary"
@@ -474,7 +474,7 @@ if (params.reference == "hg38") {
 
 	// Step 4: gencode gtf
 //##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
-	params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz"
+	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz"
 	params.gencode_gtf_gz = "gencode.v25.annotation.gtf.gz"
 	params.gencode_gtf = "gencode.v25.annotation.gtf"
 	params.feature_output_prefix = "Gencode.v25.hg38"
@@ -487,7 +487,7 @@ if (params.reference == "hg38") {
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg38...  (Doc ######)
 	params.step6 = true
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
-	params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
+	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
 	params.tx_fa_gz = "gencode.v25.transcripts.fa.gz"
 	params.tx_fa = "gencode.v25.transcripts.fa"
 	params.salmon_prefix = "salmon_0.8.2_index_gencode.v25.transcripts"
@@ -519,7 +519,7 @@ if (params.reference == "hg19") {
 	
 	// Step 3: hisat2
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
-	params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
+	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
 	params.fa_gz = "GRCh37.primary_assembly.genome.fa.gz"
 	params.fa = "GRCh37.primary_assembly.genome.fa"
 	params.hisat_prefix = "hisat2_GRCh37primary"
@@ -527,7 +527,7 @@ if (params.reference == "hg19") {
 	
 	// Step 4: gencode gtf
 //##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
-	params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"
+	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"
 	params.gencode_gtf_gz = "gencode.v25lift37.annotation.gtf.gz"
 	params.gencode_gtf = "gencode.v25lift37.annotation.gtf"
 	params.feature_output_prefix = "Gencode.v25lift37.hg19"
@@ -540,7 +540,7 @@ if (params.reference == "hg19") {
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg19...  (Doc ######)
 	params.step6 = true
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
-	params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
+	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
 	params.tx_fa_gz = "gencode.v25lift37.transcripts.fa.gz"
 	params.tx_fa = "gencode.v25lift37.transcripts.fa"
 	params.salmon_prefix = "salmon_0.8.2_index_gencode.v25lift37.transcripts"
@@ -572,7 +572,7 @@ if (params.reference == "mm10") {
 
 	// Step 3: hisat2
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
-	params.fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/GRCm38.primary_assembly.genome.fa.gz"
+	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/GRCm38.primary_assembly.genome.fa.gz"
 	params.fa_gz = "GRCm38.primary_assembly.genome.fa.gz"
 	params.fa = "GRCm38.primary_assembly.genome.fa"
 	params.hisat_prefix = "GRCm38_mmhisat2_GRCm38primary"
@@ -580,7 +580,7 @@ if (params.reference == "mm10") {
 
 	// Step 4: gencode gtf
 //##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
-	params.gencode_gtf_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/gencode.vM11.annotation.gtf.gz"
+	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.annotation.gtf.gz"
 	params.gencode_gtf_gz = "gencode.vM11.annotation.gtf.gz"
 	params.gencode_gtf = "gencode.vM11.annotation.gtf"
 	params.feature_output_prefix = "Gencode.M11.mm10"
@@ -593,7 +593,7 @@ if (params.reference == "mm10") {
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is mm10...  (Doc ######)
 	params.step6 = true
 //##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gz value (Dev ######)
-	params.tx_fa_link = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
+	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
 	params.tx_fa_gz = "gencode.vM11.transcripts.fa.gz"
 	params.tx_fa = "gencode.vM11.transcripts.fa"
 	params.salmon_prefix = "salmon_0.8.2_index_gencode.vM11.transcripts"
