@@ -1399,7 +1399,7 @@ process Trimming {
 	if (params.sample == "paired") {
 		output_option = "${trimming_prefix}_trimmed_forward_paired.fastq.gz ${trimming_prefix}_trimmed_forward_unpaired.fastq.gz ${trimming_prefix}_trimmed_reverse_paired.fastq.gz ${trimming_prefix}_trimmed_reverse_unpaired.fastq.gz"
 	}
-	// PATH to ILLUMINACLIP is implicitly hardcoded too, should be configurable
+	// PATH to ILLUMINACLIP is based on PATH
 	"""
 	java -Xmx512M \
 	-jar ${params.trimmomatic} \
@@ -1408,7 +1408,7 @@ process Trimming {
 	-phred33 \
 	$trimming_input \
 	$output_option \
-	ILLUMINACLIP:/usr/local/TruSeq2-PE.fa:2:30:10:1 \
+	ILLUMINACLIP:\$(which TruSeq2-PE.fa):2:30:10:1 \
 	LEADING:3 \
 	TRAILING:3 \
 	SLIDINGWINDOW:4:15 \
