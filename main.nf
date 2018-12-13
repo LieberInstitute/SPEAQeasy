@@ -228,6 +228,8 @@ if (params.reference == "rn6") {
 // Annotation Path Validation
 if (!params.annotation) {
 	params.annotations = "./Annotation"
+} else {
+    params.annotations = "${params.annotation}"
 }
 
 // Indexing Path Validation
@@ -238,6 +240,8 @@ if (!params.indexing && !params.test) {
 // Genotype Path Validation
 if (!params.genotype) {
 	params.genotypes = "./Genotyping"
+} else {
+    params.genotypes = "${params.genotype}"
 }
 
 // Experiment/Workflow Name Validation
