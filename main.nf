@@ -1417,12 +1417,12 @@ if (params.sample == "single") {
 	  file "*_align_summary.txt" into alignment_summaries
 
 	  shell:
-	  hisat_prefix = "${params.hisat_prefix}"
+	  hisat_full_prefix = "${params.annotations}/${params.hisat_assembly}/index/${params.hisat_prefix}"
 	  strand = "${params.hisat_strand}"
 	  hisat_cores = "${params.hisat_cores}"
 	  // Phred Quality is hardcoded, if it will be so, it should be pointed in the README.md
 	  '''
-	  !{params.hisat2} -p !{hisat_cores} -x !{hisat_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
+	  !{params.hisat2} -p !{hisat_cores} -x !{hisat_full_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
 	  '''
 	}
 
@@ -1454,7 +1454,7 @@ if (params.sample == "paired") {
 	  file "*_align_summary.txt" into paired_notrim_alignment_summaries
 
 	  shell:
-	  hisat_prefix = "${params.hisat_prefix}"
+	  hisat_full_prefix = "${params.annotations}/${params.hisat_assembly}/index/${params.hisat_prefix}"
 	  strand = "${params.hisat_strand}"
 	  hisat_cores = "${params.hisat_cores}"
 	  sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR.fastq.gz"
@@ -1468,7 +1468,7 @@ if (params.sample == "paired") {
 	  '''
 	  !{params.hisat2} \
 	  -p !{hisat_cores} \
-	  -x !{hisat_prefix} \
+	  -x !{hisat_full_prefix} \
 	  -1 !{sample_1_hisat} \
 	  -2 !{sample_2_hisat} \
 	  -S !{paired_notrim_hisat_prefix}_hisat_out.sam !{strand} --phred33 \
@@ -1500,7 +1500,7 @@ if (params.sample == "paired") {
 	  file "*_align_summary.txt" into paired_trim_alignment_summaries
 
 	  shell:
-	  hisat_prefix = "${params.hisat_prefix}"
+	  hisat_full_prefix = "${params.annotations}/${params.hisat_assembly}/index/${params.hisat_prefix}"
 	  strand = "${params.hisat_strand}"
 	  hisat_cores = "${params.hisat_cores}"
 	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq.gz"
@@ -1516,7 +1516,7 @@ if (params.sample == "paired") {
 	  '''
 	  !{params.hisat2} \
 	  -p !{hisat_cores} \
-	  -x !{hisat_prefix} \
+	  -x !{hisat_full_prefix} \
 	  -1 !{forward_paired} \
 	  -2 !{reverse_paired} \
 	  -U !{forward_unpaired},!{reverse_unpaired} \
