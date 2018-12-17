@@ -135,6 +135,8 @@ But first, you need to configure some variables in the following files:
 * **conf/sge_large.config**: see **sge.config**, this file is similar but should be configured to request heavier use of computational resources.
 
     + **Important**: this conf file is not used by default. It must be requested by using the `-profile sge_large` option of the nextflow command.
+    
+* **conf/jhpce.config**: this file is designed for use at the JHPCE cluster, the SGE cluster on which some of the pipeline was developed. It specifies computational resources and cluster options intended for this environment; use sge.config or sge_large.config for settings that apply more generally to SGE clusters.
 
 ### Test run ###
 
