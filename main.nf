@@ -227,7 +227,10 @@ if (params.reference == "rn6") {
 //##// OPTIONAL PARAMS BLOCK
 // Annotation Path Validation
 if (!params.annotation) {
-	params.annotations = "./Annotation"
+  // Define annotation directory from the top by default: this ensures pipeline will
+  // not fail at alignment stage if no annotation dir is specified (hisat needs the
+  // full path to locate indices but preceding processes do not)
+	params.annotations = "${workflow.projectDir}/Annotation"
 } else {
     params.annotations = "${params.annotation}"
 }
