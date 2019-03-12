@@ -387,7 +387,7 @@ juncCounts = lapply(juncCounts, function(x) x[jIndex,])
 
 ############ anno/jMap
 anno = juncCounts$anno
-seqlevels(anno, force=TRUE) = paste0("chr", c(1:19,"X","Y","M"))
+seqlevels(anno, pruning.mode="coarse") = paste0("chr", c(1:19,"X","Y","M"))
 
 ## add additional annotation
 anno$inGencode = countOverlaps(anno, theJunctions, type="equal") > 0
