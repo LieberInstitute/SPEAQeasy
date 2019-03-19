@@ -3,7 +3,8 @@ outmess <- "Log: checking R packages\n=============="
 
 #  Use BiocManager to manage installation of Bioconductor packages: this
 #  replaces the deprecated BiocInstaller and biocLite
-install.packages("BiocManager", repos='http://cran.us.r-project.org')
+if (!requireNamespace("BiocManager", quietly=TRUE))
+  install.packages("BiocManager", repos='http://cran.us.r-project.org')
 
 # Set the vector with package names required by the pipeline
 # jaffelab was removed from this install block since it is installed in the previous block
@@ -15,7 +16,7 @@ packages <- c('devtools','Biostrings', 'GenomicRanges', 'GenomicFeatures', 'org.
               'plyr', 'rtracklayer', 'RColorBrewer','LieberInstitute/jaffelab')
 
 ## Try to load the required packages and send a message for each package that fails to load
-load_res <- sapply(packages, requireNamespace, quietly = TRUE)
+load_res <- sapply(gsub('.*/', '', packages), requireNamespace, quietly = TRUE)
 if(any(!load_res)) {
   outmess <- c(outmess,paste0("check_R_packages.R: missing the package: ",names(which(load_res == F))))
 }
