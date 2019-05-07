@@ -2189,7 +2189,7 @@ if (params.step8) {
 
 		shell:
 		'''
-		!{params.vcfmerge} !{collected_variants} | bgzip -c > mergedVariants.vcf.gz
+		!{params.bcftools} merge !{collected_variants} | bgzip -c > mergedVariants.vcf.gz
 		'''
 	}
 }
