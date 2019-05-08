@@ -132,8 +132,7 @@ if (opt$paired==TRUE) {
 	for (i in c(1:2)) {
 		qcData = file.path(".", paste0(fileNames[,i],"_fastqc_data.txt"))
 				
-		R = sapply(qcData, function(x) scan(x, what="character", sep="\n", quiet=TRUE, strip=TRUE) )
-    R = lapply(1:ncol(R), function(x) R[,x])  #  Format matrix as list where each element is a column
+		R = lapply(qcData, function(x) scan(x, what="character", sep="\n", quiet=TRUE, strip=TRUE) )
     names(R) = metrics$SAMPLE_ID
 		
 		## Split list into sublists of metric categories
