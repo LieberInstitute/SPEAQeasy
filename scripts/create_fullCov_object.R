@@ -49,15 +49,21 @@ if(opt$fullcov) {
     } else {
         CHR <- paste0("chr",c(1:22,"X","Y","M"))
     }
-    stopifnot(grepl('M', CHR[length(CHR)]))
-
+    
+    #  Check bw file(s) to see which chromosomes have a nonzero number of mapped reads.
+    #  'fullCoverage' will be passed this subset of chromosomes. If there are multiple
+    #  samples, the filtering process requires that all samples have a >0 amount.
+    goodChrs = rep(TRUE, length(CHR))
+    for (f in info$bwFile) {
+      goodChrs = goodChrs & sapply(CHR, function(thisChr) getTotalMapped(f, thisChr) > 0)
+    }
+    CHR = CHR[goodChrs]
+      
     ###################################################################
 
     ## Uses BAM files if the bigwigs are strand specific
     strandrule <- readLines(file.path(opt$maindir,
         'inferred_strandness_pattern.txt'))
-    ## iaguilar: if any of the chr is not pressent in the input files, this script fails.
-    ## CHR should be set automatically to the chr names pressent in the input files...
     if(strandrule == 'none') {
         fullCov <- fullCoverage(files = info$bwFile, chrs = CHR,
             mc.cores = opt$cores)
