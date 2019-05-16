@@ -280,22 +280,6 @@ if (params.prefix) {
 //##TODO(iaguilar): Comment in original dev was: "It's the directory where the shell files are located at. You only need to specify it if you cloned this repository somewhere else"; since this scripts folder will be versioned with the NF pipeline, there is no need to allow it to be on another directory (Dev ######)
 params.scripts = "./scripts"
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Core Options
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//##TODO(iaguilar): Add brief descriptions for what are the cores used (parallelization level, by sample, by chunk, etc) (Doc ######)
-params.cores = '4'
-params.ercc_cores = '4'
-params.trimming_cores = '4'
-params.hisat_cores = '4'
-params.samtobam_cores = '4'
-params.featurecounts_cores = '4'
-params.alignments_cores = '4'
-params.salmon_cores = '1'
-params.counts_cores = '4'
-params.coverage_cores = '4'
-params.expressedregion_cores = '4'
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Input Path Options
@@ -784,7 +768,7 @@ process pullGENCODEassemblyfa {
 		prefix = "${params.hisat_prefix}"
 		/* $prefix is "the hisat2_index_base. Write ht2 data to files with this dir/basename" */
 		"""
-			${params.hisat2build} -p "${params.hisat_cores}" $reference_fasta $prefix
+			${params.hisat2build} -p $task.cpus $reference_fasta $prefix
 		"""
 	}
 
@@ -888,37 +872,6 @@ if (params.step6) {
 	 * Step IIIb: Salmon Transcript Build
 	 */
 
-/* 	NOT FULLY WORKING; seems the salmon_index channel manipulation in this version affects the TXQUANT process; only one sample gets processed
-if ( ! file("${params.salmon_idx_output}/salmon/${params.salmon_prefix}").exists() ){
-		//If file does not exists, launch process to create it
-		println "[WG-LOG] creating ${params.salmon_idx_output}/salmon/${params.salmon_prefix}/*"
-		process buildSALMONindex {
-
-			
-			tag "Building Salmon Index: ${params.salmon_prefix}"
-			publishDir "${params.salmon_idx_output}/salmon",'mode':'copy'
-
-			input:
-			file tx_file from transcript_fa
-
-			output:
-			file("${params.salmon_prefix}") into salmon_index
-
-			script:
-			salmon_idx = "${params.salmon_prefix}"
-			"""
-				${params.salmon} index -t $tx_file -i $salmon_idx -p ${params.salmon_cores} --type quasi -k 31
-			"""
-		}
-	} else {
-		//If directory already exists, load it from path into the corresponding channel
-		println "[WG-LOG] Skipping build process for ${params.salmon_idx_output}/salmon/${params.salmon_prefix}, directory already exist"
-		Channel
-			.fromPath("${params.salmon_idx_output}/salmon/${params.salmon_prefix}")
-			.set{ salmon_index }
-	}
-} */
-
   // Uses "storeDir" to build salmon index only if the pre-built file is not present; outputs
   // this cached file otherwise
 	process buildSALMONindex {
@@ -936,7 +889,7 @@ if ( ! file("${params.salmon_idx_output}/salmon/${params.salmon_prefix}").exists
 		script:
 		salmon_idx = "${params.salmon_prefix}"
 		"""
-			${params.salmon} index -t $tx_file -i $salmon_idx -p ${params.salmon_cores} --type quasi -k 31
+			${params.salmon} index -t $tx_file -i $salmon_idx -p $task.cpus --type quasi -k 31
 		"""
 	}
 
@@ -1057,10 +1010,9 @@ if (params.ercc) {
 		file("${ercc_prefix}_abundance.tsv") into ercc_abundances
 
 		script:
-		ercc_cores = "${params.ercc_cores}"
 		strand_option = "${params.kallisto_strand}"
 		"""
-		${params.kallisto} quant -i $erccidx -t $ercc_cores -o . $strand_option $ercc_input \
+		${params.kallisto} quant -i $erccidx -t $task.cpus -o . $strand_option $ercc_input \
 		&& cp abundance.tsv ${ercc_prefix}_abundance.tsv
 		"""
 	}
@@ -1342,7 +1294,6 @@ process Trimming {
 	file "*.fastq.gz" into trimmed_fastqc_inputs, trimmed_hisat_inputs
 
 	script:
-	trimming_cores = "${params.trimming_cores}"
 	sample_option = "${params.trim_sample}"
 	if (params.sample == "single") {
 		output_option = "${trimming_prefix}_trimmed.fastq.gz"
@@ -1355,7 +1306,7 @@ process Trimming {
 	java -Xmx512M \
 	-jar ${params.trimmomatic} \
 	$sample_option \
-	-threads $trimming_cores \
+	-threads $task.cpus \
 	-phred33 \
 	$trimming_input \
 	$output_option \
@@ -1422,10 +1373,9 @@ if (params.sample == "single") {
 	  shell:
 	  hisat_full_prefix = "${params.annotations}/${params.hisat_assembly}/index/${params.hisat_prefix}"
 	  strand = "${params.hisat_strand}"
-	  hisat_cores = "${params.hisat_cores}"
 	  // Phred Quality is hardcoded, if it will be so, it should be pointed in the README.md
 	  '''
-	  !{params.hisat2} -p !{hisat_cores} -x !{hisat_full_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
+	  !{params.hisat2} -p !{task.cpus} -x !{hisat_full_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
 	  '''
 	}
 
@@ -1459,7 +1409,6 @@ if (params.sample == "paired") {
 	  shell:
 	  hisat_full_prefix = "${params.annotations}/${params.hisat_assembly}/index/${params.hisat_prefix}"
 	  strand = "${params.hisat_strand}"
-	  hisat_cores = "${params.hisat_cores}"
 	  sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR.fastq.gz"
 	  sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR.fastq.gz"
 	  if (params.unalign) {
@@ -1470,7 +1419,7 @@ if (params.sample == "paired") {
 	  }
 	  '''
 	  !{params.hisat2} \
-	  -p !{hisat_cores} \
+	  -p !{task.cpus} \
 	  -x !{hisat_full_prefix} \
 	  -1 !{sample_1_hisat} \
 	  -2 !{sample_2_hisat} \
@@ -1505,7 +1454,6 @@ if (params.sample == "paired") {
 	  shell:
 	  hisat_full_prefix = "${params.annotations}/${params.hisat_assembly}/index/${params.hisat_prefix}"
 	  strand = "${params.hisat_strand}"
-	  hisat_cores = "${params.hisat_cores}"
 	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq.gz"
 	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired.fastq.gz"
 	  forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.fastq.gz"
@@ -1518,7 +1466,7 @@ if (params.sample == "paired") {
 	  }
 	  '''
 	  !{params.hisat2} \
-	  -p !{hisat_cores} \
+	  -p !{task.cpus} \
 	  -x !{hisat_full_prefix} \
 	  -1 !{forward_paired} \
 	  -2 !{reverse_paired} \
@@ -1561,10 +1509,9 @@ process SamtoBam {
 	script:
 	original_bam = "${sam_to_bam_prefix}_accepted_hits.bam"
 	sorted_bam = "${sam_to_bam_prefix}_accepted_hits.sorted"
-	samtobam_cores = "${params.samtobam_cores}"
 	"""
 	${params.samtools} view -bh -F 4 $sam_to_bam_input > $original_bam
-	${params.samtools} sort -T temporary -@ $samtobam_cores $original_bam -o ${sorted_bam}.bam
+	${params.samtools} sort -T temporary -@ $task.cpus $original_bam -o ${sorted_bam}.bam
 	${params.samtools} index ${sorted_bam}.bam
 	"""
 }
@@ -1662,13 +1609,12 @@ process FeatureCounts {
 		sample_option = "-p"
 	}
 	feature_out = "${feature_prefix}_${params.feature_output_prefix}"
-	featurecounts_cores = "${params.featurecounts_cores}"
 	feature_strand = "${params.feature_strand}"
 	"""
 	${params.featureCounts} \
 	-s $feature_strand \
 	$sample_option \
-	-T $featurecounts_cores \
+	-T $task.cpus \
 	-a $gencode_gtf_feature \
 	-o ${feature_out}_Genes.counts \
 	$feature_bam
@@ -1678,7 +1624,7 @@ process FeatureCounts {
 	$sample_option \
 	-O \
 	-f \
-	-T $featurecounts_cores \
+	-T $task.cpus \
 	-a $gencode_gtf_feature \
 	-o ${feature_out}_Exons.counts \
 	$feature_bam
@@ -1702,9 +1648,8 @@ process PrimaryAlignments {
 	set val("${alignment_prefix}"), file("${alignment_prefix}.bam"), file("${alignment_prefix}.bam.bai") into primary_alignments
 
 	script:
-	alignments_cores = "${params.alignments_cores}"
 	"""
-	${params.samtools} view -@ $alignments_cores -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
+	${params.samtools} view -@ $task.cpus -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
 	${params.samtools} index ${alignment_prefix}.bam
 	"""
 }
@@ -1874,7 +1819,6 @@ if (params.step6) {
 		file("${salmon_input_prefix}_quant.sf") into salmon_quants
 
 		shell:
-		salmon_cores = "${params.salmon_cores}"
 		salmon_index_prefix = "${params.salmon_prefix}"
 		if (params.sample == "single") {
 			sample_command = "-r ${salmon_input_prefix}.fastq.gz"
@@ -1905,7 +1849,7 @@ if (params.step6) {
 		##cp !{salmon_index} !{salmon_index_prefix}/.
 		!{params.salmon} quant \
 		-i !{salmon_index} \
-		-p !{salmon_cores} \
+		-p !{task.cpus} \
 		-l !{salmon_strand} \
 		!{sample_command} \
 		-o !{salmon_input_prefix}
@@ -2056,7 +2000,6 @@ process CountObjects {
 	if (params.strand == "reverse") {
 		counts_strand = "-s reverse"
 	}
-	counts_cores = "${params.counts_cores}"
 	counts_reference = "${params.reference}"
 	counts_experiment = "${params.experiments}"
 	counts_prefix = "${params.experiment_prefix}"
@@ -2064,7 +2007,7 @@ process CountObjects {
 	'''
 	## Run the script to check for missing rpackages
 	Rscript !{check_R_packages_script} \
-	&& Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{counts_cores} !{counts_strand}
+	&& Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
 	'''
 }
 
@@ -2108,14 +2051,13 @@ process CoverageObjects {
 		if (params.sample == "single") {
 			coverage_pe = "FALSE"
 		}
-		coverage_cores = "${params.coverage_cores}"
 		coverage_reference = "${params.reference}"
 		coverage_experiment = "${params.experiment}"
 		coverage_prefix = "${params.experiment_prefix}"
 		coverage_fullCov = "TRUE"
 		'''
 		Rscript !{check_R_packages_script}
-		Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{coverage_cores}
+		Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{task.cpus}
 		'''
 	}
 }
@@ -2213,7 +2155,6 @@ process ExpressedRegions {
     file "*" 
 
     shell:
-    expressed_regions_cores = "${params.expressedregion_cores}"
     '''
     for meanfile in ./mean*.bw
     do
@@ -2221,7 +2162,7 @@ process ExpressedRegions {
     	-m ${meanfile} \
     	-o . \
     	-i !{chr_sizes} \
-    	-c !{expressed_regions_cores}
+    	-c !{task.cpus}
     done
     '''
 }
