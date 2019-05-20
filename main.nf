@@ -890,7 +890,7 @@ if (params.step6) {
 		script:
 		salmon_idx = "${params.salmon_prefix}"
 		"""
-			${params.salmon} index -t $tx_file -i $salmon_idx -p $task.cpus --type quasi -k 31
+			${params.salmon} index -t $tx_file -i $salmon_idx -p $task.cpus --type quasi -k ${params.salmon_min_read_len}
 		"""
 	}
 
@@ -1678,7 +1678,7 @@ process Junctions {
 	outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
 	outcount = "${junction_prefix}_junctions_primaryOnly_regtools.count"
 	'''
-	!{params.regtools} junctions extract -i 9 -o !{outjxn} !{alignment_bam}
+	!{params.regtools} junctions extract -i !{params.juncts_min_intron_len} -o !{outjxn} !{alignment_bam}
 	python !{bed_to_juncs} < !{outjxn} > !{outcount}
 	'''
 }
@@ -1722,15 +1722,15 @@ process Coverage {
 	'''
 	export coverage_strand_rule=$(cat !{inferred_strand})
 	if [ $coverage_strand_rule == "none" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix}
+		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix}
 	elif [ $coverage_strand_rule == "1++,1--,2+-,2-+" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1++,1--,2+-,2-+"
+		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "1++,1--,2+-,2-+"
 	elif [ $coverage_strand_rule == "1+-,1-+,2++,2--" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "1+-,1-+,2++,2--"
+		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "1+-,1-+,2++,2--"
 	elif [ $coverage_strand_rule == "++,--" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "++,--"
+		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "++,--"
 	elif [ $coverage_strand_rule == "+-,-+" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t 4000000000 -o !{coverage_prefix} -d "+-,-+"
+		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "+-,-+"
 	fi
 	'''
 }
@@ -2081,7 +2081,7 @@ if (params.step8) {
 		snptmp = "${variant_bams_prefix}_tmp.vcf"
 		snpoutgz = "${variant_bams_prefix}.vcf.gz"
 		'''
-		!{params.samtools} mpileup -l !{snv_bed} -AB -q0 -Q13 -d1000000 -uf !{variant_assembly_file} !{variant_calls_bam_file} -o !{snptmp}
+		!{params.samtools} mpileup -l !{snv_bed} -AB -q !{params.samtools_min_map_q} -Q !{params.samtools_min_base_q} -d !{params.samtools_max_depth} -uf !{variant_assembly_file} !{variant_calls_bam_file} -o !{snptmp}
 		!{params.bcftools} call -mv -Oz !{snptmp} > !{snpoutgz}
 		!{params.tabix} -p vcf !{snpoutgz}
 		'''
