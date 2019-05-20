@@ -490,6 +490,7 @@ if (params.reference == "hg38") {
 	junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
 	feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
 	feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
+  exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
 	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
 	if (params.wg_test ) {
 		create_counts = file("${params.scripts}/create_count_objects-human_v2.R.WG_compatible")
@@ -1914,46 +1915,35 @@ if (!params.ercc) {
  */
 
 junction_annotation_ensembl
-  .collect()
-  .flatten()
   .toSortedList()
-  .set{rat_annotations}
+  .set{temp_annotations}
 
-if (params.reference_type == "rat") {
-	rat_annotations
-	  .collect()
-	  .flatten()
-	  .toSortedList()
-	  .set{counts_annotations}
-}
-
-//TODO (iaguilar:) Check why rat has its own object (and it says mouse...)
-if(params.reference_type != "rat") {
-
-	rat_annotations
-	  .mix(junction_annotation_gencode)
-	  .collect()
-	  .flatten()
-	  .toSortedList()
-	  .set{mouse_annotations}
-}
-
-if(params.reference_type == "mouse") {
-	mouse_annotations
-	  .collect()
-	  .flatten()
-	  .toSortedList()
-	  .set{counts_annotations}
-}
-
-if(params.reference_type == "human") {
-	mouse_annotations
+//  Mix with reference-dependent annotation info
+if(params.reference == "hg19") {
+	temp_annotations
 	  .mix(junction_annotation_genes)
+    .mix(junction_annotation_gencode)
 	  .mix(feature_to_tx_gencode)
 	  .mix(feature_to_tx_ensembl)
-	  .collect()
-	  .flatten()
-	  .toSortedList()
+    .toSortedList()
+	  .set{counts_annotations}
+} else if (params.reference == "hg38") {
+	temp_annotations
+    .mix(junction_annotation_genes)
+    .mix(junction_annotation_gencode)
+	  .mix(feature_to_tx_gencode)
+	  .mix(feature_to_tx_ensembl)
+    .mix(exon_maps_by_coord_hg38)
+    .toSortedList()
+	  .set{counts_annotations}
+} else if (params.reference_type == "mouse") {
+  temp_annotations
+    .mix(junction_annotation_gencode)
+    .toSortedList()
+	  .set{counts_annotations}
+} else {  // rat
+  temp_annotations
+    .toSortedList()
 	  .set{counts_annotations}
 }
 

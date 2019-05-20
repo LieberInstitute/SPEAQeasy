@@ -569,6 +569,7 @@ if (opt$organism == "hg19") {
 	load(file.path(RDIR, "feature_to_Tx_hg19_gencode_v25lift37.rda"))
 } else if (opt$organism == "hg38") { 
 	load(file.path(RDIR, "feature_to_Tx_hg38_gencode_v25.rda")) 
+	load(file.path(RDIR, "exonMaps_by_coord_hg38_gencode_v25.rda"))
 }
 
 ## gene annotation
@@ -583,11 +584,35 @@ geneMap$gencodeTx = sapply(tx,paste0,collapse=";")
 ## exon annotation
 exonMap$Class = "InGen"
 exonMap$meanExprs = rowMeans(exonRpkm)
-mmTx = match(exonMap$exon_libdID, names(allTx))
-tx = CharacterList(vector("list", nrow(exonMap)))
-tx[!is.na(mmTx)] = allTx[mmTx[!is.na(mmTx)]]
-exonMap$NumTx = elementNROWS(tx)
-exonMap$gencodeTx = sapply(tx,paste0,collapse=";")
+exonMap$coord = paste0(exonMap$Chr,":",exonMap$Start,"-",exonMap$End,"(",exonMap$Strand,")")
+if (opt$organism == "hg19") {
+	mmTx = match(exonMap$exon_libdID, names(allTx))
+	tx = CharacterList(vector("list", nrow(exonMap)))
+	tx[!is.na(mmTx)] = allTx[mmTx[!is.na(mmTx)]]
+	exonMap$NumTx = elementNROWS(tx)
+	exonMap$gencodeTx = sapply(tx,paste0,collapse=";")
+	
+} else if (opt$organism == "hg38") { 
+	exonMap = exonMap[,-which(colnames(exonMap) %in% c("exon_gencodeID","exon_libdID"))]
+
+	mmENSE = match(exonMap$coord, names(coordToENSE))
+	ENSE = CharacterList(vector("list", nrow(exonMap)))
+	ENSE[!is.na(mmENSE)] = coordToENSE[mmENSE[!is.na(mmENSE)]]
+	exonMap$NumENSE = elementNROWS(ENSE)
+	exonMap$exon_gencodeID = sapply(ENSE,paste0,collapse=";")
+	
+	mmLIBD = match(exonMap$coord, names(coordToEid))
+	libdID = CharacterList(vector("list", nrow(exonMap)))
+	libdID[!is.na(mmLIBD)] = coordToEid[mmLIBD[!is.na(mmLIBD)]]
+	exonMap$NumLIBD = elementNROWS(libdID)
+	exonMap$exon_libdID = sapply(libdID,paste0,collapse=";")
+	
+	mmTx = match(exonMap$coord, names(coordToTX))
+	tx = CharacterList(vector("list", nrow(exonMap)))
+	tx[!is.na(mmTx)] = coordToTX[mmTx[!is.na(mmTx)]]
+	exonMap$NumTx = elementNROWS(tx)
+	exonMap$gencodeTx = sapply(tx,paste0,collapse=";")
+}
 
 
 ## Create gene,exon RangedSummarizedExperiment objects
