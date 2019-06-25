@@ -211,17 +211,17 @@ if (!params.strand || (params.strand != "forward" && params.strand != "reverse" 
 }
 
 // Reference Selection Validation
-if (!params.reference) {
-	exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
-}
 if (params.reference == "hg19" || params.reference == "hg38" ) {
 	params.reference_type = "human"
 }
-if (params.reference == "mm10") {
+else if (params.reference == "mm10") {
 	params.reference_type = "mouse"
 }
-if (params.reference == "rn6") {
+else if (params.reference == "rn6") {
 	params.reference_type = "rat"
+}
+else {
+  exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
 }
 
 //##// OPTIONAL PARAMS BLOCK
@@ -333,17 +333,15 @@ if (params.small_test && params.test) {
 // Strand Option Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-if (!params.k_lm) {
-	params.k_length_mean = 200
-}
-if (!params.k_sd) {
-	params.k_standard_deviation = 30
-}
 if (params.k_lm){
 	params.k_length_mean = params.k_lm
+} else {
+  params.k_length_mean = 200
 }
 if (params.k_sd) {
 	params.k_standard_deviation = params.k_sd
+} else {
+  params.k_standard_deviation = 30
 }
 //##TODO(iaguilar): Expand what is every param used for and why is this value assigned (Doc ######)
 if (params.strand == "unstranded") {
@@ -397,30 +395,13 @@ if (params.strand == "reverse") {
 if (params.output) {
 	params.basedir = "${params.output}"
 	params.index_out = "${params.annotations}"
-}
-if (!params.output) {
-//##TODO(iaguilar): What is params.production_baseout used for? (Doc ######)
-	params.production_baseout = "."
-//##TODO(iaguilar): What is params.test_baseout used for? (Doc ######)
-	params.test_baseout = "."
-	if (params.test) {
-		params.index_out = "${params.test_baseout}/Annotation"
-		if (params.merge) {
-			params.basedir = "${params.test_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}/merge"
-		}
-		if (!params.merge) {
-			params.basedir = "${params.test_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}"
-		}
-	}
-	if (!params.test) {
-		params.index_out = "${params.production_baseout}/Annotation"
-		if (params.merge) {
-			params.basedir = "${params.production_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}/merge"
-		}
-		if (!params.merge) {
-		params.basedir = "${params.production_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}"
-		}
-	}
+} else {
+  params.index_out = "./Annotation"
+  if (params.merge) {
+    params.basedir = "./results/${params.reference_type}/${params.reference}/${params.sample}/merge"
+  } else {
+		params.basedir = "./results/${params.reference_type}/${params.reference}/${params.sample}"
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -929,7 +910,7 @@ if (params.merge) {
 
 		shell:
 		'''
-		## Use of a local prefiz variable helps to avoid generating dump data in input dir due to fullpaths being captured by merging_prefix NF variable
+		## Use of a local prefix variable helps to avoid generating dump data in input dir due to fullpaths being captured by merging_prefix NF variable
 		local_prefix=`echo !{merging_prefix} | rev | cut -d "/" -f1 | rev`
 		read1="${local_prefix}_read1.fastq.gz"
 		read2="${local_prefix}_read2.fastq.gz"
@@ -1723,14 +1704,8 @@ process Coverage {
 	export coverage_strand_rule=$(cat !{inferred_strand})
 	if [ $coverage_strand_rule == "none" ] ; then
 		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix}
-	elif [ $coverage_strand_rule == "1++,1--,2+-,2-+" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "1++,1--,2+-,2-+"
-	elif [ $coverage_strand_rule == "1+-,1-+,2++,2--" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "1+-,1-+,2++,2--"
-	elif [ $coverage_strand_rule == "++,--" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "++,--"
-	elif [ $coverage_strand_rule == "+-,-+" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "+-,-+"
+	else
+		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "${coverage_strand_rule}"
 	fi
 	'''
 }
