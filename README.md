@@ -364,7 +364,7 @@ The _conf/sge.config_ and _conf/sge_large.config_ must be properly configured be
 Original Pipeline
 
  [Emily Burke](mailto:emily.burke@libd.org>),
- [Leonardo Collado-Tores](mailto:fellgernon@gmail.com),
+ [Leonardo Collado-Tores](mailto:lcolladotor@gmail.com),
  [Andrew Jaffee](mailto:andrew.jaffe@libd.org),
  [BaDoi Phan](mailto:badoi.phan@pitt.edu) 
  

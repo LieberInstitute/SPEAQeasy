@@ -11,7 +11,7 @@ vim: syntax=groovy
  #### Authors
  ##### Original Pipeline
  Emily Burke <address@email.com>
- Leonardo Collado-Tores <fellgernon@gmail.com>
+ Leonardo Collado-Tores <lcolladotor@gmail.com>
  Andrew Jaffee <address@email.com>
  BaDoi Phan <address@email.com>
  ##### Nextflow Version
