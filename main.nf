@@ -883,7 +883,7 @@ if (params.merge) {
 	  process Merging {
 
 		
-		tag "prefix: $merging_prefix | Sample Pair: [ $unmerged_pair ]"
+		tag "Sample Pair: [ $unmerged_pair ]"
 		publishDir "${params.basedir}/merged_fastq",'mode':'copy'
 
 		input:
@@ -964,7 +964,7 @@ if (params.ercc) {
 	 process ERCC {
 
 		
-		tag "Prefix: $ercc_prefix | Sample: [ $ercc_input ]"
+		tag "Prefix: $ercc_prefix"
 		publishDir "${params.basedir}/ercc/${ercc_prefix}",'mode':'copy'
 
 		input:
@@ -1042,7 +1042,7 @@ if (!params.merge) {
 process IndividualManifest {
 
 	
-	tag "Individual Manifest: $manifest_samples $samples_prefix > samples.manifest.${samples_prefix}"
+	tag "samples.manifest.${samples_prefix}"
 	publishDir "${params.basedir}/manifest",'mode':'copy'
 
 	input:
@@ -1069,7 +1069,7 @@ individual_manifests
 process Manifest {
 
 	
-	tag "Aggregate Manifest: $individual_manifests > samples.manifest"
+	tag "Aggregate Manifest Creation"
 	publishDir "${params.basedir}/manifest",mode:'copy'
 
 	input:
@@ -1091,7 +1091,7 @@ process Manifest {
 process QualityUntrimmed {
 
 	
-	tag "Prefix: $untrimmed_prefix | Sample: [ $fastqc_untrimmed_input ]"
+	tag "Prefix: $untrimmed_prefix"
 	publishDir "${params.basedir}/FastQC/Untrimmed",mode:'copy'
 
 	input:
@@ -1134,7 +1134,7 @@ if (params.sample == "single") {
 	process AdaptiveTrimSingleReads {
 
 	  
-	  tag "Prefix: $single_adaptive_prefix : Sample: [ $single_adaptive_fastq | $single_adaptive_summary ]"
+	  tag "Prefix: $single_adaptive_prefix"
 	  publishDir "${params.basedir}/Adaptive_Trim",'mode':'copy'
 
 	  input:
@@ -1171,7 +1171,7 @@ if (params.sample == "paired") {
 	process AdaptiveTrimPairedReads {
 
 	  
-	  tag "Prefix: $paired_adaptive_prefix | Sample: [ $paired_adaptive_fastq | $paired_adaptive_summary ]"
+	  tag "Prefix: $paired_adaptive_prefix"
 	  publishDir "${params.basedir}/Adaptive_Trim",mode:'copy'
 
 	  input:
@@ -1324,7 +1324,7 @@ if (params.sample == "single") {
 	  process SingleEndHISAT {
 
 	  
-	  tag "Prefix: $single_hisat_prefix | Sample: $single_hisat_input"
+	  tag "Prefix: $single_hisat_prefix"
 	  publishDir "${params.basedir}/HISAT2_out",mode:'copy'
 
 	  input:
@@ -1360,7 +1360,7 @@ if (params.sample == "paired") {
 	process PairedEndNoTrimHISAT {
 
 	  
-	  tag "Prefix: $paired_notrim_hisat_prefix | Sample: [ $paired_no_trim_hisat ]"
+	  tag "Prefix: $paired_notrim_hisat_prefix"
 	  publishDir "${params.basedir}/HISAT2_out",'mode':'copy'
 
 	  input:
@@ -1405,7 +1405,7 @@ if (params.sample == "paired") {
 	 process PairedEndTrimmedHISAT {
 
 	  
-	  tag "Prefix: $paired_trimmed_prefix | Sample: $paired_trimmed_fastqs"
+	  tag "Prefix: $paired_trimmed_prefix"
 	  publishDir "${params.basedir}/HISAT2_out",'mode':'copy'
 
 	  input:
@@ -1463,7 +1463,7 @@ if (params.sample == "paired") {
 process SamtoBam {
 
 	
-	tag "Prefix: $sam_to_bam_prefix | Sample: $sam_to_bam_input"
+	tag "Prefix: $sam_to_bam_prefix"
 	publishDir "${params.basedir}/HISAT2_out/sam_to_bam",'mode':'copy'
 
 	input:
@@ -1493,7 +1493,7 @@ infer_experiment_inputs
 process InferExperiment {
 
 	
-	tag "Prefix: $infer_prefix | Sample: $bam_file | Index: $bam_index"
+	tag "Prefix: $infer_prefix"
 	publishDir "${params.basedir}/HISAT2_out/infer_experiment",'mode':'copy'
 
 	input:
@@ -1557,7 +1557,7 @@ feature_bam_inputs
 process FeatureCounts {
 
 	
-	tag "Prefix: $feature_prefix | Sample: $feature_bam | Sample Index: $feature_index"
+	tag "Prefix: $feature_prefix"
 	publishDir "${params.basedir}/Counts",'mode':'copy'
 
 	input:
@@ -1604,7 +1604,7 @@ process FeatureCounts {
 process PrimaryAlignments {
 
 	
-	tag "Prefix: $alignment_prefix | Sample: [ $alignment_bam ]"
+	tag "Prefix: $alignment_prefix"
 	publishDir "${params.basedir}/Counts/junction/primary_aligments",'mode':'copy'
 
 	input:
@@ -1627,7 +1627,7 @@ process PrimaryAlignments {
 process Junctions {
 
 	
-	tag "Prefix: $junction_prefix | Sample: [ $alignment_bam ]"
+	tag "Prefix: $junction_prefix"
 	publishDir "${params.basedir}/Counts/junction",'mode':'copy'
 
 	input:
@@ -1672,7 +1672,7 @@ else
 process Coverage {
 
 	echo true
-	tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
+	tag "Prefix: $coverage_prefix"
 	publishDir "${params.basedir}/Coverage/wigs",mode:'copy'
 
 	input:
@@ -1702,7 +1702,7 @@ process Coverage {
 process WigToBigWig {
 
 	
-	tag "Prefix: $wig_prefix | Sample: [ $wig_file ]"
+	tag "Prefix: $wig_prefix"
 	publishDir "${params.basedir}/Coverage/BigWigs",mode:'copy'
 
 	input:
@@ -1767,7 +1767,7 @@ if (params.step6) {
 
 	 process TXQuant {
 
-		tag "Prefix: $salmon_input_prefix | Sample: [ $salmon_inputs ]"
+		tag "Prefix: $salmon_input_prefix"
 		publishDir "${params.basedir}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
 
 		input:
@@ -1911,9 +1911,7 @@ if(params.reference == "hg19") {
 */
 
 process CountObjects {
-
-	//This tag generates long names for the job; SGE does not like long names
-	//tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
+	tag "[ $counts_input ]"
 	publishDir "${params.basedir}/Count_Objects",'mode':'copy'
 
 	input:
@@ -1977,10 +1975,8 @@ if (params.fullCov) {
 	 */
 
 process CoverageObjects {
-
-		
-		//// This tag generates long names for the job, SGE does not like long job names
-		////tag "Creating Coverage Objects [ $full_coverage_input ]"
+		// This tag generates long names for the job, SGE does not like long job names
+		tag "[ $full_coverage_input ]"
 		publishDir "${params.basedir}/Coverage_Objects",'mode':'copy'
 
 		input:
@@ -2023,10 +2019,7 @@ if (params.step8) {
 	  .set{ variant_calls }
 
 	process VariantCalls {
-
-		
-		//// This tag generates long job names that crash sge
-		////tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
+		tag "Prefix: $variant_bams_prefix"
 		publishDir "${params.basedir}/Variant_Calls",'mode':'copy'
 
 		input:
@@ -2049,15 +2042,11 @@ if (params.step8) {
 	compressed_variant_calls
 	  .flatten()
 	  .collect()
-// sorting was crashing the NF execution. There seems to be no need to sort
-//	 .toSortedList()
 	  .set{ collected_variant_calls }
 
 	compressed_variant_calls_tbi
 	  .flatten()
 	  .collect()
-// sorting was crashing the NF execution. There seems to be no need to sort
-//	 .toSortedList()
 	  .set{ collected_variant_calls_tbi }
 
 
@@ -2068,7 +2057,7 @@ if (params.step8) {
 	process VariantsMerge {
 
 		
-		tag "Samples: $collected_variants"
+		tag "Multi-sample vcf creation"
 		publishDir "${params.basedir}/Merged_Variants",'mode':'copy'
 
 		input:
