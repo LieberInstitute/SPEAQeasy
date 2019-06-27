@@ -131,10 +131,6 @@ def helpMessage() {
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--ercc			Flag to enable ERCC quantification with Kallisto
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--k_lm			Kallisto ERCC Length Mean Value for Single End Reads (defaults to 200)
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--k_sd			Kallisto ERCC Standard Deviation Value for Single End Reads (defaults to 30)
-	-----------------------------------------------------------------------------------------------------------------------------------
 	--fullCov		Flag to perform full coverage in step 7b
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--small_test	Runs the pipeline as a small test run on sample files located in the test folder
@@ -192,8 +188,6 @@ params.ercc = false
 params.fullCov = false
 params.test = false
 params.small_test = false
-params.k_lm = false
-params.k_sd = false
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validate Inputs
@@ -333,20 +327,10 @@ if (params.small_test && params.test) {
 // Strand Option Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-if (params.k_lm){
-	params.k_length_mean = params.k_lm
-} else {
-  params.k_length_mean = 200
-}
-if (params.k_sd) {
-	params.k_standard_deviation = params.k_sd
-} else {
-  params.k_standard_deviation = 30
-}
 //##TODO(iaguilar): Expand what is every param used for and why is this value assigned (Doc ######)
 if (params.strand == "unstranded") {
 	if (params.sample == "single") {
-		params.kallisto_strand = "--single -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
+		params.kallisto_strand = "--single -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
 		params.hisat_strand = ""
 		params.feature_strand = "0"
 		params.trim_sample = "SE"
@@ -360,7 +344,7 @@ if (params.strand == "unstranded") {
 }
 if (params.strand == "forward") {
 	if (params.sample == "single") {
-		params.kallisto_strand = "--single --fr-stranded -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
+		params.kallisto_strand = "--single --fr-stranded -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
 		params.hisat_strand = "--rna-strandness F"
 		params.feature_strand = "1"
 		params.trim_sample = "SE"
@@ -374,7 +358,7 @@ if (params.strand == "forward") {
 }
 if (params.strand == "reverse") {
 	if (params.sample == "single") {
-		params.kallisto_strand = "--single --rf-stranded -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
+		params.kallisto_strand = "--single --rf-stranded -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
 		params.hisat_strand = "--rna-strandness R"
 		params.feature_strand = "2"
 		params.trim_sample = "SE"
