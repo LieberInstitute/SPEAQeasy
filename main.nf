@@ -258,7 +258,7 @@ if (params.prefix) {
 // External Script Path Validation
 //##TODO(iaguilar): This param was not defined neither in help nor in the variable definition block (Dev ######)
 //##TODO(iaguilar): Comment in original dev was: "It's the directory where the shell files are located at. You only need to specify it if you cloned this repository somewhere else"; since this scripts folder will be versioned with the NF pipeline, there is no need to allow it to be on another directory (Dev ######)
-params.scripts = "./scripts"
+params.scripts = "${workflow.projectDir}/scripts"
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -274,7 +274,7 @@ if (!params.test && !params.small_test) {
 	}
 	// if no input option is provided, default input dir is ./input
 	else {
-		params.inputs = "./input"
+		params.inputs = "${workflow.projectDir}/input"
 	}
 }
 
@@ -288,18 +288,18 @@ if (!params.test && !params.small_test) {
 if (params.small_test && !params.test) {
 	if (params.strand != "unstranded") {
 		if (params.merge) {
-			params.inputs = "./test/${params.reference_type}/merge/${params.sample}/stranded"
+			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/merge/${params.sample}/stranded"
 		}
 		if (!params.merge) {
-			params.inputs = "./test/${params.reference_type}/${params.sample}/stranded"
+			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/${params.sample}/stranded"
 		}
 	}
 	if (params.strand == "unstranded") {
 		if (params.merge) {
-			params.inputs = "./test/${params.reference_type}/merge/${params.sample}/unstranded"
+			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/merge/${params.sample}/unstranded"
 		}
 		if (!params.merge) {
-			params.inputs = "./test/${params.reference_type}/${params.sample}/unstranded"
+			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/${params.sample}/unstranded"
 		}
 	}
 }
@@ -1491,7 +1491,7 @@ process InferExperiment {
 
 	shell:
 	'''
-	!{params.infer_experiment} \
+	python !{params.scripts}/infer_experiment.py \
 	-i !{bam_file} \
 	-r !{bed_file} \
 	1> !{infer_prefix}_experiment.txt \
@@ -1897,7 +1897,7 @@ if(params.reference == "hg19") {
 */
 
 process CountObjects {
-	tag "[ $counts_input ]"
+	//tag "[ $counts_input ]"
 	publishDir "${params.basedir}/Count_Objects",'mode':'copy'
 
 	input:
