@@ -131,10 +131,6 @@ def helpMessage() {
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--ercc			Flag to enable ERCC quantification with Kallisto
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--k_lm			Kallisto ERCC Length Mean Value for Single End Reads (defaults to 200)
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--k_sd			Kallisto ERCC Standard Deviation Value for Single End Reads (defaults to 30)
-	-----------------------------------------------------------------------------------------------------------------------------------
 	--fullCov		Flag to perform full coverage in step 7b
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--small_test	Runs the pipeline as a small test run on sample files located in the test folder
@@ -155,20 +151,6 @@ params.help = false
 if (params.help){
 	helpMessage()
 	exit 0
-}
-// Check that Nextflow version is up to date enough
-// try / throw / catch works for NF versions < 0.25 when this was implemented
-nf_required_version = '0.27.0'
-try {
-	if( ! nextflow.version.matches(">= $nf_required_version") ){
-		throw GroovyException('Nextflow version too old')
-	}
-} catch (all) {
-	log.error "====================================================\n" +
-			"  Nextflow version $nf_required_version required! You are running v$workflow.nextflow.version.\n" +
-			"  Pipeline execution will continue, but things may break.\n" +
-			"  Please run `nextflow self-update` to update Nextflow.\n" +
-			"============================================================"
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,8 +174,6 @@ params.ercc = false
 params.fullCov = false
 params.test = false
 params.small_test = false
-params.k_lm = false
-params.k_sd = false
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validate Inputs
@@ -211,17 +191,17 @@ if (!params.strand || (params.strand != "forward" && params.strand != "reverse" 
 }
 
 // Reference Selection Validation
-if (!params.reference) {
-	exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
-}
 if (params.reference == "hg19" || params.reference == "hg38" ) {
 	params.reference_type = "human"
 }
-if (params.reference == "mm10") {
+else if (params.reference == "mm10") {
 	params.reference_type = "mouse"
 }
-if (params.reference == "rn6") {
+else if (params.reference == "rn6") {
 	params.reference_type = "rat"
+}
+else {
+  exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
 }
 
 //##// OPTIONAL PARAMS BLOCK
@@ -278,7 +258,7 @@ if (params.prefix) {
 // External Script Path Validation
 //##TODO(iaguilar): This param was not defined neither in help nor in the variable definition block (Dev ######)
 //##TODO(iaguilar): Comment in original dev was: "It's the directory where the shell files are located at. You only need to specify it if you cloned this repository somewhere else"; since this scripts folder will be versioned with the NF pipeline, there is no need to allow it to be on another directory (Dev ######)
-params.scripts = "./scripts"
+params.scripts = "${workflow.projectDir}/scripts"
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -294,7 +274,7 @@ if (!params.test && !params.small_test) {
 	}
 	// if no input option is provided, default input dir is ./input
 	else {
-		params.inputs = "./input"
+		params.inputs = "${workflow.projectDir}/input"
 	}
 }
 
@@ -308,18 +288,18 @@ if (!params.test && !params.small_test) {
 if (params.small_test && !params.test) {
 	if (params.strand != "unstranded") {
 		if (params.merge) {
-			params.inputs = "./test/${params.reference_type}/merge/${params.sample}/stranded"
+			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/merge/${params.sample}/stranded"
 		}
 		if (!params.merge) {
-			params.inputs = "./test/${params.reference_type}/${params.sample}/stranded"
+			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/${params.sample}/stranded"
 		}
 	}
 	if (params.strand == "unstranded") {
 		if (params.merge) {
-			params.inputs = "./test/${params.reference_type}/merge/${params.sample}/unstranded"
+			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/merge/${params.sample}/unstranded"
 		}
 		if (!params.merge) {
-			params.inputs = "./test/${params.reference_type}/${params.sample}/unstranded"
+			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/${params.sample}/unstranded"
 		}
 	}
 }
@@ -333,22 +313,10 @@ if (params.small_test && params.test) {
 // Strand Option Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-if (!params.k_lm) {
-	params.k_length_mean = 200
-}
-if (!params.k_sd) {
-	params.k_standard_deviation = 30
-}
-if (params.k_lm){
-	params.k_length_mean = params.k_lm
-}
-if (params.k_sd) {
-	params.k_standard_deviation = params.k_sd
-}
 //##TODO(iaguilar): Expand what is every param used for and why is this value assigned (Doc ######)
 if (params.strand == "unstranded") {
 	if (params.sample == "single") {
-		params.kallisto_strand = "--single -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
+		params.kallisto_strand = "--single -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
 		params.hisat_strand = ""
 		params.feature_strand = "0"
 		params.trim_sample = "SE"
@@ -362,7 +330,7 @@ if (params.strand == "unstranded") {
 }
 if (params.strand == "forward") {
 	if (params.sample == "single") {
-		params.kallisto_strand = "--single --fr-stranded -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
+		params.kallisto_strand = "--single --fr-stranded -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
 		params.hisat_strand = "--rna-strandness F"
 		params.feature_strand = "1"
 		params.trim_sample = "SE"
@@ -376,7 +344,7 @@ if (params.strand == "forward") {
 }
 if (params.strand == "reverse") {
 	if (params.sample == "single") {
-		params.kallisto_strand = "--single --rf-stranded -l ${params.k_length_mean} -s ${params.k_standard_deviation}"
+		params.kallisto_strand = "--single --rf-stranded -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
 		params.hisat_strand = "--rna-strandness R"
 		params.feature_strand = "2"
 		params.trim_sample = "SE"
@@ -397,30 +365,13 @@ if (params.strand == "reverse") {
 if (params.output) {
 	params.basedir = "${params.output}"
 	params.index_out = "${params.annotations}"
-}
-if (!params.output) {
-//##TODO(iaguilar): What is params.production_baseout used for? (Doc ######)
-	params.production_baseout = "."
-//##TODO(iaguilar): What is params.test_baseout used for? (Doc ######)
-	params.test_baseout = "."
-	if (params.test) {
-		params.index_out = "${params.test_baseout}/Annotation"
-		if (params.merge) {
-			params.basedir = "${params.test_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}/merge"
-		}
-		if (!params.merge) {
-			params.basedir = "${params.test_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}"
-		}
-	}
-	if (!params.test) {
-		params.index_out = "${params.production_baseout}/Annotation"
-		if (params.merge) {
-			params.basedir = "${params.production_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}/merge"
-		}
-		if (!params.merge) {
-		params.basedir = "${params.production_baseout}/results/${params.reference_type}/${params.reference}/${params.sample}"
-		}
-	}
+} else {
+  params.index_out = "./Annotation"
+  if (params.merge) {
+    params.basedir = "./results/${params.reference_type}/${params.reference}/${params.sample}/merge"
+  } else {
+		params.basedir = "./results/${params.reference_type}/${params.reference}/${params.sample}"
+  }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -918,7 +869,7 @@ if (params.merge) {
 	  process Merging {
 
 		
-		tag "prefix: $merging_prefix | Sample Pair: [ $unmerged_pair ]"
+		tag "Sample Pair: [ $unmerged_pair ]"
 		publishDir "${params.basedir}/merged_fastq",'mode':'copy'
 
 		input:
@@ -929,7 +880,7 @@ if (params.merge) {
 
 		shell:
 		'''
-		## Use of a local prefiz variable helps to avoid generating dump data in input dir due to fullpaths being captured by merging_prefix NF variable
+		## Use of a local prefix variable helps to avoid generating dump data in input dir due to fullpaths being captured by merging_prefix NF variable
 		local_prefix=`echo !{merging_prefix} | rev | cut -d "/" -f1 | rev`
 		read1="${local_prefix}_read1.fastq.gz"
 		read2="${local_prefix}_read2.fastq.gz"
@@ -999,7 +950,7 @@ if (params.ercc) {
 	 process ERCC {
 
 		
-		tag "Prefix: $ercc_prefix | Sample: [ $ercc_input ]"
+		tag "Prefix: $ercc_prefix"
 		publishDir "${params.basedir}/ercc/${ercc_prefix}",'mode':'copy'
 
 		input:
@@ -1077,7 +1028,7 @@ if (!params.merge) {
 process IndividualManifest {
 
 	
-	tag "Individual Manifest: $manifest_samples $samples_prefix > samples.manifest.${samples_prefix}"
+	tag "samples.manifest.${samples_prefix}"
 	publishDir "${params.basedir}/manifest",'mode':'copy'
 
 	input:
@@ -1104,7 +1055,7 @@ individual_manifests
 process Manifest {
 
 	
-	tag "Aggregate Manifest: $individual_manifests > samples.manifest"
+	tag "Aggregate Manifest Creation"
 	publishDir "${params.basedir}/manifest",mode:'copy'
 
 	input:
@@ -1126,7 +1077,7 @@ process Manifest {
 process QualityUntrimmed {
 
 	
-	tag "Prefix: $untrimmed_prefix | Sample: [ $fastqc_untrimmed_input ]"
+	tag "Prefix: $untrimmed_prefix"
 	publishDir "${params.basedir}/FastQC/Untrimmed",mode:'copy'
 
 	input:
@@ -1169,7 +1120,7 @@ if (params.sample == "single") {
 	process AdaptiveTrimSingleReads {
 
 	  
-	  tag "Prefix: $single_adaptive_prefix : Sample: [ $single_adaptive_fastq | $single_adaptive_summary ]"
+	  tag "Prefix: $single_adaptive_prefix"
 	  publishDir "${params.basedir}/Adaptive_Trim",'mode':'copy'
 
 	  input:
@@ -1206,7 +1157,7 @@ if (params.sample == "paired") {
 	process AdaptiveTrimPairedReads {
 
 	  
-	  tag "Prefix: $paired_adaptive_prefix | Sample: [ $paired_adaptive_fastq | $paired_adaptive_summary ]"
+	  tag "Prefix: $paired_adaptive_prefix"
 	  publishDir "${params.basedir}/Adaptive_Trim",mode:'copy'
 
 	  input:
@@ -1359,7 +1310,7 @@ if (params.sample == "single") {
 	  process SingleEndHISAT {
 
 	  
-	  tag "Prefix: $single_hisat_prefix | Sample: $single_hisat_input"
+	  tag "Prefix: $single_hisat_prefix"
 	  publishDir "${params.basedir}/HISAT2_out",mode:'copy'
 
 	  input:
@@ -1395,7 +1346,7 @@ if (params.sample == "paired") {
 	process PairedEndNoTrimHISAT {
 
 	  
-	  tag "Prefix: $paired_notrim_hisat_prefix | Sample: [ $paired_no_trim_hisat ]"
+	  tag "Prefix: $paired_notrim_hisat_prefix"
 	  publishDir "${params.basedir}/HISAT2_out",'mode':'copy'
 
 	  input:
@@ -1440,7 +1391,7 @@ if (params.sample == "paired") {
 	 process PairedEndTrimmedHISAT {
 
 	  
-	  tag "Prefix: $paired_trimmed_prefix | Sample: $paired_trimmed_fastqs"
+	  tag "Prefix: $paired_trimmed_prefix"
 	  publishDir "${params.basedir}/HISAT2_out",'mode':'copy'
 
 	  input:
@@ -1498,7 +1449,7 @@ if (params.sample == "paired") {
 process SamtoBam {
 
 	
-	tag "Prefix: $sam_to_bam_prefix | Sample: $sam_to_bam_input"
+	tag "Prefix: $sam_to_bam_prefix"
 	publishDir "${params.basedir}/HISAT2_out/sam_to_bam",'mode':'copy'
 
 	input:
@@ -1528,7 +1479,7 @@ infer_experiment_inputs
 process InferExperiment {
 
 	
-	tag "Prefix: $infer_prefix | Sample: $bam_file | Index: $bam_index"
+	tag "Prefix: $infer_prefix"
 	publishDir "${params.basedir}/HISAT2_out/infer_experiment",'mode':'copy'
 
 	input:
@@ -1540,7 +1491,7 @@ process InferExperiment {
 
 	shell:
 	'''
-	!{params.infer_experiment} \
+	python !{params.scripts}/infer_experiment.py \
 	-i !{bam_file} \
 	-r !{bed_file} \
 	1> !{infer_prefix}_experiment.txt \
@@ -1592,7 +1543,7 @@ feature_bam_inputs
 process FeatureCounts {
 
 	
-	tag "Prefix: $feature_prefix | Sample: $feature_bam | Sample Index: $feature_index"
+	tag "Prefix: $feature_prefix"
 	publishDir "${params.basedir}/Counts",'mode':'copy'
 
 	input:
@@ -1639,7 +1590,7 @@ process FeatureCounts {
 process PrimaryAlignments {
 
 	
-	tag "Prefix: $alignment_prefix | Sample: [ $alignment_bam ]"
+	tag "Prefix: $alignment_prefix"
 	publishDir "${params.basedir}/Counts/junction/primary_aligments",'mode':'copy'
 
 	input:
@@ -1662,7 +1613,7 @@ process PrimaryAlignments {
 process Junctions {
 
 	
-	tag "Prefix: $junction_prefix | Sample: [ $alignment_bam ]"
+	tag "Prefix: $junction_prefix"
 	publishDir "${params.basedir}/Counts/junction",'mode':'copy'
 
 	input:
@@ -1707,7 +1658,7 @@ else
 process Coverage {
 
 	echo true
-	tag "Prefix: $coverage_prefix | Infer: $inferred_strand | Sample: $sorted_coverage_bam ]"
+	tag "Prefix: $coverage_prefix"
 	publishDir "${params.basedir}/Coverage/wigs",mode:'copy'
 
 	input:
@@ -1723,14 +1674,8 @@ process Coverage {
 	export coverage_strand_rule=$(cat !{inferred_strand})
 	if [ $coverage_strand_rule == "none" ] ; then
 		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix}
-	elif [ $coverage_strand_rule == "1++,1--,2+-,2-+" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "1++,1--,2+-,2-+"
-	elif [ $coverage_strand_rule == "1+-,1-+,2++,2--" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "1+-,1-+,2++,2--"
-	elif [ $coverage_strand_rule == "++,--" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "++,--"
-	elif [ $coverage_strand_rule == "+-,-+" ] ; then
-		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "+-,-+"
+	else
+		python $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "${coverage_strand_rule}"
 	fi
 	'''
 }
@@ -1743,7 +1688,7 @@ process Coverage {
 process WigToBigWig {
 
 	
-	tag "Prefix: $wig_prefix | Sample: [ $wig_file ]"
+	tag "Prefix: $wig_prefix"
 	publishDir "${params.basedir}/Coverage/BigWigs",mode:'copy'
 
 	input:
@@ -1808,7 +1753,7 @@ if (params.step6) {
 
 	 process TXQuant {
 
-		tag "Prefix: $salmon_input_prefix | Sample: [ $salmon_inputs ]"
+		tag "Prefix: $salmon_input_prefix"
 		publishDir "${params.basedir}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
 
 		input:
@@ -1952,9 +1897,7 @@ if(params.reference == "hg19") {
 */
 
 process CountObjects {
-
-	//This tag generates long names for the job; SGE does not like long names
-	//tag "Creating Counts Objects: [ $counts_input ] | Annotations: [ $counts_annotation ]"
+	//tag "[ $counts_input ]"
 	publishDir "${params.basedir}/Count_Objects",'mode':'copy'
 
 	input:
@@ -2018,10 +1961,8 @@ if (params.fullCov) {
 	 */
 
 process CoverageObjects {
-
-		
-		//// This tag generates long names for the job, SGE does not like long job names
-		////tag "Creating Coverage Objects [ $full_coverage_input ]"
+		// This tag generates long names for the job, SGE does not like long job names
+		tag "[ $full_coverage_input ]"
 		publishDir "${params.basedir}/Coverage_Objects",'mode':'copy'
 
 		input:
@@ -2064,10 +2005,7 @@ if (params.step8) {
 	  .set{ variant_calls }
 
 	process VariantCalls {
-
-		
-		//// This tag generates long job names that crash sge
-		////tag "Prefix: $variant_bams_prefix | Sample: [ $variant_calls_bam_file, $variant_calls_bai ]"
+		tag "Prefix: $variant_bams_prefix"
 		publishDir "${params.basedir}/Variant_Calls",'mode':'copy'
 
 		input:
@@ -2090,15 +2028,11 @@ if (params.step8) {
 	compressed_variant_calls
 	  .flatten()
 	  .collect()
-// sorting was crashing the NF execution. There seems to be no need to sort
-//	 .toSortedList()
 	  .set{ collected_variant_calls }
 
 	compressed_variant_calls_tbi
 	  .flatten()
 	  .collect()
-// sorting was crashing the NF execution. There seems to be no need to sort
-//	 .toSortedList()
 	  .set{ collected_variant_calls_tbi }
 
 
@@ -2109,7 +2043,7 @@ if (params.step8) {
 	process VariantsMerge {
 
 		
-		tag "Samples: $collected_variants"
+		tag "Multi-sample vcf creation"
 		publishDir "${params.basedir}/Merged_Variants",'mode':'copy'
 
 		input:
