@@ -552,7 +552,7 @@ if (params.reference == "mm10") {
 		create_counts = file("${params.scripts}/create_count_objects-mouse.R")
 	}
 
-	// Step 8: call variants
+  // Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is disabled if reference is mm10...  (Doc ######)
 	params.step8 = false
 }
@@ -603,6 +603,12 @@ if (params.reference == "rn6") {
 def get_merging_prefix = { file -> file.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_read1_A1s2o2s1A" - "_read2_A1s2o2s1A" }
 
 def get_prefix = { file -> file.name.toString().tokenize('.')[0] }
+
+def get_bw_prefix = { file -> file.name.toString()
+  .replaceAll(".Forward", "_Forward")
+  .replaceAll(".Reverse", "_Reverse")
+  .tokenize('.')[0]
+}
 
 def get_paired_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_1_A1s2o2s1A" - "_2_A1s2o2s1A" }
 
@@ -1641,7 +1647,7 @@ process Junctions {
 //
 if (params.strand == "unstranded")
 {
-	params.strandprefix=""
+	params.strandprefix="*"
 }
 else
 {
@@ -1667,7 +1673,7 @@ process Coverage {
 	file chr_sizes from chr_sizes
 
 	output:
-	set val("${coverage_prefix}"), file("${coverage_prefix}${params.strandprefix}.wig") into wig_files
+  file("${coverage_prefix}${params.strandprefix}.wig") into wig_files_temp
 
 	shell:
 	'''
@@ -1684,6 +1690,10 @@ process Coverage {
  * Step 5b: Wig to BigWig
  */
 
+wig_files_temp
+  .flatten()
+  .map{ file -> tuple(get_bw_prefix(file), file) }
+  .set{ wig_files }
 
 process WigToBigWig {
 
@@ -1700,7 +1710,7 @@ process WigToBigWig {
 
 	shell:
 	'''
-	!{params.wigToBigWig} !{wig_file} !{chr_sizes} !{wig_prefix}.bw
+	!{params.wigToBigWig} -clip !{wig_file} !{chr_sizes} !{wig_prefix}.bw
 	'''
 
 }

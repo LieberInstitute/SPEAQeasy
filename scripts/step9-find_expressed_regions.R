@@ -30,8 +30,8 @@ message(paste(Sys.time(), 'processing mean file', opt$mean))
 dir.create(opt$outdir, recursive = TRUE, showWarnings = FALSE)
 
 ## Determine the strand based on the name of the file
-strand <- ifelse(grepl('Forward.bw', opt$mean), 'forward',
-    ifelse(grepl('Reverse.bw', opt$mean), 'reverse', 'unstranded'))
+strand <- ifelse(grepl('forward.bw', opt$mean), 'forward',
+    ifelse(grepl('reverse.bw', opt$mean), 'reverse', 'unstranded'))
 strand_sign <- c('forward' = '+', 'reverse' = '-', 'unstranded' = '*')[strand]
 
 
