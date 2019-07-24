@@ -600,35 +600,18 @@ if (params.reference == "rn6") {
 // Define the Prefix Functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-def get_merging_prefix = { file -> file.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_read1_A1s2o2s1A" - "_read2_A1s2o2s1A" }
-
-def get_prefix = { file -> file.name.toString().tokenize('.')[0] }
-
-def get_bw_prefix = { file -> file.name.toString()
-  .replaceAll(".Forward", "_Forward")
-  .replaceAll(".Reverse", "_Reverse")
-  .tokenize('.')[0]
+def get_prefix(f) {
+  //  Remove these regardless of position in the string
+  String blackListAny = "_summary|_TR|_TNR|_trimmed|_reverse_paired|_1|_2|_reverse_unpaired|_forward_paired|_forward_unpaired|_hisat_out"
+  
+  f.name.toString()
+   .replaceAll("_read1.", ".")
+   .replaceAll("_read2.", ".")
+   .replaceAll(".Forward", "_Forward")
+   .replaceAll(".Reverse", "_Reverse")
+   .tokenize('.')[0]
+   .replaceAll(blackListAny, "")
 }
-
-def get_paired_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_1_A1s2o2s1A" - "_2_A1s2o2s1A" }
-
-def get_summary_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_summary_A1s2o2s1A" }
-
-def get_summary_paired_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_summary_A1s2o2s1A" + "_A1s2o2s1A" - "_1_A1s2o2s1A" - "_2_A1s2o2s1A" }
-
-def get_TR_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_TR_A1s2o2s1A" }
-
-def get_TR_paired_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_TR_A1s2o2s1A" + "_A1s2o2s1A" - "_1_A1s2o2s1A" - "_2_A1s2o2s1A" }
-
-def get_TNR_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_TNR_A1s2o2s1A" }
-
-def get_TNR_paired_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_TNR_A1s2o2s1A" + "_A1s2o2s1A" - "_1_A1s2o2s1A" - "_2_A1s2o2s1A" }
-
-def get_single_trimmed_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_trimmed_A1s2o2s1A" }
-
-def get_paired_trimmed_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_reverse_paired_A1s2o2s1A" - "_reverse_unpaired_A1s2o2s1A" - "_forward_paired_A1s2o2s1A" - "_forward_unpaired_A1s2o2s1A" + "_A1s2o2s1A" - "_trimmed_A1s2o2s1A" }
-
-def get_hisat_prefix = { file -> file.name.toString().tokenize('.')[0] + "_A1s2o2s1A" - "_hisat_out_A1s2o2s1A" }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -867,7 +850,7 @@ if (params.merge) {
 	  .fromPath("${params.inputs}/*.fastq.gz")
 	  .toSortedList()
 	  .flatten()
-	  .map{file -> tuple(get_merging_prefix(file), file) }
+	  .map{file -> tuple(get_prefix(file), file) }
 	  .groupTuple()
 	  .ifEmpty{ error "Could not find file pairs for merging"}
 	  .set{ unmerged_pairs }
@@ -920,7 +903,7 @@ if (params.ercc) {
 			  .flatten()
 			  .toSortedList()
 			  .flatten()
-			  .map{file -> tuple(get_paired_prefix(file), file) }
+			  .map{file -> tuple(get_prefix(file), file) }
 			  .groupTuple()
 			  .ifEmpty{ error "Could not find Channel for Merged Paired Sample Files for ERCC" }
 			  .set{ ercc_inputs }
@@ -946,7 +929,7 @@ if (params.ercc) {
 			  .flatten()
 			  .toSortedList()
 			  .flatten()
-			  .map{ file -> tuple(get_paired_prefix(file), file) }
+			  .map{ file -> tuple(get_prefix(file), file) }
 			  .groupTuple()
 			  .ifEmpty{ error "Could not Find Unmerged Sample Files for ERCC"}
 			  .set{ ercc_inputs }
@@ -994,7 +977,7 @@ if (params.merge) {
 		  .flatten()
 		  .toSortedList()
 		  .flatten()
-		  .map{file -> tuple(get_paired_prefix(file), file) }
+		  .map{file -> tuple(get_prefix(file), file) }
 		  .groupTuple()
 		  .ifEmpty{ error "Could not find Channel for Merged Sample Files for FastQC" }
 		  .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
@@ -1020,7 +1003,7 @@ if (!params.merge) {
 		  .flatten()
 		  .toSortedList()
 		  .flatten()
-		  .map{file -> tuple(get_paired_prefix(file), file) }
+		  .map{file -> tuple(get_prefix(file), file) }
 		  .groupTuple()
 		  .ifEmpty{ error "Could not Find Unmerged Untrimmed Paired Sample Files for FastQC"}
 		  .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
@@ -1118,7 +1101,7 @@ if (params.sample == "single") {
 
 	quality_reports
 	  .flatten()
-	  .map{ file -> tuple(get_summary_prefix(file), file) }
+	  .map{ file -> tuple(get_prefix(file), file) }
 	  .join(adaptive_trimming_fastqs)
 	  .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Single Adaptive Trimming" }
 	  .set{ adaptive_trimming_single_inputs }
@@ -1154,7 +1137,7 @@ if (params.sample == "paired") {
 
 	quality_reports
 	  .flatten()
-	  .map{ file -> tuple(get_summary_paired_prefix(file), file) }
+	  .map{ file -> tuple(get_prefix(file), file) }
 	  .groupTuple()
 	  .join(adaptive_trimming_fastqs)
 	  .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Paired Adaptive Trimming" }
@@ -1204,13 +1187,13 @@ if (params.sample == "single") {
 	trimming_fastqs
 	  .flatten()
 	  .filter{ file -> file.name.toString() =~ /_TR.*/ }
-	  .map{ file -> tuple(get_TR_prefix(file), file) }
+	  .map{ file -> tuple(get_prefix(file), file) }
 	  .set{ trimming_inputs }
 
 	no_trimming_fastqs
 	  .flatten()
 	  .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-	  .map{ file -> tuple(get_TNR_prefix(file), file) }
+	  .map{ file -> tuple(get_prefix(file), file) }
 	  .set{ no_trim_fastqs }
   }
 
@@ -1221,7 +1204,7 @@ if (params.sample == "single") {
 	  .filter{ file -> file.name.toString() =~ /_TR.*/ }
 	  .toSortedList()
 	  .flatten()
-	  .map{ file -> tuple(get_TR_paired_prefix(file), file) }
+	  .map{ file -> tuple(get_prefix(file), file) }
 	  .groupTuple()
 	  .set{ trimming_inputs }
 
@@ -1230,7 +1213,7 @@ if (params.sample == "single") {
 	  .filter{ file -> file.name.toString() =~ /_TNR.*/ }
 	  .toSortedList()
 	  .flatten()
-	  .map{ file -> tuple(get_TNR_paired_prefix(file), file) }
+	  .map{ file -> tuple(get_prefix(file), file) }
 	  .groupTuple()
 	  .set{ no_trim_fastqs }
 }
@@ -1308,7 +1291,7 @@ if (params.sample == "single") {
 //Here trimmed and not timmed data is mixed in a channel to ensure the flow of the pipeline
 	trimmed_hisat_inputs
 	  .flatten()
-	  .map{ file -> tuple(get_single_trimmed_prefix(file), file) }
+	  .map{ file -> tuple(get_prefix(file), file) }
 	  .mix(no_trim_fastqs)
 	  .ifEmpty{ error "Single End Channel for HISAT is empty" }
 	  .set{ single_hisat_inputs }
@@ -1389,7 +1372,7 @@ if (params.sample == "paired") {
 
 	 trimmed_hisat_inputs
 	  .flatten()
-	  .map{ file -> tuple(get_paired_trimmed_prefix(file), file) }
+	  .map{ file -> tuple(get_prefix(file), file) }
 	  .groupTuple()
 	  .set{ trim_paired_hisat_inputs }
 
@@ -1438,7 +1421,7 @@ if (params.sample == "paired") {
 	 hisat_paired_notrim_output
 	  .mix(hisat_paired_trim_output)
 	  .flatten()
-	  .map{ file -> tuple(get_hisat_prefix(file), file) }
+	  .map{ file -> tuple(get_prefix(file), file) }
 	  .set{ sam_to_bam_inputs }
 
 	paired_trim_alignment_summaries
@@ -1692,7 +1675,7 @@ process Coverage {
 
 wig_files_temp
   .flatten()
-  .map{ file -> tuple(get_bw_prefix(file), file) }
+  .map{ file -> tuple(get_prefix(file), file) }
   .set{ wig_files }
 
 process WigToBigWig {
