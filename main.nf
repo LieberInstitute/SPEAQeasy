@@ -715,8 +715,7 @@ process pullGENCODEassemblyfa {
 
 /* Channel post-processing */
 hisat_index_built // get every *.ht2 file in this channel
-	.toSortedList() // group every *.ht2 item into a single, sorted list
-	// /* .dump() */ //For debug, make channel content informative if you use the -dump-channels option of NF
+	.toList() // group every *.ht2 item into a single list
 	.set{ hisat_index } // pass *.ht2 list to a new channel
 
 /*
@@ -730,7 +729,6 @@ params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
 // file if it does already exist
 	process pullGENCODEgtf {
 
-		
 		tag "Downloading GTF File: ${params.gencode_gtf}"
 		storeDir "${params.gencode_gtf_out}/gtf"
 
@@ -757,8 +755,7 @@ params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
 // Uses "storeDir" to build bed file only when it doesn't exist, and output the cached
 // file if it does already exist
 	process buildPrepBED {
-
-		
+	
 		tag "Building Bed File: ${params.reference}"
 		storeDir "${params.gencode_gtf_out}/bed"
 
@@ -817,7 +814,6 @@ if (params.step6) {
   // this cached file otherwise
 	process buildSALMONindex {
 
-		echo true
 		tag "Building Salmon Index: ${params.salmon_prefix}"
 		storeDir "${params.salmon_idx_output}/salmon"
 
@@ -835,7 +831,9 @@ if (params.step6) {
 	}
 
   // Post-processing of built index for use as input to TXQuant process
-	 salmon_index_built.toSortedList().flatten().distinct().toSortedList().set{ salmon_index }
+  salmon_index_built
+    .collect()
+    .set{ salmon_index }
 }
 
 /*
@@ -1015,7 +1013,6 @@ if (!params.merge) {
  */
 
 process IndividualManifest {
-
 	
 	tag "samples.manifest.${samples_prefix}"
 	publishDir "${params.basedir}/manifest",'mode':'copy'
@@ -1033,7 +1030,6 @@ process IndividualManifest {
 }
 
 individual_manifests
-  .flatten()
   .collect()
   .set{ individual_manifest_files }
 
@@ -1042,7 +1038,6 @@ individual_manifests
  */
 
 process Manifest {
-
 	
 	tag "Aggregate Manifest Creation"
 	publishDir "${params.basedir}/manifest",mode:'copy'
@@ -1322,7 +1317,7 @@ if (params.sample == "single") {
 
 	hisat_single_output
 	  .flatten()
-	  .map{ file -> tuple(get_hisat_prefix(file), file) }
+	  .map{ file -> tuple(get_prefix(file), file) }
 	  .set{ sam_to_bam_inputs }
 }
 
@@ -1489,7 +1484,6 @@ process InferExperiment {
 }
 
 infer_experiment_outputs
-  .collect()
   .flatten()
   .toSortedList()
   .set{ infer_experiment_output }
@@ -1646,7 +1640,6 @@ else
 
 process Coverage {
 
-	echo true
 	tag "Prefix: $coverage_prefix"
 	publishDir "${params.basedir}/Coverage/wigs",mode:'copy'
 
@@ -1803,15 +1796,12 @@ if (params.step6) {
 
 count_objects_bam_files // this puts sorted.bams and bais into the channel
   .flatten()
-  .buffer(size:2,skip:1)
-  .flatten()
   .mix(count_objects_quality_reports) //this puts sample_XX_summary.txt files into the channel
   .mix(count_objects_quality_metrics) // this puts sample_XX_fastqc_data.txt into the channel
   .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
   .mix(create_counts_gtf) // this puts gencode.v25.annotation.gtf file into the channel
   .mix(sample_counts) // !! this one puts sample_05_Gencode.v25.hg38_Exons.counts and sample_05_Gencode.v25.hg38_Genes.counts into the channel
   .mix(regtools_outputs) // !! this one includes the missing *_junctions_primaryOnly_regtools.count files for the CountObjects process
-  .collect()
   .flatten()
   .toSortedList()
   .set{ counts_objects_channel }
@@ -1820,7 +1810,6 @@ if (params.reference_type == "human" || params.reference_type == "mouse") {
 
 	counts_objects_channel
 	  .mix(salmon_quants)
-	  .collect()
 	  .flatten()
 	  .toSortedList()
 	  .set{counts_objects_channel_1}
@@ -1834,7 +1823,6 @@ if (params.ercc) {
 		
 	counts_objects_channel_1
 	  .mix(ercc_abundances)
-	  .collect()
 	  .flatten()
 	  .toSortedList()
 	  .set{ counts_inputs }
@@ -1842,7 +1830,6 @@ if (params.ercc) {
 if (!params.ercc) {
 
 	counts_objects_channel_1
-	  .collect()
 	  .flatten()
 	  .toSortedList()
 	  .set{ counts_inputs }
@@ -1941,10 +1928,7 @@ if (params.fullCov) {
 
 	full_coverage_bams
 	  .flatten()
-	  .buffer(size:2,skip:1)
-	  .flatten()
 	  .mix(full_coverage_bigwigs)
-	  .collect()
 	  .flatten()
 	  .toSortedList()
 	  .set{ full_coverage_inputs }
@@ -2019,12 +2003,10 @@ if (params.step8) {
 	}
 
 	compressed_variant_calls
-	  .flatten()
 	  .collect()
 	  .set{ collected_variant_calls }
 
 	compressed_variant_calls_tbi
-	  .flatten()
 	  .collect()
 	  .set{ collected_variant_calls_tbi }
 
