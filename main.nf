@@ -613,6 +613,16 @@ def get_prefix(f) {
    .replaceAll(blackListAny, "")
 }
 
+def get_read_type(f) {
+  baseName = f.name.toString().tokenize('.')[0]
+  if (baseName.endsWith('_Forward')) {
+    return('Forward')
+  } else if (baseName.endsWith('_Reverse')) {
+    return('Reverse')
+  } else {
+    return('Unstranded')
+  }
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Summary of Defined Variables
@@ -1692,9 +1702,8 @@ process WigToBigWig {
 }
 
 coverage_bigwigs
-	.collect()
-	.flatten()
-	.toSortedList()
+  .map { f -> tuple(get_read_type(f), f) }
+  .groupTuple()
 	.into{ mean_coverage_bigwigs;full_coverage_bigwigs }
 
 /*
@@ -1702,14 +1711,13 @@ coverage_bigwigs
  */
 
 process MeanCoverage {
-
 	
-	tag "Samples: [ $mean_coverage_bigwig ]"
+	tag "Strand: ${read_type}"
 	publishDir "${params.basedir}/Coverage/mean",'mode':'copy'
 
 	input:
 	file inferred_strand_file from inferred_strand_mean_coverage
-	file mean_coverage_bigwig from mean_coverage_bigwigs
+	set val(read_type), file(mean_coverage_bigwig) from mean_coverage_bigwigs
 	file chr_sizes from chr_sizes
 
 	output:
@@ -1721,9 +1729,10 @@ process MeanCoverage {
 	if [ $coverage_strand_rule == "none" ] ; then
 		!{params.wiggletools} write mean.wig mean !{mean_coverage_bigwig}
 		!{params.wigToBigWig} mean.wig !{chr_sizes} mean.bw
-	else
+	elif [ !{read_type} == "Forward" ]; then
 		!{params.wiggletools} write mean.forward.wig mean !{mean_coverage_bigwig}
 		!{params.wigToBigWig} mean.forward.wig !{chr_sizes} mean.forward.bw
+  else
 		!{params.wiggletools} write mean.reverse.wig mean !{mean_coverage_bigwig}
 		!{params.wigToBigWig} mean.reverse.wig !{chr_sizes} mean.reverse.bw
 	fi
