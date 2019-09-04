@@ -5,6 +5,7 @@ input*
 *pipeline_log/
 work*
 *results/
+execution_*
 
 ## ignore big reference files
 Annotation/GENCODE/GRCh38_hg38/assembly/fa/*.fa
