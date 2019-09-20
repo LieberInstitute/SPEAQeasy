@@ -1,6 +1,8 @@
 #!/bin/bash
 
-## hg38 Simple test (no docker, no sge)
+## Execution using docker to manage required software, and currently
+## configured to use local hardware resources.
+export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 nextflow main.nf \
 	--small_test \
 	--sample "single" \
@@ -8,7 +10,6 @@ nextflow main.nf \
 	--strand "unstranded" \
 	--ercc \
 	--fullCov \
-	--wg_test \
 	-with-report execution_reports/Docker_mode_test_run.html \
 	-with-dag execution_DAGs/Docker_mode_test_run.png \
 	-resume \
