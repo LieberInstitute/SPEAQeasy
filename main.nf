@@ -154,159 +154,71 @@ if (params.help){
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Define Configurable Variables
+// Define default values for params
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-params.experiment = false
-params.prefix = false
-params.sample = false
-params.strand = false
+params.experiment = "Jlab_experiment"
+params.prefix = "prefix"
+params.sample = ""
+params.strand = ""
 params.merge = false
-params.input = false
 params.unalign = false
-params.reference = false
-params.annotation = false
-params.indexing = false
-params.genotype = false
-params.output = false
-params.name = false
+params.reference = ""
+params.annotation = "${workflow.projectDir}/Annotation"
+params.indexing = "${params.annotation}"
+params.index_out = "${params.annotation}"
+params.genotype = "${workflow.projectDir}/Genotyping"
+params.output = "${workflow.projectDir}/results"
+params.scripts = "${workflow.projectDir}/scripts"
+params.name = ""
 params.ercc = false
 params.fullCov = false
 params.test = false
 params.small_test = false
+params.wg_test = false
+workflow.runName = "RNAsp_run"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validate Inputs
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//##// MANDATORY PARAMS BLOCK
 // Sample Selection Validation
-if (!params.sample || (params.sample != "single" && params.sample != "paired")) {
+if (params.sample != "single" && params.sample != "paired") {
 	exit 1, "Sample Type Not Provided or Invalid Choice. Please Provide a Valid Sample Type. Valid types are single or paired "
 }
 
 // Strand Selection Validation
-if (!params.strand || (params.strand != "forward" && params.strand != "reverse" && params.strand != "unstranded")) {
+if (params.strand != "forward" && params.strand != "reverse" && params.strand != "unstranded") {
 	exit 1, "Strand Type Not Provided or Invalid Choice. Please Provide a Valid Strand Type. Valid types are unstranded, forward or reverse"
 }
 
 // Reference Selection Validation
-if (params.reference == "hg19" || params.reference == "hg38" ) {
-	params.reference_type = "human"
-}
-else if (params.reference == "mm10") {
-	params.reference_type = "mouse"
-}
-else if (params.reference == "rn6") {
-	params.reference_type = "rat"
-}
-else {
-  exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
-}
-
-//##// OPTIONAL PARAMS BLOCK
-// Annotation Path Validation
-if (!params.annotation) {
-  // Define annotation directory from the top by default: this ensures pipeline will
-  // not fail at alignment stage if no annotation dir is specified (hisat needs the
-  // full path to locate indices but preceding processes do not)
-	params.annotations = "${workflow.projectDir}/Annotation"
-} else {
-    params.annotations = "${params.annotation}"
-}
-
-// Indexing Path Validation
-if (!params.indexing && !params.test) {
-	params.indexing = "${params.annotations}"
-}
-
-// Genotype Path Validation
-if (!params.genotype) {
-	params.genotypes = "./Genotyping"
-} else {
-    params.genotypes = "${params.genotype}"
-}
-
-// Experiment/Workflow Name Validation
-if (!params.name) {
-	if (!params.experiment) {
-		workflow.runName = "RNAsp_run"
-		params.experiments = "Jlab_experiment"
-	}
-	if (params.experiment) {
-		workflow.runName = params.experiment
-		params.experiments = params.experiment
-	}
-} else {
-	workflow.runName = params.name
-	if (!params.experiment) {
-		params.experiments = "Jlab_experiment"
-	}
-	if (params.experiment) {
-		params.experiments = params.experiment
-	}
-}
-
-// Prefix
-if (!params.prefix) {
-	params.experiment_prefix = "pref"
-}
-if (params.prefix) {
-	params.experiment_prefix = params.prefix
-}
-
-// External Script Path Validation
-//##TODO(iaguilar): This param was not defined neither in help nor in the variable definition block (Dev ######)
-//##TODO(iaguilar): Comment in original dev was: "It's the directory where the shell files are located at. You only need to specify it if you cloned this repository somewhere else"; since this scripts folder will be versioned with the NF pipeline, there is no need to allow it to be on another directory (Dev ######)
-params.scripts = "${workflow.projectDir}/scripts"
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Input Path Options
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Base Input Path Options
-// if this runis not a test or small test...
-if (!params.test && !params.small_test) {
-	// checks if an inputh path was given
-	if (params.input) {
-		params.inputs = "${params.input}"
-	}
-	// if no input option is provided, default input dir is ./input
-	else {
-		params.inputs = "${workflow.projectDir}/input"
-	}
-}
-
-// Real File Test Paths (Human & Mouse)
-//##TODO(iaguilar): Redefine data paths for test
-//if (params.test && !params.small_test) {
-//	params.inputs = "/media/genomics/disco3/dataLieber/human"
-//}
-
-// Dummy File Test Paths
-if (params.small_test && !params.test) {
-	if (params.strand != "unstranded") {
-		if (params.merge) {
-			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/merge/${params.sample}/stranded"
-		}
-		if (!params.merge) {
-			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/${params.sample}/stranded"
-		}
-	}
-	if (params.strand == "unstranded") {
-		if (params.merge) {
-			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/merge/${params.sample}/unstranded"
-		}
-		if (!params.merge) {
-			params.inputs = "${workflow.projectDir}/test/${params.reference_type}/${params.sample}/unstranded"
-		}
-	}
+if (params.reference != "hg19" && params.reference != "hg38" && params.reference != "mm10" && params.reference == "rn6") {
+	exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
 }
 
 // Conflicting Test Options
 if (params.small_test && params.test) {
 	exit 1, "You've selected 'small_test' and 'test' ... Please choose one and run again"
+}
+
+if (params.reference == "hg19" || params.reference == "hg38") {
+  params.reference_type = "human"
+} else if (params.reference == "mm10") {
+  params.reference_type = "mouse"
+} else {
+  params.reference_type = "rat"
+}
+
+//  Path to small test files
+if (params.small_test) {
+  if (params.merge) {
+    params.input = "${workflow.projectDir}/test/$params.reference_type/merge/${params.sample}/${params.strand}"
+  } else {
+    params.input = "${workflow.projectDir}/test/$params.reference_type/${params.sample}/${params.strand}"
+  }
+} else {
+  params.input = "${workflow.projectDir}/input"
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -357,23 +269,6 @@ if (params.strand == "reverse") {
 	}
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Base Output File Paths (Merging, Paired/Single, Stranded  Combinations)
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-if (params.output) {
-	params.basedir = "${params.output}"
-	params.index_out = "${params.annotations}"
-} else {
-  params.index_out = "./Annotation"
-  if (params.merge) {
-    params.basedir = "./results/${params.reference_type}/${params.reference}/${params.sample}/merge"
-  } else {
-		params.basedir = "./results/${params.reference_type}/${params.reference}/${params.sample}"
-  }
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define External Scripts
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -398,11 +293,9 @@ if (params.wg_test ) {
 
 // ERCC
 if (params.ercc) {
-	erccidx = file("${params.annotations}/ERCC/ERCC92.idx")
+  erccidx = file("${params.annotation}/ERCC/ERCC92.idx")
+  ercc_actual_conc = file("${params.annotation}/ercc_actual_conc.txt")
 }
-
-// ERCC Concentrations
-ercc_actual_conc = file("${params.annotations}/ercc_actual_conc.txt")
 
 if (params.reference == "hg38") {
 	
@@ -423,7 +316,7 @@ if (params.reference == "hg38") {
 
 	// Step 5: python coverage
 //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-	chr_sizes = file("${params.annotations}/chrom_sizes/hg38.chrom.sizes.gencode")
+	chr_sizes = file("${params.annotation}/chrom_sizes/hg38.chrom.sizes.gencode")
 
 	// Step 6: salmon
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg38...  (Doc ######)
@@ -436,11 +329,11 @@ if (params.reference == "hg38") {
 	params.salmon_assembly = "GENCODE/GRCh38_hg38/transcripts"
 
 	// Step 7: Make R objects	
-	junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_gencode_v25.rda")
-	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_ensembl_v85.rda")
-	junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
-	feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
-	feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
+	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg38_gencode_v25.rda")
+	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg38_ensembl_v85.rda")
+	junction_annotation_genes = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
+	feature_to_tx_gencode = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
+	feature_to_tx_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
   exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
 	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
 	if (params.wg_test ) {
@@ -454,7 +347,7 @@ if (params.reference == "hg38") {
 	params.step8 = true
 //##TODO(iaguilar): Explain the need to define the channel from this block  (Doc ######)
 	Channel
-	.fromPath("${params.genotypes}/common_missense_SNVs_hg38.bed")
+	.fromPath("${params.genotype}/common_missense_SNVs_hg38.bed")
 	.set{ snvbed }
 
 }
@@ -477,7 +370,7 @@ if (params.reference == "hg19") {
 
 	// Step 5: python coverage
 //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-	chr_sizes = file("${params.annotations}/chrom_sizes/hg19.chrom.sizes.gencode")
+	chr_sizes = file("${params.annotation}/chrom_sizes/hg19.chrom.sizes.gencode")
 
 	// Step 6: salmon
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg19...  (Doc ######)
@@ -490,11 +383,11 @@ if (params.reference == "hg19") {
 	params.salmon_assembly = "GENCODE/GRCh37_hg19/transcripts"
 
 	// Step 7: Make R objects
-	junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_gencode_v25lift37.rda")
-	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_ensembl_v75.rda")
-	junction_annotation_genes = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
-	feature_to_tx_gencode = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
-	feature_to_tx_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
+	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_gencode_v25lift37.rda")
+	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_ensembl_v75.rda")
+	junction_annotation_genes = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
+	feature_to_tx_gencode = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
+	feature_to_tx_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
 	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
 	if (params.wg_test ) {
 		create_counts = file("${params.scripts}/create_count_objects-human.R.WG_compatible")
@@ -507,7 +400,7 @@ if (params.reference == "hg19") {
 	params.step8 = true
 //##TODO(iaguilar): Explain the need to define the channel from this block  (Doc ######)
 	Channel
-	.fromPath("${params.genotypes}/common_missense_SNVs_hg19.bed")
+	.fromPath("${params.genotype}/common_missense_SNVs_hg19.bed")
 	.set{ snvbed }
 
 }
@@ -530,7 +423,7 @@ if (params.reference == "mm10") {
 
 	// Step 5: python coverage
 //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-	chr_sizes = file("${params.annotations}/chrom_sizes/mm10.chrom.sizes.gencode")
+	chr_sizes = file("${params.annotation}/chrom_sizes/mm10.chrom.sizes.gencode")
 
 	// Step 6: salmon
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is mm10...  (Doc ######)
@@ -543,8 +436,8 @@ if (params.reference == "mm10") {
 	params.salmon_assembly = "GENCODE/GRCm38_mm10/transcripts"
 
 	// Step 7: Make R objects
-	junction_annotation_gencode = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
-	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
+	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
+	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
 	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
 	if (params.wg_test ) {
 		create_counts = file("${params.scripts}/create_count_objects-mouse.R.WG_compatible")
@@ -575,14 +468,14 @@ if (params.reference == "rn6") {
 
 	// Step 5: python coverage
 //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-	chr_sizes = file("${params.annotations}/chrom_sizes/rn6.chrom.sizes.ensembl")
+	chr_sizes = file("${params.annotation}/chrom_sizes/rn6.chrom.sizes.ensembl")
 	
 	// Step 6: Salmon
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is rn6...  (Doc ######)
 	params.step6 = false
 
 	// Step 7: Make R objects
-	junction_annotation_ensembl = Channel.fromPath("${params.annotations}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
+	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
 	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
 	if (params.wg_test ) {
 		create_counts = file("${params.scripts}/create_count_objects-rat.R.WG_compatible")
@@ -634,20 +527,20 @@ log.info " LIBD-RNAseq : Multi-Input RNA-Seq Best Practice v${version}"
 log.info "============================================================="
 def summary = [:]
 summary['Run Name']			= workflow.runName
-summary['Reference Type']	  = params.reference_type
 summary['Sample']			  = params.sample
 summary['Reference']		   = params.reference
 summary['Strand']			  = params.strand
-summary['Annotations']		 = params.annotations
-summary['Genotypes']		   = params.genotypes
-summary['Input']			   = params.inputs
+summary['Annotation']		 = params.annotation
+summary['Genotype']		   = params.genotype
+summary['Input']			   = params.input
 if(params.ercc) summary['ERCC Index'] = erccidx
-if(params.experiments) summary['Experiment'] = params.experiments
+if(params.experiment) summary['Experiment'] = params.experiment
 if(params.merge) summary['Merge'] = "True"
 if(params.unalign) summary['Align'] = "True"
 if(params.fullCov) summary['Full Coverage'] = "True"
 if(params.test) summary['Test'] = "True"
-summary['Output dir']		  = params.basedir
+summary['Small test selected'] = params.small_test
+summary['Output dir']		  = params.output
 summary['Working dir']		 = workflow.workDir
 summary['Current home']		= "$HOME"
 summary['Current user']		= "$USER"
@@ -855,7 +748,7 @@ if (params.step6) {
 if (params.merge) {
 
 	Channel
-	  .fromPath("${params.inputs}/*.fastq.gz")
+	  .fromPath("${params.input}/*.fastq.gz")
 	  .toSortedList()
 	  .flatten()
 	  .map{file -> tuple(get_prefix(file), file) }
@@ -867,7 +760,7 @@ if (params.merge) {
 
 		
 		tag "Sample Pair: [ $unmerged_pair ]"
-		publishDir "${params.basedir}/merged_fastq",'mode':'copy'
+		publishDir "${params.output}/merged_fastq",'mode':'copy'
 
 		input:
 		set val(merging_prefix), file(unmerged_pair) from unmerged_pairs
@@ -922,7 +815,7 @@ if (params.ercc) {
 		if (params.sample == "single") {
 
 			Channel
-			  .fromPath("${params.inputs}/*.fastq.gz")
+			  .fromPath("${params.input}/*.fastq.gz")
 			  .flatten()
 			  .toSortedList()
 			  .flatten()
@@ -933,7 +826,7 @@ if (params.ercc) {
 		if (params.sample == "paired") {
 
 			Channel
-			  .fromPath("${params.inputs}/*.fastq.gz")
+			  .fromPath("${params.input}/*.fastq.gz")
 			  .flatten()
 			  .toSortedList()
 			  .flatten()
@@ -948,7 +841,7 @@ if (params.ercc) {
 
 		
 		tag "Prefix: $ercc_prefix"
-		publishDir "${params.basedir}/ercc/${ercc_prefix}",'mode':'copy'
+		publishDir "${params.output}/ercc/${ercc_prefix}",'mode':'copy'
 
 		input:
 		file erccidx from erccidx
@@ -996,7 +889,7 @@ if (!params.merge) {
 	if (params.sample == "single") {
 
 		Channel
-		  .fromPath("${params.inputs}/*.fastq.gz")
+		  .fromPath("${params.input}/*.fastq.gz")
 		  .flatten()
 		  .toSortedList()
 		  .flatten()
@@ -1007,7 +900,7 @@ if (!params.merge) {
 	if (params.sample == "paired") {
 
 		Channel
-		  .fromPath("${params.inputs}/*.fastq.gz")
+		  .fromPath("${params.input}/*.fastq.gz")
 		  .flatten()
 		  .toSortedList()
 		  .flatten()
@@ -1025,7 +918,7 @@ if (!params.merge) {
 process IndividualManifest {
 	
 	tag "samples.manifest.${samples_prefix}"
-	publishDir "${params.basedir}/manifest",'mode':'copy'
+	publishDir "${params.output}/manifest",'mode':'copy'
 
 	input:
 	set val(samples_prefix), file(manifest_samples) from manifest_creation
@@ -1050,7 +943,7 @@ individual_manifests
 process Manifest {
 	
 	tag "Aggregate Manifest Creation"
-	publishDir "${params.basedir}/manifest",mode:'copy'
+	publishDir "${params.output}/manifest",mode:'copy'
 
 	input:
 	file individual_manifests from individual_manifest_files
@@ -1072,7 +965,7 @@ process QualityUntrimmed {
 
 	
 	tag "Prefix: $untrimmed_prefix"
-	publishDir "${params.basedir}/FastQC/Untrimmed",mode:'copy'
+	publishDir "${params.output}/FastQC/Untrimmed",mode:'copy'
 
 	input:
 	set val(untrimmed_prefix), file(fastqc_untrimmed_input) from fastqc_untrimmed_inputs 
@@ -1115,7 +1008,7 @@ if (params.sample == "single") {
 
 	  
 	  tag "Prefix: $single_adaptive_prefix"
-	  publishDir "${params.basedir}/Adaptive_Trim",'mode':'copy'
+	  publishDir "${params.output}/Adaptive_Trim",'mode':'copy'
 
 	  input:
 	  set val(single_adaptive_prefix), file(single_adaptive_summary), file(single_adaptive_fastq) from adaptive_trimming_single_inputs
@@ -1152,7 +1045,7 @@ if (params.sample == "paired") {
 
 	  
 	  tag "Prefix: $paired_adaptive_prefix"
-	  publishDir "${params.basedir}/Adaptive_Trim",mode:'copy'
+	  publishDir "${params.output}/Adaptive_Trim",mode:'copy'
 
 	  input:
 	  set val(paired_adaptive_prefix), file(paired_adaptive_summary), file(paired_adaptive_fastq) from adaptive_trimming_paired_inputs
@@ -1231,7 +1124,7 @@ process Trimming {
 
 	
 	tag "Prefix: $trimming_prefix | Sample: [ $trimming_input ]"
-	publishDir "${params.basedir}/trimmed_fq",'mode':'copy'
+	publishDir "${params.output}/trimmed_fq",'mode':'copy'
 
 	input:
 	set val(trimming_prefix), file(trimming_input) from trimming_inputs
@@ -1273,7 +1166,7 @@ process QualityTrimmed {
 
 	
 	tag "$fastqc_trimmed_input"
-	publishDir "${params.basedir}/FastQC/Trimmed",'mode':'copy'
+	publishDir "${params.output}/FastQC/Trimmed",'mode':'copy'
 
 	input:
 	file fastqc_trimmed_input from trimmed_fastqc_inputs
@@ -1305,7 +1198,7 @@ if (params.sample == "single") {
 
 	  
 	  tag "Prefix: $single_hisat_prefix"
-	  publishDir "${params.basedir}/HISAT2_out",mode:'copy'
+	  publishDir "${params.output}/HISAT2_out",mode:'copy'
 
 	  input:
 	  file hisat_index from hisat_index
@@ -1317,7 +1210,7 @@ if (params.sample == "single") {
 	  file "*_align_summary.txt" into alignment_summaries
 
 	  shell:
-	  hisat_full_prefix = "${params.annotations}/${params.hisat_assembly}/index/${params.hisat_prefix}"
+	  hisat_full_prefix = "${params.annotation}/${params.hisat_assembly}/index/${params.hisat_prefix}"
 	  strand = "${params.hisat_strand}"
 	  // Phred Quality is hardcoded, if it will be so, it should be pointed in the README.md
 	  '''
@@ -1341,7 +1234,7 @@ if (params.sample == "paired") {
 
 	  
 	  tag "Prefix: $paired_notrim_hisat_prefix"
-	  publishDir "${params.basedir}/HISAT2_out",'mode':'copy'
+	  publishDir "${params.output}/HISAT2_out",'mode':'copy'
 
 	  input:
 	  file hisatidx from hisat_index
@@ -1353,7 +1246,7 @@ if (params.sample == "paired") {
 	  file "*_align_summary.txt" into paired_notrim_alignment_summaries
 
 	  shell:
-	  hisat_full_prefix = "${params.annotations}/${params.hisat_assembly}/index/${params.hisat_prefix}"
+	  hisat_full_prefix = "${params.annotation}/${params.hisat_assembly}/index/${params.hisat_prefix}"
 	  strand = "${params.hisat_strand}"
 	  sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR.fastq.gz"
 	  sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR.fastq.gz"
@@ -1386,7 +1279,7 @@ if (params.sample == "paired") {
 
 	  
 	  tag "Prefix: $paired_trimmed_prefix"
-	  publishDir "${params.basedir}/HISAT2_out",'mode':'copy'
+	  publishDir "${params.output}/HISAT2_out",'mode':'copy'
 
 	  input:
 	  file hisatidx from hisat_index
@@ -1398,7 +1291,7 @@ if (params.sample == "paired") {
 	  file "*_align_summary.txt" into paired_trim_alignment_summaries
 
 	  shell:
-	  hisat_full_prefix = "${params.annotations}/${params.hisat_assembly}/index/${params.hisat_prefix}"
+	  hisat_full_prefix = "${params.annotation}/${params.hisat_assembly}/index/${params.hisat_prefix}"
 	  strand = "${params.hisat_strand}"
 	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq.gz"
 	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired.fastq.gz"
@@ -1444,7 +1337,7 @@ process SamtoBam {
 
 	
 	tag "Prefix: $sam_to_bam_prefix"
-	publishDir "${params.basedir}/HISAT2_out/sam_to_bam",'mode':'copy'
+	publishDir "${params.output}/HISAT2_out/sam_to_bam",'mode':'copy'
 
 	input:
 	set val(sam_to_bam_prefix), file(sam_to_bam_input) from sam_to_bam_inputs
@@ -1474,7 +1367,7 @@ process InferExperiment {
 
 	
 	tag "Prefix: $infer_prefix"
-	publishDir "${params.basedir}/HISAT2_out/infer_experiment",'mode':'copy'
+	publishDir "${params.output}/HISAT2_out/infer_experiment",'mode':'copy'
 
 	input:
 	set val(infer_prefix), file(bam_file), file(bam_index), file(bed_file) from infer_experiments
@@ -1506,7 +1399,7 @@ process InferStrandness {
 
 	
 	tag "Sample: $infer_experiment_files"
-	publishDir "${params.basedir}/HISAT2_out/infer_strandness/",'mode':'copy'
+	publishDir "${params.output}/HISAT2_out/infer_strandness/",'mode':'copy'
 
 	input:
 	file infer_strandness from infer_strandness
@@ -1537,7 +1430,7 @@ process FeatureCounts {
 
 	
 	tag "Prefix: $feature_prefix"
-	publishDir "${params.basedir}/Counts",'mode':'copy'
+	publishDir "${params.output}/Counts",'mode':'copy'
 
 	input:
 	set val(feature_prefix), file(feature_bam), file(feature_index), file(gencode_gtf_feature) from feature_counts_inputs
@@ -1584,7 +1477,7 @@ process PrimaryAlignments {
 
 	
 	tag "Prefix: $alignment_prefix"
-	publishDir "${params.basedir}/Counts/junction/primary_aligments",'mode':'copy'
+	publishDir "${params.output}/Counts/junction/primary_aligments",'mode':'copy'
 
 	input:
 	set val(alignment_prefix), file(alignment_bam), file(alignment_index) from alignment_bam_inputs
@@ -1607,7 +1500,7 @@ process Junctions {
 
 	
 	tag "Prefix: $junction_prefix"
-	publishDir "${params.basedir}/Counts/junction",'mode':'copy'
+	publishDir "${params.output}/Counts/junction",'mode':'copy'
 
 	input:
 	file bed_to_juncs from bed_to_juncs
@@ -1651,7 +1544,7 @@ else
 process Coverage {
 
 	tag "Prefix: $coverage_prefix"
-	publishDir "${params.basedir}/Coverage/wigs",mode:'copy'
+	publishDir "${params.output}/Coverage/wigs",mode:'copy'
 
 	input:
 	file inferred_strand from inferred_strand_coverage
@@ -1685,7 +1578,7 @@ process WigToBigWig {
 
 	
 	tag "Prefix: $wig_prefix"
-	publishDir "${params.basedir}/Coverage/BigWigs",mode:'copy'
+	publishDir "${params.output}/Coverage/BigWigs",mode:'copy'
 
 	input:
 	set val(wig_prefix), file(wig_file) from wig_files
@@ -1713,7 +1606,7 @@ coverage_bigwigs
 process MeanCoverage {
 	
 	tag "Strand: ${read_type}"
-	publishDir "${params.basedir}/Coverage/mean",'mode':'copy'
+	publishDir "${params.output}/Coverage/mean",'mode':'copy'
 
 	input:
 	file inferred_strand_file from inferred_strand_mean_coverage
@@ -1749,7 +1642,7 @@ if (params.step6) {
 	 process TXQuant {
 
 		tag "Prefix: $salmon_input_prefix"
-		publishDir "${params.basedir}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
+		publishDir "${params.output}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
 
 		input:
 		file salmon_index from salmon_index
@@ -1822,8 +1715,7 @@ if (params.reference_type == "human" || params.reference_type == "mouse") {
 	  .flatten()
 	  .toSortedList()
 	  .set{counts_objects_channel_1}
-}
-if (params.reference_type == "rat") {
+} else {
 
 	counts_objects_channel
 	  .set{counts_objects_channel_1}
@@ -1870,7 +1762,7 @@ if(params.reference == "hg19") {
     .mix(exon_maps_by_coord_hg38)
     .toSortedList()
 	  .set{counts_annotations}
-} else if (params.reference_type == "mouse") {
+} else if (params.reference == "mm10") {
   temp_annotations
     .mix(junction_annotation_gencode)
     .toSortedList()
@@ -1887,7 +1779,7 @@ if(params.reference == "hg19") {
 
 process CountObjects {
 	//tag "[ $counts_input ]"
-	publishDir "${params.basedir}/Count_Objects",'mode':'copy'
+	publishDir "${params.output}/Count_Objects",'mode':'copy'
 
 	input:
 	file counts_input from counts_inputs
@@ -1923,8 +1815,8 @@ process CountObjects {
 		counts_strand = "-s reverse"
 	}
 	counts_reference = "${params.reference}"
-	counts_experiment = "${params.experiments}"
-	counts_prefix = "${params.experiment_prefix}"
+	counts_experiment = "${params.experiment}"
+	counts_prefix = "${params.prefix}"
 	counts_dir = "./"
 	'''
 	## Run the script to check for missing rpackages
@@ -1949,7 +1841,7 @@ if (params.fullCov) {
 process CoverageObjects {
 		// This tag generates long names for the job, SGE does not like long job names
 		tag "[ $full_coverage_input ]"
-		publishDir "${params.basedir}/Coverage_Objects",'mode':'copy'
+		publishDir "${params.output}/Coverage_Objects",'mode':'copy'
 
 		input:
 		file fullCov_file from fullCov_file
@@ -1970,7 +1862,7 @@ process CoverageObjects {
 		}
 		coverage_reference = "${params.reference}"
 		coverage_experiment = "${params.experiment}"
-		coverage_prefix = "${params.experiment_prefix}"
+		coverage_prefix = "${params.prefix}"
 		coverage_fullCov = "TRUE"
 		'''
 		Rscript !{check_R_packages_script}
@@ -1992,7 +1884,7 @@ if (params.step8) {
 
 	process VariantCalls {
 		tag "Prefix: $variant_bams_prefix"
-		publishDir "${params.basedir}/Variant_Calls",'mode':'copy'
+		publishDir "${params.output}/Variant_Calls",'mode':'copy'
 
 		input:
 		set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai), file(snv_bed), file(variant_assembly_file) from variant_calls
@@ -2028,7 +1920,7 @@ if (params.step8) {
 
 		
 		tag "Multi-sample vcf creation"
-		publishDir "${params.basedir}/Merged_Variants",'mode':'copy'
+		publishDir "${params.output}/Merged_Variants",'mode':'copy'
 
 		input:
 		file collected_variants from collected_variant_calls
@@ -2052,7 +1944,7 @@ process ExpressedRegions {
 
     
     tag "Sample: $expressed_regions_mean_bigwig"
-    publishDir "${params.basedir}/Expressed_Regions",mode:'copy'
+    publishDir "${params.output}/Expressed_Regions",mode:'copy'
 
     input:
     file expressedRegions_file from expressedRegions_file
