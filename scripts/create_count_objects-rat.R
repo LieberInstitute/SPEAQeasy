@@ -158,7 +158,7 @@ geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
 # VERSION Rnor_6.0
 ensembl = useMart("ensembl")
 ensembl = useDataset("rnorvegicus_gene_ensembl",mart=ensembl)
-sym = getBM(attributes = c("ensembl_gene_id","rgd_symbol","entrezgene"), 
+sym = getBM(attributes = c("ensembl_gene_id","rgd_symbol","entrezgene_id"), 
 	values=rownames(geneMap), mart=ensembl)
 #########
 

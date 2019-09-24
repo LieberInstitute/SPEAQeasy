@@ -212,7 +212,7 @@ geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
 # VERSION M11, GRCm38.p4
 ensembl = useMart("ensembl")
 ensembl = useDataset("mmusculus_gene_ensembl",mart=ensembl)
-sym = getBM(attributes = c("ensembl_gene_id","mgi_symbol","entrezgene"),
+sym = getBM(attributes = c("ensembl_gene_id","mgi_symbol","entrezgene_id"),
             values=rownames(geneMap), mart=ensembl)
 #########
 
