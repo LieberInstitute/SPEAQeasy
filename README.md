@@ -13,6 +13,34 @@ This pipeline allows researchers to contribute data to the recount2 project even
 
 ![General Workflow](https://github.com/LieberInstitute/RNAsp/blob/master/notes/General_Workflow.png)
 
+### Getting started ###
+
+1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
+2. **Determine your execution environment**. Modify the corresponding script accordingly:
+  + **Run on your local machine**: *run_test_system.sh*
+  + **Run on a Sun Grid Engines (SGE) cluster**: *run_test_sge.sh*
+  + **Run in a SLURM environment**: *run_test_slurm.sh
+  + **Run on the JHPCE cluster**: *run_test_jhpce.sh*
+  
+  This is the main script, which you can run interactively or submit to your computing cluster. Here you can specify all options related to input/output and the analysis steps you wish to perform. See "full list of command-line options" for specifics.
+
+3. **Choose how the pipeline will run the required software**:
+  + **Use docker to manage software** (recommended): if docker is installed on your execution environment, this option requires no manual installation of software. Simply add the option `-profile docker` in the main script you selected in step 2.
+  + **Use Lmod modules**: if your execution environment has the required software set up in Lmod modules (as is the case for JHPCE users), simply include the module name in the appropriate configuration file (see step 4) for your execution environment. (REFERENCE EXAMPLE HERE)
+  + **Use software by path**: this is only recommended if the above choices are not an option for you. Make sure you have the required software ( see "Installation" section). You must then specify the paths to each piece of software manually by modifying *conf/command_paths.config*
+  
+4. (Optional) **Configure hardware resource usage, software versions, etc**: The configuration file that is relevant for your case depends on your choice of environment in step 2:
+  + **Run on your local machine**: modify conf/mem.config (included in the main script by default)
+  + **Run on a Sun Grid Engines (SGE) cluster**: modify conf/sge.config and include the option `-profile sge` in your main script, or modify conf/sge_large.config and include `-profile sge_large`. These should be fairly well specified, with the idea that sge_large is a more resource-intensive setup than the sge profile.
+  + **Run in a SLURM environment**: modify conf/slurm.config and include the option `-profile slurm` in your main script
+  + **Run on the JHPCE cluster**: modify conf/jhpce.config and include the option `-profile jhpce` in your main script
+  
+  Note that these configuration files also include command-line options passed to many of the software tools (such as minimum mapping quality used in samtools for filtering). This gives control over many of the parameters in the pipeline that we deemed to involve preference, or to involve variability among use-cases.
+  
+### Full list of command-line options ###
+
+# Mandatory Options
+
 ### Version description ###
 
 * Version 0.8.0 (current)
