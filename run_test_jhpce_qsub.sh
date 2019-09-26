@@ -19,7 +19,6 @@ nextflow main.nf \
   -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
   --input "/users/neagles/rna_sp/input/" \
   --annotation "/dcl01/lieber/ajaffe/lab/RNAsp_static/Annotation"  \
-  --indexing "/dcl01/lieber/ajaffe/lab/RNAsp_static/Annotation" \
   --genotype "/dcl01/lieber/ajaffe/lab/RNAsp_static/Genotyping" \
   --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results" \
 	$@

@@ -23,7 +23,6 @@ nextflow main.nf \
 	-profile jhpce  \
   -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
   --annotation "/dcl01/lieber/ajaffe/lab/RNAsp_static/Annotation" \
-  --indexing "/dcl01/lieber/ajaffe/lab/RNAsp_static/Annotation" \
   --genotype "/dcl01/lieber/ajaffe/lab/RNAsp_static/Genotyping" \
   --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results" \
 	$@
