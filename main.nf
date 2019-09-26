@@ -127,8 +127,6 @@ def helpMessage() {
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--genotype		Path to the folder containing pipeline genotypes. Defaults to "./Genotyping"
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--name			Name for the pipeline run. If not specified, name is set to experiment
-	-----------------------------------------------------------------------------------------------------------------------------------
 	--ercc			Flag to enable ERCC quantification with Kallisto
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--fullCov		Flag to perform full coverage in step 7b
@@ -163,16 +161,12 @@ params.merge = false
 params.unalign = false
 params.reference = ""
 params.annotation = "${workflow.projectDir}/Annotation"
-params.indexing = "${params.annotation}"
-params.index_out = "${params.annotation}"
 params.genotype = "${workflow.projectDir}/Genotyping"
 params.output = "${workflow.projectDir}/results"
 params.scripts = "${workflow.projectDir}/scripts"
-params.name = ""
 params.ercc = false
 params.fullCov = false
 params.small_test = false
-params.wg_test = false
 workflow.runName = "RNAsp_run"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -532,7 +526,7 @@ log.info "==========================================="
  */
 
 // Define the output directory path for Genome Reference dir, and hisat2 index dir, based on previously defined parameters
-params.hisat_idx_output = "${params.index_out}/${params.hisat_assembly}"
+params.hisat_idx_output = "${params.annotation}/${params.hisat_assembly}"
 
 // Uses "storeDir" to download assembly file if required, and otherwise output the cached file
 // if it already exists
@@ -591,7 +585,7 @@ hisat_index_built // get every *.ht2 file in this channel
  */
 
 // Define the output directory path for GTF file, and the prep bed, based on previously defined parameters
-params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
+params.gencode_gtf_out = "${params.annotation}/RSeQC/${params.reference}"
 
 // Uses "storeDir" to download gtf only when it doesn't exist, and output the cached
 // file if it does already exist
@@ -648,7 +642,7 @@ params.gencode_gtf_out = "${params.index_out}/RSeQC/${params.reference}"
 // during Define Reference Paths/Scripts + Reference Dependent Parameters
 if (params.step6) {
 
-	params.salmon_idx_output = "${params.index_out}/${params.salmon_assembly}"
+	params.salmon_idx_output = "${params.annotation}/${params.salmon_assembly}"
 
 	/*
 	 * Step IIIa: GENCODE TX FA Download

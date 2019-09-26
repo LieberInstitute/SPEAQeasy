@@ -101,9 +101,7 @@ Note that the configuration files also include command-line options passed to ma
 
 + `--unalign`		Include this flag to not align reads against a reference in the HISAT step. Defaults to False
 + `--annotation`	The path to the directory containing pipeline annotations. Defaults to "./Annotations" (relative to the repository). If annotations are not found here, the pipeline includes a step to build them.
-+ `--indexing`		The path to the directory containing pipeline indices. Defaults to that set by --annotation
 + `--genotype`		The path to the directory containing pipeline genotypes. Defaults to "./Genotyping" (relative to the repository).
-+ `--name`			Name for the pipeline run. If not specified, name is set to that set by --experiment
 + `--ercc`			Include this flag to enable ERCC quantification with Kallisto
 + `--fullCov`		Flag to perform full coverage analysis
 + `--small_test`	Uses sample files located in the test folder as input. Overrides the "--input" option.
