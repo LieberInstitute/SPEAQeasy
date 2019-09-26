@@ -1848,37 +1848,33 @@ if (!params.ercc) {
  * Construct the Annotation Input Channel
  */
 
-junction_annotation_ensembl
-  .toSortedList()
-  .set{temp_annotations}
-
 //  Mix with reference-dependent annotation info
 if(params.reference == "hg19") {
-	temp_annotations
-	  .mix(junction_annotation_genes)
-    .mix(junction_annotation_gencode)
-	  .mix(feature_to_tx_gencode)
-	  .mix(feature_to_tx_ensembl)
-    .toSortedList()
-	  .set{counts_annotations}
-} else if (params.reference == "hg38") {
-	temp_annotations
+  junction_annotation_ensembl
     .mix(junction_annotation_genes)
     .mix(junction_annotation_gencode)
-	  .mix(feature_to_tx_gencode)
-	  .mix(feature_to_tx_ensembl)
+    .mix(feature_to_tx_gencode)
+    .mix(feature_to_tx_ensembl)
+    .toSortedList()
+    .set{counts_annotations}
+} else if (params.reference == "hg38") {
+  junction_annotation_ensembl
+    .mix(junction_annotation_genes)
+    .mix(junction_annotation_gencode)
+    .mix(feature_to_tx_gencode)
+    .mix(feature_to_tx_ensembl)
     .mix(exon_maps_by_coord_hg38)
     .toSortedList()
-	  .set{counts_annotations}
+    .set{counts_annotations}
 } else if (params.reference_type == "mouse") {
-  temp_annotations
+  junction_annotation_ensembl
     .mix(junction_annotation_gencode)
     .toSortedList()
-	  .set{counts_annotations}
+    .set{counts_annotations}
 } else {  // rat
-  temp_annotations
+  junction_annotation_ensembl
     .toSortedList()
-	  .set{counts_annotations}
+    .set{counts_annotations}
 }
 
 /*
