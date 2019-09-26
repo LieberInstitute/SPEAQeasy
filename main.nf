@@ -110,23 +110,21 @@ def helpMessage() {
 
 	Optional Parameters:
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--experiment	Name of the experiment being run (ex: "alzheimer"). Defaults to FALSE
+	--experiment	Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--prefix		Defines the prefix of the input files (not used to detect files)
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--input			Defines the input folder for the files. Defaults to "./input"
+	--input			Defines the input folder for the files. Defaults to "./input" (relative to the repository)
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--output		Defines the output folder for the files. Defaults to "./results"
+	--output		Defines the output folder for the files. Defaults to "./results" (relative to the repository)
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--merge			Flag option if files need to be merged. Defaults to FALSE
+	--merge			Flag option if files need to be merged. Defaults to false
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--unalign		Give the option to not algin the reads against a reference in HISAT step. Defaults to FALSE 
+	--unalign		Give the option to not algin the reads against a reference in HISAT step. Defaults to false 
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--annotation	Path to the folder containing pipeline annotations. Defaults to "./Annotations"
+	--annotation	Path to the folder containing pipeline annotations. Defaults to "./Annotations" (relative to the repository)
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--indexing		Path to the base directory containing pipeline indexes. Defaults to --annotation path
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--genotype		Path to the folder containing pipeline genotypes. Defaults to "./Genotyping"
+	--genotype		Path to the folder containing pipeline genotypes. Defaults to "./Genotyping" (relative to the repository)
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--ercc			Flag to enable ERCC quantification with Kallisto
 	-----------------------------------------------------------------------------------------------------------------------------------
