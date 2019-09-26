@@ -15,31 +15,98 @@ This pipeline allows researchers to contribute data to the recount2 project even
 
 ### Getting started ###
 
-1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
-2. **Determine your execution environment**. Modify the corresponding script accordingly:
-  + **Run on your local machine**: *run_test_system.sh*
-  + **Run on a Sun Grid Engines (SGE) cluster**: *run_test_sge.sh*
-  + **Run in a SLURM environment**: *run_test_slurm.sh
-  + **Run on the JHPCE cluster**: *run_test_jhpce.sh*
-  
-  This is the main script, which you can run interactively or submit to your computing cluster. Here you can specify all options related to input/output and the analysis steps you wish to perform. See "full list of command-line options" for specifics.
+# Software Requirements #
 
-3. **Choose how the pipeline will run the required software**:
-  + **Use docker to manage software** (recommended): if docker is installed on your execution environment, this option requires no manual installation of software. Simply add the option `-profile docker` in the main script you selected in step 2.
-  + **Use Lmod modules**: if your execution environment has the required software set up in Lmod modules (as is the case for JHPCE users), simply include the module name in the appropriate configuration file (see step 4) for your execution environment. (REFERENCE EXAMPLE HERE)
-  + **Use software by path**: this is only recommended if the above choices are not an option for you. Make sure you have the required software ( see "Installation" section). You must then specify the paths to each piece of software manually by modifying *conf/command_paths.config*
++ This pipeline runs [nextflow](https://www.nextflow.io/). Install nextflow in the current directory via `wget -qO- https://get.nextflow.io | bash`. For more details, read [here](https://www.nextflow.io/docs/latest/getstarted.html#installation).
++ Nextflow requires a Java runtime. If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer.
++ Additional software configuration depends on the options available on your system/ execution environment:
+    + **Using docker** (Recommended for non-JHPCE users): If docker is installed in your environment, this option requires no manual installation of software. Simply add the option `-profile docker` to the main script (this is determined at step 4 in the section you choose below). The required containers are pulled at run-time automatically.
+    + **Using Lmod modules** (Recommended for JHPCE users): If your system or computing cluster has the required software installed on Lmod modules, this is likely the next best option. In the appropriate config file (as determined in step 3 in the section you choose below), you can add lines for  each process (such as `module = 'hisat2/2.1.0'` for buildHISATindex) as configured in *conf/jhpce.config*.
+    + **Installing dependencies manually**: This is not recommended, due to the fairly large number of individual software tools involved, but may be appropriate if the above options are not available. Here is the list of software used by the pipeline:
+    
+Software | Version | Command used by the pipeline |
+|:-------------:| -----:| -----: |
+|[bcftools](http://www.htslib.org/download/) | 1.6 | `bcftools` |
+|[fastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.4 | `fastqc` |
+|[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.0.4 | `hisat2`, `hisat2-build` |
+|[htslib](http://www.htslib.org/download/) | 1.2 | `tabix` |
+|[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
+|[kallisto](https://pachterlab.github.io/kallisto/source) | 0.44.0 | `kallisto` |
+|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | 0.29.1.4804 | `nextflow` |
+|[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.4.4 | `Rscript` |
+|[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.0 | `regtools` |
+|[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `infer_experiment.py`, `bam2wig.py`|
+|[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 0.9.1 | `salmon` |
+|[samtools](http://www.htslib.org/download/) | 1.2 | `samtools` |
+|[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 1.6.0 | `featureCounts` |
+|[trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) | 0.36 | `java -jar path/to/trimmomatic.jar` |
+|[vcf-tools](https://vcftools.github.io/index.html) | 0.1.15 | `vcf-merge` |
+|[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2 | `wiggletools` |
+|[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
+
+## Run on the JHPCE cluster ##
+
+1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
+2. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/jhpce.config*
+3. **Modify the main script and run**: this is *run_test_jhpce_qsub.sh*. The pipeline run is submitted to the cluster by executing `qsub run_test_jhpce_qsub.sh`. Alternatively, you may run the pipeline interactively via `bash run_test_jhpce.sh`. See "Full list of command-line options" for details about modifying the script you choose.
+
+
+## Run on a Sun Grid Engines (SGE) cluster ##
+
+1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
+2. **Choose how to manage software dependencies**: see "Software requirements" section.
+3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/sge.config*. You may alteratively modify *conf/sge_large.config*, which is configured to be more resource-intensive by default. If you choose *sge_large_config*, modify *run_test_sge.sh* to include the line `-profile sge_large` instead of `-profile sge`.
+4. **Modify the main script and run**: the main script is *run_test_sge.sh*. Run the pipeline interactively with `bash run_test_sge.sh`, or submit as a job to your cluster with `qsub run_test_sge.sh`. See "Full list of command-line options" for details about modifying the script for your use-case.
+
+## Run in a SLURM environment ##
+
+1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
+2. **Choose how to manage software dependencies**: see "Software requirements" section.
+3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/slurm.config*.
+4. **Modify the main script and run**: the main script is *run_test_slurm.sh*. Run the pipeline interactively with `bash run_test_slurm.sh`, or submit as a job to your cluster with `sbatch run_test_slurm.sh`. See "Full list of command-line options" for details about modifying the script for your use-case.
+
+## Run locally ##
+
+1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
+2. **Choose how to manage software dependencies**: see "Software requirements" section.
+3. (Optional) **Adjust configuration**: hardware resource usage and other configurables are located in *conf/mem.config*.
+4. **Modify the main script and run**: the main script is *run_test_system.sh*. After configuring options for your use-case (See "Full list of command-line options"), simply run on the command-line with `bash run_test_system.sh`.
   
-4. (Optional) **Configure hardware resource usage, software versions, etc**: The configuration file that is relevant for your case depends on your choice of environment in step 2:
-  + **Run on your local machine**: modify conf/mem.config (included in the main script by default)
-  + **Run on a Sun Grid Engines (SGE) cluster**: modify conf/sge.config and include the option `-profile sge` in your main script, or modify conf/sge_large.config and include `-profile sge_large`. These should be fairly well specified, with the idea that sge_large is a more resource-intensive setup than the sge profile.
-  + **Run in a SLURM environment**: modify conf/slurm.config and include the option `-profile slurm` in your main script
-  + **Run on the JHPCE cluster**: modify conf/jhpce.config and include the option `-profile jhpce` in your main script
-  
-  Note that these configuration files also include command-line options passed to many of the software tools (such as minimum mapping quality used in samtools for filtering). This gives control over many of the parameters in the pipeline that we deemed to involve preference, or to involve variability among use-cases.
+Note that the configuration files also include command-line options passed to many of the software tools (such as minimum mapping quality used in samtools for filtering). This gives control over many of the parameters in the pipeline that we deemed to involve preference, or to involve variability among use-cases.
   
 ### Full list of command-line options ###
 
-# Mandatory Options
+# Mandatory Parameters #
+
++ `--sample`		"single" or "paired": the orientation of your reads
++ `--strand`		"unstranded", "forward, or "reverse": the strandness of your reads. Note "unstranded" may be used if you are not sure- specifying "forward" or "reverse" (in the future) will tell the pipeline to confirm your reads are stranded in the expected way.
++ `--reference`		"hg38", "hg19", "mm10", or "rn6": the reference genome to which reads are aligned
+
+# Optional Parameters #
+
++ `--experiment`	Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
++ `--prefix`	Defines the prefix of the input files (not used to detect files)
++ `--input`		The path to the directory including the fastq files. Defaults to "./input" (relative to the repository)
++ `--output`  The path to the directory to store pipeline output files/ objects. Defaults to "./results" (relative to the repository)
++ `--merge`  Include if some samples are split into 2 fastq files. If this is the case, the filenames must obey the following convention:
+
+    + **single-end reads**:
+	      Sample part 1: "{prefix}_read1.fastq.gz"
+	      Sample part 2: "{prefix}_read2.fastq.gz"
+    + **paired-end reads**:
+	      First in pair, Sample part 1: "{prefix}_1_read1.fastq.gz"
+	      First in pair, Sample part 2: "{prefix}_1_read2.fastq.gz"
+	      Second in pair, Sample part 1: "{prefix}_2_read1.fastq.gz"
+	      Second in pair, Sample part 2: "{prefix}_2_read2.fastq.gz"
+
++ `--unalign`		Include this flag to not align reads against a reference in the HISAT step. Defaults to False
++ `--annotation`	The path to the directory containing pipeline annotations. Defaults to "./Annotations" (relative to the repository). If annotations are not found here, the pipeline includes a step to build them.
++ `--indexing`		The path to the directory containing pipeline indices. Defaults to that set by --annotation
++ `--genotype`		The path to the directory containing pipeline genotypes. Defaults to "./Genotyping" (relative to the repository).
++ `--name`			Name for the pipeline run. If not specified, name is set to that set by --experiment
++ `--ercc`			Include this flag to enable ERCC quantification with Kallisto
++ `--fullCov`		Flag to perform full coverage analysis
++ `--small_test`	Uses sample files located in the test folder as input. Overrides the "--input" option.
 
 ### Version description ###
 
@@ -66,31 +133,6 @@ This pipeline has been successfully run in the following Operative System(s):
 **Note on dependencies:** This pipeline can run in System mode (using tools installed in the system), 
 or in Docker mode (using docker to handle software dependencies). Install dependencies accordingly.
 
-##### System mode #####
-
-* Dependencies: Bioinformatics software
-
-If you are going to run this pipeline without Docker mode enabled, please verify that your system has the following tools and versions:
-
-Software | Version | Command used by the pipeline |
-|:-------------:| -----:| -----: |
-|[bcftools](http://www.htslib.org/download/) | 1.6 | `bcftools` |
-|[fastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.4 | `fastqc` |
-|[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.0.4 | `hisat2`, `hisat2-build` |
-|[htslib](http://www.htslib.org/download/) | 1.2 | `tabix` |
-|[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
-|[kallisto](https://pachterlab.github.io/kallisto/source) | 0.44.0 | `kallisto` |
-|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | 0.29.1.4804 | `nextflow` |
-|[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.4.4 | `Rscript` |
-|[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.0 | `regtools` |
-|[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `infer_experiment.py`, `bam2wig.py`|
-|[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 0.9.1 | `salmon` |
-|[samtools](http://www.htslib.org/download/) | 1.2 | `samtools` |
-|[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 1.6.0 | `featureCounts` |
-|[trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) | 0.36 | `java -jar path/to/trimmomatic.jar` |
-|[vcf-tools](https://vcftools.github.io/index.html) | 0.1.15 | `vcf-merge` |
-|[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2 | `wiggletools` |
-|[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 
 ##### Docker mode #####
 
@@ -393,7 +435,7 @@ Original Pipeline
 
  [Emily Burke](mailto:emily.burke@libd.org>),
  [Leonardo Collado-Tores](mailto:lcolladotor@gmail.com),
- [Andrew Jaffe](mailto:andrew.jaffe@libd.org),
+ [Andrew Jaffee](mailto:andrew.jaffe@libd.org),
  [BaDoi Phan](mailto:badoi.phan@pitt.edu) 
  
 Nextflow Port
@@ -402,7 +444,6 @@ Nextflow Port
  [Israel Aguilar](mailto:iaguilaror@gmail.com),
  [Violeta Larios](mailto:siedracko@gmail.com),
  [Everardo Gutierrez](mailto:ever.gmillan@gmail.com)
- [Nick Eagles](mailto:nick.eagles@libd.org)
 
 ### Contact ###
 
