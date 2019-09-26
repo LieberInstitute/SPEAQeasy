@@ -10,14 +10,15 @@ vim: syntax=groovy
  https://github.com/LieberInstitute/RNAsp
  #### Authors
  ##### Original Pipeline
- Emily Burke <address@email.com>
+ Emily Burke <emily.burke@libd.org>
  Leonardo Collado-Tores <lcolladotor@gmail.com>
- Andrew Jaffee <address@email.com>
+ Andrew Jaffe <andrew.jaffe@libd.org>
  BaDoi Phan <address@email.com>
  ##### Nextflow Version
  Jacob Leonard <leonard.jacob09@gmail.com>
  Israel Aguilar <iaguilaror@gmail.com>
  Violeta Larios <siedracko@gmail.com>
+ Nick Eagles <nick.eagles@libd.org>
  ###### References
  https://github.com/SciLifeLab/NGI-smRNAseq
 -----------------------------------------------------------------------------------------------------------------------------------

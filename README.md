@@ -433,7 +433,7 @@ Original Pipeline
 
  [Emily Burke](mailto:emily.burke@libd.org>),
  [Leonardo Collado-Tores](mailto:lcolladotor@gmail.com),
- [Andrew Jaffee](mailto:andrew.jaffe@libd.org),
+ [Andrew Jaffe](mailto:andrew.jaffe@libd.org),
  [BaDoi Phan](mailto:badoi.phan@pitt.edu) 
  
 Nextflow Port
@@ -442,6 +442,7 @@ Nextflow Port
  [Israel Aguilar](mailto:iaguilaror@gmail.com),
  [Violeta Larios](mailto:siedracko@gmail.com),
  [Everardo Gutierrez](mailto:ever.gmillan@gmail.com)
+ [Nick Eagles](mailto:nick.eagles@libd.org)
 
 ### Contact ###
 
