@@ -135,8 +135,6 @@ def helpMessage() {
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--small_test	Runs the pipeline as a small test run on sample files located in the test folder
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--test			Runs the pipeline as a test run on sample files located on winter server 
-	-----------------------------------------------------------------------------------------------------------------------------------
 	""".stripIndent()
 }
 /*
@@ -173,7 +171,6 @@ params.scripts = "${workflow.projectDir}/scripts"
 params.name = ""
 params.ercc = false
 params.fullCov = false
-params.test = false
 params.small_test = false
 params.wg_test = false
 workflow.runName = "RNAsp_run"
@@ -195,11 +192,6 @@ if (params.strand != "forward" && params.strand != "reverse" && params.strand !=
 // Reference Selection Validation
 if (params.reference != "hg19" && params.reference != "hg38" && params.reference != "mm10" && params.reference == "rn6") {
 	exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
-}
-
-// Conflicting Test Options
-if (params.small_test && params.test) {
-	exit 1, "You've selected 'small_test' and 'test' ... Please choose one and run again"
 }
 
 if (params.reference == "hg19" || params.reference == "hg38") {
@@ -272,20 +264,14 @@ if (params.strand == "reverse") {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define External Scripts
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//##TODO(iaguilar): This should live in an external config file... (Dev ######)
+
 infer_strandness = file("${params.scripts}/step3b_infer_strandness.R")
 prep_bed = file("${params.scripts}/prep_bed.R")
 bed_to_juncs = file("${params.scripts}/bed_to_juncs.py")
 //TODO(iaguilar) change _file for _script in the variable expressedRegions_file (###Dev)
 expressedRegions_file = file("${params.scripts}/step9-find_expressed_regions.R")
 check_R_packages_script = file("${params.scripts}/check_R_packages.R")
-
-// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
-if (params.wg_test ) {
-	fullCov_file = file("${params.scripts}/create_fullCov_object.R.WG_compatible")
-} else {
-	fullCov_file = file("${params.scripts}/create_fullCov_object.R")
-}
+fullCov_file = file("${params.scripts}/create_fullCov_object.R")
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define Reference Paths/Scripts + Reference Dependent Parameters
@@ -335,12 +321,7 @@ if (params.reference == "hg38") {
 	feature_to_tx_gencode = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
 	feature_to_tx_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
   exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
-	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
-	if (params.wg_test ) {
-		create_counts = file("${params.scripts}/create_count_objects-human_v2.R.WG_compatible")
-	} else {
-		create_counts = file("${params.scripts}/create_count_objects-human.R")
-	}
+	create_counts = file("${params.scripts}/create_count_objects-human.R")
 
 	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg38...  (Doc ######)
@@ -388,12 +369,7 @@ if (params.reference == "hg19") {
 	junction_annotation_genes = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
 	feature_to_tx_gencode = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
 	feature_to_tx_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
-	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
-	if (params.wg_test ) {
-		create_counts = file("${params.scripts}/create_count_objects-human.R.WG_compatible")
-	} else {
-		create_counts = file("${params.scripts}/create_count_objects-human.R")
-	}
+	create_counts = file("${params.scripts}/create_count_objects-human.R")
 
 	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg19...  (Doc ######)
@@ -438,12 +414,7 @@ if (params.reference == "mm10") {
 	// Step 7: Make R objects
 	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
 	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
-	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
-	if (params.wg_test ) {
-		create_counts = file("${params.scripts}/create_count_objects-mouse.R.WG_compatible")
-	} else {
-		create_counts = file("${params.scripts}/create_count_objects-mouse.R")
-	}
+	create_counts = file("${params.scripts}/create_count_objects-mouse.R")
 
   // Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is disabled if reference is mm10...  (Doc ######)
@@ -476,12 +447,7 @@ if (params.reference == "rn6") {
 
 	// Step 7: Make R objects
 	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
-	// .WG_compatible files are used for testing in WG server, since some R packages are too new, or some values are not permited by minimal test data
-	if (params.wg_test ) {
-		create_counts = file("${params.scripts}/create_count_objects-rat.R.WG_compatible")
-	} else {
-		create_counts = file("${params.scripts}/create_count_objects-rat.R")
-	}
+	create_counts = file("${params.scripts}/create_count_objects-rat.R")
 
 	//Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is rn6...  (Doc ######)
@@ -538,7 +504,6 @@ if(params.experiment) summary['Experiment'] = params.experiment
 if(params.merge) summary['Merge'] = "True"
 if(params.unalign) summary['Align'] = "True"
 if(params.fullCov) summary['Full Coverage'] = "True"
-if(params.test) summary['Test'] = "True"
 summary['Small test selected'] = params.small_test
 summary['Output dir']		  = params.output
 summary['Working dir']		 = workflow.workDir
