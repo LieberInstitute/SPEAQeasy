@@ -29,7 +29,7 @@ Software | Version | Command used by the pipeline |
 |[bcftools](http://www.htslib.org/download/) | 1.9 | `bcftools` |
 |[fastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.5 | `fastqc` |
 |[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.1.0 | `hisat2`, `hisat2-build` |
-|[htslib](http://www.htslib.org/download/) | 1.2.1 | `tabix` |
+|[htslib](http://www.htslib.org/download/) | 1.9 | `tabix` |
 |[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
 |[kallisto](https://pachterlab.github.io/kallisto/source) | 0.43.0 | `kallisto` |
 |[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | 0.29.1.4804 | `nextflow` |
