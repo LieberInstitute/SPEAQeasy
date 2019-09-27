@@ -32,7 +32,7 @@ Software | Version | Command used by the pipeline |
 |[htslib](http://www.htslib.org/download/) | 1.9 | `tabix` |
 |[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
 |[kallisto](https://pachterlab.github.io/kallisto/source) | 0.43.0 | `kallisto` |
-|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | 0.29.1.4804 | `nextflow` |
+|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 18.10.0) | `nextflow` |
 |[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.6 | `Rscript` |
 |[regtools](https://github.com/griffithlab/regtools#installation) | 0.3.0 | `regtools` |
 |[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `infer_experiment.py`, `bam2wig.py`|
@@ -75,15 +75,15 @@ See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional
   
 Note that the configuration files also include command-line options passed to many of the software tools (such as minimum mapping quality used in samtools for filtering). This gives control over many of the parameters in the pipeline that we deemed to involve preference, or to involve variability among use-cases.
   
-### Full list of command-line options ###
+## Full list of command-line options ##
 
-# Mandatory Parameters #
+### Mandatory Parameters ###
 
 + `--sample`		"single" or "paired": the orientation of your reads
 + `--strand`		"unstranded", "forward, or "reverse": the strandness of your reads. Note "unstranded" may be used if you are not sure- specifying "forward" or "reverse" (in the future) will tell the pipeline to confirm your reads are stranded in the expected way.
 + `--reference`		"hg38", "hg19", "mm10", or "rn6": the reference genome to which reads are aligned
 
-# Optional Parameters #
+### Optional Parameters ###
 
 + `--experiment`	Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
 + `--prefix`	Defines the prefix of the input files (not used to detect files)
@@ -91,14 +91,21 @@ Note that the configuration files also include command-line options passed to ma
 + `--output`  The path to the directory to store pipeline output files/ objects. Defaults to "./results" (relative to the repository)
 + `--merge`  Include if some samples are split into 2 fastq files. If this is the case, the filenames must obey the following convention:
 
-    + **single-end reads**:
-	      Sample part 1: "{prefix}_read1.fastq.gz"
-	      Sample part 2: "{prefix}_read2.fastq.gz"
-    + **paired-end reads**:
-	      First in pair, Sample part 1: "{prefix}_1_read1.fastq.gz"
-	      First in pair, Sample part 2: "{prefix}_1_read2.fastq.gz"
-	      Second in pair, Sample part 1: "{prefix}_2_read1.fastq.gz"
-	      Second in pair, Sample part 2: "{prefix}_2_read2.fastq.gz"
+    __single__
+
+````
+	Sample part 1: "{prefix}_read1.fastq.gz"
+	Sample part 2: "{prefix}_read2.fastq.gz"
+````
+
+__paired__
+
+````
+	First in pair, Sample part 1: "{prefix}_1_read1.fastq.gz"
+	First in pair, Sample part 2: "{prefix}_1_read2.fastq.gz"
+	Second in pair, Sample part 1: "{prefix}_2_read1.fastq.gz"
+	Second in pair, Sample part 2: "{prefix}_2_read2.fastq.gz"
+````
 
 + `--unalign`		Include this flag to not align reads against a reference in the HISAT step. Defaults to False
 + `--annotation`	The path to the directory containing pipeline annotations. Defaults to "./Annotations" (relative to the repository). If annotations are not found here, the pipeline includes a step to build them.
@@ -128,9 +135,6 @@ Note that the configuration files also include command-line options passed to ma
 This pipeline has been successfully run in the following Operative System(s):
 
 * [Ubuntu 16.04.4 LTS](https://www.ubuntu.com/download/alternative-downloads)
-
-**Note on dependencies:** This pipeline can run in System mode (using tools installed in the system), 
-or in Docker mode (using docker to handle software dependencies). Install dependencies accordingly.
 
 
 ##### Docker mode #####
@@ -183,70 +187,11 @@ This pipeline works for the following genomes and versions:
 |mm10| mouse |
 |rna6| rat |
 
-### Input data formats ###
-
-This RNA-Seq pipeline can handle several combinations of single/paired read, human/mouse/rat reference, and unstranded'forward/reverse options. The following __mandatory__ options are available:
-
-__reference__
-
-````
-	Human:
-	--reference "hg38"
-	  OR
-	--reference "hg19"
-
-	Mouse:
-	--reference "mm10"
-
-	Rat:
-	--reference "rn6"
-````
-
-__sample__
-
-````
-	--sample "single"
-	  OR
-	--sample "paired"
-````
-
-__stranded__
-
-````
-	Stranded:
-	--strand "forward"
-	  OR
-	--strand "reverse"
-
-	Unstranded:
-	--strand "unstranded"
-````
-
 
 ### File Naming ###
 
 NOTICE: File names must not contain "." in the name because the pipeline operates on file names by splitting along the "." to determine prefixes. If needed, change all "." characters to "\_"
 
-### Merging Required
-
-The pipeline can handle sample fastq.gz files that require merging. Files that need merging should be named in the following format:
-
-
-__single__
-
-````
-	Sample part 1: "{prefix}_read1.fastq.gz"
-	Sample part 2: "{prefix}_read2.fastq.gz"
-````
-
-__paired__
-
-````
-	First in pair, Sample part 1: "{prefix}_1_read1.fastq.gz"
-	First in pair, Sample part 2: "{prefix}_1_read2.fastq.gz"
-	Second in pair, Sample part 1: "{prefix}_2_read1.fastq.gz"
-	Second in pair, Sample part 2: "{prefix}_2_read2.fastq.gz"
-````
 
 ### Output data formats ###
 
@@ -349,11 +294,6 @@ The dockerfiles declare specific versions of the required software, since softwa
 be updated, the dockerfiles will become less likely to build successfully. In this case its much easier to simply run 
 make pull in the dockerfiles directory to pull the current working version of each image.
 
-### Run with SGE ###
-
-For scalability, this pipeline uses the executor component from Nextflow, as described [here](https://www.nextflow.io/docs/latest/executor.html); especifically, we use the [SGE](https://www.nextflow.io/docs/latest/executor.html#sge) integration capabilities to manage process distribution and computational resources.
-
-The _conf/sge.config_ and _conf/sge_large.config_ must be properly configured before launching SGE runs. Said configuration files define variables regarding queue, parallelization environments and resources requested by every process in the pipeline. This allows the fine tunning of resource consumption.
 
 ### Authors ###
 
