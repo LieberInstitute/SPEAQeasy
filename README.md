@@ -13,9 +13,9 @@ This pipeline allows researchers to contribute data to the recount2 project even
 
 ![General Workflow](https://github.com/LieberInstitute/RNAsp/blob/master/notes/General_Workflow.png)
 
-### Getting started ###
+# Getting started #
 
-# Software Requirements #
+## Software Requirements ##
 
 + This pipeline runs [nextflow](https://www.nextflow.io/). Install nextflow in the current directory via `wget -qO- https://get.nextflow.io | bash`. For more details, read [here](https://www.nextflow.io/docs/latest/getstarted.html#installation).
 + Nextflow requires a Java runtime. If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer.
@@ -43,14 +43,14 @@ Software | Version | Command used by the pipeline |
 |[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2.1 | `wiggletools` |
 |[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 
-## Run on the JHPCE cluster ##
+### Run on the JHPCE cluster ###
 
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/jhpce.config*
 3. **Modify the main script and run**: this is *run_test_jhpce_qsub.sh*. The pipeline run is submitted to the cluster by executing `qsub run_test_jhpce_qsub.sh`. Alternatively, you may run the pipeline interactively via `bash run_test_jhpce.sh`. See "Full list of command-line options" for details about modifying the script you choose.
 
 
-## Run on a Sun Grid Engines (SGE) cluster ##
+### Run on a Sun Grid Engines (SGE) cluster ###
 
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. **Choose how to manage software dependencies**: see "Software requirements" section.
@@ -59,14 +59,14 @@ Software | Version | Command used by the pipeline |
 
 See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional information on nextflow for SGE environments.
 
-## Run in a SLURM environment ##
+### Run in a SLURM environment ###
 
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. **Choose how to manage software dependencies**: see "Software requirements" section.
 3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/slurm.config*.
 4. **Modify the main script and run**: the main script is *run_test_slurm.sh*. Run the pipeline interactively with `bash run_test_slurm.sh`, or submit as a job to your cluster with `sbatch run_test_slurm.sh`. See "Full list of command-line options" for details about modifying the script for your use-case.
 
-## Run locally ##
+### Run locally ###
 
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. **Choose how to manage software dependencies**: see "Software requirements" section.
@@ -98,7 +98,7 @@ Note that the configuration files also include command-line options passed to ma
 	Sample part 2: "{prefix}_read2.fastq.gz"
 ````
 
-__paired__
+    __paired__
 
 ````
 	First in pair, Sample part 1: "{prefix}_1_read1.fastq.gz"
@@ -127,10 +127,6 @@ __paired__
         + Full Coverage Rdata generation
         + Transcript Counts Rdata generation
 
-
-### Installation ###
-
-##### Working OS #####
 
 This pipeline has been successfully run in the following Operative System(s):
 
