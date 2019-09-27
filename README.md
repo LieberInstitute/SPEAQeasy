@@ -22,7 +22,7 @@ This pipeline allows researchers to contribute data to the recount2 project even
 + Additional software configuration depends on the options available on your system/ execution environment:
     + **Using docker** (Recommended for non-JHPCE users): If docker is installed in your environment, this option requires no manual installation of software. Simply add the option `-profile docker` to the main script (this is determined at step 4 in the section you choose below). The required containers are pulled at run-time automatically.
     + **Using Lmod modules** (Recommended for JHPCE users): If your system or computing cluster has the required software installed on Lmod modules, this is likely the next best option. In the appropriate config file (as determined in step 3 in the section you choose below), you can add lines for  each process (such as `module = 'hisat2/2.1.0'` for buildHISATindex) as configured in *conf/jhpce.config*.
-    + **Installing dependencies manually**: This is not recommended, due to the fairly large number of individual software tools involved, but may be appropriate if the above options are not available. Here is the list of software used by the pipeline:
+    + **Installing dependencies manually**: This is not recommended, due to the fairly large number of individual software tools involved, but may be appropriate if the above options are not available. After these are installed, modify *conf/command_paths.config* to point each process to the software paths. Here is the list of software used by the pipeline:
     
 Software | Version | Command used by the pipeline |
 |:-------------:| -----:| -----: |
@@ -57,6 +57,8 @@ Software | Version | Command used by the pipeline |
 3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/sge.config*. You may alteratively modify *conf/sge_large.config*, which is configured to be more resource-intensive by default. If you choose *sge_large_config*, modify *run_test_sge.sh* to include the line `-profile sge_large` instead of `-profile sge`.
 4. **Modify the main script and run**: the main script is *run_test_sge.sh*. Run the pipeline interactively with `bash run_test_sge.sh`, or submit as a job to your cluster with `qsub run_test_sge.sh`. See "Full list of command-line options" for details about modifying the script for your use-case.
 
+See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional information on nextflow for SGE environments.
+
 ## Run in a SLURM environment ##
 
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
@@ -68,7 +70,7 @@ Software | Version | Command used by the pipeline |
 
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. **Choose how to manage software dependencies**: see "Software requirements" section.
-3. (Optional) **Adjust configuration**: hardware resource usage and other configurables are located in *conf/mem.config*.
+3. (Optional) **Adjust configuration**: hardware resource usage and other configurables are located in *conf/mem.config*. Note that defaults assume access to 8 CPUs and 16GB of RAM.
 4. **Modify the main script and run**: the main script is *run_test_system.sh*. After configuring options for your use-case (See "Full list of command-line options"), simply run on the command-line with `bash run_test_system.sh`.
   
 Note that the configuration files also include command-line options passed to many of the software tools (such as minimum mapping quality used in samtools for filtering). This gives control over many of the parameters in the pipeline that we deemed to involve preference, or to involve variability among use-cases.
@@ -161,79 +163,6 @@ Log out and log back in to ensure your user is running with the correct permissi
 docker run hello-world
 ```
 You can find more information about this setup test in the [docker site](https://docs.docker.com/get-started/#test-docker-installation)
-
-##### SGE mode #####
-
-This pipeline can be scaled up using a Sun Grid Engine cluster or a compatible platform (Open Grid Engine, Univa Grid Engine, etc), as described [here](https://www.nextflow.io/docs/latest/executor.html#sge).
-
-Contact your computing cluster administration to ensure you have access to a queue for submiting jobs, and for information about the best practices for resource management during pipeline execution.
-
-### Pipeline setup ###
-
-Once the previous dependencies have been met, clone this repository via:
-
-````
-        git clone https://github.com/LieberInstitute/RNAsp.git
-````
-
-Continue with the Configuration step in preparation for a test run.
-
-### Configuration ###
-
-Thanks to the nextflow framework this pipeline can run on your local machine, or in a SGE cluster; with or without using docker containers.
-
-But first, you need to configure some variables in the following files:
-
-* **conf/command_paths.config**: this file defines the paths used by the pipeline to make some required command calls.  
-
-    + This conf file can allow you to test the pipeline even if some dependencies are not globally installed or available on the PATH.
-    + **Important**: change the values to match your system environment.
-
-* **conf/mem.config**: this file defines the amount of computational resources that Nextflow requests for every process. This conf file is used by default if no other `-profile` is requested.
-
-    + By default, this configuration file assumes the local environment has 16G of memory and 8 CPUs
-
-* **conf/sge.config**: this file defines variables used by SGE during job submitions, mainly computational resources.
-
-    + **Important**: change the ***queue*** variable to a valid queue where your user is allowed to submit jobs.
-    + **Important**: change the ***penv*** variable to a valid parallel environment according to your cluster setup.
-    + **Important**: this conf file is not used by default. It must be requested by using the `-profile sge` option of the nextflow command.
-
-* **conf/sge_large.config**: see **sge.config**, this file is similar but should be configured to request heavier use of computational resources.
-
-    + **Important**: this conf file is not used by default. It must be requested by using the `-profile sge_large` option of the nextflow command.
-    
-* **conf/jhpce.config**: this file is designed for use at the JHPCE cluster, the SGE cluster on which some of the pipeline was developed. It specifies computational resources and cluster options intended for this environment; use sge.config or sge_large.config for settings that apply more generally to SGE clusters.
-
-### Test run ###
-
-* System mode simple test
-
-After proper configuration has been made in the _**conf/command_paths.config**_ file, you can launch a test by executing:
-
-````
-bash run_test_system.sh
-````
-
-This will launch a **local run** of the complete pipeline.
-
-* System + SGE simple test
-
-After proper configuration has been made in the _**conf/command_paths.config**_ AND the _**conf/sge.config**_ files, launch this test by executing:
-
-````
-bash run_test_sge.sh
-````
-
-* Docker simple test
-
-**NOTE**: First read the _**Run with Docker**_ section of this readme.
-
-Launch this test by executing:
-
-````
-bash run_test_docker.sh
-````
 
 ### Reference files ###
 
