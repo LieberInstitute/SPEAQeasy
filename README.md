@@ -26,22 +26,21 @@ This pipeline allows researchers to contribute data to the recount2 project even
     
 Software | Version | Command used by the pipeline |
 |:-------------:| -----:| -----: |
-|[bcftools](http://www.htslib.org/download/) | 1.6 | `bcftools` |
-|[fastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.4 | `fastqc` |
-|[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.0.4 | `hisat2`, `hisat2-build` |
-|[htslib](http://www.htslib.org/download/) | 1.2 | `tabix` |
+|[bcftools](http://www.htslib.org/download/) | 1.9 | `bcftools` |
+|[fastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.5 | `fastqc` |
+|[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.1.0 | `hisat2`, `hisat2-build` |
+|[htslib](http://www.htslib.org/download/) | 1.2.1 | `tabix` |
 |[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
-|[kallisto](https://pachterlab.github.io/kallisto/source) | 0.44.0 | `kallisto` |
+|[kallisto](https://pachterlab.github.io/kallisto/source) | 0.43.0 | `kallisto` |
 |[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | 0.29.1.4804 | `nextflow` |
-|[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.4.4 | `Rscript` |
-|[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.0 | `regtools` |
+|[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.6 | `Rscript` |
+|[regtools](https://github.com/griffithlab/regtools#installation) | 0.3.0 | `regtools` |
 |[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `infer_experiment.py`, `bam2wig.py`|
-|[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 0.9.1 | `salmon` |
-|[samtools](http://www.htslib.org/download/) | 1.2 | `samtools` |
-|[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 1.6.0 | `featureCounts` |
+|[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 0.8.2 | `salmon` |
+|[samtools](http://www.htslib.org/download/) | 1.9 | `samtools` |
+|[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 1.5.0 | `featureCounts` |
 |[trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) | 0.36 | `java -jar path/to/trimmomatic.jar` |
-|[vcf-tools](https://vcftools.github.io/index.html) | 0.1.15 | `vcf-merge` |
-|[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2 | `wiggletools` |
+|[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2.1 | `wiggletools` |
 |[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 
 ## Run on the JHPCE cluster ##
