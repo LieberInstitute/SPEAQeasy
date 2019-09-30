@@ -1,6 +1,6 @@
 INSTALL_DIR=$(pwd)
 
-#  To do: consider how to handle java, python/2.7.9, rseqc, R 3.6, wiggletools, ucsctools/wigToBigWig
+#  To do: consider how to handle java, R 3.6, ucsctools/wigToBigWig
 
 #  bcftools (1.9)
 
@@ -42,6 +42,10 @@ wget https://github.com/pachterlab/kallisto/releases/download/v0.43.0/kallisto_l
 
 wget -qO- https://get.nextflow.io | bash
 
+#  python (2.7.9)
+
+pip install python==2.7.9
+
 #  regtools (0.3.0)
 
 wget https://github.com/griffithlab/regtools/archive/0.3.0.tar.gz -O regtools-0.3.0.tar.gz && \
@@ -51,6 +55,13 @@ wget https://github.com/griffithlab/regtools/archive/0.3.0.tar.gz -O regtools-0.
     cd build && \
     cmake .. && \
     make
+    
+#  rseqc (2.6.4)
+
+wget https://downloads.sourceforge.net/project/rseqc/RSeQC-2.6.4.tar.gz && \
+  tar zxf RSeQC-2.6.4.tar.gz && \
+  cd RSeQC-2.6.4 && \
+  python setup.py install --root=bin
     
 #  salmon (0.8.2)
 
@@ -78,3 +89,32 @@ wget https://sourceforge.net/projects/subread/files/subread-1.5.0-p3/subread-1.5
 wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.36.zip && \
   unzip Trimmomatic-0.36.zip && \
   chmod -R 755 Trimmomatic-0.36
+  
+#  wiggletools (1.2.1)
+
+## Install gsl
+wget ftp://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz && \
+    tar xvf gsl-latest.tar.gz && \
+    cd gsl-2.6 && \
+    ./configure --prefix=$INSTALL_DIR && \
+    make && \
+    make install
+    
+## Install libBigWig
+git clone git@github.com:dpryan79/libBigWig.git && \
+    cd libBigWig && \
+    make prefix=$INSTALL_DIR install
+    
+git clone git@github.com:Ensembl/WiggleTools.git && \
+    cd WiggleTools && \
+    ## Make the one of the edits Mark Miller described at https://lists.johnshopkins.edu/sympa/arc/bithelp/2019-09/msg00132.html
+    ## Change LIBS from:
+    # LIBS= -lwiggletools -l:libBigWig.a -lcurl -l:libhts.a -lgsl  -lgslcblas -lz -lpthread -lm
+    ## to:
+    # LIBS= -lwiggletools -l:libBigWig.a -lcurl -l:libhts.a -lgsl  -lgslcblas -lz -lpthread -lm -lcrypto -llzma -lbz2
+    make
+    ## Copy to bin folder with other stuff
+    cp bin/* ../bin/
+
+
+
