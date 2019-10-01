@@ -1,6 +1,12 @@
+#  Downloads and installs all pipeline dependencies. The pipeline can then be run locally
+#  without further configuration.
+#
+#  IMPORTANT: run this script inside the repository directory, or configure
+#             conf/command_paths.config manually to link software.
+
 INSTALL_DIR=$(pwd)
 
-#  To do: consider how to handle java, R 3.6, ucsctools/wigToBigWig
+#  To do: consider how to handle java, R 3.6 and its packages, ucsctools/wigToBigWig, wiggletools
 
 #  bcftools (1.9)
 
@@ -40,11 +46,20 @@ wget https://github.com/pachterlab/kallisto/releases/download/v0.43.0/kallisto_l
   
 #  nextflow (latest)
 
+cd ..
 wget -qO- https://get.nextflow.io | bash
+cd Software
 
 #  python (2.7.9)
 
-pip install python==2.7.9
+wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz && \
+  tar xzvf Python-2.7.9.tgz && \
+  chmod -R 755 Python-2.7.9 && \
+  cd Python-2.7.9 && \
+  ./configure prefix=$INSTALL_DIR && \
+  make && \
+  make install
+  cd ..
 
 #  regtools (0.3.0)
 
@@ -92,19 +107,25 @@ wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-
   
 #  wiggletools (1.2.1)
 
+mkdir wiggle
+cd wiggle
+
 ## Install gsl
 wget ftp://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz && \
     tar xvf gsl-latest.tar.gz && \
     cd gsl-2.6 && \
-    ./configure --prefix=$INSTALL_DIR && \
+    ./configure --prefix=$INSTALL_DIR/wiggle && \
     make && \
     make install
+    cd ..
     
 ## Install libBigWig
 git clone git@github.com:dpryan79/libBigWig.git && \
     cd libBigWig && \
-    make prefix=$INSTALL_DIR install
-    
+    make prefix=$INSTALL_DIR/wiggle install
+    cd ..
+
+export LIBRARY_PATH="${INSTALL_DIR}/htslib-1.9:${LIBRARY_PATH}"
 git clone git@github.com:Ensembl/WiggleTools.git && \
     cd WiggleTools && \
     ## Make the one of the edits Mark Miller described at https://lists.johnshopkins.edu/sympa/arc/bithelp/2019-09/msg00132.html
