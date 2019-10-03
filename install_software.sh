@@ -4,9 +4,10 @@
 #  IMPORTANT: run this script inside the repository directory, or configure
 #             conf/command_paths.config manually to link software.
 
-INSTALL_DIR=$(pwd)
+INSTALL_DIR=$(pwd)/Software
+mkdir $INSTALL_DIR
 
-#  To do: consider how to handle java, R 3.6 and its packages, ucsctools/wigToBigWig, wiggletools
+#  To do: consider how to handle java, R 3.6 and its packages, wiggletools
 
 #  bcftools (1.9)  -------------------------------------------------------------
 
@@ -116,14 +117,11 @@ wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-
   
 #  wiggletools (1.2.1)  -------------------------------------------------------------
 
-mkdir wiggle
-cd wiggle
-
 ## Install gsl
 wget ftp://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz && \
     tar xvf gsl-latest.tar.gz && \
     cd gsl-2.6 && \
-    ./configure --prefix=$INSTALL_DIR/wiggle && \
+    ./configure --prefix=$INSTALL_DIR && \
     make && \
     make install
     cd ..
@@ -131,10 +129,10 @@ wget ftp://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz && 
 ## Install libBigWig
 git clone git@github.com:dpryan79/libBigWig.git && \
     cd libBigWig && \
-    make prefix=$INSTALL_DIR/wiggle install
+    make prefix=$INSTALL_DIR install
     cd ..
 
-export LIBRARY_PATH="${INSTALL_DIR}/htslib-1.9:${LIBRARY_PATH}"
+# export LIBRARY_PATH="${INSTALL_DIR}/htslib-1.9:${LIBRARY_PATH}"
 git clone git@github.com:Ensembl/WiggleTools.git && \
     cd WiggleTools && \
     ## Make the one of the edits Mark Miller described at https://lists.johnshopkins.edu/sympa/arc/bithelp/2019-09/msg00132.html
@@ -146,5 +144,8 @@ git clone git@github.com:Ensembl/WiggleTools.git && \
     ## Copy to bin folder with other stuff
     cp bin/* ../bin/
 
+#  wigToBigWig -----------------------------------------------------------
 
+wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v369/wigToBigWig
+chmod 755 wigToBigWig
 
