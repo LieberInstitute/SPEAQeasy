@@ -12,6 +12,5 @@ nextflow main.nf \
 	--fullCov \
 	-with-report execution_reports/System_mode_test_run.html \
 	-with-dag execution_DAGs/System_mode_test_run.png \
-	-resume \
-	-profile quick \
+	-profile standard \
 	$@
