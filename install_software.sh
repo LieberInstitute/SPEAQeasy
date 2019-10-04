@@ -2,12 +2,13 @@
 #  without further configuration.
 #
 #  IMPORTANT: run this script inside the repository directory, or configure
-#             conf/command_paths.config manually to link software.
+#             conf/command_paths_long.config manually to link software.
 
 INSTALL_DIR=$(pwd)/Software
 mkdir $INSTALL_DIR
+cd $INSTALL_DIR
 
-#  To do: consider how to handle java, R 3.6 and its packages, wiggletools
+#  To do: consider how to handle java, wiggletools
 
 #  bcftools (1.9)  -------------------------------------------------------------
 
@@ -17,6 +18,7 @@ wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar
     ./configure prefix=$INSTALL_DIR && \
     make && \
     make install
+    cd ..
     
 #  fastqc (0.11.5)  -------------------------------------------------------------
 
@@ -38,6 +40,7 @@ wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2
     ./configure prefix=$INSTALL_DIR && \
     make && \
     make install
+    cd ..
 
 #  kallisto (0.43.0)  -------------------------------------------------------------
 
@@ -50,6 +53,20 @@ wget https://github.com/pachterlab/kallisto/releases/download/v0.43.0/kallisto_l
 cd ..
 wget -qO- https://get.nextflow.io | bash
 cd Software
+
+#  R (3.6.1) ---------------------------------------------------------------------
+
+#  Install R
+wget http://cran.rstudio.com/src/base/R-3/R-3.6.1.tar.gz && \
+  tar xvf R-3.6.1.tar.gz && \
+  cd R-3.6.1 && \
+  ./configure --prefix=$INSTALL_DIR && \
+  make && \
+  make install
+  cd ..
+  
+#  Install packages that will be used by the pipeline
+./R-3.6.1/bin/Rscript ../scripts/check_R_packages.R
 
 #  regtools (0.3.0)  -------------------------------------------------------------
 
