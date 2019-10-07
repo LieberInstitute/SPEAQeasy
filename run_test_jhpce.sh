@@ -18,6 +18,7 @@ nextflow main.nf \
 	--reference "hg19" \
 	--strand "unstranded" \
 	--ercc \
+  --small_test \
 	-with-report /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_reports/JHPCE_mode_test_run.html \
 	-with-dag /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_DAGs/JHPCE_mode_test_run.DAG \
 	-profile jhpce  \
