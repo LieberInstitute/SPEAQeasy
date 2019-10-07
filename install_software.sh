@@ -97,13 +97,13 @@ wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz && \
   cd ..
   
 #  Python packages RSeQC depends on, but does not install
-$INSTALL_DIR/Python-2.7.9/build/python -m pip install --user RSeQC==2.6.4
+$INSTALL_DIR/Python-2.7.9/python -m pip install --index-url=http://pypi.python.org/simple/ --trusted-host pypi.python.org --user RSeQC==2.6.4
 
 #  RSeQC itself, set up via Python
 wget https://downloads.sourceforge.net/project/rseqc/RSeQC-2.6.4.tar.gz && \
   tar zxf RSeQC-2.6.4.tar.gz && \
   cd RSeQC-2.6.4 && \
-  $INSTALL_DIR/Python-2.7.9/build/python setup.py install --root=bin
+  $INSTALL_DIR/Python-2.7.9/python setup.py install --root=bin
     
 #  salmon (0.8.2)  -------------------------------------------------------------
 
@@ -119,6 +119,7 @@ wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar
     ./configure prefix=$INSTALL_DIR && \
     make && \
     make install
+    cd ..
     
 #  subread/ featureCounts (1.5.0-p3)  -------------------------------------------------------------
 
@@ -163,6 +164,6 @@ git clone git@github.com:Ensembl/WiggleTools.git && \
 
 #  wigToBigWig -----------------------------------------------------------
 
-wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v369/wigToBigWig
-chmod 755 wigToBigWig
+wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v369/wigToBigWig && \
+  chmod 755 wigToBigWig
 
