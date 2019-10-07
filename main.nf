@@ -632,8 +632,8 @@ params.gencode_gtf_out = "${params.annotation}/RSeQC/${params.reference}"
     println "[WG-LOG] building ${params.gencode_gtf_out}/bed/${params.reference}.bed"
 		name = "${params.reference}"
 		'''
-		Rscript !{check_R_packages_script} \
-		&& Rscript !{prep_bed} -f !{gencode_gtf} -n !{name}
+		!{params.Rscript} !{check_R_packages_script} \
+		&& !{params.Rscript} !{prep_bed} -f !{gencode_gtf} -n !{name}
 		'''
 	}
 
@@ -1371,8 +1371,8 @@ process InferStrandness {
 	shell:
 	inferred_strandness_pattern = "inferred_strandness_pattern.txt"
 	'''
-	Rscript !{check_R_packages_script} \
-	&& Rscript !{infer_strandness} -p !{inferred_strandness_pattern}
+	!{params.Rscript} !{check_R_packages_script} \
+	&& !{params.Rscript} !{infer_strandness} -p !{inferred_strandness_pattern}
 	'''
 }
 
@@ -1774,8 +1774,8 @@ process CountObjects {
 	counts_dir = "./"
 	'''
 	## Run the script to check for missing rpackages
-	Rscript !{check_R_packages_script} \
-	&& Rscript !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
+	!{params.Rscript} !{check_R_packages_script} \
+	&& !{params.Rscript} !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
 	'''
 }
 
@@ -1819,8 +1819,8 @@ process CoverageObjects {
 		coverage_prefix = "${params.prefix}"
 		coverage_fullCov = "TRUE"
 		'''
-		Rscript !{check_R_packages_script}
-		Rscript !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{task.cpus}
+		!{params.Rscript} !{check_R_packages_script}
+		!{params.Rscript} !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{task.cpus}
 		'''
 	}
 }
@@ -1912,7 +1912,7 @@ process ExpressedRegions {
     '''
     for meanfile in ./mean*.bw
     do
-    	Rscript !{expressedRegions_file} \
+    	!{params.Rscript} !{expressedRegions_file} \
     	-m ${meanfile} \
     	-o . \
     	-i !{chr_sizes} \
