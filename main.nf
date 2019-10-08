@@ -68,11 +68,10 @@ def helpMessage() {
 	Usage:
 	The typical command for running the pipeline is as follows:
 
-	nextflow run main.nf --sample "single" --strand "unstranded" --reference "hg19" --merge --ercc --fullCov -profile standard
+	nextflow run main.nf --sample "single" --strand "unstranded" --reference "hg19" --ercc --fullCov -profile standard
 
 	NOTES: The pipeline accepts single or paired end reads. These reads can be stranded or unstranded, and must follow the following naming structure:
 
-	merge: "*_read{1,2}.fastq.gz"
 	paired: "*_{1,2}.fastq.gz"
 
 	NOTE: File names can not have "." in the name due to the prefix functions in between process
@@ -92,7 +91,6 @@ def helpMessage() {
 			  reverse <- uses reverse stranding
 			  unstranded <- uses pipeine inferencing
 		 {OPTIONS}:
-			--merge <- assumes fastq.gz files require merging "*_read{1,2}.fastq.gz"
 			--ercc  <- performs ercc quantification
 			--fullCov <- performs fullCov R analysis
 		--help <- shows this message
@@ -117,8 +115,6 @@ def helpMessage() {
 	--input			Defines the input folder for the files. Defaults to "./input" (relative to the repository)
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--output		Defines the output folder for the files. Defaults to "./results" (relative to the repository)
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--merge			Flag option if files need to be merged. Defaults to false
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--unalign		Give the option to not algin the reads against a reference in HISAT step. Defaults to false 
 	-----------------------------------------------------------------------------------------------------------------------------------
@@ -156,7 +152,6 @@ params.experiment = "Jlab_experiment"
 params.prefix = "prefix"
 params.sample = ""
 params.strand = ""
-params.merge = false
 params.unalign = false
 params.reference = ""
 params.annotation = "${workflow.projectDir}/Annotation"
@@ -197,11 +192,7 @@ if (params.reference == "hg19" || params.reference == "hg38") {
 
 //  Path to small test files
 if (params.small_test) {
-  if (params.merge) {
-    params.input = "${workflow.projectDir}/test/$params.reference_type/merge/${params.sample}/${params.strand}"
-  } else {
-    params.input = "${workflow.projectDir}/test/$params.reference_type/${params.sample}/${params.strand}"
-  }
+  params.input = "${workflow.projectDir}/test/$params.reference_type/${params.sample}/${params.strand}"
 } else {
   params.input = "${workflow.projectDir}/input"
 }
@@ -492,9 +483,9 @@ summary['Strand']			  = params.strand
 summary['Annotation']		 = params.annotation
 summary['Genotype']		   = params.genotype
 summary['Input']			   = params.input
+summary['scripts']      = params.scripts
 if(params.ercc) summary['ERCC Index'] = erccidx
 if(params.experiment) summary['Experiment'] = params.experiment
-if(params.merge) summary['Merge'] = "True"
 if(params.unalign) summary['Align'] = "True"
 if(params.fullCov) summary['Full Coverage'] = "True"
 summary['Small test selected'] = params.small_test
@@ -697,103 +688,54 @@ if (params.step6) {
     .set{ salmon_index }
 }
 
-/*
- * Step A: Run Sample Merging if --merge is specified
- */
-
-// If the --merged flag was used, this block performs fastq.gz file merging
-// currently not working, requires testing and debugging
-if (params.merge) {
-
-	Channel
-	  .fromPath("${params.input}/*.fastq.gz")
-	  .toSortedList()
-	  .flatten()
-	  .map{file -> tuple(get_prefix(file), file) }
-	  .groupTuple()
-	  .ifEmpty{ error "Could not find file pairs for merging"}
-	  .set{ unmerged_pairs }
-
-	  process Merging {
-
-		
-		tag "Sample Pair: [ $unmerged_pair ]"
-		publishDir "${params.output}/merged_fastq",'mode':'copy'
-
-		input:
-		set val(merging_prefix), file(unmerged_pair) from unmerged_pairs
-
-		output:
-		file "*.fastq.gz" into ercc_merged_inputs, fastqc_merged_inputs
-
-		shell:
-		'''
-		## Use of a local prefix variable helps to avoid generating dump data in input dir due to fullpaths being captured by merging_prefix NF variable
-		local_prefix=`echo !{merging_prefix} | rev | cut -d "/" -f1 | rev`
-		read1="${local_prefix}_read1.fastq.gz"
-		read2="${local_prefix}_read2.fastq.gz"
-		zcat "${read1}" "${read2}" \
-		| gzip -c > "${local_prefix}.fastq.gz"
-		'''
-	}
+samples_manifest = file("${params.input}/samples.manifest")
+merge_script = file("${params.scripts}/step00-merge.R")
+process Merging {
+  tag "Performing merging if/where necessary"
+  
+  input:
+    file original_manifest from samples_manifest
+    file merge_script from merge_script
+  output:
+    file "out/*" into merged_inputs_flat
+  
+  shell:
+    '''
+    !{params.Rscript} !{merge_script} -s !{original_manifest} -o $(pwd)/out -c !{task.cpus}
+    '''
 }
+
+//  Group both reads together for each sample, if paired-end, and assign each sample a prefix
+if (params.sample == "single") {
+
+		merged_inputs_flat
+		  .map{file -> tuple(get_prefix(file), file) }
+		  .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
+		  .set{ temp_inputs }
+} else {
+
+		merged_inputs_flat
+		  .toSortedList()
+		  .flatten()
+		  .map{file -> tuple(get_prefix(file), file) }
+		  .groupTuple()
+		  .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
+		  .set{ temp_inputs }
+}
+
+//  Copy the processed input channel to channels used by dependent processes
+if (params.ercc) { 
+  temp_inputs.into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs; ercc_inputs }
+} else {
+  temp_inputs.into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
+}
+
 
 /*
  * Step B: Run the ERCC process if the --ercc flag is specified
  */
-
+ 
 if (params.ercc) {
-
-	if (params.merge) {
-
-		if (params.sample == "single") {
-
-			ercc_merged_inputs
-			  .flatten()
-			  .toSortedList()
-			  .flatten()
-			  .map{ file -> tuple(get_prefix(file), file) }
-			  .ifEmpty{ error "Could not find Channel for Merged Single Sample Files for ERCC" }
-			  .set{ ercc_inputs }
-		}
-		if (params.sample == "paired") {
-
-			ercc_merged_inputs
-			  .flatten()
-			  .toSortedList()
-			  .flatten()
-			  .map{file -> tuple(get_prefix(file), file) }
-			  .groupTuple()
-			  .ifEmpty{ error "Could not find Channel for Merged Paired Sample Files for ERCC" }
-			  .set{ ercc_inputs }
-		}
-	}
-	if (!params.merge) {
-
-		if (params.sample == "single") {
-
-			Channel
-			  .fromPath("${params.input}/*.fastq.gz")
-			  .flatten()
-			  .toSortedList()
-			  .flatten()
-			  .map{ file -> tuple(get_prefix(file), file) }
-			  .ifEmpty{ error "Could not Find Unmerged Sample Files for ERCC"}
-			  .set{ ercc_inputs }
-		}
-		if (params.sample == "paired") {
-
-			Channel
-			  .fromPath("${params.input}/*.fastq.gz")
-			  .flatten()
-			  .toSortedList()
-			  .flatten()
-			  .map{ file -> tuple(get_prefix(file), file) }
-			  .groupTuple()
-			  .ifEmpty{ error "Could not Find Unmerged Sample Files for ERCC"}
-			  .set{ ercc_inputs }
-		}
-	}
 
 	 process ERCC {
 
@@ -806,7 +748,6 @@ if (params.ercc) {
 		set val(ercc_prefix), file(ercc_input) from ercc_inputs
 
 		output:
-//		file "*_abundance.tsv" into ercc_abundances
 		file("${ercc_prefix}_abundance.tsv") into ercc_abundances
 
 		script:
@@ -818,101 +759,27 @@ if (params.ercc) {
 	}
 }
 
-if (params.merge) {
-
-	if (params.sample == "single") {
-
-		fastqc_merged_inputs
-		  .flatten()
-		  .toSortedList()
-		  .flatten()
-		  .map{file -> tuple(get_prefix(file), file) }
-		  .ifEmpty{ error "Could not find Channel for Merged Sample Files for FastQC" }
-		  .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
-	}
-	if (params.sample == "paired") {
-
-		fastqc_merged_inputs
-		  .flatten()
-		  .toSortedList()
-		  .flatten()
-		  .map{file -> tuple(get_prefix(file), file) }
-		  .groupTuple()
-		  .ifEmpty{ error "Could not find Channel for Merged Sample Files for FastQC" }
-		  .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
-	}
-}
-if (!params.merge) {
-
-	if (params.sample == "single") {
-
-		Channel
-		  .fromPath("${params.input}/*.fastq.gz")
-		  .flatten()
-		  .toSortedList()
-		  .flatten()
-		  .map{file -> tuple(get_prefix(file), file) }
-		  .ifEmpty{ error "Could not Find Unmerged Untrimmed Single Sample Files for FastQC"}
-		  .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
-	}
-	if (params.sample == "paired") {
-
-		Channel
-		  .fromPath("${params.input}/*.fastq.gz")
-		  .flatten()
-		  .toSortedList()
-		  .flatten()
-		  .map{file -> tuple(get_prefix(file), file) }
-		  .groupTuple()
-		  .ifEmpty{ error "Could not Find Unmerged Untrimmed Paired Sample Files for FastQC"}
-		  .into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
-	}
-}
-
-/*
- * Step C1: Individual Sample Manifest
- */
-
-process IndividualManifest {
-	
-	tag "samples.manifest.${samples_prefix}"
-	publishDir "${params.output}/manifest",'mode':'copy'
-
-	input:
-	set val(samples_prefix), file(manifest_samples) from manifest_creation
-
-	output:
-	file "samples.manifest.${samples_prefix}" into individual_manifests
-
-	script:
-	"""
-	printf "${manifest_samples} ${samples_prefix}\n" >> "samples.manifest.${samples_prefix}"
-	"""
-}
-
-individual_manifests
-  .collect()
-  .set{ individual_manifest_files }
-
 /*
  * Step C2: Sample Manifest
  */
 
+man_info_script = file("${params.scripts}/find_sample_info.R")
 process Manifest {
 	
-	tag "Aggregate Manifest Creation"
+	tag "Validating manifest and accounting for merged files"
 	publishDir "${params.output}/manifest",mode:'copy'
 
 	input:
-	file individual_manifests from individual_manifest_files
+	file original_manifest from samples_manifest
+  file man_info_script from man_info_script
 
 	output:
 	file "samples.manifest" into counts_samples_manifest, fullCov_samples_manifest
 
-	script:
-	"""
-	cat ${individual_manifests} > "samples.manifest"
-	"""
+	shell:
+	'''
+  !{params.Rscript} !{man_info_script} -s !{original_manifest} -o "."
+	'''
 }
 
 /*
@@ -1685,8 +1552,7 @@ if (params.ercc) {
 	  .flatten()
 	  .toSortedList()
 	  .set{ counts_inputs }
-}
-if (!params.ercc) {
+} else {
 
 	counts_objects_channel_1
 	  .flatten()
