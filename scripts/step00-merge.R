@@ -57,12 +57,15 @@ merge_files <- function(file_names, new_file) {
 }
 
 res <- bpmapply(function(common, new_name, extension) {
+  if (paired) {
+    merge_files(common[, 1],
+        file.path(opt$outdir, paste0(new_name, '_1.', extension)))
+    merge_files(common[, 3],
+        file.path(opt$outdir, paste0(new_name, '_2.', extension)))
+  } else {
     merge_files(common[, 1],
         file.path(opt$outdir, paste0(new_name, '.', extension)))
-    if(paired) {
-        merge_files(common[, 3],
-            file.path(opt$outdir, paste0(new_name, '_read2.', extension)))
-    }
+  }
 }, file_groups, names(file_groups), extensions, 
     BPPARAM = MulticoreParam(opt$cores))
 
