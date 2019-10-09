@@ -17,7 +17,7 @@ if (!is.null(opt$help)) {
 	q(status=1)
 }
 
-manifest <- read.table(opt$sampleids, sep = '\t', header = FALSE,
+manifest <- read.table(opt$sampleids, sep = ' ', header = FALSE,
     stringsAsFactors = FALSE)
 
 ## Is the data paired end?
@@ -59,9 +59,9 @@ if(!merged) {
     
     if(paired) {
         new_manifest <- data.frame(
-            file.path(opt$outdir, paste0(names(file_groups), '.', extensions)),
+            file.path(opt$outdir, paste0(names(file_groups), '_1.', extensions)),
             rep(0, length(file_groups)),
-            file.path(opt$outdir, paste0(names(file_groups), '_read2.',
+            file.path(opt$outdir, paste0(names(file_groups), '_2.',
                 extensions)),
             rep(0, length(file_groups)),
             names(file_groups), stringsAsFactors = FALSE
@@ -77,7 +77,7 @@ if(!merged) {
     colnames(new_manifest) <- paste0('V', seq_len(ncol(new_manifest)))
 
     write.table(new_manifest, file = opt$sampleids, row.names = FALSE,
-        col.names = FALSE, quote = FALSE, sep = '\t')
+        col.names = FALSE, quote = FALSE, sep = ' ')
 }
 
 ## Reproducibility information
