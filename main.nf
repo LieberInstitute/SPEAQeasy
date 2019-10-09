@@ -70,17 +70,15 @@ def helpMessage() {
 
 	nextflow run main.nf --sample "single" --strand "unstranded" --reference "hg19" --ercc --fullCov -profile standard
 
-	NOTES: The pipeline accepts single or paired end reads. These reads can be stranded or unstranded, and must follow the following naming structure:
-
-	paired: "*_{1,2}.fastq.gz"
+	NOTES: The pipeline accepts single or paired end reads. These reads can be stranded or unstranded.
 
 	NOTE: File names can not have "." in the name due to the prefix functions in between process
 
 	nextflow run main.nf {CORE} {OPTIONS}
 		 {CORE}:
 			--sample "single/paired"
-			  single <- reads files individually "*"
-			  paired <- reads files paired "*_{1,2}"
+			  single <- reads files individually
+			  paired <- reads files paired
 			--reference
 			  hg38 <- uses human reference hg38
 			  hg19 <- uses human reference hg19
@@ -467,6 +465,14 @@ def get_read_type(f) {
   }
 }
 
+def get_file_ext(f) {
+  if (f.name.toString().tokenize(".")[-1] == "gz") {
+    return('.fastq.gz')
+  } else {
+    return('.fastq')
+  }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Summary of Defined Variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -843,14 +849,14 @@ if (params.sample == "single") {
 
 	  shell:
 	  single_quality_report = single_adaptive_prefix.toString() + "_summary.txt"
-	  single_trimming_input = single_adaptive_prefix.toString() + ".fastq.gz"
+	  single_trimming_input = single_adaptive_prefix.toString() + ".f*q*"
+    suffix = get_file_ext(single_adaptive_fastq)
 	  '''
 	  export result=$(grep "Adapter Content" !{single_quality_report} | cut -f1)
 	  if [ $result == "FAIL" ] ; then
-	  ##if [ $result == "PASS" ] ; then ##For DEV purposes
-		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TR.fastq.gz"
+		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TR.!{suffix}"
 	  else
-		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TNR.fastq.gz"
+		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TNR.!{suffix}"
 	  fi
 	  '''
 	}
@@ -879,23 +885,17 @@ if (params.sample == "paired") {
 	  file "*" into trimming_fastqs, no_trimming_fastqs
 
 	  shell:
-	  quality_report_1 = paired_adaptive_prefix.toString() + "_1_summary.txt"
-	  quality_report_2 = paired_adaptive_prefix.toString() + "_2_summary.txt"
-	  trimming_input_1 = paired_adaptive_prefix.toString() + "_1.fastq.gz"
-	  trimming_input_2 = paired_adaptive_prefix.toString() + "_2.fastq.gz"
-	  adaptive_out_prefix_1 = paired_adaptive_prefix.toString() + "_1"
-	  adaptive_out_prefix_2 = paired_adaptive_prefix.toString() + "_2"
-
+    suffix = get_file_ext(paired_adaptive_fastq[0])
+    prefix_str = paired_adaptive_prefix.toString()
 	  '''
-	  export result1=$(grep "Adapter Content" !{quality_report_1} | cut -c1-4)
-	  export result2=$(grep "Adapter Content" !{quality_report_2} | cut -c1-4)
+	  export result1=$(grep "Adapter Content" !{prefix_str}_1_summary.txt | cut -c1-4)
+	  export result2=$(grep "Adapter Content" !{prefix_str}_2_summary.txt | cut -c1-4)
 	  if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ] ; then
-	  ##if [ $result1 == "PASS" ] || [ $result2 == "PASS" ] ; then ## for DEV purposes
-		  cp !{trimming_input_1} "!{adaptive_out_prefix_1}_TR.fastq.gz"
-		  cp !{trimming_input_2} "!{adaptive_out_prefix_2}_TR.fastq.gz"
+		  cp !{prefix_str}_1.f*q* "!{prefix_str}_1_TR!{suffix}"
+		  cp !{prefix_str}_2.f*q* "!{prefix_str}_2_TR!{suffix}"
 	  else
-		  cp !{trimming_input_1} "!{adaptive_out_prefix_1}_TNR.fastq.gz"
-		  cp !{trimming_input_2} "!{adaptive_out_prefix_2}_TNR.fastq.gz"
+		  cp !{prefix_str}_1.f*q* "!{prefix_str}_1_TNR!{suffix}"
+		  cp !{prefix_str}_2.f*q* "!{prefix_str}_2_TNR!{suffix}"
 	  fi
 	  '''
 	}
@@ -955,15 +955,15 @@ process Trimming {
 	set val(trimming_prefix), file(trimming_input) from trimming_inputs
 
 	output:
-	file "*.fastq.gz" into trimmed_fastqc_inputs, trimmed_hisat_inputs
+	file "*.f*q*" into trimmed_fastqc_inputs, trimmed_hisat_inputs
 
 	script:
 	sample_option = "${params.trim_sample}"
 	if (params.sample == "single") {
-		output_option = "${trimming_prefix}_trimmed.fastq.gz"
+		output_option = "${trimming_prefix}_trimmed.f*q*"
 	}
 	if (params.sample == "paired") {
-		output_option = "${trimming_prefix}_trimmed_forward_paired.fastq.gz ${trimming_prefix}_trimmed_forward_unpaired.fastq.gz ${trimming_prefix}_trimmed_reverse_paired.fastq.gz ${trimming_prefix}_trimmed_reverse_unpaired.fastq.gz"
+		output_option = "${trimming_prefix}_trimmed_forward_paired.f*q* ${trimming_prefix}_trimmed_forward_unpaired.f*q* ${trimming_prefix}_trimmed_reverse_paired.f*q* ${trimming_prefix}_trimmed_reverse_unpaired.f*q*"
 	}
 	// PATH to ILLUMINACLIP is based on PATH
 	"""
@@ -1073,8 +1073,8 @@ if (params.sample == "paired") {
 	  shell:
 	  hisat_full_prefix = "${params.annotation}/${params.hisat_assembly}/index/${params.hisat_prefix}"
 	  strand = "${params.hisat_strand}"
-	  sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR.fastq.gz"
-	  sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR.fastq.gz"
+	  sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR.f*q*"
+	  sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR.f*q*"
 	  if (params.unalign) {
 		  unaligned_opt = "--un-conc ${paired_notrim_hisat_prefix}.fastq"
 	  }
@@ -1118,10 +1118,10 @@ if (params.sample == "paired") {
 	  shell:
 	  hisat_full_prefix = "${params.annotation}/${params.hisat_assembly}/index/${params.hisat_prefix}"
 	  strand = "${params.hisat_strand}"
-	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.fastq.gz"
-	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired.fastq.gz"
-	  forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.fastq.gz"
-	  reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_reverse_unpaired.fastq.gz"
+	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.f*q*"
+	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired.f*q*"
+	  forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.f*q*"
+	  reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_reverse_unpaired.f*q*"
 	  if (params.unalign) {
 		  unaligned_opt = "--un-conc ${paired_trimmed_prefix}.fastq"
 	  }
@@ -1480,7 +1480,7 @@ if (params.step6) {
 		shell:
 		salmon_index_prefix = "${params.salmon_prefix}"
 		if (params.sample == "single") {
-			sample_command = "-r ${salmon_input_prefix}.fastq.gz"
+			sample_command = "-r ${salmon_input_prefix}.f*q*"
 			if (params.strand == "unstranded" ) {
 				salmon_strand = "U"
 			}
@@ -1492,7 +1492,7 @@ if (params.step6) {
 			}
 		//needs testing for paired
 		if (params.sample == "paired") {
-			sample_command = "-1 ${salmon_input_prefix}_1.fastq.gz -2 ${salmon_input_prefix}_2.fastq.gz"
+			sample_command = "-1 ${salmon_input_prefix}_1.f*q* -2 ${salmon_input_prefix}_2.f*q*"
 			if (params.strand == "unstranded" ) {
 				salmon_strand = "IU"
 			}
