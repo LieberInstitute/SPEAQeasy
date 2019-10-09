@@ -100,7 +100,7 @@ flagRows = c("Basic Statistics",
 
 if (opt$paired==TRUE) {
 	fileNames = data.frame('read1' = basename(manifest[,1]), 
-					'read2' = basename(manifest[,2]), stringsAsFactors = FALSE)
+					'read2' = basename(manifest[,3]), stringsAsFactors = FALSE)
 	fileNames = as.data.frame(sapply(fileNames[,1:2], function(x) gsub(".fq.gz|.fq|.fastq.gz|.fastq", "", x) ) )
 	#### Summary flags (PASS/WARN/FAIL) ####
 	qcFlagsR1 = file.path(".", paste0(fileNames$read1,"_summary.txt"))
@@ -193,7 +193,7 @@ if (opt$paired==TRUE) {
 
 ## single-end:	
 } else {
-	fileNames = manifest[,2]
+	fileNames = manifest[,1]
 
 	qcFlags = file.path(".", paste0(fileNames, "_summary.txt"))
 
