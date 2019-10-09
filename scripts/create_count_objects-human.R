@@ -193,7 +193,7 @@ if (opt$paired==TRUE) {
 
 ## single-end:	
 } else {
-	fileNames = manifest[,1]
+	fileNames = gsub(".fq.gz|.fq|.fastq.gz|.fastq", "", basename(manifest[,1]))
 
 	qcFlags = file.path(".", paste0(fileNames, "_summary.txt"))
 
