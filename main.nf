@@ -715,6 +715,7 @@ process Merging {
 if (params.sample == "single") {
 
 		merged_inputs_flat
+      .flatten()
 		  .map{file -> tuple(get_prefix(file), file) }
 		  .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
 		  .set{ temp_inputs }
