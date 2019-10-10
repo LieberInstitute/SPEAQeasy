@@ -1,8 +1,9 @@
 #  Downloads and installs all pipeline dependencies. The pipeline can then be run locally
 #  without further configuration.
 #
-#  IMPORTANT: run this script inside the repository directory, or configure
-#             conf/command_paths_long.config manually to link software.
+#  IMPORTANT: run this script inside the repository directory to ensure software
+#              locations are properly linked. See conf/command_path_long.config if
+#              you are interested in manually configuring different software paths.
 
 INSTALL_DIR=$(pwd)/Software
 mkdir $INSTALL_DIR
@@ -18,7 +19,7 @@ wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar
     ./configure prefix=$INSTALL_DIR && \
     make && \
     make install
-    cd ..
+    cd $INSTALL_DIR
     
 #  fastqc (0.11.5)  -------------------------------------------------------------
 
@@ -40,7 +41,7 @@ wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2
     ./configure prefix=$INSTALL_DIR && \
     make && \
     make install
-    cd ..
+    cd $INSTALL_DIR
 
 #  kallisto (0.43.0)  -------------------------------------------------------------
 
@@ -63,7 +64,7 @@ wget http://cran.rstudio.com/src/base/R-3/R-3.6.1.tar.gz && \
   ./configure --prefix=$INSTALL_DIR && \
   make && \
   make install
-  cd ..
+  cd $INSTALL_DIR
   
 #  Install packages that will be used by the pipeline
 ./R-3.6.1/bin/Rscript ../scripts/check_R_packages.R
@@ -82,7 +83,7 @@ wget https://github.com/griffithlab/regtools/archive/0.3.0.tar.gz -O regtools-0.
     cd build && \
     ../../cmake-3.14.6-Linux-x86_64/bin/cmake .. && \
     make
-    cd ../..
+    cd $INSTALL_DIR
     
 #  rseqc (2.6.4)  -------------------------------------------------------------
 
@@ -94,7 +95,7 @@ wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz && \
   ./configure prefix=$INSTALL_DIR && \
   make && \
   make install
-  cd ..
+  cd $INSTALL_DIR
   
 #  Python packages RSeQC depends on, but does not install
 $INSTALL_DIR/Python-2.7.9/python -m pip install --index-url=http://pypi.python.org/simple/ --trusted-host pypi.python.org --user RSeQC==2.6.4
@@ -104,6 +105,7 @@ wget https://downloads.sourceforge.net/project/rseqc/RSeQC-2.6.4.tar.gz && \
   tar zxf RSeQC-2.6.4.tar.gz && \
   cd RSeQC-2.6.4 && \
   $INSTALL_DIR/Python-2.7.9/python setup.py install --root=bin
+  cd $INSTALL_DIR
     
 #  salmon (0.8.2)  -------------------------------------------------------------
 
@@ -119,7 +121,7 @@ wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar
     ./configure prefix=$INSTALL_DIR && \
     make && \
     make install
-    cd ..
+    cd $INSTALL_DIR
     
 #  subread/ featureCounts (1.5.0-p3)  -------------------------------------------------------------
 
@@ -142,13 +144,13 @@ wget ftp://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz && 
     ./configure --prefix=$INSTALL_DIR && \
     make && \
     make install
-    cd ..
+    cd $INSTALL_DIR
     
 ## Install libBigWig
 git clone git@github.com:dpryan79/libBigWig.git && \
     cd libBigWig && \
     make prefix=$INSTALL_DIR install
-    cd ..
+    cd $INSTALL_DIR
 
 # export LIBRARY_PATH="${INSTALL_DIR}/htslib-1.9:${LIBRARY_PATH}"
 git clone git@github.com:Ensembl/WiggleTools.git && \
