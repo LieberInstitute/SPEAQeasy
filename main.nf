@@ -176,7 +176,7 @@ if (params.strand != "forward" && params.strand != "reverse" && params.strand !=
 }
 
 // Reference Selection Validation
-if (params.reference != "hg19" && params.reference != "hg38" && params.reference != "mm10" && params.reference == "rn6") {
+if (params.reference != "hg19" && params.reference != "hg38" && params.reference != "mm10" && params.reference != "rn6") {
 	exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
 }
 
@@ -190,7 +190,11 @@ if (params.reference == "hg19" || params.reference == "hg38") {
 
 //  Path to small test files
 if (params.small_test) {
-  params.input = "${workflow.projectDir}/test/$params.reference_type/${params.sample}/${params.strand}"
+  if (params.strand == "unstranded") {
+    params.input = "${workflow.projectDir}/test/$params.reference_type/${params.sample}/unstranded"
+  } else {
+    params.input = "${workflow.projectDir}/test/$params.reference_type/${params.sample}/stranded"
+  }
 } else {
   params.input = "${workflow.projectDir}/input"
 }
