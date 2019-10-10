@@ -87,27 +87,9 @@ Note that the configuration files also include command-line options passed to ma
 
 + `--experiment`	Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
 + `--prefix`	Defines the prefix of the input files (not used to detect files)
-+ `--input`		The path to the directory including the fastq files. Defaults to "./input" (relative to the repository)
++ `--input`		The path to the directory including the fastq files and "samples.manifest" file. Defaults to "./input" (relative to the repository)
 + `--output`  The path to the directory to store pipeline output files/ objects. Defaults to "./results" (relative to the repository)
-+ `--merge`  Include if some samples are split into 2 fastq files. If this is the case, the filenames must obey the following convention:
-
-    __single__
-
-````
-	Sample part 1: "{prefix}_read1.fastq.gz"
-	Sample part 2: "{prefix}_read2.fastq.gz"
-````
-
-    __paired__
-
-````
-	First in pair, Sample part 1: "{prefix}_1_read1.fastq.gz"
-	First in pair, Sample part 2: "{prefix}_1_read2.fastq.gz"
-	Second in pair, Sample part 1: "{prefix}_2_read1.fastq.gz"
-	Second in pair, Sample part 2: "{prefix}_2_read2.fastq.gz"
-````
-
-+ `--unalign`		Include this flag to not align reads against a reference in the HISAT step. Defaults to False
++ `--unalign`		Include this flag to save discordant reads after the alignment step (false/ not included by default)
 + `--annotation`	The path to the directory containing pipeline annotations. Defaults to "./Annotations" (relative to the repository). If annotations are not found here, the pipeline includes a step to build them.
 + `--genotype`		The path to the directory containing pipeline genotypes. Defaults to "./Genotyping" (relative to the repository).
 + `--ercc`			Include this flag to enable ERCC quantification with Kallisto
