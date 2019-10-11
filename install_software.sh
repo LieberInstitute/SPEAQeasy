@@ -54,9 +54,7 @@ wget https://github.com/pachterlab/kallisto/releases/download/v0.43.0/kallisto_l
   
 #  nextflow (latest)  -------------------------------------------------------------
 
-cd ..
 wget -qO- https://get.nextflow.io | bash
-cd Software
 
 #  R (3.6.1) ---------------------------------------------------------------------
 
@@ -100,15 +98,11 @@ wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz && \
   make install
   cd $INSTALL_DIR
   
-#  Python packages RSeQC depends on, but does not install
-$INSTALL_DIR/Python-2.7.9/python -m pip install --index-url=http://pypi.python.org/simple/ --trusted-host pypi.python.org --user RSeQC==2.6.4
-
-#  RSeQC itself, set up via Python
-wget https://downloads.sourceforge.net/project/rseqc/RSeQC-2.6.4.tar.gz && \
-  tar zxf RSeQC-2.6.4.tar.gz && \
-  cd RSeQC-2.6.4 && \
-  $INSTALL_DIR/Python-2.7.9/python setup.py install --root=bin
-  cd $INSTALL_DIR
+#  RSeQC itself, and manual configuration of file locations so dependencies can be found 
+$INSTALL_DIR/Python-2.7.9/python -m pip install --root=temp -I RSeQC==2.6.4
+mv $INSTALL_DIR/temp/$INSTALL_DIR/bin/* $INSTALL_DIR/bin/
+mv $INSTALL_DIR/temp/$INSTALL_DIR/lib/python2.7/site-packages/* $INSTALL_DIR/bin/
+rm -rf $INSTALL_DIR/temp
     
 #  salmon (0.8.2)  -------------------------------------------------------------
 
