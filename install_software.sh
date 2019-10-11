@@ -1,3 +1,6 @@
+#!/bin/bash
+#$ -cwd
+
 #  Downloads and installs all pipeline dependencies. The pipeline can then be run locally
 #  without further configuration.
 #
@@ -168,4 +171,9 @@ git clone git@github.com:Ensembl/WiggleTools.git && \
 
 wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v369/wigToBigWig && \
   chmod 755 wigToBigWig
-
+  
+#  Clean up compressed files
+rm $INSTALL_DIR/*.tar.gz
+rm $INSTALL_DIR/*.tgz
+rm $INSTALL_DIR/*.bz2
+rm $INSTALL_DIR/*.zip
