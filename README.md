@@ -17,12 +17,17 @@ This pipeline allows researchers to contribute data to the recount2 project even
 
 ## Software Requirements ##
 
-+ This pipeline runs [nextflow](https://www.nextflow.io/). Install nextflow in the current directory via `wget -qO- https://get.nextflow.io | bash`. For more details, read [here](https://www.nextflow.io/docs/latest/getstarted.html#installation).
-+ Nextflow requires a Java runtime. If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer.
++ This pipeline runs [nextflow](https://www.nextflow.io/), which requires a Java runtime. If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer.
 + Additional software configuration depends on the options available on your system/ execution environment:
-    + **Using docker** (Recommended for non-JHPCE users): If docker is installed in your environment, this option requires no manual installation of software. Simply add the option `-profile docker` to the main script (this is determined at step 4 in the section you choose below). The required containers are pulled at run-time automatically.
-    + **Using Lmod modules** (Recommended for JHPCE users): If your system or computing cluster has the required software installed on Lmod modules, this is likely the next best option. In the appropriate config file (as determined in step 3 in the section you choose below), you can add lines for  each process (such as `module = 'hisat2/2.1.0'` for buildHISATindex) as configured in *conf/jhpce.config*.
-    + **Installing dependencies locally** (Recommended if the above options are not available): The script `install_software.sh` is included in the repository, and automates most of the installation process. It is recommended that you install python, RSeQC, java, and wiggletools globally (requiring `sudo` privileges). The remaining dependencies should automatically install upon executing `bash install_software.sh`, without special privileges (this is a work in progress). Any manually installed software tools must be pointed to in the script `conf/command_paths_long.config`. Here is the full list of software used by this pipeline:
+    + **Using docker** (Recommended for non-JHPCE users): If docker is installed in your environment, this option requires no local installation of software. Simply add the option `-profile docker` to the main script (this is determined at step 4 in the section you choose below). The required containers are pulled at run-time automatically. You will also need to run `bash install_software.sh` from inside the repository. This installs nextflow locally, and R packages (in a default location) for use in the pipeline.
+    + **Using Lmod modules** (Recommended for JHPCE users): If your system or computing cluster has the required software installed on Lmod modules, this is likely the next best option. In the appropriate config file (as determined in step 3 in the section you choose below), you can add lines for  each process (such as `module = 'hisat2/2.1.0'` for buildHISATindex) as configured in *conf/jhpce.config*. You will also need to run `bash install_software.sh` from inside the repository. This installs nextflow locally, and R packages (in a default location) for use in the pipeline.
+    + **Installing dependencies locally** (Recommended if the above options are not available): The script `install_software.sh` is included in the repository, and automates most of the installation process. It is recommended that you first install java globally (requiring `sudo` privileges) and wiggletools. Afterward, open `install_software.sh` and change line 10 to read `local_install=true`. Then run the script to install all software dependencies locally, via `bash install_software.sh` from inside the repository.
+
+### Advanced info regarding installation ###
+
++ The script `install_software.sh` need only be run once. If you are installing software to run the pipeline locally, all dependencies are installed into `[repo directory]/Software/`, and `[repo directory]/conf/command_paths_long.config` is configured to show nextflow the default installation locations of each software tool. Thus, this config file can be tweaked to manually point to different paths, if need be.
+
+Here is the full list of software used by this pipeline:
     
 Software | Version | Command used by the pipeline |
 |:-------------:| -----:| -----: |
