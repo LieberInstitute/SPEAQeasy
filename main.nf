@@ -256,7 +256,6 @@ prep_bed = file("${params.scripts}/prep_bed.R")
 bed_to_juncs = file("${params.scripts}/bed_to_juncs.py")
 //TODO(iaguilar) change _file for _script in the variable expressedRegions_file (###Dev)
 expressedRegions_file = file("${params.scripts}/step9-find_expressed_regions.R")
-check_R_packages_script = file("${params.scripts}/check_R_packages.R")
 fullCov_file = file("${params.scripts}/create_fullCov_object.R")
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -624,7 +623,6 @@ params.gencode_gtf_out = "${params.annotation}/RSeQC/${params.reference}"
 		input:
 		file gencode_gtf from gencode_gtf
 		file prep_bed from prep_bed
-		file check_R_packages_script from check_R_packages_script
 
 		output:
 		file("${name}.bed") into bedfile
@@ -633,8 +631,7 @@ params.gencode_gtf_out = "${params.annotation}/RSeQC/${params.reference}"
     println "[WG-LOG] building ${params.gencode_gtf_out}/bed/${params.reference}.bed"
 		name = "${params.reference}"
 		'''
-		!{params.Rscript} !{check_R_packages_script} \
-		&& !{params.Rscript} !{prep_bed} -f !{gencode_gtf} -n !{name}
+		!{params.Rscript} !{prep_bed} -f !{gencode_gtf} -n !{name}
 		'''
 	}
 
@@ -1234,7 +1231,6 @@ process InferStrandness {
 	input:
 	file infer_strandness from infer_strandness
 	file infer_experiment_files from infer_experiment_output
-	file check_R_packages_script from check_R_packages_script
 
 	output:
 	file "*"
@@ -1243,8 +1239,7 @@ process InferStrandness {
 	shell:
 	inferred_strandness_pattern = "inferred_strandness_pattern.txt"
 	'''
-	!{params.Rscript} !{check_R_packages_script} \
-	&& !{params.Rscript} !{infer_strandness} -p !{inferred_strandness_pattern}
+	!{params.Rscript} !{infer_strandness} -p !{inferred_strandness_pattern}
 	'''
 }
 
@@ -1612,7 +1607,6 @@ process CountObjects {
 	file create_counts from create_counts
 	file ercc_actual_conc from ercc_actual_conc
 	file counts_sample_manifest from counts_samples_manifest
-	file check_R_packages_script from check_R_packages_script
 
 	output:
 	file "*"
@@ -1644,9 +1638,7 @@ process CountObjects {
 	counts_prefix = "${params.prefix}"
 	counts_dir = "./"
 	'''
-	## Run the script to check for missing rpackages
-	!{params.Rscript} !{check_R_packages_script} \
-	&& !{params.Rscript} !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
+  !{params.Rscript} !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
 	'''
 }
 
@@ -1673,7 +1665,6 @@ process CoverageObjects {
 		file fullCov_samples_manifest from fullCov_samples_manifest
 		file full_coverage_input from full_coverage_inputs
 		file inferred_strand_R_object from inferred_strand_objects
-		file check_R_packages_script from check_R_packages_script
 
 		output:
 		file "*"
@@ -1690,7 +1681,6 @@ process CoverageObjects {
 		coverage_prefix = "${params.prefix}"
 		coverage_fullCov = "TRUE"
 		'''
-		!{params.Rscript} !{check_R_packages_script}
 		!{params.Rscript} !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{task.cpus}
 		'''
 	}
