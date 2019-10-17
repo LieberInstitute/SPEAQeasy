@@ -271,17 +271,13 @@ if (params.ercc) {
 if (params.reference == "hg38") {
 	
 	// Step 3: hisat2
-//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
 	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz"
-	params.fa_gz = "GRCh38.primary_assembly.genome.fa.gz"
 	params.fa = "GRCh38.primary_assembly.genome.fa"
 	params.hisat_prefix = "hisat2_GRCh38primary"
 	params.hisat_assembly = "GENCODE/GRCh38_hg38/assembly"
 
 	// Step 4: gencode gtf
-//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
 	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz"
-	params.gencode_gtf_gz = "gencode.v25.annotation.gtf.gz"
 	params.gencode_gtf = "gencode.v25.annotation.gtf"
 	params.feature_output_prefix = "Gencode.v25.hg38"
 
@@ -292,9 +288,7 @@ if (params.reference == "hg38") {
 	// Step 6: salmon
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg38...  (Doc ######)
 	params.step6 = true
-//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
-	params.tx_fa_gz = "gencode.v25.transcripts.fa.gz"
 	params.tx_fa = "gencode.v25.transcripts.fa"
 	params.salmon_prefix = "salmon_0.8.2_index_gencode.v25.transcripts"
 	params.salmon_assembly = "GENCODE/GRCh38_hg38/transcripts"
@@ -311,26 +305,19 @@ if (params.reference == "hg38") {
 	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg38...  (Doc ######)
 	params.step8 = true
-//##TODO(iaguilar): Explain the need to define the channel from this block  (Doc ######)
-	Channel
-	.fromPath("${params.genotype}/common_missense_SNVs_hg38.bed")
-	.set{ snvbed }
+	snvbed = Channel.fromPath("${params.genotype}/common_missense_SNVs_hg38.bed")
 
 }
 if (params.reference == "hg19") {
 	
 	// Step 3: hisat2
-//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
 	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
-	params.fa_gz = "GRCh37.primary_assembly.genome.fa.gz"
 	params.fa = "GRCh37.primary_assembly.genome.fa"
 	params.hisat_prefix = "hisat2_GRCh37primary"
 	params.hisat_assembly = "GENCODE/GRCh37_hg19/assembly"
 	
 	// Step 4: gencode gtf
-//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
 	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"
-	params.gencode_gtf_gz = "gencode.v25lift37.annotation.gtf.gz"
 	params.gencode_gtf = "gencode.v25lift37.annotation.gtf"
 	params.feature_output_prefix = "Gencode.v25lift37.hg19"
 
@@ -341,9 +328,7 @@ if (params.reference == "hg19") {
 	// Step 6: salmon
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg19...  (Doc ######)
 	params.step6 = true
-//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
-	params.tx_fa_gz = "gencode.v25lift37.transcripts.fa.gz"
 	params.tx_fa = "gencode.v25lift37.transcripts.fa"
 	params.salmon_prefix = "salmon_0.8.2_index_gencode.v25lift37.transcripts"
 	params.salmon_assembly = "GENCODE/GRCh37_hg19/transcripts"
@@ -359,26 +344,19 @@ if (params.reference == "hg19") {
 	// Step 8: call variants
 //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg19...  (Doc ######)
 	params.step8 = true
-//##TODO(iaguilar): Explain the need to define the channel from this block  (Doc ######)
-	Channel
-	.fromPath("${params.genotype}/common_missense_SNVs_hg19.bed")
-	.set{ snvbed }
+	snvbed = Channel.fromPath("${params.genotype}/common_missense_SNVs_hg19.bed")
 
 }
 if (params.reference == "mm10") {
 
 	// Step 3: hisat2
-//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gaz value (Dev ######)
 	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/GRCm38.primary_assembly.genome.fa.gz"
-	params.fa_gz = "GRCm38.primary_assembly.genome.fa.gz"
 	params.fa = "GRCm38.primary_assembly.genome.fa"
 	params.hisat_prefix = "GRCm38_mmhisat2_GRCm38primary"
 	params.hisat_assembly = "GENCODE/GRCm38_mm10/assembly"
 
 	// Step 4: gencode gtf
-//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes fa_gaz value (Dev ######)
 	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.annotation.gtf.gz"
-	params.gencode_gtf_gz = "gencode.vM11.annotation.gtf.gz"
 	params.gencode_gtf = "gencode.vM11.annotation.gtf"
 	params.feature_output_prefix = "Gencode.M11.mm10"
 
@@ -389,9 +367,7 @@ if (params.reference == "mm10") {
 	// Step 6: salmon
 //##TODO(iaguilar): Explain why step 6 is enabled if reference is mm10...  (Doc ######)
 	params.step6 = true
-//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gz value (Dev ######)
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
-	params.tx_fa_gz = "gencode.vM11.transcripts.fa.gz"
 	params.tx_fa = "gencode.vM11.transcripts.fa"
 	params.salmon_prefix = "salmon_0.8.2_index_gencode.vM11.transcripts"
 	params.salmon_assembly = "GENCODE/GRCm38_mm10/transcripts"
@@ -408,17 +384,13 @@ if (params.reference == "mm10") {
 if (params.reference == "rn6") {
 
 	// Step 3: hisat2
-//##TODO(iaguilar): Check if fa_link and fa_gz are not redundant since link includes fa_gz value (Dev ######)
 	params.fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
-	params.fa_gz = "Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
 	params.fa = "Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa"
 	params.hisat_prefix = "hisat2_Rnor6.0toplevel"
 	params.hisat_assembly = "ensembl/Rnor_6.0"
 
 	// Step 4: gencode gtf (ensembl for rn6)
-//##TODO(iaguilar): Check if gtf_link and gtf_gz are not redundant since link includes gtf_gz value (Dev ######)
 	params.gencode_gtf_link = "ftp://ftp.ensembl.org/pub/release-86/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
-	params.gencode_gtf_gz = "Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
 	params.gencode_gtf = "Rattus_norvegicus.Rnor_6.0.86.gtf"
 	params.feature_output_prefix = "Rnor_6.0.86"
 
@@ -531,50 +503,44 @@ params.hisat_idx_output = "${params.annotation}/${params.hisat_assembly}"
 // if it already exists
 process pullGENCODEassemblyfa {
 
-	
   tag "Downloading Assembly FA File: ${params.fa}"
   storeDir "${params.hisat_idx_output}/fa"
 
 	output:
-	file("${params.fa}") into reference_assembly
-	file("${params.fa}") into variant_assembly
+	  file "${params.fa}" into reference_assembly, variant_assembly
 
-	script:
-	fa_gz_file_link = "${params.fa_link}"
-	fa_gz = "${params.fa_gz}"
-	"""
-		wget "$fa_gz_file_link"
-		gunzip "$fa_gz"
-	"""
+	shell:
+	  '''
+    wget "!{params.fa_link}"
+    gunzip "!{params.fa}.gz"
+    '''
 }
 
 /*
  * Step Ib: Build HISAT Index
  */
 
-  // Uses "storeDir" to build HISAT2 index only when it doesn't exist, and output the cached
-  // files if they do already exist
-	process buildHISATindex {
+// Uses "storeDir" to build HISAT2 index only when it doesn't exist, and output the cached
+// files if they do already exist
+process buildHISATindex {
 		
-		tag "Building HISAT2 Index: ${params.hisat_prefix}"
-		storeDir "${params.hisat_idx_output}/index"
+  tag "Building HISAT2 Index: ${params.hisat_prefix}"
+  storeDir "${params.hisat_idx_output}/index"
 
-		input:
-		file reference_fasta from reference_assembly
+  input:
+    file reference_fasta from reference_assembly
 
-		output:
-		file("${params.hisat_prefix}.*") into hisat_index_built
+  output:
+    file("${params.hisat_prefix}.*") into hisat_index_built
 
-		script:
+  shell:
     println "[WG-LOG] building hisat2 index at ${params.hisat_idx_output}/index/"
-		prefix = "${params.hisat_prefix}"
-		/* $prefix is "the hisat2_index_base. Write ht2 data to files with this dir/basename" */
-		"""
-			${params.hisat2build} -p $task.cpus $reference_fasta $prefix
-		"""
-	}
+    '''
+    !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{params.hisat_prefix}
+    '''
+}
 
-/* Channel post-processing */
+// Channel post-processing
 hisat_index_built // get every *.ht2 file in this channel
 	.toList() // group every *.ht2 item into a single list
 	.set{ hisat_index } // pass *.ht2 list to a new channel
@@ -588,26 +554,21 @@ params.gencode_gtf_out = "${params.annotation}/RSeQC/${params.reference}"
 
 // Uses "storeDir" to download gtf only when it doesn't exist, and output the cached
 // file if it does already exist
-	process pullGENCODEgtf {
+process pullGENCODEgtf {
 
-		tag "Downloading GTF File: ${params.gencode_gtf}"
-		storeDir "${params.gencode_gtf_out}/gtf"
+  tag "Downloading GTF File: ${params.gencode_gtf}"
+  storeDir "${params.gencode_gtf_out}/gtf"
 
-		output:
-		file("${params.gencode_gtf}") into gencode_gtf
-		file("${params.gencode_gtf}") into create_counts_gtf
-		file("${params.gencode_gtf}") into gencode_feature_gtf
+  output:
+    file "${params.gencode_gtf}" into gencode_gtf, create_counts_gtf, gencode_feature_gtf
 
-		script:
+  shell:
     println "[WG-LOG] downloading ${params.gencode_gtf_out}/gtf/${params.gencode_gtf}"
-		gencode_gtf_link = "${params.gencode_gtf_link}"
-		gencode_gtf_gz = "${params.gencode_gtf_gz}"
-		gencode_gtf_file = "${params.gencode_gtf}"
-		"""
-			wget "$gencode_gtf_link"
-			gunzip "$gencode_gtf_gz"
-		"""
-	}
+    '''
+    wget "!{params.gencode_gtf_link}"
+    gunzip "!{params.gencode_gtf}.gz"
+    '''
+}
 
 /*
  * Step IIb: Build Bed File
@@ -615,25 +576,24 @@ params.gencode_gtf_out = "${params.annotation}/RSeQC/${params.reference}"
 
 // Uses "storeDir" to build bed file only when it doesn't exist, and output the cached
 // file if it does already exist
-	process buildPrepBED {
+process buildPrepBED {
 	
-		tag "Building Bed File: ${params.reference}"
-		storeDir "${params.gencode_gtf_out}/bed"
+  tag "Building Bed File: ${params.reference}"
+  storeDir "${params.gencode_gtf_out}/bed"
 
-		input:
-		file gencode_gtf from gencode_gtf
-		file prep_bed from prep_bed
+  input:
+    file gencode_gtf from gencode_gtf
+    file prep_bed from prep_bed
 
-		output:
-		file("${name}.bed") into bedfile
+  output:
+    file("${params.reference}.bed") into bedfile
 
-		shell:
+  shell:
     println "[WG-LOG] building ${params.gencode_gtf_out}/bed/${params.reference}.bed"
-		name = "${params.reference}"
-		'''
-		!{params.Rscript} !{prep_bed} -f !{gencode_gtf} -n !{name}
-		'''
-	}
+    '''
+    !{params.Rscript} !{prep_bed} -f !{gencode_gtf} -n !{params.reference}
+    '''
+}
 
 // for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true 
 // during Define Reference Paths/Scripts + Reference Dependent Parameters
@@ -647,23 +607,21 @@ if (params.step6) {
 		
   // Uses "storeDir" to download files only when they don't exist, and output the cached
   // files if they do already exist
-		process pullGENCODEtranscripts {
+  process pullGENCODEtranscripts {
 			
-			tag "Downloading TX FA File: ${params.tx_fa}"
-			storeDir "${params.salmon_idx_output}/fa"
+    tag "Downloading TX FA File: ${params.tx_fa}"
+    storeDir "${params.salmon_idx_output}/fa"
 
-			output:
-			file("${params.tx_fa}") into transcript_fa
-			//TODO (iaguilar) put shell code in same style as for fasta reference download (Dev ###)
-			script:
+    output:
+      file("${params.tx_fa}") into transcript_fa
+
+    shell:
       println "[WG-LOG] downloading ${params.salmon_idx_output}/fa/${params.tx_fa}"
-			tx_fa_link = "${params.tx_fa_link}"
-			tx_fa_gz = "${params.tx_fa_gz}"
-			"""
-				wget $tx_fa_link
-				gunzip $tx_fa_gz
-			"""
-		}
+      '''
+      wget !{params.tx_fa_link}
+      gunzip !{params.tx_fa}.gz
+      '''
+  }
 
 	/*
 	 * Step IIIb: Salmon Transcript Build
@@ -673,21 +631,20 @@ if (params.step6) {
   // this cached file otherwise
 	process buildSALMONindex {
 
-		tag "Building Salmon Index: ${params.salmon_prefix}"
-		storeDir "${params.salmon_idx_output}/salmon"
+    tag "Building Salmon Index: ${params.salmon_prefix}"
+    storeDir "${params.salmon_idx_output}/salmon"
 
-		input:
-		file tx_file from transcript_fa
+    input:
+      file tx_file from transcript_fa
 
-		output:
-		file("${params.salmon_prefix}") into salmon_index_built
+    output:
+      file("${params.salmon_prefix}") into salmon_index_built
 
-		script:
-		salmon_idx = "${params.salmon_prefix}"
-		"""
-			${params.salmon} index -t $tx_file -i $salmon_idx -p $task.cpus --type quasi -k ${params.salmon_min_read_len}
-		"""
-	}
+    script:
+      """
+      ${params.salmon} index -t $tx_file -i ${params.salmon_prefix} -p $task.cpus --type quasi -k ${params.salmon_min_read_len}
+      """
+  }
 
   // Post-processing of built index for use as input to TXQuant process
   salmon_index_built
@@ -738,33 +695,30 @@ if (params.ercc) {
   temp_inputs.into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
 }
 
-
 /*
  * Step B: Run the ERCC process if the --ercc flag is specified
  */
  
 if (params.ercc) {
 
-	 process ERCC {
-
+  process ERCC {
 		
-		tag "Prefix: $ercc_prefix"
-		publishDir "${params.output}/ercc/${ercc_prefix}",'mode':'copy'
+    tag "Prefix: $ercc_prefix"
+    publishDir "${params.output}/ercc/${ercc_prefix}",'mode':'copy'
 
-		input:
-		file erccidx from erccidx
-		set val(ercc_prefix), file(ercc_input) from ercc_inputs
+    input:
+      file erccidx from erccidx
+      set val(ercc_prefix), file(ercc_input) from ercc_inputs
 
-		output:
-		file("${ercc_prefix}_abundance.tsv") into ercc_abundances
+    output:
+      file("${ercc_prefix}_abundance.tsv") into ercc_abundances
 
-		script:
-		strand_option = "${params.kallisto_strand}"
-		"""
-		${params.kallisto} quant -i $erccidx -t $task.cpus -o . $strand_option $ercc_input \
-		&& cp abundance.tsv ${ercc_prefix}_abundance.tsv
-		"""
-	}
+    script:
+      """
+      ${params.kallisto} quant -i $erccidx -t $task.cpus -o . ${params.kallisto_strand} $ercc_input \
+      && cp abundance.tsv ${ercc_prefix}_abundance.tsv
+      """
+  }
 }
 
 /*
@@ -775,19 +729,19 @@ man_info_script = file("${params.scripts}/find_sample_info.R")
 process Manifest {
 	
 	tag "Validating manifest and accounting for merged files"
-	publishDir "${params.output}/manifest",mode:'copy'
+	publishDir "${params.output}/manifest", mode:'copy'
 
 	input:
-	file original_manifest from samples_manifest
-  file man_info_script from man_info_script
+	  file original_manifest from samples_manifest
+    file man_info_script from man_info_script
 
 	output:
-	file "samples.manifest" into counts_samples_manifest, fullCov_samples_manifest
+	  file "samples.manifest" into counts_samples_manifest, fullCov_samples_manifest
 
 	shell:
-	'''
-  !{params.Rscript} !{man_info_script} -s !{original_manifest} -o "."
-	'''
+	  '''
+    !{params.Rscript} !{man_info_script} -s !{original_manifest} -o "."
+	  '''
 }
 
 /*
@@ -796,7 +750,6 @@ process Manifest {
 
 process QualityUntrimmed {
 
-	
 	tag "Prefix: $untrimmed_prefix"
 	publishDir "${params.output}/FastQC/Untrimmed",mode:'copy'
 
@@ -812,8 +765,7 @@ process QualityUntrimmed {
 	if (params.sample == "single") {
 		copy_command = "cp ${untrimmed_prefix}_fastqc/summary.txt ${untrimmed_prefix}_summary.txt"
 		data_command = "cp ${untrimmed_prefix}_fastqc/fastqc_data.txt ${untrimmed_prefix}_fastqc_data.txt"
-	}
-	if (params.sample == "paired") {
+	} else {
 		copy_command = "cp ${untrimmed_prefix}_1_fastqc/summary.txt ${untrimmed_prefix}_1_summary.txt && cp ${untrimmed_prefix}_2_fastqc/summary.txt ${untrimmed_prefix}_2_summary.txt"
 		data_command = "cp ${untrimmed_prefix}_1_fastqc/fastqc_data.txt ${untrimmed_prefix}_1_fastqc_data.txt && cp ${untrimmed_prefix}_2_fastqc/fastqc_data.txt ${untrimmed_prefix}_2_fastqc_data.txt"
 	}
@@ -838,7 +790,6 @@ if (params.sample == "single") {
 	  .set{ adaptive_trimming_single_inputs }
 
 	process AdaptiveTrimSingleReads {
-
 	  
 	  tag "Prefix: $single_adaptive_prefix"
 	  publishDir "${params.output}/Adaptive_Trim",'mode':'copy'
@@ -862,9 +813,8 @@ if (params.sample == "single") {
 	  fi
 	  '''
 	}
-}
 
-if (params.sample == "paired") {
+} else { // paired
 
 	quality_reports
 	  .flatten()
@@ -875,7 +825,6 @@ if (params.sample == "paired") {
 	  .set{ adaptive_trimming_paired_inputs }
 
 	process AdaptiveTrimPairedReads {
-
 	  
 	  tag "Prefix: $paired_adaptive_prefix"
 	  publishDir "${params.output}/Adaptive_Trim",mode:'copy'
@@ -920,9 +869,8 @@ if (params.sample == "single") {
 	  .filter{ file -> file.name.toString() =~ /_TNR.*/ }
 	  .map{ file -> tuple(get_prefix(file), file) }
 	  .set{ no_trim_fastqs }
-  }
 
-  if (params.sample == "paired") {
+} else { // paired
 
 	trimming_fastqs
 	  .flatten()
@@ -948,7 +896,6 @@ if (params.sample == "single") {
  */
 
 process Trimming {
-
 	
 	tag "Prefix: $trimming_prefix | Sample: [ $trimming_input ]"
 	publishDir "${params.output}/trimmed_fq",'mode':'copy'
@@ -991,7 +938,6 @@ process Trimming {
 
 process QualityTrimmed {
 
-	
 	tag "$fastqc_trimmed_input"
 	publishDir "${params.output}/FastQC/Trimmed",'mode':'copy'
 
@@ -1013,7 +959,7 @@ process QualityTrimmed {
 
 if (params.sample == "single") {
 
-//Here trimmed and not timmed data is mixed in a channel to ensure the flow of the pipeline
+  //Here trimmed and not timmed data is mixed in a channel to ensure the flow of the pipeline
 	trimmed_hisat_inputs
 	  .flatten()
 	  .map{ file -> tuple(get_prefix(file), file) }
@@ -1021,9 +967,8 @@ if (params.sample == "single") {
 	  .ifEmpty{ error "Single End Channel for HISAT is empty" }
 	  .set{ single_hisat_inputs }
 
-	  process SingleEndHISAT {
+  process SingleEndHISAT {
 
-	  
 	  tag "Prefix: $single_hisat_prefix"
 	  publishDir "${params.output}/HISAT2_out",mode:'copy'
 
@@ -1049,17 +994,14 @@ if (params.sample == "single") {
 	  .flatten()
 	  .map{ file -> tuple(get_prefix(file), file) }
 	  .set{ sam_to_bam_inputs }
-}
-
-// Bellow block is not tested yet
-if (params.sample == "paired") {
+     
+} else { // sample is paired-end
 
 	no_trim_fastqs
 	  .set{ notrim_paired_hisat_inputs }
 
 	process PairedEndNoTrimHISAT {
-
-	  
+  
 	  tag "Prefix: $paired_notrim_hisat_prefix"
 	  publishDir "${params.output}/HISAT2_out",'mode':'copy'
 
@@ -1093,7 +1035,7 @@ if (params.sample == "paired") {
 	  !{unaligned_opt} \
 	  2> !{paired_notrim_hisat_prefix}_align_summary.txt
 	  '''
-	} // finishes untested block
+  }
 
 	 trimmed_hisat_inputs
 	  .flatten()
@@ -1101,10 +1043,8 @@ if (params.sample == "paired") {
 	  .groupTuple()
 	  .set{ trim_paired_hisat_inputs }
 
-//Bellow block is not tested yet
-	 process PairedEndTrimmedHISAT {
-
-	  
+  process PairedEndTrimmedHISAT {
+ 
 	  tag "Prefix: $paired_trimmed_prefix"
 	  publishDir "${params.output}/HISAT2_out",'mode':'copy'
 
@@ -1141,13 +1081,13 @@ if (params.sample == "paired") {
 	  !{unaligned_opt} \
 	  2> !{paired_trimmed_prefix}_align_summary.txt
 	  '''
-	}
-//Bellow block is not tested yet
-	 hisat_paired_notrim_output
-	  .mix(hisat_paired_trim_output)
-	  .flatten()
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .set{ sam_to_bam_inputs }
+  }
+  
+  hisat_paired_notrim_output
+    .mix(hisat_paired_trim_output)
+    .flatten()
+    .map{ file -> tuple(get_prefix(file), file) }
+    .set{ sam_to_bam_inputs }
 
 	paired_trim_alignment_summaries
 	  .mix(paired_notrim_alignment_summaries)
@@ -1159,9 +1099,7 @@ if (params.sample == "paired") {
  * Step 3b: Sam to Bam 
  */
 
-
 process SamtoBam {
-
 	
 	tag "Prefix: $sam_to_bam_prefix"
 	publishDir "${params.output}/HISAT2_out/sam_to_bam",'mode':'copy'
@@ -1192,7 +1130,6 @@ infer_experiment_inputs
 
 process InferExperiment {
 
-	
 	tag "Prefix: $infer_prefix"
 	publishDir "${params.output}/HISAT2_out/infer_experiment",'mode':'copy'
 
@@ -1224,8 +1161,6 @@ infer_experiment_outputs
 
 process InferStrandness {
 
-	
-	tag "Sample: $infer_experiment_files"
 	publishDir "${params.output}/HISAT2_out/infer_strandness/",'mode':'copy'
 
 	input:
@@ -1237,9 +1172,8 @@ process InferStrandness {
 	file "inferred_strandness_pattern.txt" into inferred_strand_coverage, inferred_strand_mean_coverage, inferred_strand_objects
 
 	shell:
-	inferred_strandness_pattern = "inferred_strandness_pattern.txt"
 	'''
-	!{params.Rscript} !{infer_strandness} -p !{inferred_strandness_pattern}
+	!{params.Rscript} !{infer_strandness} -p inferred_strandness_pattern.txt
 	'''
 }
 
@@ -1253,7 +1187,6 @@ feature_bam_inputs
 
 process FeatureCounts {
 
-	
 	tag "Prefix: $feature_prefix"
 	publishDir "${params.output}/Counts",'mode':'copy'
 
@@ -1267,15 +1200,13 @@ process FeatureCounts {
 	script:
 	if (params.sample == "single") {
 		sample_option = ""
-	}
-	if (params.sample == "paired") {
+	} else {
 		sample_option = "-p"
 	}
 	feature_out = "${feature_prefix}_${params.feature_output_prefix}"
-	feature_strand = "${params.feature_strand}"
 	"""
 	${params.featureCounts} \
-	-s $feature_strand \
+	-s ${params.feature_strand} \
 	$sample_option \
 	-T $task.cpus \
 	-a $gencode_gtf_feature \
@@ -1283,7 +1214,7 @@ process FeatureCounts {
 	$feature_bam
 
 	${params.featureCounts} \
-	-s $feature_strand \
+	-s ${params.feature_strand} \
 	$sample_option \
 	-O \
 	-f \
@@ -1300,7 +1231,6 @@ process FeatureCounts {
 
 process PrimaryAlignments {
 
-	
 	tag "Prefix: $alignment_prefix"
 	publishDir "${params.output}/Counts/junction/primary_aligments",'mode':'copy'
 
@@ -1323,7 +1253,6 @@ process PrimaryAlignments {
 
 process Junctions {
 
-	
 	tag "Prefix: $junction_prefix"
 	publishDir "${params.output}/Counts/junction",'mode':'copy'
 
@@ -1350,20 +1279,12 @@ process Junctions {
  */
 
 //
-if (params.strand == "unstranded")
-{
+if (params.strand == "unstranded") {
 	params.strandprefix="*"
-}
-else
-{
-	if (params.strand == "forward")
-	{
-		params.strandprefix=".Forward"
-	}
-	else
-	{
-		params.strandprefix=".Reverse"
-	}
+} else if (params.strand == "forward") {
+  params.strandprefix=".Forward"
+} else {
+  params.strandprefix=".Reverse"
 }
 
 process Coverage {
@@ -1401,7 +1322,6 @@ wig_files_temp
 
 process WigToBigWig {
 
-	
 	tag "Prefix: $wig_prefix"
 	publishDir "${params.output}/Coverage/BigWigs",mode:'copy'
 
@@ -1464,7 +1384,7 @@ if (params.step6) {
 	 * Step 6: txQuant
 	 */
 
-	 process TXQuant {
+  process TXQuant {
 
 		tag "Prefix: $salmon_input_prefix"
 		publishDir "${params.output}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
@@ -1483,29 +1403,22 @@ if (params.step6) {
 			sample_command = "-r ${salmon_input_prefix}.f*q*"
 			if (params.strand == "unstranded" ) {
 				salmon_strand = "U"
-			}
-			if (params.strand == "forward" ) {
+			} else if (params.strand == "forward" ) {
 				salmon_strand = "SF"
-			}
-			if (params.strand == "reverse" )
+			} else { // reverse
 				salmon_strand = "SR"
 			}
-		//needs testing for paired
-		if (params.sample == "paired") {
+		} else { // paired
 			sample_command = "-1 ${salmon_input_prefix}_1.f*q* -2 ${salmon_input_prefix}_2.f*q*"
 			if (params.strand == "unstranded" ) {
 				salmon_strand = "IU"
-			}
-			if (params.strand == "forward" ) {
+			} else if (params.strand == "forward" ) {
 				salmon_strand = "ISF"
-			}
-			if (params.strand == "reverse" ) {
+			} else { // reverse
 				salmon_strand = "ISR"
 			}
 		}
 		'''
-		##mkdir -p !{salmon_index_prefix}
-		##cp !{salmon_index} !{salmon_index_prefix}/.
 		!{params.salmon} quant \
 		-i !{salmon_index} \
 		-p !{task.cpus} \
@@ -1598,7 +1511,7 @@ if(params.reference == "hg19") {
 */
 
 process CountObjects {
-	//tag "[ $counts_input ]"
+
 	publishDir "${params.output}/Count_Objects",'mode':'copy'
 
 	input:
@@ -1614,31 +1527,21 @@ process CountObjects {
 	shell:
 	if (params.ercc) {
 		ercc_bool = "TRUE"
-	}
-	if (!params.ercc) {
+	} else {
 		ercc_bool = "FALSE"
 	}
 	if (params.sample == "paired") {
 		counts_pe = "TRUE"
-	}
-	if (params.sample == "single") {
+	} else {
 		counts_pe = "FALSE"
 	}
 	if (params.strand == "unstranded") {
 		counts_strand = "-s FALSE"
+  } else {
+    counts_strand = "-s " + params.strand
 	}
-	if (params.strand == "forward") {
-		counts_strand = "-s forward"
-	}
-	if (params.strand == "reverse") {
-		counts_strand = "-s reverse"
-	}
-	counts_reference = "${params.reference}"
-	counts_experiment = "${params.experiment}"
-	counts_prefix = "${params.prefix}"
-	counts_dir = "./"
 	'''
-  !{params.Rscript} !{create_counts} -o !{counts_reference} -m !{counts_dir} -e !{counts_experiment} -p !{counts_prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
+  !{params.Rscript} !{create_counts} -o !{params.reference} -m ./ -e !{params.experiment} -p !{params.prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
 	'''
 }
 
@@ -1656,34 +1559,28 @@ if (params.fullCov) {
 	 */
 
 process CoverageObjects {
-		// This tag generates long names for the job, SGE does not like long job names
-		tag "[ $full_coverage_input ]"
-		publishDir "${params.output}/Coverage_Objects",'mode':'copy'
 
-		input:
-		file fullCov_file from fullCov_file
-		file fullCov_samples_manifest from fullCov_samples_manifest
-		file full_coverage_input from full_coverage_inputs
-		file inferred_strand_R_object from inferred_strand_objects
+  publishDir "${params.output}/Coverage_Objects",'mode':'copy'
 
-		output:
-		file "*"
+  input:
+    file fullCov_file from fullCov_file
+    file fullCov_samples_manifest from fullCov_samples_manifest
+    file full_coverage_input from full_coverage_inputs
+    file inferred_strand_R_object from inferred_strand_objects
 
-		shell:
-		if (params.sample == "paired") {
-			coverage_pe = "TRUE"
-		}
-		if (params.sample == "single") {
-			coverage_pe = "FALSE"
-		}
-		coverage_reference = "${params.reference}"
-		coverage_experiment = "${params.experiment}"
-		coverage_prefix = "${params.prefix}"
-		coverage_fullCov = "TRUE"
-		'''
-		!{params.Rscript} !{fullCov_file} -o !{coverage_reference} -m . -e !{coverage_experiment} -p !{coverage_prefix} -l !{coverage_pe} -f !{coverage_fullCov} -c !{task.cpus}
-		'''
-	}
+  output:
+    file "*"
+
+  shell:
+    if (params.sample == "paired") {
+      coverage_pe = "TRUE"
+    } else {
+      coverage_pe = "FALSE"
+    }
+    '''
+    !{params.Rscript} !{fullCov_file} -o !{params.reference} -m . -e !{params.experiment} -p !{params.prefix} -l !{coverage_pe} -f TRUE -c !{task.cpus}
+    '''
+  }
 }
 
 if (params.step8) {
@@ -1698,6 +1595,7 @@ if (params.step8) {
 	  .set{ variant_calls }
 
 	process VariantCalls {
+ 
 		tag "Prefix: $variant_bams_prefix"
 		publishDir "${params.output}/Variant_Calls",'mode':'copy'
 
@@ -1709,12 +1607,10 @@ if (params.step8) {
 		file "${variant_bams_prefix}.vcf.gz.tbi" into compressed_variant_calls_tbi
 
 		shell:
-		snptmp = "${variant_bams_prefix}_tmp.vcf"
-		snpoutgz = "${variant_bams_prefix}.vcf.gz"
 		'''
-		!{params.samtools} mpileup -l !{snv_bed} -AB -q !{params.samtools_min_map_q} -Q !{params.samtools_min_base_q} -d !{params.samtools_max_depth} -uf !{variant_assembly_file} !{variant_calls_bam_file} -o !{snptmp}
-		!{params.bcftools} call -mv -Oz !{snptmp} > !{snpoutgz}
-		!{params.tabix} -p vcf !{snpoutgz}
+		!{params.samtools} mpileup -l !{snv_bed} -AB -q !{params.samtools_min_map_q} -Q !{params.samtools_min_base_q} -d !{params.samtools_max_depth} -uf !{variant_assembly_file} !{variant_calls_bam_file} -o !{variant_bams_prefix}_tmp.vcf
+		!{params.bcftools} call -mv -Oz !{variant_bams_prefix}_tmp.vcf > !{variant_bams_prefix}.vcf.gz
+		!{params.tabix} -p vcf !{variant_bams_prefix}.vcf.gz
 		'''
 	}
 
@@ -1732,8 +1628,7 @@ if (params.step8) {
 	 */
 
 	process VariantsMerge {
-
-		
+	
 		tag "Multi-sample vcf creation"
 		publishDir "${params.output}/Merged_Variants",'mode':'copy'
 
@@ -1756,28 +1651,27 @@ if (params.step8) {
  */
 
 process ExpressedRegions {
+ 
+  tag "Sample: $expressed_regions_mean_bigwig"
+  publishDir "${params.output}/Expressed_Regions",mode:'copy'
 
-    
-    tag "Sample: $expressed_regions_mean_bigwig"
-    publishDir "${params.output}/Expressed_Regions",mode:'copy'
-
-    input:
+  input:
     file expressedRegions_file from expressedRegions_file
     file chr_sizes from chr_sizes
     file expressed_regions_mean_bigwig from expressed_regions_mean_bigwigs
 
-    output:
+  output:
     file "*" 
 
-    shell:
+  shell:
     '''
     for meanfile in ./mean*.bw
     do
-    	!{params.Rscript} !{expressedRegions_file} \
-    	-m ${meanfile} \
-    	-o . \
-    	-i !{chr_sizes} \
-    	-c !{task.cpus}
+      !{params.Rscript} !{expressedRegions_file} \
+      -m ${meanfile} \
+      -o . \
+      -i !{chr_sizes} \
+      -c !{task.cpus}
     done
     '''
 }
