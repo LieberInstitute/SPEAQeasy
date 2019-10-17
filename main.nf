@@ -1388,9 +1388,9 @@ process Coverage {
 	'''
 	export coverage_strand_rule=$(cat !{inferred_strand})
 	if [ $coverage_strand_rule == "none" ] ; then
-		!{params.python} $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix}
+		!{params.python} $(which !{params.bam2wig}) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix}
 	else
-		!{params.python} $(which bam2wig.py) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "${coverage_strand_rule}"
+		!{params.python} $(which !{params.bam2wig}) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "${coverage_strand_rule}"
 	fi
 	'''
 }
