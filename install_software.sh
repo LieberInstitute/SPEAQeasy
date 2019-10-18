@@ -62,6 +62,7 @@ if [ -n `which java` ]; then
         make && \
         make install
         cd $INSTALL_DIR
+        mv htslib-1.9 htslib # wiggletools expects a "plain" name from htslib
     
     #  kallisto (0.43.0)  -------------------------------------------------------------
     
@@ -162,17 +163,12 @@ if [ -n `which java` ]; then
         make prefix=$INSTALL_DIR install
         cd $INSTALL_DIR
     
-    # export LIBRARY_PATH="${INSTALL_DIR}/htslib-1.9:${LIBRARY_PATH}"
+    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_DIR/lib
     git clone git@github.com:Ensembl/WiggleTools.git && \
+        ./R-3.6.1/bin/Rscript ../scripts/fix_makefile.R && \
         cd WiggleTools && \
-        ## Make the one of the edits Mark Miller described at https://lists.johnshopkins.edu/sympa/arc/bithelp/2019-09/msg00132.html
-        ## Change LIBS from:
-        # LIBS= -lwiggletools -l:libBigWig.a -lcurl -l:libhts.a -lgsl  -lgslcblas -lz -lpthread -lm
-        ## to:
-        # LIBS= -lwiggletools -l:libBigWig.a -lcurl -l:libhts.a -lgsl  -lgslcblas -lz -lpthread -lm -lcrypto -llzma -lbz2
         make
-        ## Copy to bin folder with other stuff
-        cp bin/* ../bin/
+        ## Make the one of the edits Mark Miller described at https://lists.johnshopkins.edu/sympa/arc/bithelp/2019-09/msg00132.html
     
     #  wigToBigWig -----------------------------------------------------------
     
