@@ -43,9 +43,7 @@ chrInfo <- subset(chrInfo, chr %in% seqnames(seqinfo(BigWigFile(opt$mean))))
 cuts <- seq(from = 0.2, to = 7, by = 0.1)
 
 ## Parallel environment to use
-err_path <- Sys.getenv('SGE_STDERR_PATH')
-err_dir <- sub(basename(err_path), '', err_path)
-bp <- SnowParam(workers = opt$cores, log = TRUE, logdir = err_dir)
+bp <- SnowParam(workers = opt$cores, log = TRUE, logdir = Sys.getenv('PWD'))
 
 ## Find the regions for all the chromosomes given a specific cutoff
 getRegChr <- function(cutoff, chr, meanCov, strand) {
