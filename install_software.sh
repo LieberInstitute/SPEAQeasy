@@ -1,5 +1,4 @@
 #!/bin/bash
-#$ -cwd
 
 #  IMPORTANT: run this script inside the repository directory to ensure software
 #              locations are properly linked. See conf/command_path_long.config if
@@ -16,6 +15,10 @@ local_install=false
 if [ -n `which java` ]; then
   echo "Found a java runtime. Proceeding with the setup..."
   
+  INSTALL_DIR=$(pwd)/Software
+  mkdir $INSTALL_DIR
+  cd $INSTALL_DIR
+  
   #  Install nextflow (latest)
   wget -qO- https://get.nextflow.io | bash
   
@@ -25,11 +28,8 @@ if [ -n `which java` ]; then
     #  without further configuration.
     
     echo -e "User selected local install: all software dependencies will be installed on this machine.\n\n"
-    INSTALL_DIR=$(pwd)/Software
-    mkdir $INSTALL_DIR
-    cd $INSTALL_DIR
     
-    #  To do: consider how to handle java, wiggletools
+    #  To do: consider how to handle java
     
     #  bcftools (1.9)  -------------------------------------------------------------
     
