@@ -74,26 +74,26 @@ def helpMessage() {
 
 	NOTE: File names can not have "." in the name due to the prefix functions in between process
 
-	nextflow run main.nf {CORE} {OPTIONS}
-		 {CORE}:
-			--sample "single/paired"
-			  single <- reads files individually
-			  paired <- reads files paired
-			--reference
-			  hg38 <- uses human reference hg38
-			  hg19 <- uses human reference hg19
-			  mm10 <- uses mouse reference mm10
-			  rn6  <- uses rat reference rn6
-		--strand "forward"/"reverse"/"unstranded"
-			  forward <- uses forward stranding
-			  reverse <- uses reverse stranding
-			  unstranded <- uses pipeine inferencing
-		 {OPTIONS}:
-			--ercc  <- performs ercc quantification
-			--fullCov <- performs fullCov R analysis
-		--help <- shows this message
-			 etc...
-	##TODO(iaguilar): Finish the brief help descriptors (Docummentation ######)
+  nextflow run main.nf {CORE} {OPTIONS}
+    {CORE}:
+    --sample "single/paired"
+      single <- reads files individually
+      paired <- reads files paired
+    --reference
+      hg38 <- uses human reference hg38
+      hg19 <- uses human reference hg19
+      mm10 <- uses mouse reference mm10
+      rn6  <- uses rat reference rn6
+    --strand "forward"/"reverse"/"unstranded"
+      forward <- uses forward stranding
+      reverse <- uses reverse stranding
+      unstranded <- uses pipeine inferencing
+    {OPTIONS}:
+    --ercc  <- performs ercc quantification
+    --fullCov <- performs fullCov R analysis
+    --force_trim <- performs trimming on all inputs
+  
+    --help <- shows this message
 
 	Mandatory Options:
 	-----------------------------------------------------------------------------------------------------------------------------------
@@ -126,6 +126,8 @@ def helpMessage() {
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--small_test	Runs the pipeline as a small test run on sample files located in the test folder
 	-----------------------------------------------------------------------------------------------------------------------------------
+  --force_trim  Include to perform trimming on all inputs, rather than just those failing QC due to detected adapter content
+  -----------------------------------------------------------------------------------------------------------------------------------
 	""".stripIndent()
 }
 /*
@@ -159,6 +161,7 @@ params.scripts = "${workflow.projectDir}/scripts"
 params.ercc = false
 params.fullCov = false
 params.small_test = false
+params.force_trim = false
 workflow.runName = "RNAsp_run"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -806,10 +809,10 @@ if (params.sample == "single") {
     suffix = get_file_ext(single_adaptive_fastq)
 	  '''
 	  export result=$(grep "Adapter Content" !{single_quality_report} | cut -f1)
-	  if [ $result == "FAIL" ] ; then
-		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TR.!{suffix}"
+	  if [ $result == "FAIL" ] || [ !{params.force_trim} == "true" ] ; then
+		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TR!{suffix}"
 	  else
-		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TNR.!{suffix}"
+		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TNR!{suffix}"
 	  fi
 	  '''
 	}
@@ -841,7 +844,7 @@ if (params.sample == "single") {
 	  '''
 	  export result1=$(grep "Adapter Content" !{prefix_str}_1_summary.txt | cut -c1-4)
 	  export result2=$(grep "Adapter Content" !{prefix_str}_2_summary.txt | cut -c1-4)
-	  if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ] ; then
+	  if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ] || [ !{params.force_trim} == "true" ]; then
 		  cp !{prefix_str}_1.f*q* "!{prefix_str}_1_TR!{suffix}"
 		  cp !{prefix_str}_2.f*q* "!{prefix_str}_2_TR!{suffix}"
 	  else
