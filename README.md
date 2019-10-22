@@ -100,6 +100,7 @@ Note that the configuration files also include command-line options passed to ma
 + `--ercc`			Include this flag to enable ERCC quantification with Kallisto
 + `--fullCov`		Flag to perform full coverage analysis
 + `--small_test`	Uses sample files located in the test folder as input. Overrides the "--input" option.
++ `--force_trim`  Include this flag to perform triming on all inputs. By default, only inputs failing fastQC on the adapter content metric are trimmed.
 
 ### Version description ###
 
