@@ -29,8 +29,6 @@ if [ -n `which java` ]; then
     
     echo -e "User selected local install: all software dependencies will be installed on this machine.\n\n"
     
-    #  To do: consider how to handle java
-    
     #  bcftools (1.9)  -------------------------------------------------------------
     
     wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar.bz2 -O bcftools.tar.bz2 && \
@@ -163,12 +161,12 @@ if [ -n `which java` ]; then
         make prefix=$INSTALL_DIR install
         cd $INSTALL_DIR
     
-    # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INSTALL_DIR/lib
+    # wiggletools itself (note the modified Makefile)
     git clone git@github.com:Ensembl/WiggleTools.git && \
         ./R-3.6.1/bin/Rscript ../scripts/fix_makefile.R && \
         cd WiggleTools && \
         make
-        ## Make the one of the edits Mark Miller described at https://lists.johnshopkins.edu/sympa/arc/bithelp/2019-09/msg00132.html
+        cd $INSTALL_DIR
     
     #  wigToBigWig -----------------------------------------------------------
     
