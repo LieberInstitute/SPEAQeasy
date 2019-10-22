@@ -7,6 +7,7 @@ work*
 *results/
 execution_*
 run_test_jhpce_qsub_out.txt
+Software*
 
 ## ignore big reference files
 Annotation/GENCODE/GRCh38_hg38/assembly/fa/*.fa
