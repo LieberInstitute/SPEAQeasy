@@ -164,7 +164,7 @@ sym = getBM(attributes = c("ensembl_gene_id","rgd_symbol","entrezgene_id"),
 
 ## organize gene map
 geneMap$Chr = ss(geneMap$Chr, ";")
-geneMap$Chr = ifelse(geneMap$Chr=='MT','chrM',paste0('chr',geneMap$Chr))
+#geneMap$Chr = ifelse(geneMap$Chr=='MT','chrM',paste0('chr',geneMap$Chr))
 geneMap$Start = as.numeric(ss(geneMap$Start, ";"))
 tmp = strsplit(geneMap$End, ";")
 geneMap$End = as.numeric(sapply(tmp, function(x) x[length(x)]))
@@ -211,7 +211,7 @@ stopifnot(all(file.exists(exonFn)))
 
 ### read in annotation ##
 exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
-exonMap$Chr = ifelse(exonMap$Chr=='MT','chrM',paste0('chr',exonMap$Chr))
+#exonMap$Chr = ifelse(exonMap$Chr=='MT','chrM',paste0('chr',exonMap$Chr))
 rownames(exonMap) = paste0("e", rownames(exonMap))
 
 exonMap$Symbol = sym$rgd_symbol[match(exonMap$Geneid, sym$ensembl_gene_id)]
@@ -316,11 +316,10 @@ load(file.path(RDIR, "junction_annotation_rn6_ensembl_v86.rda"))
 
 ############ anno/jMap	
 anno = juncCounts$anno
-### seqlevels(force= argument seems to require an updated version of R, and bioconductor)
-### For compatibility with the testing server, line has been changed to use the pruning.mode="coarse" argument
-##seqlevels(anno,force=TRUE) = c(1:20,"X","Y","MT")
+
+#  Rename to "UCSC"-style seq names, keeping just canonical seqs
+seqlevelsStyle(anno) = "UCSC"
 seqlevels(anno, pruning.mode="coarse") = paste0("chr", c(1:20,"X","Y","M"))
-seqlevels(anno) = paste0("chr", c(1:20,"X","Y","M"))
 
 ## add additional annotation
 anno$inEnsembl = countOverlaps(anno, theJunctions, type="equal") > 0
@@ -385,9 +384,6 @@ anno$isFusion = grepl("-", anno$newGeneID)
 jMap = anno
 colnames(mcols(jMap))[which(colnames(mcols(jMap))=="code")] = "Class"
 rm(anno)
-## rename chr to gencode
-names(jMap) = paste0(as.character(seqnames(jMap)),":",
-                     start(jMap),"-",end(jMap),"(",as.character(strand(jMap)),")")
 
 ############ jCounts
 jCounts = as.matrix(as.data.frame(juncCounts$countDF))
