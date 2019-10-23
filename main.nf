@@ -126,8 +126,8 @@ def helpMessage() {
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--small_test	Runs the pipeline as a small test run on sample files located in the test folder
 	-----------------------------------------------------------------------------------------------------------------------------------
-  --force_trim  Include to perform trimming on all inputs, rather than just those failing QC due to detected adapter content
-  -----------------------------------------------------------------------------------------------------------------------------------
+    --force_trim  Include to perform trimming on all inputs, rather than just those failing QC due to detected adapter content
+    -----------------------------------------------------------------------------------------------------------------------------------
 	""".stripIndent()
 }
 /*
@@ -285,11 +285,11 @@ if (params.reference == "hg38") {
 	params.feature_output_prefix = "Gencode.v25.hg38"
 
 	// Step 5: python coverage
-//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
+    //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
 	chr_sizes = file("${params.annotation}/chrom_sizes/hg38.chrom.sizes.gencode")
 
 	// Step 6: salmon
-//##TODO(iaguilar): Explain why step 6 is enabled if reference is hg38...  (Doc ######)
+    //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg38...  (Doc ######)
 	params.step6 = true
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
 	params.tx_fa = "gencode.v25.transcripts.fa"
@@ -302,11 +302,11 @@ if (params.reference == "hg38") {
 	junction_annotation_genes = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
 	feature_to_tx_gencode = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
 	feature_to_tx_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
-  exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
+    exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
 	create_counts = file("${params.scripts}/create_count_objects-human.R")
 
 	// Step 8: call variants
-//##TODO(iaguilar): Explain why step 8 is enabled if reference is hg38...  (Doc ######)
+    //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg38...  (Doc ######)
 	params.step8 = true
 	snvbed = Channel.fromPath("${params.genotype}/common_missense_SNVs_hg38.bed")
 
@@ -325,11 +325,11 @@ if (params.reference == "hg19") {
 	params.feature_output_prefix = "Gencode.v25lift37.hg19"
 
 	// Step 5: python coverage
-//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
+    //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
 	chr_sizes = file("${params.annotation}/chrom_sizes/hg19.chrom.sizes.gencode")
 
 	// Step 6: salmon
-//##TODO(iaguilar): Explain why step 6 is enabled if reference is hg19...  (Doc ######)
+    //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg19...  (Doc ######)
 	params.step6 = true
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
 	params.tx_fa = "gencode.v25lift37.transcripts.fa"
@@ -345,7 +345,7 @@ if (params.reference == "hg19") {
 	create_counts = file("${params.scripts}/create_count_objects-human.R")
 
 	// Step 8: call variants
-//##TODO(iaguilar): Explain why step 8 is enabled if reference is hg19...  (Doc ######)
+    //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg19...  (Doc ######)
 	params.step8 = true
 	snvbed = Channel.fromPath("${params.genotype}/common_missense_SNVs_hg19.bed")
 
@@ -364,11 +364,11 @@ if (params.reference == "mm10") {
 	params.feature_output_prefix = "Gencode.M11.mm10"
 
 	// Step 5: python coverage
-//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
+    //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
 	chr_sizes = file("${params.annotation}/chrom_sizes/mm10.chrom.sizes.gencode")
 
 	// Step 6: salmon
-//##TODO(iaguilar): Explain why step 6 is enabled if reference is mm10...  (Doc ######)
+    //##TODO(iaguilar): Explain why step 6 is enabled if reference is mm10...  (Doc ######)
 	params.step6 = true
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
 	params.tx_fa = "gencode.vM11.transcripts.fa"
@@ -380,8 +380,8 @@ if (params.reference == "mm10") {
 	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
 	create_counts = file("${params.scripts}/create_count_objects-mouse.R")
 
-  // Step 8: call variants
-//##TODO(iaguilar): Explain why step 8 is disabled if reference is mm10...  (Doc ######)
+    // Step 8: call variants
+    //##TODO(iaguilar): Explain why step 8 is disabled if reference is mm10...  (Doc ######)
 	params.step8 = false
 }
 if (params.reference == "rn6") {
@@ -398,11 +398,11 @@ if (params.reference == "rn6") {
 	params.feature_output_prefix = "Rnor_6.0.86"
 
 	// Step 5: python coverage
-//##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
+    //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
 	chr_sizes = file("${params.annotation}/chrom_sizes/rn6.chrom.sizes.ensembl")
 	
 	// Step 6: Salmon
-//##TODO(iaguilar): Explain why step 6 is enabled if reference is rn6...  (Doc ######)
+    //##TODO(iaguilar): Explain why step 6 is enabled if reference is rn6...  (Doc ######)
 	params.step6 = false
 
 	// Step 7: Make R objects
@@ -410,7 +410,7 @@ if (params.reference == "rn6") {
 	create_counts = file("${params.scripts}/create_count_objects-rat.R")
 
 	//Step 8: call variants
-//##TODO(iaguilar): Explain why step 8 is enabled if reference is rn6...  (Doc ######)
+    //##TODO(iaguilar): Explain why step 8 is enabled if reference is rn6...  (Doc ######)
 	params.step8 = false
 
 }
@@ -608,30 +608,30 @@ if (params.step6) {
 	 * Step IIIa: GENCODE TX FA Download
 	 */
 		
-  // Uses "storeDir" to download files only when they don't exist, and output the cached
-  // files if they do already exist
-  process pullGENCODEtranscripts {
+    // Uses "storeDir" to download files only when they don't exist, and output the cached
+    // files if they do already exist
+    process pullGENCODEtranscripts {
 			
-    tag "Downloading TX FA File: ${params.tx_fa}"
-    storeDir "${params.salmon_idx_output}/fa"
+      tag "Downloading TX FA File: ${params.tx_fa}"
+      storeDir "${params.salmon_idx_output}/fa"
 
-    output:
-      file("${params.tx_fa}") into transcript_fa
+      output:
+        file("${params.tx_fa}") into transcript_fa
 
-    shell:
-      println "[WG-LOG] downloading ${params.salmon_idx_output}/fa/${params.tx_fa}"
-      '''
-      wget !{params.tx_fa_link}
-      gunzip !{params.tx_fa}.gz
-      '''
-  }
+      shell:
+        println "[WG-LOG] downloading ${params.salmon_idx_output}/fa/${params.tx_fa}"
+        '''
+        wget !{params.tx_fa_link}
+        gunzip !{params.tx_fa}.gz
+        '''
+    }
 
 	/*
 	 * Step IIIb: Salmon Transcript Build
 	 */
 
-  // Uses "storeDir" to build salmon index only if the pre-built file is not present; outputs
-  // this cached file otherwise
+    // Uses "storeDir" to build salmon index only if the pre-built file is not present; outputs
+    // this cached file otherwise
 	process buildSALMONindex {
 
     tag "Building Salmon Index: ${params.salmon_prefix}"
@@ -647,12 +647,12 @@ if (params.step6) {
       """
       ${params.salmon} index -t $tx_file -i ${params.salmon_prefix} -p $task.cpus --type quasi -k ${params.salmon_min_read_len}
       """
-  }
+    }
 
-  // Post-processing of built index for use as input to TXQuant process
-  salmon_index_built
-    .collect()
-    .set{ salmon_index }
+    // Post-processing of built index for use as input to TXQuant process
+    salmon_index_built
+      .collect()
+      .set{ salmon_index }
 }
 
 samples_manifest = file("${params.input}/samples.manifest")
@@ -675,20 +675,20 @@ process Merging {
 //  Group both reads together for each sample, if paired-end, and assign each sample a prefix
 if (params.sample == "single") {
 
-		merged_inputs_flat
-      .flatten()
-		  .map{file -> tuple(get_prefix(file), file) }
-		  .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
-		  .set{ temp_inputs }
+    merged_inputs_flat
+        .flatten()
+        .map{file -> tuple(get_prefix(file), file) }
+        .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
+        .set{ temp_inputs }
 } else {
 
-		merged_inputs_flat
-		  .toSortedList()
-		  .flatten()
-		  .map{file -> tuple(get_prefix(file), file) }
-		  .groupTuple()
-		  .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
-		  .set{ temp_inputs }
+    merged_inputs_flat
+        .toSortedList()
+        .flatten()
+        .map{file -> tuple(get_prefix(file), file) }
+        .groupTuple()
+        .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
+        .set{ temp_inputs }
 }
 
 //  Copy the processed input channel to channels used by dependent processes
@@ -736,14 +736,14 @@ process Manifest {
 
 	input:
 	  file original_manifest from samples_manifest
-    file man_info_script from man_info_script
+      file man_info_script from man_info_script
 
 	output:
 	  file "samples.manifest" into counts_samples_manifest, fullCov_samples_manifest
 
 	shell:
 	  '''
-    !{params.Rscript} !{man_info_script} -s !{original_manifest} -o "."
+      !{params.Rscript} !{man_info_script} -s !{original_manifest} -o "."
 	  '''
 }
 
@@ -806,7 +806,7 @@ if (params.sample == "single") {
 	  shell:
 	  single_quality_report = single_adaptive_prefix.toString() + "_summary.txt"
 	  single_trimming_input = single_adaptive_prefix.toString() + ".f*q*"
-    suffix = get_file_ext(single_adaptive_fastq)
+      suffix = get_file_ext(single_adaptive_fastq)
 	  '''
 	  export result=$(grep "Adapter Content" !{single_quality_report} | cut -f1)
 	  if [ $result == "FAIL" ] || [ !{params.force_trim} == "true" ] ; then
@@ -839,8 +839,8 @@ if (params.sample == "single") {
 	  file "*" into trimming_fastqs, no_trimming_fastqs
 
 	  shell:
-    suffix = get_file_ext(paired_adaptive_fastq[0])
-    prefix_str = paired_adaptive_prefix.toString()
+      suffix = get_file_ext(paired_adaptive_fastq[0])
+      prefix_str = paired_adaptive_prefix.toString()
 	  '''
 	  export result1=$(grep "Adapter Content" !{prefix_str}_1_summary.txt | cut -c1-4)
 	  export result2=$(grep "Adapter Content" !{prefix_str}_2_summary.txt | cut -c1-4)
@@ -952,7 +952,7 @@ process QualityTrimmed {
 
 	script:
 	"""
-	fastqc $fastqc_trimmed_input --extract
+	$params.fastqc $fastqc_trimmed_input --extract
 	"""
 }
 
@@ -962,7 +962,7 @@ process QualityTrimmed {
 
 if (params.sample == "single") {
 
-  //Here trimmed and not timmed data is mixed in a channel to ensure the flow of the pipeline
+    //Here trimmed and not trimmed data is mixed in a channel to ensure the flow of the pipeline
 	trimmed_hisat_inputs
 	  .flatten()
 	  .map{ file -> tuple(get_prefix(file), file) }
@@ -1285,9 +1285,9 @@ process Junctions {
 if (params.strand == "unstranded") {
 	params.strandprefix="*"
 } else if (params.strand == "forward") {
-  params.strandprefix=".Forward"
+    params.strandprefix=".Forward"
 } else {
-  params.strandprefix=".Reverse"
+    params.strandprefix=".Reverse"
 }
 
 process Coverage {
@@ -1301,7 +1301,7 @@ process Coverage {
 	file chr_sizes from chr_sizes
 
 	output:
-  file("${coverage_prefix}${params.strandprefix}.wig") into wig_files_temp
+    file("${coverage_prefix}${params.strandprefix}.wig") into wig_files_temp
 
 	shell:
 	'''
@@ -1343,8 +1343,8 @@ process WigToBigWig {
 }
 
 coverage_bigwigs
-  .map { f -> tuple(get_read_type(f), f) }
-  .groupTuple()
+    .map { f -> tuple(get_read_type(f), f) }
+    .groupTuple()
 	.into{ mean_coverage_bigwigs;full_coverage_bigwigs }
 
 /*
@@ -1373,7 +1373,7 @@ process MeanCoverage {
 	elif [ !{read_type} == "Forward" ]; then
 		!{params.wiggletools} write mean.forward.wig mean !{mean_coverage_bigwig}
 		!{params.wigToBigWig} mean.forward.wig !{chr_sizes} mean.forward.bw
-  else
+    else
 		!{params.wiggletools} write mean.reverse.wig mean !{mean_coverage_bigwig}
 		!{params.wigToBigWig} mean.reverse.wig !{chr_sizes} mean.reverse.bw
 	fi
