@@ -205,48 +205,35 @@ if (params.small_test) {
 // Strand Option Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//##TODO(iaguilar): Expand what is every param used for and why is this value assigned (Doc ######)
+//  Single vs. paired-end-related command-line options
+if (params.sample == "single") {
+    params.trim_sample = "SE"
+    params.kallisto_strand = "--single -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
+} else {
+    params.trim_sample = "PE"
+    params.kallisto_strand = ""
+}
+
+//  Strandness-related command-line options
 if (params.strand == "unstranded") {
-	if (params.sample == "single") {
-		params.kallisto_strand = "--single -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
-		params.hisat_strand = ""
-		params.feature_strand = "0"
-		params.trim_sample = "SE"
-	}
-	if (params.sample == "paired") {
-		params.kallisto_strand = ""
-		params.hisat_strand = ""
-		params.feature_strand = "0"
-		params.trim_sample = "PE"
-	}
-}
-if (params.strand == "forward") {
-	if (params.sample == "single") {
-		params.kallisto_strand = "--single --fr-stranded -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
-		params.hisat_strand = "--rna-strandness F"
-		params.feature_strand = "1"
-		params.trim_sample = "SE"
-	}
-	if (params.sample == "paired") {
-		params.kallisto_strand = "--fr-stranded"
-		params.hisat_strand = "--rna-strandness FR"
-		params.feature_strand = "1"
-		params.trim_sample = "PE"
-	}
-}
-if (params.strand == "reverse") {
-	if (params.sample == "single") {
-		params.kallisto_strand = "--single --rf-stranded -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
-		params.hisat_strand = "--rna-strandness R"
-		params.feature_strand = "2"
-		params.trim_sample = "SE"
-	}
-	if (params.sample == "paired") {
-		params.kallisto_strand = "--rf-stranded"
-		params.hisat_strand = "--rna-strandness RF"
-		params.feature_strand = "2"
-		params.trim_sample = "PE"
-	}
+    params.feature_strand = "0"
+    params.hisat_strand = ""
+} else if (params.strand == "forward") {
+    params.feature_strand = "1"
+    params.kallisto_strand += " --fr-stranded"
+    if (params.sample == "single") {
+        params.hisat_strand = "--rna-strandness F"
+    } else {
+        params.hisat_strand = "--rna-strandness FR"
+    }
+} else {
+    params.feature_strand = "2"
+    params.kallisto_strand += " --rf-stranded"
+    if (params.sample == "single") {
+        params.hisat_strand = "--rna-strandness R"
+    } else {
+        params.hisat_strand = "--rna-strandness RF"
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
