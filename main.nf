@@ -35,8 +35,7 @@ vim: syntax=groovy
 	Sample Processing:
 	-   A: File Merging (Optional)
 	-   B: ERCC Quality Analysis (Optional)
-	-  C1: Individual Sample Manifest
-	-  C2: Sample Manifest
+	-   C: Sample Manifest
 	-   1: FastQC Quality Analysis
 	-  2a: Adaptive Trimming Filter (Sample Dependent)
 	-  2b: File Trimming (Sample Dependent)
@@ -655,6 +654,8 @@ if (params.step6) {
       .set{ salmon_index }
 }
 
+//  Step A: Merge files as necessary
+
 samples_manifest = file("${params.input}/samples.manifest")
 merge_script = file("${params.scripts}/step00-merge.R")
 process Merging {
@@ -725,7 +726,7 @@ if (params.ercc) {
 }
 
 /*
- * Step C2: Sample Manifest
+ * Step C: Sample Manifest
  */
 
 man_info_script = file("${params.scripts}/find_sample_info.R")
