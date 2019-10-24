@@ -905,16 +905,25 @@ process Trimming {
 	if (params.sample == "paired") {
 		output_option = "${trimming_prefix}_trimmed_forward_paired.f*q* ${trimming_prefix}_trimmed_forward_unpaired.f*q* ${trimming_prefix}_trimmed_reverse_paired.f*q* ${trimming_prefix}_trimmed_reverse_unpaired.f*q*"
 	}
-	// PATH to ILLUMINACLIP is based on PATH
 	"""
+    #  This solves the problem of trimmomatic and the adapter fasta
+    #  needing hard paths, even when on the PATH.
+    if [ ${params.use_long_paths} == "true" ]; then
+        trim_jar=${params.trimmomatic}
+        adapter_fa=${params.adapter_fasta}
+    else
+        trim_jar=\$(which ${params.trimmomatic})
+        adapter_fa=\$(which ${params.adapter_fasta})
+    fi
+
 	java -Xmx512M \
-	-jar ${params.trimmomatic} \
+	-jar \$trim_jar \
 	$sample_option \
 	-threads $task.cpus \
 	-phred33 \
 	$trimming_input \
 	$output_option \
-	ILLUMINACLIP:\$(which TruSeq2-PE.fa):2:30:10:1 \
+	ILLUMINACLIP:\$adapter_fa:2:30:10:1 \
 	LEADING:3 \
 	TRAILING:3 \
 	SLIDINGWINDOW:4:15 \
