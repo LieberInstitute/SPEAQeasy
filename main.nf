@@ -523,7 +523,6 @@ process buildHISATindex {
     file("${params.hisat_prefix}.*") into hisat_index_built
 
   shell:
-    println "[WG-LOG] building hisat2 index at ${params.hisat_idx_output}/index/"
     '''
     !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{params.hisat_prefix}
     '''
@@ -552,7 +551,6 @@ process pullGENCODEgtf {
     file "${params.gencode_gtf}" into gencode_gtf, create_counts_gtf, gencode_feature_gtf
 
   shell:
-    println "[WG-LOG] downloading ${params.gencode_gtf_out}/gtf/${params.gencode_gtf}"
     '''
     wget "!{params.gencode_gtf_link}"
     gunzip "!{params.gencode_gtf}.gz"
@@ -578,7 +576,6 @@ process buildPrepBED {
     file("${params.reference}.bed") into bedfile
 
   shell:
-    println "[WG-LOG] building ${params.gencode_gtf_out}/bed/${params.reference}.bed"
     '''
     !{params.Rscript} !{prep_bed} -f !{gencode_gtf} -n !{params.reference}
     '''
@@ -605,7 +602,6 @@ if (params.step6) {
         file("${params.tx_fa}") into transcript_fa
 
       shell:
-        println "[WG-LOG] downloading ${params.salmon_idx_output}/fa/${params.tx_fa}"
         '''
         wget !{params.tx_fa_link}
         gunzip !{params.tx_fa}.gz
@@ -888,7 +884,7 @@ if (params.sample == "single") {
 
 process Trimming {
 	
-	tag "Prefix: $trimming_prefix | Sample: [ $trimming_input ]"
+	tag "Prefix: $trimming_prefix"
 	publishDir "${params.output}/trimmed_fq",'mode':'copy'
 
 	input:
@@ -938,7 +934,7 @@ process Trimming {
 
 process QualityTrimmed {
 
-	tag "$fastqc_trimmed_input"
+	tag "Prefix: $fastq_name"
 	publishDir "${params.output}/FastQC/Trimmed",'mode':'copy'
 
 	input:
@@ -948,6 +944,7 @@ process QualityTrimmed {
 	file "*"
 
 	script:
+    fastq_name = get_prefix(fastqc_trimmed_input)
 	"""
 	$params.fastqc $fastqc_trimmed_input --extract
 	"""
