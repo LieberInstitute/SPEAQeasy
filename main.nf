@@ -240,12 +240,11 @@ if (params.strand == "unstranded") {
 // Define External Scripts
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-infer_strandness = file("${params.scripts}/step3b_infer_strandness.R")
-prep_bed = file("${params.scripts}/prep_bed.R")
-bed_to_juncs = file("${params.scripts}/bed_to_juncs.py")
-//TODO(iaguilar) change _file for _script in the variable expressedRegions_file (###Dev)
-expressedRegions_file = file("${params.scripts}/step9-find_expressed_regions.R")
-fullCov_file = file("${params.scripts}/create_fullCov_object.R")
+infer_strandness_script = file("${params.scripts}/step3b_infer_strandness.R")
+prep_bed_script = file("${params.scripts}/prep_bed.R")
+bed_to_juncs_script = file("${params.scripts}/bed_to_juncs.py")
+expressed_regions_script = file("${params.scripts}/step9-find_expressed_regions.R")
+fullCov_script = file("${params.scripts}/create_fullCov_object.R")
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define Reference Paths/Scripts + Reference Dependent Parameters
@@ -570,14 +569,14 @@ process buildPrepBED {
 
   input:
     file gencode_gtf from gencode_gtf
-    file prep_bed from prep_bed
+    file prep_bed_script from prep_bed_script
 
   output:
     file("${params.reference}.bed") into bedfile
 
   shell:
     '''
-    !{params.Rscript} !{prep_bed} -f !{gencode_gtf} -n !{params.reference}
+    !{params.Rscript} !{prep_bed_script} -f !{gencode_gtf} -n !{params.reference}
     '''
 }
 
@@ -1161,7 +1160,7 @@ process InferStrandness {
 	publishDir "${params.output}/HISAT2_out/infer_strandness/",'mode':'copy'
 
 	input:
-	file infer_strandness from infer_strandness
+	file infer_strandness_script from infer_strandness_script
 	file infer_experiment_files from infer_experiment_output
 
 	output:
@@ -1170,7 +1169,7 @@ process InferStrandness {
 
 	shell:
 	'''
-	!{params.Rscript} !{infer_strandness} -p inferred_strandness_pattern.txt
+	!{params.Rscript} !{infer_strandness_script} -p inferred_strandness_pattern.txt
 	'''
 }
 
@@ -1254,7 +1253,7 @@ process Junctions {
 	publishDir "${params.output}/Counts/junction",'mode':'copy'
 
 	input:
-	file bed_to_juncs from bed_to_juncs
+	file bed_to_juncs_script from bed_to_juncs_script
 	set val(junction_prefix), file(alignment_bam), file(alignment_index) from primary_alignments
 
 	output:
@@ -1267,7 +1266,7 @@ process Junctions {
 	outcount = "${junction_prefix}_junctions_primaryOnly_regtools.count"
 	'''
 	!{params.regtools} junctions extract -i !{params.juncts_min_intron_len} -o !{outjxn} !{alignment_bam}
-	!{params.python} !{bed_to_juncs} < !{outjxn} > !{outcount}
+	!{params.python} !{bed_to_juncs_script} < !{outjxn} > !{outcount}
 	'''
 }
 
@@ -1560,7 +1559,7 @@ process CoverageObjects {
   publishDir "${params.output}/Coverage_Objects",'mode':'copy'
 
   input:
-    file fullCov_file from fullCov_file
+    file fullCov_script from fullCov_script
     file fullCov_samples_manifest from fullCov_samples_manifest
     file full_coverage_input from full_coverage_inputs
     file inferred_strand_R_object from inferred_strand_objects
@@ -1575,7 +1574,7 @@ process CoverageObjects {
       coverage_pe = "FALSE"
     }
     '''
-    !{params.Rscript} !{fullCov_file} -o !{params.reference} -m . -e !{params.experiment} -p !{params.prefix} -l !{coverage_pe} -f TRUE -c !{task.cpus}
+    !{params.Rscript} !{fullCov_script} -o !{params.reference} -m . -e !{params.experiment} -p !{params.prefix} -l !{coverage_pe} -f TRUE -c !{task.cpus}
     '''
   }
 }
@@ -1653,7 +1652,7 @@ process ExpressedRegions {
   publishDir "${params.output}/Expressed_Regions",mode:'copy'
 
   input:
-    file expressedRegions_file from expressedRegions_file
+    file expressed_regions_script from expressed_regions_script
     file chr_sizes from chr_sizes
     file expressed_regions_mean_bigwig from expressed_regions_mean_bigwigs
 
@@ -1664,7 +1663,7 @@ process ExpressedRegions {
     '''
     for meanfile in ./mean*.bw
     do
-      !{params.Rscript} !{expressedRegions_file} \
+      !{params.Rscript} !{expressed_regions_script} \
       -m ${meanfile} \
       -o . \
       -i !{chr_sizes} \
