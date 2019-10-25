@@ -125,7 +125,7 @@ def helpMessage() {
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--small_test	Runs the pipeline as a small test run on sample files located in the test folder
 	-----------------------------------------------------------------------------------------------------------------------------------
-    --force_trim  Include to perform trimming on all inputs, rather than just those failing QC due to detected adapter content
+    --force_trim    Include to perform trimming on all inputs, rather than just those failing QC due to detected adapter content
     -----------------------------------------------------------------------------------------------------------------------------------
 	""".stripIndent()
 }
@@ -182,12 +182,13 @@ if (params.reference != "hg19" && params.reference != "hg38" && params.reference
 	exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
 }
 
+// Get species name from genome build name
 if (params.reference == "hg19" || params.reference == "hg38") {
-  params.reference_type = "human"
+    params.reference_type = "human"
 } else if (params.reference == "mm10") {
-  params.reference_type = "mouse"
+    params.reference_type = "mouse"
 } else {
-  params.reference_type = "rat"
+    params.reference_type = "rat"
 }
 
 //  Path to small test files
@@ -401,7 +402,7 @@ if (params.reference == "rn6") {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Define the Prefix Functions
+//    Utilities for retrieving info from filenames
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 def get_prefix(f) {
@@ -469,10 +470,6 @@ log.info "==========================================="
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // BEGIN PIPELINE
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*
- * Step Ia: GENCODE Assembly FA
- */
 
 /* ###################################
 
@@ -1533,8 +1530,8 @@ process CountObjects {
 	}
 	if (params.strand == "unstranded") {
 		counts_strand = "-s FALSE"
-  } else {
-    counts_strand = "-s " + params.strand
+    } else {
+        counts_strand = "-s " + params.strand
 	}
 	'''
   !{params.Rscript} !{create_counts} -o !{params.reference} -m ./ -e !{params.experiment} -p !{params.prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
@@ -1554,29 +1551,29 @@ if (params.fullCov) {
 	 * Step 7b: Create Full Coverage Objects
 	 */
 
-process CoverageObjects {
+    process CoverageObjects {
 
-  publishDir "${params.output}/Coverage_Objects",'mode':'copy'
+        publishDir "${params.output}/Coverage_Objects",'mode':'copy'
 
-  input:
-    file fullCov_script from fullCov_script
-    file fullCov_samples_manifest from fullCov_samples_manifest
-    file full_coverage_input from full_coverage_inputs
-    file inferred_strand_R_object from inferred_strand_objects
+        input:
+            file fullCov_script from fullCov_script
+            file fullCov_samples_manifest from fullCov_samples_manifest
+            file full_coverage_input from full_coverage_inputs
+            file inferred_strand_R_object from inferred_strand_objects
 
-  output:
-    file "*"
-
-  shell:
-    if (params.sample == "paired") {
-      coverage_pe = "TRUE"
-    } else {
-      coverage_pe = "FALSE"
+        output:
+            file "*"
+    
+        shell:
+            if (params.sample == "paired") {
+              coverage_pe = "TRUE"
+            } else {
+              coverage_pe = "FALSE"
+            }
+            '''
+            !{params.Rscript} !{fullCov_script} -o !{params.reference} -m . -e !{params.experiment} -p !{params.prefix} -l !{coverage_pe} -f TRUE -c !{task.cpus}
+            '''
     }
-    '''
-    !{params.Rscript} !{fullCov_script} -o !{params.reference} -m . -e !{params.experiment} -p !{params.prefix} -l !{coverage_pe} -f TRUE -c !{task.cpus}
-    '''
-  }
 }
 
 if (params.step8) {
