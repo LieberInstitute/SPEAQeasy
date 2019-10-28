@@ -9,38 +9,13 @@ execution_*
 run_test_jhpce_qsub_out.txt
 Software*
 
-## ignore big reference files
-Annotation/GENCODE/GRCh38_hg38/assembly/fa/*.fa
-Annotation/GENCODE/GRCh38_hg38/assembly/index/*.ht2
-Annotation/GENCODE/GRCh38_hg38/transcripts/fa/gencode.v25.transcripts.fa
-Annotation/GENCODE/GRCh38_hg38/transcripts/salmon/salmon_0.8.2_index_gencode.v25.transcripts/
+## ignore big reference files/ files pulled with 1st execution
+Annotation/reference/*
+Annotation/RSeQC/*
 
-Annotation/GENCODE/GRCh37_hg19/assembly/fa/GRCh37.primary_assembly.genome.fa
-Annotation/GENCODE/GRCh37_hg19/assembly/index/*.ht2
-Annotation/GENCODE/GRCh37_hg19/transcripts/fa/gencode.v25lift37.transcripts.fa
-Annotation/GENCODE/GRCh37_hg19/transcripts/salmon/salmon_0.8.2_index_gencode.v25lift37.transcripts/
-
-Annotation/GENCODE/GRCm38_mm10/assembly/fa/GRCm38.primary_assembly.genome.fa
-Annotation/GENCODE/GRCm38_mm10/assembly/index/*.ht2
-Annotation/GENCODE/GRCm38_mm10/transcripts/fa/gencode.vM11.transcripts.fa
-Annotation/GENCODE/GRCm38_mm10/transcripts/salmon/salmon_0.8.2_index_gencode.vM11.transcripts/
-
-Annotation/ensembl/Rnor_6.0/fa/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa
-Annotation/ensembl/Rnor_6.0/index/*.ht2
-
-Annotation/RSeQC/*/gtf/*.gtf
-
-## diagnostic html report and png flowcharts produced by the NF tes run
+## diagnostic html report and png flowcharts produced by test runs
 report.html*
 flowchart.png*
 
 ## backup stuff
 *.bkp
-
-## Adding files to ignore during debugging
-Annotation.bkp_completo/
-Annotation/RSeQC/hg19/bed/hg19.bed
-Annotation/RSeQC/hg38/bed/hg38.bed
-Annotation/RSeQC/mm10/bed/mm10.bed
-Annotation/RSeQC/rn6/bed/rn6.bed
-
