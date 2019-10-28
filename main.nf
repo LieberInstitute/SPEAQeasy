@@ -238,30 +238,13 @@ if (params.strand == "unstranded") {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Define External Scripts
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-infer_strandness_script = file("${params.scripts}/step3b_infer_strandness.R")
-prep_bed_script = file("${params.scripts}/prep_bed.R")
-bed_to_juncs_script = file("${params.scripts}/bed_to_juncs.py")
-expressed_regions_script = file("${params.scripts}/step9-find_expressed_regions.R")
-fullCov_script = file("${params.scripts}/create_fullCov_object.R")
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define Reference Paths/Scripts + Reference-dependent Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// ERCC
-if (params.ercc) {
-  erccidx = file("${params.annotation}/ERCC/ERCC92.idx")
-  ercc_actual_conc = file("${params.annotation}/ERCC/ercc_actual_conc.txt")
-}
-
-params.assembly = "${params.Annotation}/reference/${params.reference}"
+params.assembly = "${params.annotation}/reference/${params.reference}"
 params.hisat_prefix = "hisat2_assembly_${params.reference}"
 params.salmon_prefix = "salmon_index_${params.reference}.transcripts"
-create_counts = file("${params.scripts}/create_count_objects-${params.reference_type}.R")
-chr_sizes = file("${params.Annotation}/chrom_sizes/${params.reference}.chrom.sizes")
+chr_sizes = file("${params.annotation}/chrom_sizes/${params.reference}.chrom.sizes")
 
 // This condition will be eliminated ASAP- currently need a common-SNVs bed file for mouse and rat
 if (params.reference_type == "human") {
@@ -416,7 +399,6 @@ summary['Annotation']		 = params.annotation
 summary['Genotype']		   = params.genotype
 summary['Input']			   = params.input
 summary['scripts']      = params.scripts
-if(params.ercc) summary['ERCC Index'] = erccidx
 if(params.experiment) summary['Experiment'] = params.experiment
 if(params.unalign) summary['Align'] = "True"
 if(params.fullCov) summary['Full Coverage'] = "True"
@@ -524,7 +506,7 @@ process buildPrepBED {
 
   input:
     file gencode_gtf from gencode_gtf
-    file prep_bed_script from prep_bed_script
+    file prep_bed_script from file("${params.scripts}/prep_bed.R")
 
   output:
     file("${params.reference}.bed") into bedfile
@@ -648,7 +630,7 @@ if (params.ercc) {
     publishDir "${params.output}/ercc/${ercc_prefix}",'mode':'copy'
 
     input:
-      file erccidx from erccidx
+      file erccidx from file("${params.annotation}/ERCC/ERCC92.idx")
       set val(ercc_prefix), file(ercc_input) from ercc_inputs
 
     output:
@@ -848,12 +830,11 @@ process Trimming {
 	file "*.f*q*" into trimmed_fastqc_inputs, trimmed_hisat_inputs
 
 	script:
-	sample_option = "${params.trim_sample}"
+    file_ext = get_file_ext(trimming_input)
 	if (params.sample == "single") {
-		output_option = "${trimming_prefix}_trimmed.f*q*"
-	}
-	if (params.sample == "paired") {
-		output_option = "${trimming_prefix}_trimmed_forward_paired.f*q* ${trimming_prefix}_trimmed_forward_unpaired.f*q* ${trimming_prefix}_trimmed_reverse_paired.f*q* ${trimming_prefix}_trimmed_reverse_unpaired.f*q*"
+		output_option = "${trimming_prefix}_trimmed${file_ext}"
+	} else {
+		output_option = "${trimming_prefix}_trimmed_forward_paired${file_ext} ${trimming_prefix}_trimmed_forward_unpaired${file_ext} ${trimming_prefix}_trimmed_reverse_paired${file_ext} ${trimming_prefix}_trimmed_reverse_unpaired${file_ext}"
 	}
 	"""
     #  This solves the problem of trimmomatic and the adapter fasta
@@ -868,7 +849,7 @@ process Trimming {
 
 	java -Xmx512M \
 	-jar \$trim_jar \
-	$sample_option \
+	$params.trim_sample \
 	-threads $task.cpus \
 	-phred33 \
 	$trimming_input \
@@ -933,11 +914,10 @@ if (params.sample == "single") {
 	  file "*_align_summary.txt" into alignment_summaries
 
 	  shell:
-	  hisat_full_prefix = "${params.annotation}/${params.hisat_assembly}/index/${params.hisat_prefix}"
-	  strand = "${params.hisat_strand}"
+	  hisat_full_prefix = "${params.assembly}/assembly/index/${params.hisat_prefix}"
 	  // Phred Quality is hardcoded, if it will be so, it should be pointed in the README.md
 	  '''
-	  !{params.hisat2} -p !{task.cpus} -x !{hisat_full_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
+	  !{params.hisat2} -p !{task.cpus} -x !{hisat_full_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{params.hisat_strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
 	  '''
 	}
 
@@ -966,14 +946,12 @@ if (params.sample == "single") {
 	  file "*_align_summary.txt" into paired_notrim_alignment_summaries
 
 	  shell:
-	  hisat_full_prefix = "${params.annotation}/${params.hisat_assembly}/index/${params.hisat_prefix}"
-	  strand = "${params.hisat_strand}"
+	  hisat_full_prefix = "${params.assembly}/index/${params.hisat_prefix}"
 	  sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR.f*q*"
 	  sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR.f*q*"
 	  if (params.unalign) {
 		  unaligned_opt = "--un-conc ${paired_notrim_hisat_prefix}.fastq"
-	  }
-	  if (!params.unalign) {
+	  } else {
 		  unaligned_opt = ""
 	  }
 	  '''
@@ -982,7 +960,7 @@ if (params.sample == "single") {
 	  -x !{hisat_full_prefix} \
 	  -1 !{sample_1_hisat} \
 	  -2 !{sample_2_hisat} \
-	  -S !{paired_notrim_hisat_prefix}_hisat_out.sam !{strand} --phred33 \
+	  -S !{paired_notrim_hisat_prefix}_hisat_out.sam !{params.hisat_strand} --phred33 \
 	  !{unaligned_opt} \
 	  2> !{paired_notrim_hisat_prefix}_align_summary.txt
 	  '''
@@ -1009,16 +987,14 @@ if (params.sample == "single") {
 	  file "*_align_summary.txt" into paired_trim_alignment_summaries
 
 	  shell:
-	  hisat_full_prefix = "${params.annotation}/${params.hisat_assembly}/index/${params.hisat_prefix}"
-	  strand = "${params.hisat_strand}"
+	  hisat_full_prefix = "${params.assembly}/index/${params.hisat_prefix}"
 	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.f*q*"
 	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired.f*q*"
 	  forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.f*q*"
 	  reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_reverse_unpaired.f*q*"
 	  if (params.unalign) {
 		  unaligned_opt = "--un-conc ${paired_trimmed_prefix}.fastq"
-	  }
-	  if (!params.unalign) {
+	  } else {
 		  unaligned_opt = ""
 	  }
 	  '''
@@ -1028,7 +1004,7 @@ if (params.sample == "single") {
 	  -1 !{forward_paired} \
 	  -2 !{reverse_paired} \
 	  -U !{forward_unpaired},!{reverse_unpaired} \
-	  -S !{paired_trimmed_prefix}_hisat_out.sam !{strand} --phred33 \
+	  -S !{paired_trimmed_prefix}_hisat_out.sam !{params.hisat_strand} --phred33 \
 	  !{unaligned_opt} \
 	  2> !{paired_trimmed_prefix}_align_summary.txt
 	  '''
@@ -1115,7 +1091,7 @@ process InferStrandness {
 	publishDir "${params.output}/HISAT2_out/infer_strandness/",'mode':'copy'
 
 	input:
-	file infer_strandness_script from infer_strandness_script
+	file infer_strandness_script from file("${params.scripts}/step3b_infer_strandness.R")
 	file infer_experiment_files from infer_experiment_output
 
 	output:
@@ -1208,7 +1184,7 @@ process Junctions {
 	publishDir "${params.output}/Counts/junction",'mode':'copy'
 
 	input:
-	file bed_to_juncs_script from bed_to_juncs_script
+	file bed_to_juncs_script from file("${params.scripts}/bed_to_juncs.py")
 	set val(junction_prefix), file(alignment_bam), file(alignment_index) from primary_alignments
 
 	output:
@@ -1467,8 +1443,8 @@ process CountObjects {
 	input:
 	file counts_input from counts_inputs
 	file counts_annotation from counts_annotations
-	file create_counts from create_counts
-	file ercc_actual_conc from ercc_actual_conc
+	file create_counts from file("${params.scripts}/create_count_objects-${params.reference_type}.R")
+	file ercc_actual_conc from file("${params.annotation}/ERCC/ercc_actual_conc.txt")
 	file counts_sample_manifest from counts_samples_manifest
 
 	output:
@@ -1513,7 +1489,7 @@ if (params.fullCov) {
         publishDir "${params.output}/Coverage_Objects",'mode':'copy'
 
         input:
-            file fullCov_script from fullCov_script
+            file fullCov_script from file("${params.scripts}/create_fullCov_object.R")
             file fullCov_samples_manifest from fullCov_samples_manifest
             file full_coverage_input from full_coverage_inputs
             file inferred_strand_R_object from inferred_strand_objects
@@ -1606,7 +1582,7 @@ process ExpressedRegions {
   publishDir "${params.output}/Expressed_Regions",mode:'copy'
 
   input:
-    file expressed_regions_script from expressed_regions_script
+    file expressed_regions_script from file("${params.scripts}/step9-find_expressed_regions.R")
     file chr_sizes from chr_sizes
     file expressed_regions_mean_bigwig from expressed_regions_mean_bigwigs
 
