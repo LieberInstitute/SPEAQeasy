@@ -248,13 +248,27 @@ expressed_regions_script = file("${params.scripts}/step9-find_expressed_regions.
 fullCov_script = file("${params.scripts}/create_fullCov_object.R")
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Define Reference Paths/Scripts + Reference Dependent Parameters
+// Define Reference Paths/Scripts + Reference-dependent Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // ERCC
 if (params.ercc) {
   erccidx = file("${params.annotation}/ERCC/ERCC92.idx")
-  ercc_actual_conc = file("${params.annotation}/ercc_actual_conc.txt")
+  ercc_actual_conc = file("${params.annotation}/ERCC/ercc_actual_conc.txt")
+}
+
+params.assembly = "${params.Annotation}/reference/${params.reference}"
+params.hisat_prefix = "hisat2_assembly_${params.reference}"
+params.salmon_prefix = "salmon_index_${params.reference}.transcripts"
+create_counts = file("${params.scripts}/create_count_objects-${params.reference_type}.R")
+chr_sizes = file("${params.Annotation}/chrom_sizes/${params.reference}.chrom.sizes")
+
+// This condition will be eliminated ASAP- currently need a common-SNVs bed file for mouse and rat
+if (params.reference_type == "human") {
+    params.step8 = true
+    snvbed = Channel.fromPath("${params.genotype}/common_missense_SNVs_${params.reference}.bed")
+} else {
+    param.step8 = false
 }
 
 if (params.reference == "hg38") {
@@ -262,25 +276,17 @@ if (params.reference == "hg38") {
 	// Step 3: hisat2
 	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz"
 	params.fa = "GRCh38.primary_assembly.genome.fa"
-	params.hisat_prefix = "hisat2_GRCh38primary"
-	params.hisat_assembly = "GENCODE/GRCh38_hg38/assembly"
 
 	// Step 4: gencode gtf
 	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz"
 	params.gencode_gtf = "gencode.v25.annotation.gtf"
 	params.feature_output_prefix = "Gencode.v25.hg38"
 
-	// Step 5: python coverage
-    //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-	chr_sizes = file("${params.annotation}/chrom_sizes/hg38.chrom.sizes.gencode")
-
 	// Step 6: salmon
     //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg38...  (Doc ######)
 	params.step6 = true
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
 	params.tx_fa = "gencode.v25.transcripts.fa"
-	params.salmon_prefix = "salmon_0.8.2_index_gencode.v25.transcripts"
-	params.salmon_assembly = "GENCODE/GRCh38_hg38/transcripts"
 
 	// Step 7: Make R objects	
 	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg38_gencode_v25.rda")
@@ -289,12 +295,6 @@ if (params.reference == "hg38") {
 	feature_to_tx_gencode = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
 	feature_to_tx_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
     exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
-	create_counts = file("${params.scripts}/create_count_objects-human.R")
-
-	// Step 8: call variants
-    //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg38...  (Doc ######)
-	params.step8 = true
-	snvbed = Channel.fromPath("${params.genotype}/common_missense_SNVs_hg38.bed")
 
 }
 if (params.reference == "hg19") {
@@ -302,25 +302,17 @@ if (params.reference == "hg19") {
 	// Step 3: hisat2
 	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
 	params.fa = "GRCh37.primary_assembly.genome.fa"
-	params.hisat_prefix = "hisat2_GRCh37primary"
-	params.hisat_assembly = "GENCODE/GRCh37_hg19/assembly"
 	
 	// Step 4: gencode gtf
 	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"
 	params.gencode_gtf = "gencode.v25lift37.annotation.gtf"
 	params.feature_output_prefix = "Gencode.v25lift37.hg19"
 
-	// Step 5: python coverage
-    //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-	chr_sizes = file("${params.annotation}/chrom_sizes/hg19.chrom.sizes.gencode")
-
 	// Step 6: salmon
     //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg19...  (Doc ######)
 	params.step6 = true
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
 	params.tx_fa = "gencode.v25lift37.transcripts.fa"
-	params.salmon_prefix = "salmon_0.8.2_index_gencode.v25lift37.transcripts"
-	params.salmon_assembly = "GENCODE/GRCh37_hg19/transcripts"
 
 	// Step 7: Make R objects
 	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_gencode_v25lift37.rda")
@@ -328,12 +320,6 @@ if (params.reference == "hg19") {
 	junction_annotation_genes = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
 	feature_to_tx_gencode = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
 	feature_to_tx_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
-	create_counts = file("${params.scripts}/create_count_objects-human.R")
-
-	// Step 8: call variants
-    //##TODO(iaguilar): Explain why step 8 is enabled if reference is hg19...  (Doc ######)
-	params.step8 = true
-	snvbed = Channel.fromPath("${params.genotype}/common_missense_SNVs_hg19.bed")
 
 }
 if (params.reference == "mm10") {
@@ -341,51 +327,32 @@ if (params.reference == "mm10") {
 	// Step 3: hisat2
 	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/GRCm38.primary_assembly.genome.fa.gz"
 	params.fa = "GRCm38.primary_assembly.genome.fa"
-	params.hisat_prefix = "GRCm38_mmhisat2_GRCm38primary"
-	params.hisat_assembly = "GENCODE/GRCm38_mm10/assembly"
 
 	// Step 4: gencode gtf
 	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.annotation.gtf.gz"
 	params.gencode_gtf = "gencode.vM11.annotation.gtf"
 	params.feature_output_prefix = "Gencode.M11.mm10"
 
-	// Step 5: python coverage
-    //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-	chr_sizes = file("${params.annotation}/chrom_sizes/mm10.chrom.sizes.gencode")
-
 	// Step 6: salmon
     //##TODO(iaguilar): Explain why step 6 is enabled if reference is mm10...  (Doc ######)
 	params.step6 = true
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
 	params.tx_fa = "gencode.vM11.transcripts.fa"
-	params.salmon_prefix = "salmon_0.8.2_index_gencode.vM11.transcripts"
-	params.salmon_assembly = "GENCODE/GRCm38_mm10/transcripts"
 
 	// Step 7: Make R objects
 	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
 	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
-	create_counts = file("${params.scripts}/create_count_objects-mouse.R")
-
-    // Step 8: call variants
-    //##TODO(iaguilar): Explain why step 8 is disabled if reference is mm10...  (Doc ######)
-	params.step8 = false
 }
 if (params.reference == "rn6") {
 
 	// Step 3: hisat2
 	params.fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
 	params.fa = "Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa"
-	params.hisat_prefix = "hisat2_Rnor6.0toplevel"
-	params.hisat_assembly = "ensembl/Rnor_6.0"
 
 	// Step 4: gencode gtf (ensembl for rn6)
 	params.gencode_gtf_link = "ftp://ftp.ensembl.org/pub/release-86/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
 	params.gencode_gtf = "Rattus_norvegicus.Rnor_6.0.86.gtf"
 	params.feature_output_prefix = "Rnor_6.0.86"
-
-	// Step 5: python coverage
-    //##TODO(iaguilar): Briefly explain what is this file used for (Doc ######)
-	chr_sizes = file("${params.annotation}/chrom_sizes/rn6.chrom.sizes.ensembl")
 	
 	// Step 6: Salmon
     //##TODO(iaguilar): Explain why step 6 is enabled if reference is rn6...  (Doc ######)
@@ -393,11 +360,6 @@ if (params.reference == "rn6") {
 
 	// Step 7: Make R objects
 	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
-	create_counts = file("${params.scripts}/create_count_objects-rat.R")
-
-	//Step 8: call variants
-    //##TODO(iaguilar): Explain why step 8 is enabled if reference is rn6...  (Doc ######)
-	params.step8 = false
 
 }
 
@@ -481,15 +443,13 @@ log.info "==========================================="
  * Step Ia: GENCODE Assembly FA
  */
 
-// Define the output directory path for Genome Reference dir, and hisat2 index dir, based on previously defined parameters
-params.hisat_idx_output = "${params.annotation}/${params.hisat_assembly}"
 
 // Uses "storeDir" to download assembly file if required, and otherwise output the cached file
 // if it already exists
 process pullGENCODEassemblyfa {
 
   tag "Downloading Assembly FA File: ${params.fa}"
-  storeDir "${params.hisat_idx_output}/fa"
+  storeDir "${params.assembly}/assembly/fa"
 
 	output:
 	  file "${params.fa}" into reference_assembly, variant_assembly
@@ -510,7 +470,7 @@ process pullGENCODEassemblyfa {
 process buildHISATindex {
 		
   tag "Building HISAT2 Index: ${params.hisat_prefix}"
-  storeDir "${params.hisat_idx_output}/index"
+  storeDir "${params.assembly}/assembly/index"
 
   input:
     file reference_fasta from reference_assembly
@@ -533,15 +493,13 @@ hisat_index_built // get every *.ht2 file in this channel
  * Step IIa: GENCODE GTF Download
  */
 
-// Define the output directory path for GTF file, and the prep bed, based on previously defined parameters
-params.gencode_gtf_out = "${params.annotation}/RSeQC/${params.reference}"
 
 // Uses "storeDir" to download gtf only when it doesn't exist, and output the cached
 // file if it does already exist
 process pullGENCODEgtf {
 
   tag "Downloading GTF File: ${params.gencode_gtf}"
-  storeDir "${params.gencode_gtf_out}/gtf"
+  storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
 
   output:
     file "${params.gencode_gtf}" into gencode_gtf, create_counts_gtf, gencode_feature_gtf
@@ -562,7 +520,7 @@ process pullGENCODEgtf {
 process buildPrepBED {
 	
   tag "Building Bed File: ${params.reference}"
-  storeDir "${params.gencode_gtf_out}/bed"
+  storeDir "${params.annotation}/RSeQC/${params.reference}/bed"
 
   input:
     file gencode_gtf from gencode_gtf
@@ -581,7 +539,7 @@ process buildPrepBED {
 // during Define Reference Paths/Scripts + Reference Dependent Parameters
 if (params.step6) {
 
-	params.salmon_idx_output = "${params.annotation}/${params.salmon_assembly}"
+	params.salmon_idx_output = "${params.assembly}/transcripts"
 
 	/*
 	 * Step IIIa: GENCODE TX FA Download
@@ -592,7 +550,7 @@ if (params.step6) {
     process pullGENCODEtranscripts {
 			
       tag "Downloading TX FA File: ${params.tx_fa}"
-      storeDir "${params.salmon_idx_output}/fa"
+      storeDir "${params.assembly}/transcripts/fa"
 
       output:
         file("${params.tx_fa}") into transcript_fa
@@ -613,7 +571,7 @@ if (params.step6) {
 	process buildSALMONindex {
 
     tag "Building Salmon Index: ${params.salmon_prefix}"
-    storeDir "${params.salmon_idx_output}/salmon"
+    storeDir "${params.assembly}/transcripts/salmon"
 
     input:
       file tx_file from transcript_fa
@@ -1391,7 +1349,6 @@ if (params.step6) {
 		file("${salmon_input_prefix}_quant.sf") into salmon_quants
 
 		shell:
-		salmon_index_prefix = "${params.salmon_prefix}"
 		if (params.sample == "single") {
 			sample_command = "-r ${salmon_input_prefix}.f*q*"
 			if (params.strand == "unstranded" ) {
