@@ -251,7 +251,7 @@ if (params.reference_type == "human") {
     params.step8 = true
     snvbed = Channel.fromPath("${params.genotype}/common_missense_SNVs_${params.reference}.bed")
 } else {
-    param.step8 = false
+    params.step8 = false
 }
 
 if (params.reference == "hg38") {
@@ -946,7 +946,6 @@ if (params.sample == "single") {
 	  file "*_align_summary.txt" into paired_notrim_alignment_summaries
 
 	  shell:
-	  hisat_full_prefix = "${params.assembly}/index/${params.hisat_prefix}"
 	  sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR.f*q*"
 	  sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR.f*q*"
 	  if (params.unalign) {
@@ -957,7 +956,7 @@ if (params.sample == "single") {
 	  '''
 	  !{params.hisat2} \
 	  -p !{task.cpus} \
-	  -x !{hisat_full_prefix} \
+	  -x !{params.assembly}/index/!{params.hisat_prefix} \
 	  -1 !{sample_1_hisat} \
 	  -2 !{sample_2_hisat} \
 	  -S !{paired_notrim_hisat_prefix}_hisat_out.sam !{params.hisat_strand} --phred33 \
@@ -987,7 +986,6 @@ if (params.sample == "single") {
 	  file "*_align_summary.txt" into paired_trim_alignment_summaries
 
 	  shell:
-	  hisat_full_prefix = "${params.assembly}/index/${params.hisat_prefix}"
 	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.f*q*"
 	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired.f*q*"
 	  forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.f*q*"
@@ -1000,7 +998,7 @@ if (params.sample == "single") {
 	  '''
 	  !{params.hisat2} \
 	  -p !{task.cpus} \
-	  -x !{hisat_full_prefix} \
+	  -x !{params.assembly}/index/!{params.hisat_prefix} \
 	  -1 !{forward_paired} \
 	  -2 !{reverse_paired} \
 	  -U !{forward_unpaired},!{reverse_unpaired} \
