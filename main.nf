@@ -946,8 +946,9 @@ if (params.sample == "single") {
 	  file "*_align_summary.txt" into paired_notrim_alignment_summaries
 
 	  shell:
-	  sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR.f*q*"
-	  sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR.f*q*"
+      file_ext = get_file_ext(paired_no_trim_hisat[0])
+	  sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR" + file_ext
+	  sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR" + file_ext
 	  if (params.unalign) {
 		  unaligned_opt = "--un-conc ${paired_notrim_hisat_prefix}.fastq"
 	  } else {
@@ -956,7 +957,7 @@ if (params.sample == "single") {
 	  '''
 	  !{params.hisat2} \
 	  -p !{task.cpus} \
-	  -x !{params.assembly}/index/!{params.hisat_prefix} \
+	  -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
 	  -1 !{sample_1_hisat} \
 	  -2 !{sample_2_hisat} \
 	  -S !{paired_notrim_hisat_prefix}_hisat_out.sam !{params.hisat_strand} --phred33 \
@@ -986,10 +987,11 @@ if (params.sample == "single") {
 	  file "*_align_summary.txt" into paired_trim_alignment_summaries
 
 	  shell:
-	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired.f*q*"
-	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired.f*q*"
-	  forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired.f*q*"
-	  reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_reverse_unpaired.f*q*"
+      file_ext=get_file_ext(paired_trimmed_fastqs[0])
+	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired" + file_ext
+	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired" + file_ext
+	  forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired" + file_ext
+	  reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_reverse_unpaired" + file_ext
 	  if (params.unalign) {
 		  unaligned_opt = "--un-conc ${paired_trimmed_prefix}.fastq"
 	  } else {
@@ -998,7 +1000,7 @@ if (params.sample == "single") {
 	  '''
 	  !{params.hisat2} \
 	  -p !{task.cpus} \
-	  -x !{params.assembly}/index/!{params.hisat_prefix} \
+	  -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
 	  -1 !{forward_paired} \
 	  -2 !{reverse_paired} \
 	  -U !{forward_unpaired},!{reverse_unpaired} \
