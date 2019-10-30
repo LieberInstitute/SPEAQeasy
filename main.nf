@@ -264,8 +264,6 @@ if (params.reference == "hg38") {
 	params.feature_output_prefix = "Gencode.v25.hg38"
 
 	// Step 6: salmon
-    //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg38...  (Doc ######)
-	params.step6 = true
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
 
 	// Step 7: Make R objects	
@@ -287,8 +285,6 @@ if (params.reference == "hg19") {
 	params.feature_output_prefix = "Gencode.v25lift37.hg19"
 
 	// Step 6: salmon
-    //##TODO(iaguilar): Explain why step 6 is enabled if reference is hg19...  (Doc ######)
-	params.step6 = true
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
 
 	// Step 7: Make R objects
@@ -309,8 +305,6 @@ if (params.reference == "mm10") {
 	params.feature_output_prefix = "Gencode.M11.mm10"
 
 	// Step 6: salmon
-    //##TODO(iaguilar): Explain why step 6 is enabled if reference is mm10...  (Doc ######)
-	params.step6 = true
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
 
 	// Step 7: Make R objects
@@ -327,8 +321,7 @@ if (params.reference == "rn6") {
 	params.feature_output_prefix = "Rnor_6.0.86"
 	
 	// Step 6: Salmon
-    //##TODO(iaguilar): Explain why step 6 is enabled if reference is rn6...  (Doc ######)
-	params.step6 = false
+    params.tx_fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/cdna/Rattus_norvegicus.Rnor_6.0.cdna.all.fa.gz"
 
 	// Step 7: Make R objects
 	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
@@ -508,41 +501,38 @@ process buildPrepBED {
     '''
 }
 
-// for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true 
-// during Define Reference Paths/Scripts + Reference Dependent Parameters
-if (params.step6) {
 
-	params.salmon_idx_output = "${params.assembly}/transcripts"
+params.salmon_idx_output = "${params.assembly}/transcripts"
 
-	/*
-	 * Step IIIa: GENCODE TX FA Download
-	 */
+/*
+ * Step IIIa: GENCODE TX FA Download
+ */
 		
-    // Uses "storeDir" to download files only when they don't exist, and output the cached
-    // files if they do already exist
-    process pullGENCODEtranscripts {
+// Uses "storeDir" to download files only when they don't exist, and output the cached
+// files if they do already exist
+process pullGENCODEtranscripts {
 			
-      tag "Downloading TX FA File: ${baseName}"
-      storeDir "${params.assembly}/transcripts/fa"
+    tag "Downloading TX FA File: ${baseName}"
+    storeDir "${params.assembly}/transcripts/fa"
 
-      output:
+    output:
         file baseName into transcript_fa
 
-      shell:
+    shell:
         baseName = file("${params.tx_fa_link}").getName() - ".gz"
         '''
         wget !{params.tx_fa_link}
         gunzip !{baseName}.gz
         '''
-    }
+}
 
-	/*
-	 * Step IIIb: Salmon Transcript Build
-	 */
+/*
+ * Step IIIb: Salmon Transcript Build
+ */
 
-    // Uses "storeDir" to build salmon index only if the pre-built file is not present; outputs
-    // this cached file otherwise
-	process buildSALMONindex {
+// Uses "storeDir" to build salmon index only if the pre-built file is not present; outputs
+// this cached file otherwise
+process buildSALMONindex {
 
     tag "Building Salmon Index: ${params.salmon_prefix}"
     storeDir "${params.assembly}/transcripts/salmon"
@@ -557,13 +547,13 @@ if (params.step6) {
       """
       ${params.salmon} index -t $tx_file -i ${params.salmon_prefix} -p $task.cpus --type quasi -k ${params.salmon_min_read_len}
       """
-    }
-
-    // Post-processing of built index for use as input to TXQuant process
-    salmon_index_built
-      .collect()
-      .set{ salmon_index }
 }
+
+// Post-processing of built index for use as input to TXQuant process
+salmon_index_built
+    .collect()
+    .set{ salmon_index }
+
 
 //  Step A: Merge files as necessary
 
@@ -1296,27 +1286,25 @@ process MeanCoverage {
 	'''
 }
 
-//for hg38, hg19, and mm10, step 6 is enabled by params.step6 = true during Define Reference Paths/Scripts + Reference Dependent Parameters
-if (params.step6) {
 
-	/*
-	 * Step 6: txQuant
-	 */
+/*
+ * Step 6: txQuant
+ */
 
-  process TXQuant {
+process TXQuant {
 
-		tag "Prefix: $salmon_input_prefix"
-		publishDir "${params.output}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
+    tag "Prefix: $salmon_input_prefix"
+    publishDir "${params.output}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
 
-		input:
+    input:
 		file salmon_index from salmon_index
 		set val(salmon_input_prefix), file(salmon_inputs) from salmon_inputs
 
-		output:
+    output:
 		file "${salmon_input_prefix}/*"
 		file("${salmon_input_prefix}_quant.sf") into salmon_quants
 
-		shell:
+    shell:
 		if (params.sample == "single") {
 			sample_command = "-r ${salmon_input_prefix}.f*q*"
 			if (params.strand == "unstranded" ) {
@@ -1345,7 +1333,6 @@ if (params.step6) {
 		-o !{salmon_input_prefix}
 		cp !{salmon_input_prefix}/quant.sf !{salmon_input_prefix}_quant.sf
 		'''
-	}
 }
 
 /*
@@ -1360,22 +1347,11 @@ count_objects_bam_files // this puts sorted.bams and bais into the channel
   .mix(create_counts_gtf) // this puts gencode.v25.annotation.gtf file into the channel
   .mix(sample_counts) // !! this one puts sample_05_Gencode.v25.hg38_Exons.counts and sample_05_Gencode.v25.hg38_Genes.counts into the channel
   .mix(regtools_outputs) // !! this one includes the missing *_junctions_primaryOnly_regtools.count files for the CountObjects process
+  .mix(salmon_quants)
   .flatten()
   .toSortedList()
-  .set{ counts_objects_channel }
+  .set{counts_objects_channel_1}
 
-if (params.reference_type == "human" || params.reference_type == "mouse") {
-
-	counts_objects_channel
-	  .mix(salmon_quants)
-	  .flatten()
-	  .toSortedList()
-	  .set{counts_objects_channel_1}
-} else {
-
-	counts_objects_channel
-	  .set{counts_objects_channel_1}
-}
 if (params.ercc) {
 		
 	counts_objects_channel_1
