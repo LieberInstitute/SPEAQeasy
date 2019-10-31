@@ -117,8 +117,6 @@ def helpMessage() {
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--annotation	Path to the folder containing pipeline annotations. Defaults to "./Annotations" (relative to the repository)
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--genotype		Path to the folder containing pipeline genotypes. Defaults to "./Genotyping" (relative to the repository)
-	-----------------------------------------------------------------------------------------------------------------------------------
 	--ercc			Flag to enable ERCC quantification with Kallisto
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--fullCov		Flag to perform full coverage in step 7b
@@ -154,7 +152,6 @@ params.strand = ""
 params.unalign = false
 params.reference = ""
 params.annotation = "${workflow.projectDir}/Annotation"
-params.genotype = "${workflow.projectDir}/Genotyping"
 params.output = "${workflow.projectDir}/results"
 params.scripts = "${workflow.projectDir}/scripts"
 params.ercc = false
@@ -249,7 +246,7 @@ chr_sizes = file("${params.annotation}/chrom_sizes/${params.reference}.chrom.siz
 // Variant calling is only enabled for human
 if (params.reference_type == "human") {
     params.step8 = true
-    snvbed = Channel.fromPath("${params.genotype}/common_missense_SNVs_${params.reference}.bed")
+    snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
 } else {
     params.step8 = false
 }
@@ -378,7 +375,6 @@ summary['Sample']			  = params.sample
 summary['Reference']		   = params.reference
 summary['Strand']			  = params.strand
 summary['Annotation']		 = params.annotation
-summary['Genotype']		   = params.genotype
 summary['Input']			   = params.input
 summary['scripts']      = params.scripts
 summary['Experiment'] = params.experiment

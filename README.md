@@ -96,7 +96,6 @@ Note that the configuration files also include command-line options passed to ma
 + `--output`  The path to the directory to store pipeline output files/ objects. Defaults to "./results" (relative to the repository)
 + `--unalign`		Include this flag to save discordant reads after the alignment step (false/ not included by default)
 + `--annotation`	The path to the directory containing pipeline annotations. Defaults to "./Annotations" (relative to the repository). If annotations are not found here, the pipeline includes a step to build them.
-+ `--genotype`		The path to the directory containing pipeline genotypes. Defaults to "./Genotyping" (relative to the repository).
 + `--ercc`			Include this flag to enable ERCC quantification with Kallisto
 + `--fullCov`		Flag to perform full coverage analysis
 + `--small_test`	Uses sample files located in the test folder as input. Overrides the "--input" option.
