@@ -16,7 +16,7 @@ nextflow main.nf \
     -with-report execution_reports/JHPCE_mode_test_run.html \
     -with-dag execution_DAGs/JHPCE_mode_test_run.DAG \
     -profile jhpce \
-    --annotation "/users/neagles/rna_sp/Annotation"
+    --annotation "/users/neagles/rna_sp/Annotation" \
     -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
     --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results" \
 	$@
