@@ -893,7 +893,6 @@ if (params.sample == "single") {
 
 	  shell:
 	  hisat_full_prefix = "${params.assembly}/assembly/index/${params.hisat_prefix}"
-	  // Phred Quality is hardcoded, if it will be so, it should be pointed in the README.md
 	  '''
 	  !{params.hisat2} -p !{task.cpus} -x !{hisat_full_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{params.hisat_strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
 	  '''
