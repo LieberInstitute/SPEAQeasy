@@ -14,17 +14,16 @@ export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 # mv Genotyping /dcl01/lieber/ajaffe/lab/RNAsp_static/
 
 nextflow main.nf \
-	--sample "single" \
-	--reference "hg19" \
-	--strand "unstranded" \
-	--ercc \
-  --small_test \
-	-with-report /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_reports/JHPCE_mode_test_run.html \
-	-with-dag /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_DAGs/JHPCE_mode_test_run.DAG \
-	-profile jhpce  \
-  -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
-  --annotation "/dcl01/lieber/ajaffe/lab/RNAsp_static/Annotation" \
-  --genotype "/dcl01/lieber/ajaffe/lab/RNAsp_static/Genotyping" \
-  --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results" \
-	$@
+    --sample "single" \
+    --reference "hg19" \
+    --strand "unstranded" \
+    --ercc \
+    --small_test \
+    -with-report /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_reports/JHPCE_mode_test_run.html \
+    -with-dag /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_DAGs/JHPCE_mode_test_run.DAG \
+    -profile jhpce  \
+    -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
+    --annotation "/users/neagles/rna_sp/Annotation" \
+    --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results" \
+    $@
 

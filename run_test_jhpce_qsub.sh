@@ -8,17 +8,15 @@ module load nextflow
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
 nextflow main.nf \
-	--sample "paired" \
-	--reference "hg19" \
-	--strand "unstranded" \
-	--ercc \
-  --fullCov \
-  --small_test \
- 	-with-report execution_reports/JHPCE_mode_test_run.html \
-	-with-dag execution_DAGs/JHPCE_mode_test_run.DAG \
-	-profile jhpce \
-  -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
-  --annotation "/dcl01/lieber/ajaffe/lab/RNAsp_static/Annotation"  \
-  --genotype "/dcl01/lieber/ajaffe/lab/RNAsp_static/Genotyping" \
-  --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results" \
+    --sample "paired" \
+    --reference "hg38" \
+    --strand "unstranded" \
+    --ercc \
+    --small_test \
+    -with-report execution_reports/JHPCE_mode_test_run.html \
+    -with-dag execution_DAGs/JHPCE_mode_test_run.DAG \
+    -profile jhpce \
+    --annotation "/users/neagles/rna_sp/Annotation"
+    -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
+    --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results" \
 	$@
