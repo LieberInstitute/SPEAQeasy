@@ -630,7 +630,6 @@ man_info_script = file("${params.scripts}/find_sample_info.R")
 process Manifest {
 	
 	tag "Validating manifest and accounting for merged files"
-	publishDir "${params.output}/manifest", mode:'copy'
 
 	input:
 	  file original_manifest from samples_manifest
