@@ -33,7 +33,7 @@ vim: syntax=groovy
 	- IIIa: Download Salmon TX FA
 	- IIIb: Build Salmon Index
 	Sample Processing:
-	-   A: File Merging (Optional)
+	-   A: File Merging (If required)
 	-   B: ERCC Quality Analysis (Optional)
 	-   C: Sample Manifest
 	-   1: FastQC Quality Analysis
@@ -86,7 +86,7 @@ def helpMessage() {
     --strand "forward"/"reverse"/"unstranded"
       forward <- uses forward stranding
       reverse <- uses reverse stranding
-      unstranded <- uses pipeine inferencing
+      unstranded <- uses pipeline inferencing
     {OPTIONS}:
     --ercc  <- performs ercc quantification
     --fullCov <- performs fullCov R analysis
@@ -246,7 +246,7 @@ params.hisat_prefix = "hisat2_assembly_${params.reference}"
 params.salmon_prefix = "salmon_index_${params.reference}.transcripts"
 chr_sizes = file("${params.annotation}/chrom_sizes/${params.reference}.chrom.sizes")
 
-// This condition will be eliminated ASAP- currently need a common-SNVs bed file for mouse and rat
+// Variant calling is only enabled for human
 if (params.reference_type == "human") {
     params.step8 = true
     snvbed = Channel.fromPath("${params.genotype}/common_missense_SNVs_${params.reference}.bed")
@@ -381,7 +381,7 @@ summary['Annotation']		 = params.annotation
 summary['Genotype']		   = params.genotype
 summary['Input']			   = params.input
 summary['scripts']      = params.scripts
-if(params.experiment) summary['Experiment'] = params.experiment
+summary['Experiment'] = params.experiment
 if(params.unalign) summary['Align'] = "True"
 if(params.fullCov) summary['Full Coverage'] = "True"
 summary['Small test selected'] = params.small_test
@@ -1172,7 +1172,6 @@ process Junctions {
 	output:
 	file "*"
 	file("*.count") into regtools_outputs
-	//needs to pass the count files to a channel
 
 	shell:
 	outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
