@@ -808,7 +808,7 @@ process Trimming {
 	file "*.f*q*" into trimmed_fastqc_inputs, trimmed_hisat_inputs
 
 	script:
-    file_ext = get_file_ext(trimming_input)
+    file_ext = get_file_ext(trimming_input[0])
 	if (params.sample == "single") {
 		output_option = "${trimming_prefix}_trimmed${file_ext}"
 	} else {
@@ -832,11 +832,11 @@ process Trimming {
 	-phred33 \
 	$trimming_input \
 	$output_option \
-	ILLUMINACLIP:\$adapter_fa:2:30:10:1 \
-	LEADING:3 \
-	TRAILING:3 \
-	SLIDINGWINDOW:4:15 \
-	MINLEN:75
+	ILLUMINACLIP:\$adapter_fa:${params.trim_clip} \
+	LEADING:${params.trim_lead} \
+	TRAILING:${params.trim_trail} \
+	SLIDINGWINDOW:${params.trim_slide_window} \
+	MINLEN:${params.trim_min_len}
 	"""
 }
 
@@ -857,7 +857,7 @@ process QualityTrimmed {
 	file "*"
 
 	script:
-    fastq_name = get_prefix(fastqc_trimmed_input)
+    fastq_name = get_prefix(fastqc_trimmed_input[0])
 	"""
 	$params.fastqc $fastqc_trimmed_input --extract
 	"""
