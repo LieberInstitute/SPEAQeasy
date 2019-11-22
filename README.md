@@ -101,6 +101,26 @@ Note that the configuration files also include command-line options passed to ma
 + `--small_test`	Uses sample files located in the test folder as input. Overrides the "--input" option.
 + `--force_trim`  Include this flag to perform triming on all inputs. By default, only inputs failing fastQC on the adapter content metric are trimmed.
 
+### Manifest ###
+
+This pipeline requires that a `samples.manifest` file be placed in the directory specified by `--input`, alongside the input FASTQ files. The `samples.manifest` file associates each FASTQ file with a path and ID, and allows the pipeline to automatically merge files if necessary. Each line in `samples.manifest` should have the following format:
+
++ *For a set of unpaired reads* `<PATH TO FASTQ FILE>(tab)<optional MD5>(tab)<sample label/id>`
++ *For paired-end sets of reads* `<PATH TO FASTQ 1>(tab)<optional MD5 1>(tab)<PATH TO FASTQ 2>(tab)<optional MD5 2>(tab)<sample label/id>`
+
+A line of paired-end reads could look like this:
+
+`RNA_sample1_read1.fastq    0    RNA_sample1_read2.fastq    0    sample1`
+
+#### More details regarding inputs and the manifest ####
+
++ The MD5(s) on each line are for compatibility with a conventional samples.manifest structure, and are not explicitly checked in the pipeline.
++ Paths can be long or just consist of the file's basename.
++ If you have a single sample split across multiple files, you can signal for the pipeline to merge these files by repeating the sample label/id on each line of files to merge.
++ Input FASTQ files can have the following file extensions: `.fastq`, `.fq`, `.fastq.gz`, `.fq.gz`
++ A `samples.manifest` file cannot include both single-end and paired-end reads; separate pipeline runs should be performed for each of these read types.
+
+
 ### Version description ###
 
 * Version 0.8.0 (current)
