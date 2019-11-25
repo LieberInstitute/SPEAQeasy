@@ -3,14 +3,20 @@
 makefilePath = paste0(getwd(), "/WiggleTools/src/Makefile")
 makefile = readLines(makefilePath)
 
-#  Find the line listing linked libraries
-isLibLine = function(fileLine) {
-  (nchar(fileLine) > 5) && (substr(fileLine, 1, 5) == "LIBS=")
+#  Return the index of the line beginning with the string [key]
+getLineNum = function(key) {
+    isLine = sapply(makefile, function(text_line) {
+        (nchar(text_line) > nchar(key)) && (substr(text_line, 1, nchar(key)) == key)
+    })
+    match(TRUE, isLine)
 }
-libLine = match(TRUE, sapply(makefile, isLibLine))
 
-#  Add the additional libraries to the command-line options, which seems to
-#  be required for wiggletools to properly build
+#  Point to the gsl headers
+incLine = getLineNum("INC=")
+makefile[incLine] = paste(makefile[incLine], "-I../../include")
+
+#  Add the additional required libraries to the command-line options
+libLine = getLineNum("LIBS=")
 makefile[libLine] = paste(makefile[libLine], "-lcrypto -llzma -lbz2")
 
 #  Rewrite the Makefile in the same location
