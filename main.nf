@@ -1045,7 +1045,7 @@ process InferExperiment {
 
 	shell:
 	'''
-	!{params.python} $(which !{params.infer_experiment}) \
+	python2.7 $(which !{params.infer_experiment}) \
 	-i !{bam_file} \
 	-r !{bed_file} \
 	1> !{infer_prefix}_experiment.txt \
@@ -1172,7 +1172,7 @@ process Junctions {
 	outcount = "${junction_prefix}_junctions_primaryOnly_regtools.count"
 	'''
 	!{params.regtools} junctions extract -i !{params.juncts_min_intron_len} -o !{outjxn} !{alignment_bam}
-	!{params.python} !{bed_to_juncs_script} < !{outjxn} > !{outcount}
+	python2.7 !{bed_to_juncs_script} < !{outjxn} > !{outcount}
 	'''
 }
 
@@ -1206,9 +1206,9 @@ process Coverage {
 	'''
 	export coverage_strand_rule=$(cat !{inferred_strand})
 	if [ $coverage_strand_rule == "none" ] ; then
-		!{params.python} $(which !{params.bam2wig}) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix}
+		python2.7 $(which !{params.bam2wig}) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix}
 	else
-		!{params.python} $(which !{params.bam2wig}) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "${coverage_strand_rule}"
+		python2.7 $(which !{params.bam2wig}) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "${coverage_strand_rule}"
 	fi
 	'''
 }
