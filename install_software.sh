@@ -12,8 +12,8 @@ local_install=false
 #  Users should not need to alter code below this point
 #  --------------------------------------------------------
 
-if [ -n `which java` ]; then
-  echo "Found a java runtime. Proceeding with the setup..."
+if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
+  echo "Found Python 2.7 and a java runtime. Proceeding with the setup..."
   
   INSTALL_DIR=$(pwd)/Software
   mkdir $INSTALL_DIR
@@ -99,22 +99,8 @@ if [ -n `which java` ]; then
         cd $INSTALL_DIR
         
     #  rseqc (2.6.4)  -------------------------------------------------------------
-    
-    #  Python (2.7.9), which RSeQC uses
-    wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz && \
-      tar xzvf Python-2.7.9.tgz && \
-      chmod -R 755 Python-2.7.9 && \
-      cd Python-2.7.9 && \
-      ./configure prefix=$INSTALL_DIR && \
-      make && \
-      make install
-      cd $INSTALL_DIR
       
-    #  RSeQC itself, and manual configuration of file locations so dependencies can be found 
-    $INSTALL_DIR/Python-2.7.9/python -m pip install --root=temp -I RSeQC==2.6.4
-    mv $INSTALL_DIR/temp/$INSTALL_DIR/bin/* $INSTALL_DIR/bin/
-    mv $INSTALL_DIR/temp/$INSTALL_DIR/lib/python2.7/site-packages/* $INSTALL_DIR/bin/
-    rm -rf $INSTALL_DIR/temp
+    $(which python2.7) -m pip install --user RSeQC==2.6.4
         
     #  salmon (0.8.2)  -------------------------------------------------------------
     
@@ -154,6 +140,7 @@ if [ -n `which java` ]; then
         make && \
         make install
         cd $INSTALL_DIR
+        mv gsl-2.6 gsl # wiggletools expects a "plain" name from gsl
         
     ## Install libBigWig
     git clone git@github.com:dpryan79/libBigWig.git && \
@@ -165,7 +152,7 @@ if [ -n `which java` ]; then
     git clone git@github.com:Ensembl/WiggleTools.git && \
         ./R-3.6.1/bin/Rscript ../scripts/fix_makefile.R && \
         cd WiggleTools && \
-        make
+        make prefix=$INSTALL_DIR
         cd $INSTALL_DIR
     
     #  wigToBigWig -----------------------------------------------------------
@@ -175,7 +162,6 @@ if [ -n `which java` ]; then
       
     #  Clean up compressed files
     rm $INSTALL_DIR/*.tar.gz
-    rm $INSTALL_DIR/*.tgz
     rm $INSTALL_DIR/*.bz2
     rm $INSTALL_DIR/*.zip
     
@@ -186,7 +172,25 @@ if [ -n `which java` ]; then
     
     Rscript ../scripts/check_R_packages.R
   fi
-else
-  #  Java could not be found on the system
-  echo "A java runtime could not be found or accessed. Is it installed and on the PATH? You can install it by running 'apt install default-jre', which may require root/sudo privileges. After proper installation, rerun this script to properly set up this pipeline."
+else #  Java or Python could not be found on the system
+  if ! [ -x "$(command -v java)" ]; then
+    echo "A java runtime could not be found or accessed. Is it installed and on the PATH? You can install it by running 'apt install default-jre', which requires root/sudo privileges."
+    
+  if ! [ -x "$(command -v python2.7)" ]; then
+    echo "Python 2.7 could not be found or executed. Please install it (this requires root privileges)- ask an admin if needed. If you have root priveleges, you can execute this code to install from source (places a folder in the current directory):"
+    echo "----------------------------------------------"
+    echo "wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz"
+    echo "tar xzvf Python-2.7.9.tgz"
+    echo "chmod -R 755 Python-2.7.9"
+    echo "cd Python-2.7.9"
+    echo "sudo ./configure"
+    echo "sudo make"
+    echo "sudo make install"
+    echo "rm Python-2.7.9.tgz"
+    echo "----------------------------------------------"
+  fi
+  
+  echo ""
+  echo "After installing the required software, rerun this script to finish the installation procedure."
+    
 fi
