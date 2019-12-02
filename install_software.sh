@@ -124,11 +124,11 @@ if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
       tar xzvf download && \
       chmod -R 755 subread-1.5.0-p3-Linux-x86_64
       
-    #  trimmomatic (0.36)  -------------------------------------------------------------
+    #  trimmomatic (0.39)  -------------------------------------------------------------
     
-    wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.36.zip && \
-      unzip Trimmomatic-0.36.zip && \
-      chmod -R 755 Trimmomatic-0.36
+    wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip && \
+      unzip Trimmomatic-0.39.zip && \
+      chmod -R 755 Trimmomatic-0.39
       
     #  wiggletools (1.2.1)  -------------------------------------------------------------
     

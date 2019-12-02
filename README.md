@@ -44,7 +44,7 @@ Software | Version | Command used by the pipeline |
 |[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 0.8.2 | `salmon` |
 |[samtools](http://www.htslib.org/download/) | 1.9 | `samtools` |
 |[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 1.5.0 | `featureCounts` |
-|[trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) | 0.36 | `java -jar path/to/trimmomatic.jar` |
+|[trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) | 0.39 | `java -jar path/to/trimmomatic.jar` |
 |[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2.1 | `wiggletools` |
 |[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 
