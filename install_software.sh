@@ -39,10 +39,10 @@ if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
         make install
         cd $INSTALL_DIR
         
-    #  fastqc (0.11.5)  -------------------------------------------------------------
+    #  fastqc (0.11.8)  -------------------------------------------------------------
     
-    wget https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip && \
-      unzip fastqc_v0.11.5.zip && \
+    wget https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.8.zip && \
+      unzip fastqc_v0.11.8.zip && \
       chmod -R 755 FastQC
       
     #  hisat2 (2.1.0)  -------------------------------------------------------------

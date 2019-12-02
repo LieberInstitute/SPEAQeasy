@@ -32,7 +32,7 @@ Here is the full list of software used by this pipeline:
 Software | Version | Command used by the pipeline |
 |:-------------:| -----:| -----: |
 |[bcftools](http://www.htslib.org/download/) | 1.9 | `bcftools` |
-|[fastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.5 | `fastqc` |
+|[fastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.8 | `fastqc` |
 |[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.1.0 | `hisat2`, `hisat2-build` |
 |[htslib](http://www.htslib.org/download/) | 1.9 | `tabix` |
 |[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
