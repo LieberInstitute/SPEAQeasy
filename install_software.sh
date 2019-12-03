@@ -118,11 +118,11 @@ if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
         make install
         cd $INSTALL_DIR
         
-    #  subread/ featureCounts (1.5.0-p3)  -------------------------------------------------------------
+    #  subread/ featureCounts (2.0.0)  -------------------------------------------------------------
     
-    wget https://sourceforge.net/projects/subread/files/subread-1.5.0-p3/subread-1.5.0-p3-Linux-x86_64.tar.gz/download && \
+    wget https://sourceforge.net/projects/subread/files/subread-2.0.0/subread-2.0.0-Linux-x86_64.tar.gz/download && \
       tar xzvf download && \
-      chmod -R 755 subread-1.5.0-p3-Linux-x86_64
+      chmod -R 755 subread-2.0.0-Linux-x86_64
       
     #  trimmomatic (0.39)  -------------------------------------------------------------
     
@@ -164,6 +164,7 @@ if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
     rm $INSTALL_DIR/*.tar.gz
     rm $INSTALL_DIR/*.bz2
     rm $INSTALL_DIR/*.zip
+    rm download
     
   else
     #  Already installed nextflow; simply need to install R packages used in the pipeline.
