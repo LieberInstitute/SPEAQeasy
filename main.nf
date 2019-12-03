@@ -810,18 +810,23 @@ process Trimming {
     file_ext = get_file_ext(trimming_input[0])
 	if (params.sample == "single") {
 		output_option = "${trimming_prefix}_trimmed${file_ext}"
+        adapter_fa_temp = "${params.adapter_fasta_single}"
+        trim_clip = "${params.trim_clip_single}"
 	} else {
 		output_option = "${trimming_prefix}_trimmed_forward_paired${file_ext} ${trimming_prefix}_trimmed_forward_unpaired${file_ext} ${trimming_prefix}_trimmed_reverse_paired${file_ext} ${trimming_prefix}_trimmed_reverse_unpaired${file_ext}"
+        adapter_fa_temp = "${params.adapter_fasta_paired}"
+        trim_clip = "${params.trim_clip_paired}"
 	}
+ 
 	"""
     #  This solves the problem of trimmomatic and the adapter fasta
     #  needing hard paths, even when on the PATH.
     if [ ${params.use_long_paths} == "true" ]; then
         trim_jar=${params.trimmomatic}
-        adapter_fa=${params.adapter_fasta}
+        adapter_fa=${adapter_fa_temp}
     else
         trim_jar=\$(which ${params.trimmomatic})
-        adapter_fa=\$(which ${params.adapter_fasta})
+        adapter_fa=\$(which ${adapter_fa_temp})
     fi
 
 	java -Xmx512M \
@@ -831,7 +836,7 @@ process Trimming {
 	-phred33 \
 	$trimming_input \
 	$output_option \
-	ILLUMINACLIP:\$adapter_fa:${params.trim_clip} \
+	ILLUMINACLIP:\$adapter_fa:${trim_clip} \
 	LEADING:${params.trim_lead} \
 	TRAILING:${params.trim_trail} \
 	SLIDINGWINDOW:${params.trim_slide_window} \
