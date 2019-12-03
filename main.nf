@@ -670,7 +670,7 @@ process QualityUntrimmed {
 		data_command = "cp ${untrimmed_prefix}_1_fastqc/fastqc_data.txt ${untrimmed_prefix}_1_fastqc_data.txt && cp ${untrimmed_prefix}_2_fastqc/fastqc_data.txt ${untrimmed_prefix}_2_fastqc_data.txt"
 	}
 	"""
-	${params.fastqc} $fastqc_untrimmed_input --extract
+	${params.fastqc} -t $task.cpus $fastqc_untrimmed_input --extract
 	$copy_command
 	$data_command
 	"""
@@ -858,7 +858,7 @@ process QualityTrimmed {
 	script:
     fastq_name = get_prefix(fastqc_trimmed_input[0])
 	"""
-	$params.fastqc $fastqc_trimmed_input --extract
+	$params.fastqc -t $task.cpus $fastqc_trimmed_input --extract
 	"""
 }
 
