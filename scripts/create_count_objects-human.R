@@ -209,7 +209,7 @@ if (opt$paired==TRUE) {
 	
 	### Phred scores / GC & adapter content fastqcdata 
 	qcData = file.path(".", paste0(fileNames, "_fastqc_data.txt"))			
-	R = sapply(qcData, function(x) scan(x, what = "character", sep= "\n", 
+	R = lapply(qcData, function(x) scan(x, what = "character", sep= "\n", 
 		quiet = TRUE, strip=TRUE) )	
 	names(R) = metrics$SAMPLE_ID
 	## Split list into sublists of metric categories
