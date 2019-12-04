@@ -52,15 +52,15 @@ Software | Version | Command used by the pipeline |
 
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/jhpce.config*
-3. **Modify the main script and run**: this is *run_test_jhpce_qsub.sh*. The pipeline run is submitted to the cluster by executing `qsub run_test_jhpce_qsub.sh`. Alternatively, you may run the pipeline interactively via `bash run_test_jhpce.sh`. See "Full list of command-line options" for details about modifying the script you choose.
+3. **Modify the main script and run**: this is *run_pipeline_jhpce_qsub.sh*. The pipeline run is submitted to the cluster by executing `qsub run_pipeline_jhpce_qsub.sh`. Alternatively, you may run the pipeline interactively via `bash run_pipeline_jhpce.sh`. See "Full list of command-line options" for details about modifying the script you choose.
 
 
 ### Run on a Sun Grid Engines (SGE) cluster ###
 
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. **Choose how to manage software dependencies**: see "Software requirements" section.
-3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/sge.config*. You may alteratively modify *conf/sge_large.config*, which is configured to be more resource-intensive by default. If you choose *sge_large_config*, modify *run_test_sge.sh* to include the line `-profile sge_large` instead of `-profile sge`.
-4. **Modify the main script and run**: the main script is *run_test_sge.sh*. Run the pipeline interactively with `bash run_test_sge.sh`, or submit as a job to your cluster with `qsub run_test_sge.sh`. See "Full list of command-line options" for details about modifying the script for your use-case.
+3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/sge.config*. You may alteratively modify *conf/sge_large.config*, which is configured to be more resource-intensive by default. If you choose *sge_large_config*, modify *run_pipeline_sge.sh* to include the line `-profile sge_large` instead of `-profile sge`.
+4. **Modify the main script and run**: the main script is *run_pipeline_sge.sh*. Run the pipeline interactively with `bash run_pipeline_sge.sh`, or submit as a job to your cluster with `qsub run_pipeline_sge.sh`. See "Full list of command-line options" for details about modifying the script for your use-case.
 
 See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional information on nextflow for SGE environments.
 
@@ -69,14 +69,14 @@ See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. **Choose how to manage software dependencies**: see "Software requirements" section.
 3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/slurm.config*.
-4. **Modify the main script and run**: the main script is *run_test_slurm.sh*. Run the pipeline interactively with `bash run_test_slurm.sh`, or submit as a job to your cluster with `sbatch run_test_slurm.sh`. See "Full list of command-line options" for details about modifying the script for your use-case.
+4. **Modify the main script and run**: the main script is *run_pipeline_slurm.sh*. Run the pipeline interactively with `bash run_pipeline_slurm.sh`, or submit as a job to your cluster with `sbatch run_pipeline_slurm.sh`. See "Full list of command-line options" for details about modifying the script for your use-case.
 
 ### Run locally ###
 
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. **Choose how to manage software dependencies**: see "Software requirements" section.
 3. (Optional) **Adjust configuration**: hardware resource usage and other configurables are located in *conf/mem.config*. Note that defaults assume access to 8 CPUs and 16GB of RAM.
-4. **Modify the main script and run**: the main script is *run_test_system.sh*. After configuring options for your use-case (See "Full list of command-line options"), simply run on the command-line with `bash run_test_system.sh`.
+4. **Modify the main script and run**: the main script is *run_pipeline_local.sh*. After configuring options for your use-case (See "Full list of command-line options"), simply run on the command-line with `bash run_pipeline_local.sh`.
   
 Note that the configuration files also include command-line options passed to many of the software tools (such as minimum mapping quality used in samtools for filtering). This gives control over many of the parameters in the pipeline that we deemed to involve preference, or to involve variability among use-cases.
   

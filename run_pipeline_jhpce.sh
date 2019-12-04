@@ -13,7 +13,7 @@ export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 # mv Annotation /dcl01/lieber/ajaffe/lab/RNAsp_static/
 # mv Genotyping /dcl01/lieber/ajaffe/lab/RNAsp_static/
 
-nextflow main.nf \
+nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \
     --sample "single" \
     --reference "hg19" \
     --strand "unstranded" \

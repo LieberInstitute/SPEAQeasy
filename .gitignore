@@ -6,7 +6,7 @@ input*
 work*
 *results/
 execution_*
-run_test_jhpce_qsub_out.txt
+run_pipeline_jhpce_qsub.log
 Software*
 
 ## ignore big reference files/ files pulled with 1st execution

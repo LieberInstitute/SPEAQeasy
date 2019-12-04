@@ -1,13 +1,13 @@
 #!/bin/bash
 #$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=50G
-#$ -o ./run_test_jhpce_qsub_out.txt
-#$ -e ./run_test_jhpce_qsub_out.txt
+#$ -o ./run_pipeline_jhpce_qsub.log
+#$ -e ./run_pipeline_jhpce_qsub.log
 #$ -cwd
 
 module load nextflow
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
-nextflow main.nf \
+nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \
     --sample "paired" \
     --reference "hg38" \
     --strand "unstranded" \
