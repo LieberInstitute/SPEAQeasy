@@ -876,7 +876,15 @@ if (params.sample == "single") {
 	  shell:
 	  hisat_full_prefix = "${params.assembly}/assembly/index/${params.hisat_prefix}"
 	  '''
-	  !{params.hisat2} -p !{task.cpus} -x !{hisat_full_prefix} -U !{single_hisat_input} -S !{single_hisat_prefix}_hisat_out.sam !{params.hisat_strand} --phred33 2> !{single_hisat_prefix}_align_summary.txt
+      !{params.hisat2} \
+          -p !{task.cpus} \
+          -x !{hisat_full_prefix} \
+          -U !{single_hisat_input} \
+          -S !{single_hisat_prefix}_hisat_out.sam \
+          !{params.hisat_strand} \
+          --phred33 \
+          --min-intronlen !{params.min_intron_len} \
+          2> !{single_hisat_prefix}_align_summary.txt
 	  '''
 	}
 
@@ -914,14 +922,17 @@ if (params.sample == "single") {
 		  unaligned_opt = ""
 	  }
 	  '''
-	  !{params.hisat2} \
-	  -p !{task.cpus} \
-	  -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
-	  -1 !{sample_1_hisat} \
-	  -2 !{sample_2_hisat} \
-	  -S !{paired_notrim_hisat_prefix}_hisat_out.sam !{params.hisat_strand} --phred33 \
-	  !{unaligned_opt} \
-	  2> !{paired_notrim_hisat_prefix}_align_summary.txt
+      !{params.hisat2} \
+          -p !{task.cpus} \
+          -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
+          -1 !{sample_1_hisat} \
+          -2 !{sample_2_hisat} \
+          -S !{paired_notrim_hisat_prefix}_hisat_out.sam \
+          !{params.hisat_strand} \
+          --phred33 \
+          --min-intronlen !{params.min_intron_len} \
+	      !{unaligned_opt} \
+	      2> !{paired_notrim_hisat_prefix}_align_summary.txt
 	  '''
   }
 
@@ -957,15 +968,18 @@ if (params.sample == "single") {
 		  unaligned_opt = ""
 	  }
 	  '''
-	  !{params.hisat2} \
-	  -p !{task.cpus} \
-	  -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
-	  -1 !{forward_paired} \
-	  -2 !{reverse_paired} \
-	  -U !{forward_unpaired},!{reverse_unpaired} \
-	  -S !{paired_trimmed_prefix}_hisat_out.sam !{params.hisat_strand} --phred33 \
-	  !{unaligned_opt} \
-	  2> !{paired_trimmed_prefix}_align_summary.txt
+      !{params.hisat2} \
+          -p !{task.cpus} \
+          -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
+          -1 !{forward_paired} \
+          -2 !{reverse_paired} \
+          -U !{forward_unpaired},!{reverse_unpaired} \
+          -S !{paired_trimmed_prefix}_hisat_out.sam \
+          !{params.hisat_strand} \
+          --phred33 \
+          --min-intronlen !{params.min_intron_len} \
+          !{unaligned_opt} \
+          2> !{paired_trimmed_prefix}_align_summary.txt
 	  '''
   }
   
@@ -1154,7 +1168,7 @@ process Junctions {
 	outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
 	outcount = "${junction_prefix}_junctions_primaryOnly_regtools.count"
 	'''
-	!{params.regtools} junctions extract -i !{params.juncts_min_intron_len} -o !{outjxn} !{alignment_bam}
+	!{params.regtools} junctions extract -i !{params.min_intron_len} -o !{outjxn} !{alignment_bam}
 	python2.7 !{bed_to_juncs_script} < !{outjxn} > !{outcount}
 	'''
 }
