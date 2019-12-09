@@ -537,6 +537,7 @@ process buildSALMONindex {
 
     output:
       file("${params.salmon_prefix}") into salmon_index_built
+      file("build_salmon_index.log")
 
     script:
       """
@@ -546,6 +547,7 @@ process buildSALMONindex {
           -p $task.cpus \
           --gencode \
           -k ${params.salmon_min_read_len}
+      cp .command.log build_salmon_index.log
       """
 }
 
@@ -560,6 +562,8 @@ salmon_index_built
 //          on these changes
 
 process PreprocessInputs {
+  
+  publishDir "${params.output}", mode:'copy', pattern:'*.log'
 
   input:
     file original_manifest from file("${params.input}/samples.manifest")
@@ -568,10 +572,12 @@ process PreprocessInputs {
   output:
     file "*.f*q*" into merged_inputs_flat
     file "samples_processed.manifest" into counts_samples_manifest, fullCov_samples_manifest
+    file "preprocess_inputs.log"
   
   shell:
     '''
     !{params.Rscript} !{merge_script}
+    cp .command.log preprocess_inputs.log
     '''
 }
 
@@ -608,20 +614,22 @@ if (params.ercc) {
 
   process ERCC {
 		
-    tag "Prefix: $ercc_prefix"
-    publishDir "${params.output}/ercc/${ercc_prefix}",'mode':'copy'
+    tag "Prefix: $prefix"
+    publishDir "${params.output}/ercc/${prefix}",'mode':'copy'
 
     input:
       file erccidx from file("${params.annotation}/ERCC/ERCC92.idx")
-      set val(ercc_prefix), file(ercc_input) from ercc_inputs
+      set val(prefix), file(ercc_input) from ercc_inputs
 
     output:
-      file("${ercc_prefix}_abundance.tsv") into ercc_abundances
+      file "${prefix}_abundance.tsv" into ercc_abundances
+      file "ercc_${prefix}.log"
 
     script:
       """
       ${params.kallisto} quant -i $erccidx -t $task.cpus -o . ${params.kallisto_strand} $ercc_input \
-      && cp abundance.tsv ${ercc_prefix}_abundance.tsv
+      && cp abundance.tsv ${prefix}_abundance.tsv
+      cp .command.log ercc_${prefix}.log
       """
   }
 }
@@ -1127,6 +1135,8 @@ process FeatureCounts {
 	-a $gencode_gtf_feature \
 	-o ${feature_out}_Exons.counts \
 	$feature_bam
+ 
+    cp .command.log feature_counts_${feature_prefix}.log
 	"""
 }
 
@@ -1202,7 +1212,8 @@ process Coverage {
 	file chr_sizes from chr_sizes
 
 	output:
-    file("${coverage_prefix}${params.strandprefix}.wig") into wig_files_temp
+    file "${coverage_prefix}${params.strandprefix}.wig" into wig_files_temp
+    file "bam2wig_${coverage_prefix}.log"
 
 	shell:
 	'''
@@ -1212,6 +1223,8 @@ process Coverage {
 	else
 		python2.7 $(which !{params.bam2wig}) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "${coverage_strand_rule}"
 	fi
+ 
+    cp .command.log bam2wig_!{coverage_prefix}.log
 	'''
 }
 
