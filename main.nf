@@ -533,14 +533,19 @@ process buildSALMONindex {
     storeDir "${params.assembly}/transcripts/salmon"
 
     input:
-      file tx_file from transcript_fa
+      file transcript_fa
 
     output:
       file("${params.salmon_prefix}") into salmon_index_built
 
     script:
       """
-      ${params.salmon} index -t $tx_file -i ${params.salmon_prefix} -p $task.cpus --type quasi -k ${params.salmon_min_read_len}
+      ${params.salmon} index \
+          -t $transcript_fa \
+          -i ${params.salmon_prefix} \
+          -p $task.cpus \
+          --gencode \
+          -k ${params.salmon_min_read_len}
       """
 }
 
