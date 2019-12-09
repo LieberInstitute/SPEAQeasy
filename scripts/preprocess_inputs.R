@@ -8,7 +8,7 @@ run_command = function(command) {
     print("Done.")
 }
 
-manifest <- read.table("samples.manifest", sep=' ', header = FALSE, stringsAsFactors = FALSE)
+manifest <- read.table("samples.manifest", header = FALSE, stringsAsFactors = FALSE)
 
 ## Is the data paired end?
 paired <- ncol(manifest) > 3
