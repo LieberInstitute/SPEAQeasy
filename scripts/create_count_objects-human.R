@@ -69,7 +69,7 @@ EXPNAME = paste0(opt$experiment,"_",opt$prefix)
 
 
 ## read in pheno
-manifest <- read.table(file.path(".", 'samples.manifest'), sep = ' ',
+manifest <- read.table(file.path(".", 'samples_processed.manifest'), sep = ' ',
     header = FALSE, stringsAsFactors = FALSE)
 metrics <- data.frame('SAMPLE_ID' = manifest[, ncol(manifest)],
     stringsAsFactors = FALSE)
