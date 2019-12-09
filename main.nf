@@ -33,9 +33,8 @@ vim: syntax=groovy
 	- IIIa: Download Salmon TX FA
 	- IIIb: Build Salmon Index
 	Sample Processing:
-	-   A: File Merging (If required)
+	-   A: Input preprocessing
 	-   B: ERCC Quality Analysis (Optional)
-	-   C: Sample Manifest
 	-   1: FastQC Quality Analysis
 	-  2a: Adaptive Trimming Filter (Sample Dependent)
 	-  2b: File Trimming (Sample Dependent)
@@ -109,7 +108,7 @@ def helpMessage() {
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--prefix		Defines the prefix of the input files (not used to detect files)
 	-----------------------------------------------------------------------------------------------------------------------------------
-	--input			Defines the input folder for the files. Defaults to "./input" (relative to the repository)
+	--input			The directory containing samples.manifest, the file describing the input FASTQ files. Defaults to "./input" (relative to the repository)
 	-----------------------------------------------------------------------------------------------------------------------------------
 	--output		Defines the output folder for the files. Defaults to "./results" (relative to the repository)
 	-----------------------------------------------------------------------------------------------------------------------------------
@@ -551,22 +550,23 @@ salmon_index_built
     .set{ salmon_index }
 
 
-//  Step A: Merge files as necessary
+//  Step A: Merge files as necessary, rename files based on sample ids provided
+//          in the manifest, and create a new manifest for internal use based
+//          on these changes
 
-samples_manifest = file("${params.input}/samples.manifest")
-merge_script = file("${params.scripts}/step00-merge.R")
-process Merging {
-  tag "Performing merging if/where necessary"
-  
+process PreprocessInputs {
+
   input:
-    file original_manifest from samples_manifest
-    file merge_script from merge_script
+    file original_manifest from file("${params.input}/samples.manifest")
+    file merge_script from file("${params.scripts}/preprocess_inputs.R")
+
   output:
-    file "out/*" into merged_inputs_flat
+    file "*.f*q*" into merged_inputs_flat
+    file "samples_processed.manifest" into counts_samples_manifest, fullCov_samples_manifest
   
   shell:
     '''
-    !{params.Rscript} !{merge_script} -s !{original_manifest} -o $(pwd)/out -c !{task.cpus}
+    !{params.Rscript} !{merge_script}
     '''
 }
 
@@ -581,7 +581,6 @@ if (params.sample == "single") {
 } else {
 
     merged_inputs_flat
-        .toSortedList()
         .flatten()
         .map{file -> tuple(get_prefix(file), file) }
         .groupTuple()
@@ -622,27 +621,6 @@ if (params.ercc) {
   }
 }
 
-/*
- * Step C: Sample Manifest
- */
-
-man_info_script = file("${params.scripts}/find_sample_info.R")
-process Manifest {
-	
-	tag "Validating manifest and accounting for merged files"
-
-	input:
-	  file original_manifest from samples_manifest
-      file man_info_script from man_info_script
-
-	output:
-	  file "samples.manifest" into counts_samples_manifest, fullCov_samples_manifest
-
-	shell:
-	  '''
-      !{params.Rscript} !{man_info_script} -s !{original_manifest} -o "."
-	  '''
-}
 
 /*
  * Step 1: Untrimmed Quality Report
