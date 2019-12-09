@@ -121,7 +121,7 @@ if (paired) {
         
         #  Do the file merging
         files_to_combine = do.call(paste, as.list(manifest[indices, 1]))
-        new_file = paste0(manifest[indices[1], 3], actual_exts[indices[1]])
+        new_file = paste0(manifest[indices[1], 3], '.', actual_exts[indices[1]])
         if (is_zipped[indices[1]]) {
             command = paste('zcat', files_to_combine, '| gzip >', new_file)
         } else {
