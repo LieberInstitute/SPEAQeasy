@@ -92,7 +92,7 @@ Note that the configuration files also include command-line options passed to ma
 
 + `--experiment`	Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
 + `--prefix`	Defines the prefix of the input files (not used to detect files)
-+ `--input`		The path to the directory including the fastq files and "samples.manifest" file. Defaults to "./input" (relative to the repository)
++ `--input`		The path to the directory with the "samples.manifest" file. Defaults to "./input" (relative to the repository)
 + `--output`  The path to the directory to store pipeline output files/ objects. Defaults to "./results" (relative to the repository)
 + `--unalign`		Include this flag to save discordant reads after the alignment step (false/ not included by default)
 + `--annotation`	The path to the directory containing pipeline annotations. Defaults to "./Annotations" (relative to the repository). If annotations are not found here, the pipeline includes a step to build them.
@@ -103,7 +103,7 @@ Note that the configuration files also include command-line options passed to ma
 
 ### Manifest ###
 
-This pipeline requires that a `samples.manifest` file be placed in the directory specified by `--input`, alongside the input FASTQ files. The `samples.manifest` file associates each FASTQ file with a path and ID, and allows the pipeline to automatically merge files if necessary. Each line in `samples.manifest` should have the following format:
+This pipeline requires that a `samples.manifest` file exists (see the `--input` flag), to describe the samples to be processed by the pipeline. The `samples.manifest` file associates each FASTQ file with a path and ID, and allows the pipeline to automatically merge files if necessary. Each line in `samples.manifest` should have the following format:
 
 + *For a set of unpaired reads* `<PATH TO FASTQ FILE>(tab)<optional MD5>(tab)<sample label/id>`
 + *For paired-end sets of reads* `<PATH TO FASTQ 1>(tab)<optional MD5 1>(tab)<PATH TO FASTQ 2>(tab)<optional MD5 2>(tab)<sample label/id>`
@@ -115,7 +115,7 @@ A line of paired-end reads could look like this:
 #### More details regarding inputs and the manifest ####
 
 + The MD5(s) on each line are for compatibility with a conventional samples.manifest structure, and are not explicitly checked in the pipeline.
-+ Paths can be long or just consist of the file's basename.
++ Paths must be long/full.
 + If you have a single sample split across multiple files, you can signal for the pipeline to merge these files by repeating the sample label/id on each line of files to merge.
 + Input FASTQ files can have the following file extensions: `.fastq`, `.fq`, `.fastq.gz`, `.fq.gz`
 + A `samples.manifest` file cannot include both single-end and paired-end reads; separate pipeline runs should be performed for each of these read types.
