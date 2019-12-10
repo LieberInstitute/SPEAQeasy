@@ -627,8 +627,8 @@ if (params.ercc) {
 
     script:
       """
-      ${params.kallisto} quant -i $erccidx -t $task.cpus -o . ${params.kallisto_strand} $ercc_input \
-      && cp abundance.tsv ${prefix}_abundance.tsv
+      ${params.kallisto} quant -i $erccidx -t $task.cpus -o . ${params.kallisto_strand} $ercc_input
+      cp abundance.tsv ${prefix}_abundance.tsv
       cp .command.log ercc_${prefix}.log
       """
   }
