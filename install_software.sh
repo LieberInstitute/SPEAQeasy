@@ -62,11 +62,11 @@ if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
         cd $INSTALL_DIR
         mv htslib-1.9 htslib # wiggletools expects a "plain" name from htslib
     
-    #  kallisto (0.43.0)  -------------------------------------------------------------
+    #  kallisto (0.46.1)  -------------------------------------------------------------
     
-    wget https://github.com/pachterlab/kallisto/releases/download/v0.43.0/kallisto_linux-v0.43.0.tar.gz && \
-      tar xzvf kallisto_linux-v0.43.0.tar.gz && \
-      chmod -R 755 kallisto_linux-v0.43.0
+    wget https://github.com/pachterlab/kallisto/releases/download/v0.46.1/kallisto_linux-v0.46.1.tar.gz && \
+      tar xzvf kallisto_linux-v0.46.1.tar.gz && \
+      chmod -R 755 kallisto
     
     #  R (3.6.1) ---------------------------------------------------------------------
     
@@ -102,11 +102,12 @@ if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
       
     $(which python2.7) -m pip install --user RSeQC==2.6.4
         
-    #  salmon (0.8.2)  -------------------------------------------------------------
+    #  salmon (1.0.0)  -------------------------------------------------------------
     
-    wget https://github.com/COMBINE-lab/salmon/releases/download/v0.8.2/Salmon-0.8.2_linux_x86_64.tar.gz && \
-      tar xzvf Salmon-0.8.2_linux_x86_64.tar.gz && \
-      chmod -R 755 Salmon-0.8.2_linux_x86_64
+    wget https://github.com/COMBINE-lab/salmon/releases/download/v1.0.0/Salmon-1.0.0_linux_x86_64.tar.gz && \
+      tar xzvf Salmon-1.0.0_*.tar.gz && \
+      rm Salmon-1.0.0_*.tar.gz && \
+      chmod -R 755 salmon-*
       
     #  samtools (1.9)  -------------------------------------------------------------
     
