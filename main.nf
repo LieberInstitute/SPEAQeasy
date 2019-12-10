@@ -202,13 +202,6 @@ if (params.small_test) {
 // Strand Option Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//  Single vs. paired-end-related command-line options
-if (params.sample == "single") {
-    params.trim_sample = "SE"
-} else {
-    params.trim_sample = "PE"
-}
-
 //  Strandness-related command-line options
 if (params.strand == "unstranded") {
     params.feature_strand = "0"
@@ -807,10 +800,12 @@ process Trimming {
 	script:
     file_ext = get_file_ext(trimming_input[0])
 	if (params.sample == "single") {
+        trim_sample = "SE"
 		output_option = "${trimming_prefix}_trimmed${file_ext}"
         adapter_fa_temp = "${params.adapter_fasta_single}"
         trim_clip = "${params.trim_clip_single}"
 	} else {
+        trim_sample = "PE"
 		output_option = "${trimming_prefix}_trimmed_forward_paired${file_ext} ${trimming_prefix}_trimmed_forward_unpaired${file_ext} ${trimming_prefix}_trimmed_reverse_paired${file_ext} ${trimming_prefix}_trimmed_reverse_unpaired${file_ext}"
         adapter_fa_temp = "${params.adapter_fasta_paired}"
         trim_clip = "${params.trim_clip_paired}"
@@ -829,7 +824,7 @@ process Trimming {
 
 	java -Xmx512M \
 	-jar \$trim_jar \
-	$params.trim_sample \
+	$trim_sample \
 	-threads $task.cpus \
 	-phred33 \
 	$trimming_input \
