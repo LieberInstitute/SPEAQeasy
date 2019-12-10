@@ -82,16 +82,16 @@ if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
     #  Install packages that will be used by the pipeline
     ./R-3.6.1/bin/Rscript ../scripts/check_R_packages.R
     
-    #  regtools (0.3.0)  -------------------------------------------------------------
+    #  regtools (0.5.1)  -------------------------------------------------------------
     
     #  cmake, which regtools needs to build
     wget https://github.com/Kitware/CMake/releases/download/v3.14.6/cmake-3.14.6-Linux-x86_64.tar.gz && \
       tar xzvf cmake-3.14.6-Linux-x86_64.tar.gz
     
     #  regtools itself
-    wget https://github.com/griffithlab/regtools/archive/0.3.0.tar.gz -O regtools-0.3.0.tar.gz && \
-        tar -xvf regtools-0.3.0.tar.gz &&\
-        cd regtools-0.3.0 && \
+    wget https://github.com/griffithlab/regtools/archive/0.5.1.tar.gz -O regtools-0.5.1.tar.gz && \
+        tar -xvf regtools-0.5.1.tar.gz &&\
+        cd regtools-0.5.1 && \
         mkdir build && \
         cd build && \
         ../../cmake-3.14.6-Linux-x86_64/bin/cmake .. && \

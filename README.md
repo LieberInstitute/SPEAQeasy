@@ -39,7 +39,7 @@ Software | Version | Command used by the pipeline |
 |[kallisto](https://pachterlab.github.io/kallisto/source) | 0.43.0 | `kallisto` |
 |[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 18.10.0) | `nextflow` |
 |[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.6 | `Rscript` |
-|[regtools](https://github.com/griffithlab/regtools#installation) | 0.3.0 | `regtools` |
+|[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.1 | `regtools` |
 |[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `infer_experiment.py`, `bam2wig.py`|
 |[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 1.0.0 | `salmon` |
 |[samtools](http://www.htslib.org/download/) | 1.9 | `samtools` |

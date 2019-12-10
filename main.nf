@@ -1186,7 +1186,7 @@ process Junctions {
 	outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
 	outcount = "${junction_prefix}_junctions_primaryOnly_regtools.count"
 	'''
-	!{params.regtools} junctions extract -i !{params.min_intron_len} -o !{outjxn} !{alignment_bam}
+	!{params.regtools} junctions extract -m !{params.min_intron_len} -s !{params.feature_strand} -o !{outjxn} !{alignment_bam}
 	python2.7 !{bed_to_juncs_script} < !{outjxn} > !{outcount}
 	'''
 }
