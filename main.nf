@@ -765,8 +765,6 @@ if (params.sample == "single") {
 	trimming_fastqs
 	  .flatten()
 	  .filter{ file -> file.name.toString() =~ /_TR.*/ }
-	  .toSortedList()
-	  .flatten()
 	  .map{ file -> tuple(get_prefix(file), file) }
 	  .groupTuple()
 	  .set{ trimming_inputs }
@@ -774,8 +772,6 @@ if (params.sample == "single") {
 	no_trimming_fastqs
 	  .flatten()
 	  .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-	  .toSortedList()
-	  .flatten()
 	  .map{ file -> tuple(get_prefix(file), file) }
 	  .groupTuple()
 	  .set{ no_trim_fastqs }
@@ -1067,10 +1063,6 @@ process InferExperiment {
 	'''
 }
 
-infer_experiment_outputs
-  .flatten()
-  .toSortedList()
-  .set{ infer_experiment_output }
 
 /*
  * Step 3d: Infer Strandness
@@ -1082,7 +1074,7 @@ process InferStrandness {
 
 	input:
 	file infer_strandness_script from file("${params.scripts}/step3b_infer_strandness.R")
-	file infer_experiment_files from infer_experiment_output
+	file infer_experiment_files from infer_experiment_outputs.collect()
 
 	output:
 	file "*"
@@ -1363,8 +1355,6 @@ count_objects_bam_files // this puts sorted.bams and bais into the channel
   .mix(sample_counts) // !! this one puts sample_05_Gencode.v25.hg38_Exons.counts and sample_05_Gencode.v25.hg38_Genes.counts into the channel
   .mix(regtools_outputs) // !! this one includes the missing *_junctions_primaryOnly_regtools.count files for the CountObjects process
   .mix(salmon_quants)
-  .flatten()
-  .toSortedList()
   .set{counts_objects_channel_1}
 
 if (params.ercc) {
@@ -1527,14 +1517,6 @@ if (params.step8) {
 		'''
 	}
 
-	compressed_variant_calls
-	  .collect()
-	  .set{ collected_variant_calls }
-
-	compressed_variant_calls_tbi
-	  .collect()
-	  .set{ collected_variant_calls_tbi }
-
 
 	/*
 	 * Step 8b: Merge Variant Calls
@@ -1546,8 +1528,8 @@ if (params.step8) {
 		publishDir "${params.output}/Merged_Variants",'mode':'copy'
 
 		input:
-		file collected_variants from collected_variant_calls
-		file collected_variants_tbi from collected_variant_calls_tbi
+		file collected_variants from compressed_variant_calls.collect()
+		file collected_variants_tbi from compressed_variant_calls_tbi.collect()
 
 		output:
 		file "*"
