@@ -205,10 +205,8 @@ if (params.small_test) {
 //  Single vs. paired-end-related command-line options
 if (params.sample == "single") {
     params.trim_sample = "SE"
-    params.kallisto_strand = "--single -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
 } else {
     params.trim_sample = "PE"
-    params.kallisto_strand = ""
 }
 
 //  Strandness-related command-line options
@@ -217,7 +215,6 @@ if (params.strand == "unstranded") {
     params.hisat_strand = ""
 } else if (params.strand == "forward") {
     params.feature_strand = "1"
-    params.kallisto_strand += " --fr-stranded"
     if (params.sample == "single") {
         params.hisat_strand = "--rna-strandness F"
     } else {
@@ -225,7 +222,6 @@ if (params.strand == "unstranded") {
     }
 } else {
     params.feature_strand = "2"
-    params.kallisto_strand += " --rf-stranded"
     if (params.sample == "single") {
         params.hisat_strand = "--rna-strandness R"
     } else {
@@ -626,8 +622,18 @@ if (params.ercc) {
       file "ercc_${prefix}.log"
 
     script:
+      if (params.sample == "single") {
+          kallisto_strand = "--single -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
+      } else {
+          kallisto_strand = ""
+      }
+      if (params.strand == "forward") {
+          kallisto_strand += " --fr-stranded"
+      } else if (params.strand == "reverse") {
+          kallisto_strand += " --rf-stranded"
+      }
       """
-      ${params.kallisto} quant -i $erccidx -t $task.cpus -o . ${params.kallisto_strand} $ercc_input
+      ${params.kallisto} quant -i $erccidx -t $task.cpus -o . ${kallisto_strand} $ercc_input
       cp abundance.tsv ${prefix}_abundance.tsv
       cp .command.log ercc_${prefix}.log
       """
