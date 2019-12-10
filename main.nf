@@ -1117,6 +1117,7 @@ process FeatureCounts {
 	${params.featureCounts} \
 	-s ${params.feature_strand} \
 	$sample_option \
+    ${params.feat_counts_gene_opts} \
 	-T $task.cpus \
 	-a $gencode_gtf_feature \
 	-o ${feature_out}_Genes.counts \
@@ -1125,7 +1126,7 @@ process FeatureCounts {
 	${params.featureCounts} \
 	-s ${params.feature_strand} \
 	$sample_option \
-	-O \
+	${params.feat_counts_exon_opts} \
 	-f \
 	-T $task.cpus \
 	-a $gencode_gtf_feature \
