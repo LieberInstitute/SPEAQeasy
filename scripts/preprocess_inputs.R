@@ -89,7 +89,11 @@ if (paired) {
     #  Symbolically link any remaining files: this renames the files
     #  by their associated sampleID, and uses the paired suffices _1 and _2.
     print("Renaming and symbolically linking files for handling in the pipeline...")
-    remaining_rows = (1:nrow(manifest))[-unlist(indicesToCombine)]
+    if (length(unlist(indicesToCombine)) > 0) {
+        remaining_rows = (1:nrow(manifest))[-unlist(indicesToCombine)]
+    } else {
+        remaining_rows = 1:nrow(manifest)
+    }
     for (index in remaining_rows) {
         first_ext = actual_exts[index]
         
@@ -133,9 +137,13 @@ if (paired) {
     #  Symbolically link any remaining files; also renames the files
     #  by their associated sampleID
     print("Renaming and symbolically linking files for handling in the pipeline...")
-    remaining_rows = (1:nrow(manifest))[-unlist(indicesToCombine)]
+    if (length(unlist(indicesToCombine)) > 0) {
+        remaining_rows = (1:nrow(manifest))[-unlist(indicesToCombine)]
+    } else {
+        remaining_rows = 1:nrow(manifest)
+    }
     for (index in remaining_rows) {
-        new_file = paste0(manifest[index, 3], actual_exts[index])
+        new_file = paste0(manifest[index, 3], '.', actual_exts[index])
         command = paste('ln -s', manifest[index, 1], new_file)
         run_command(command)
     }
