@@ -796,6 +796,7 @@ process Trimming {
 
 	output:
 	file "*.f*q*" into trimmed_fastqc_inputs, trimmed_hisat_inputs
+    file "trimming_${trimming_prefix}.log"
 
 	script:
     file_ext = get_file_ext(trimming_input[0])
@@ -832,6 +833,8 @@ process Trimming {
 	TRAILING:${params.trim_trail} \
 	SLIDINGWINDOW:${params.trim_slide_window} \
 	MINLEN:${params.trim_min_len}
+ 
+    cp .command.log trimming_${trimming_prefix}.log
 	"""
 }
 
@@ -1309,8 +1312,9 @@ process TXQuant {
 		set val(salmon_input_prefix), file(salmon_inputs) from salmon_inputs
 
     output:
-		file "${salmon_input_prefix}/*"
-		file("${salmon_input_prefix}_quant.sf") into salmon_quants
+        file "${salmon_input_prefix}/*"
+        file "${salmon_input_prefix}_quant.sf" into salmon_quants
+        file "tx_quant_${salmon_input_prefix}.log"
 
     shell:
 		if (params.sample == "single") {
@@ -1339,7 +1343,9 @@ process TXQuant {
 		-l !{salmon_strand} \
 		!{sample_command} \
 		-o !{salmon_input_prefix}
-		cp !{salmon_input_prefix}/quant.sf !{salmon_input_prefix}_quant.sf
+    
+        cp !{salmon_input_prefix}/quant.sf !{salmon_input_prefix}_quant.sf
+        cp .command.log tx_quant_!{salmon_input_prefix}.log
 		'''
 }
 
@@ -1444,6 +1450,8 @@ process CountObjects {
 	}
 	'''
   !{params.Rscript} !{create_counts} -o !{params.reference} -m ./ -e !{params.experiment} -p !{params.prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
+    
+    cp .command.log counts.log
 	'''
 }
 
@@ -1481,6 +1489,8 @@ if (params.fullCov) {
             }
             '''
             !{params.Rscript} !{fullCov_script} -o !{params.reference} -m . -e !{params.experiment} -p !{params.prefix} -l !{coverage_pe} -f TRUE -c !{task.cpus}
+            
+            cp .command.log coverage_objects.log
             '''
     }
 }
@@ -1566,6 +1576,11 @@ process ExpressedRegions {
     file "*" 
 
   shell:
+    // "strand" is used for naming the log file for this execution of the process
+    strand = expressed_regions_mean_bigwig.toString().replaceAll("mean.|.bw|bw", "")
+    if (strand.length() > 0) {
+        strand = '_' + strand
+    }
     '''
     for meanfile in ./mean*.bw
     do
@@ -1575,5 +1590,7 @@ process ExpressedRegions {
       -i !{chr_sizes} \
       -c !{task.cpus}
     done
+    
+    cp .command.log expressed_regions!{strand}.log
     '''
 }
