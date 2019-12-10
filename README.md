@@ -36,7 +36,7 @@ Software | Version | Command used by the pipeline |
 |[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.1.0 | `hisat2`, `hisat2-build` |
 |[htslib](http://www.htslib.org/download/) | 1.9 | `tabix` |
 |[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
-|[kallisto](https://pachterlab.github.io/kallisto/source) | 0.43.0 | `kallisto` |
+|[kallisto](https://pachterlab.github.io/kallisto/source) | 0.46.1 | `kallisto` |
 |[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 18.10.0) | `nextflow` |
 |[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.6 | `Rscript` |
 |[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.1 | `regtools` |
