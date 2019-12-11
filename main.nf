@@ -199,22 +199,18 @@ if (params.small_test) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Strand Option Parameters
+// Strandness-related command-line variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//  Strandness-related command-line options
 if (params.strand == "unstranded") {
-    params.feature_strand = "0"
     params.hisat_strand = ""
 } else if (params.strand == "forward") {
-    params.feature_strand = "1"
     if (params.sample == "single") {
         params.hisat_strand = "--rna-strandness F"
     } else {
         params.hisat_strand = "--rna-strandness FR"
     }
 } else {
-    params.feature_strand = "2"
     if (params.sample == "single") {
         params.hisat_strand = "--rna-strandness R"
     } else {
@@ -1113,9 +1109,17 @@ process FeatureCounts {
 		sample_option = "-p"
 	}
 	feature_out = "${feature_prefix}_${params.feature_output_prefix}"
+ 
+    if (params.strand == "unstranded") {
+        feature_strand = "0"
+    } else if (params.strand == "forward") {
+        feature_strand = "1"
+    } else {
+        feature_strand = "2"
+    }
 	"""
 	${params.featureCounts} \
-	-s ${params.feature_strand} \
+	-s ${feature_strand} \
 	$sample_option \
     ${params.feat_counts_gene_opts} \
 	-T $task.cpus \
@@ -1124,7 +1128,7 @@ process FeatureCounts {
 	$feature_bam
 
 	${params.featureCounts} \
-	-s ${params.feature_strand} \
+	-s ${feature_strand} \
 	$sample_option \
 	${params.feat_counts_exon_opts} \
 	-f \
@@ -1179,8 +1183,15 @@ process Junctions {
 	shell:
 	outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
 	outcount = "${junction_prefix}_junctions_primaryOnly_regtools.count"
+    if (params.strand == "unstranded") {
+        strand_integer = "0"
+    } else if (params.strand == "reverse") {
+        strand_integer = "1"
+    } else {
+        strand_integer = "2"
+    }
 	'''
-	!{params.regtools} junctions extract -m !{params.min_intron_len} -s !{params.feature_strand} -o !{outjxn} !{alignment_bam}
+	!{params.regtools} junctions extract -m !{params.min_intron_len} -s !{strand_integer} -o !{outjxn} !{alignment_bam}
 	python2.7 !{bed_to_juncs_script} < !{outjxn} > !{outcount}
 	'''
 }
