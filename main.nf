@@ -549,7 +549,7 @@ process PreprocessInputs {
 
   output:
     file "*.f*q*" into merged_inputs_flat
-    file "samples_processed.manifest" into counts_samples_manifest, fullCov_samples_manifest
+    file "samples_processed.manifest" into processed_manifest
     file "preprocess_inputs.log"
   
   shell:
@@ -579,11 +579,91 @@ if (params.sample == "single") {
 
 //  Copy the processed input channel to channels used by dependent processes
 if (params.ercc) { 
-  temp_inputs.into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; salmon_inputs; ercc_inputs }
+  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; adaptive_trimming_fastqs; salmon_inputs; ercc_inputs }
 } else {
-  temp_inputs.into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; salmon_inputs }
+  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; adaptive_trimming_fastqs; salmon_inputs }
 }
 
+process InferStrandness {
+
+    publishDir "${params.output}/InferStrandness", mode:'copy'
+    
+    input:
+        file infer_strand_script from file("${params.scripts}/infer_strand.R")
+        set val(prefix), file(fq_file) from strandness_inputs
+        
+    output:
+        file "${prefix}_strandness_pattern.txt" into strandness_patterns
+        
+    shell:
+        '''
+        if [ !{params.sample} == "paired" ]; then
+            fq1=$(ls *_1.f*q*)
+            fq2=$(ls *_2.f*q*)
+
+            #  Subset the FASTQ files by the given number of reads
+            if [ $(basename $fq1 | grep ".gz" | wc -l) == 1 ]; then
+                zcat $fq1 | head -n !{num_reads_infer_strand} > test_1.fastq
+                zcat $fq2 | head -n !{num_reads_infer_strand} > test_2.fastq
+            else
+                cat $fq1 | head -n !{num_reads_infer_strand} > test_1.fastq
+                cat $fq2 | head -n !{num_reads_infer_strand} > test_2.fastq
+            fi
+        
+            #  Try pseduoalignment to chr21 assuming each type of strandness possible
+            echo "Testing pseudoalignment assuming forward-strandness..."
+            !{params.kallisto} quant -t !{task.cpus} --fr-stranded -i *.idx -o ./forward test_1.fastq test_2.fastq
+            echo "Testing pseudoalignment assuming reverse-strandness..."
+            !{params.kallisto} quant -t !{task.cpus} --rf-stranded -i *.idx -o ./reverse test_1.fastq test_2.fastq
+        else
+            fq=$(ls *.f*q*)
+            
+            #  Subset the FASTQ file by the given number of reads
+            if [ $(basename $fq | grep ".gz" | wc -l) == 1 ]; then
+                zcat $fq | head -n !{num_reads_infer_strand} > test.fastq
+            else
+                cat $fq | head -n !{num_reads_infer_strand} > test.fastq
+            fi
+            
+            #  Try pseduoalignment to chr21 assuming each type of strandness possible
+            echo "Testing pseudoalignment assuming forward-strandness..."
+            !{params.kallisto} quant -t !{task.cpus} --single --fr-stranded -i *.idx -o ./forward test.fastq
+            echo "Testing pseudoalignment assuming reverse-strandness..."
+            !{params.kallisto} quant -t !{task.cpus} --single --rf-stranded -i *.idx -o ./reverse test.fastq
+        fi
+        
+        forward_count=$(sed -n '2p' forward/abundance.tsv | cut -f 4)
+        reverse_count=$(sed -n '2p' reverse/abundance.tsv | cut -f 4)
+        
+        #  Pass number of reads pseudoaligned for each test to the R script, which will
+        #  ultimately infer strandness (and print additional info/ potential warnings)
+        
+        echo "Passing this info to the R script to infer strand..."
+        !{params.Rscript} !{infer_strand_script} -f $forward_count -r $reverse_count -p !{params.sample} -s !{params.strand}
+        echo "Done."
+        
+        cp .command.log !{prefix}_infer_strand.log
+        '''
+}
+
+process CompleteManifest {
+
+    publishDir "${params.output}", mode:'copy'
+    
+    input:
+        file strandness_files from strandness_patterns.collect()
+        file strandness_manifest
+        file manifest_script from file("${params.scripts}/complete_manifest.R")
+        
+    output:
+        file "samples_complete.manifest" into complete_manifest
+        
+    shell:
+        '''
+        !{params.Rscript} !{manifest_script}
+        '''
+}
+    
 /*
  * Step B: Run the ERCC process if the --ercc flag is specified
  */
