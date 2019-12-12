@@ -656,7 +656,7 @@ process CompleteManifest {
         file manifest_script from file("${params.scripts}/complete_manifest.R")
         
     output:
-        file "samples_complete.manifest" into complete_manifest_ercc
+        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov
         
     shell:
         '''
@@ -1118,53 +1118,57 @@ feature_bam_inputs
 
 process FeatureCounts {
 
-	tag "Prefix: $feature_prefix"
-	publishDir "${params.output}/Counts",'mode':'copy'
+    tag "Prefix: $feature_prefix"
+    publishDir "${params.output}/Counts",'mode':'copy'
 
-	input:
-	set val(feature_prefix), file(feature_bam), file(feature_index), file(gencode_gtf_feature) from feature_counts_inputs
+    input:
+        set val(feature_prefix), file(feature_bam), file(feature_index), file(gencode_gtf_feature) from feature_counts_inputs
+        file complete_manifest_feature
 
-	output:
-	file "*"
-	file "*.counts*" into sample_counts
+    output:
+        file "*"
+        file "*.counts*" into sample_counts
 
-	script:
-	if (params.sample == "single") {
-		sample_option = ""
-	} else {
-		sample_option = "-p"
-	}
-	feature_out = "${feature_prefix}_${params.feature_output_prefix}"
+    script:
+        if (params.sample == "single") {
+            sample_option = ""
+        } else {
+            sample_option = "-p"
+        }
+        feature_out = "${feature_prefix}_${params.feature_output_prefix}"
  
-    if (params.strand == "unstranded") {
-        feature_strand = "0"
-    } else if (params.strand == "forward") {
-        feature_strand = "1"
-    } else {
-        feature_strand = "2"
-    }
-	"""
-	${params.featureCounts} \
-	-s ${feature_strand} \
-	$sample_option \
-    ${params.feat_counts_gene_opts} \
-	-T $task.cpus \
-	-a $gencode_gtf_feature \
-	-o ${feature_out}_Genes.counts \
-	$feature_bam
+        """
+        #  Find this sample's strandness and determine strand flag
+        strand=\$(cat samples_complete.manifest | grep ${prefix} | awk -F ' ' '{print \$NF}')
+        if [ \$strand == 'forward' ]; then
+            feature_strand=1
+        elif [ \$strand == 'reverse' ]
+            feature_strand=2
+        else
+            feature_strand=0
+        fi
+        
+        ${params.featureCounts} \
+          -s ${feature_strand} \
+          $sample_option \
+          ${params.feat_counts_gene_opts} \
+          -T $task.cpus \
+          -a $gencode_gtf_feature \
+          -o ${feature_out}_Genes.counts \
+          $feature_bam
 
-	${params.featureCounts} \
-	-s ${feature_strand} \
-	$sample_option \
-	${params.feat_counts_exon_opts} \
-	-f \
-	-T $task.cpus \
-	-a $gencode_gtf_feature \
-	-o ${feature_out}_Exons.counts \
-	$feature_bam
- 
-    cp .command.log feature_counts_${feature_prefix}.log
-	"""
+        ${params.featureCounts} \
+          -s ${feature_strand} \
+          $sample_option \
+          ${params.feat_counts_exon_opts} \
+          -f \
+          -T $task.cpus \
+          -a $gencode_gtf_feature \
+          -o ${feature_out}_Exons.counts \
+          $feature_bam
+
+        cp .command.log feature_counts_${feature_prefix}.log
+        """
 }
 
 /*
@@ -1195,71 +1199,84 @@ process PrimaryAlignments {
 
 process Junctions {
 
-	tag "Prefix: $junction_prefix"
-	publishDir "${params.output}/Counts/junction",'mode':'copy'
+    tag "Prefix: $junction_prefix"
+    publishDir "${params.output}/Counts/junction",'mode':'copy'
 
-	input:
-	file bed_to_juncs_script from file("${params.scripts}/bed_to_juncs.py")
-	set val(junction_prefix), file(alignment_bam), file(alignment_index) from primary_alignments
+    input:
+        file bed_to_juncs_script from file("${params.scripts}/bed_to_juncs.py")
+        set val(junction_prefix), file(alignment_bam), file(alignment_index) from primary_alignments
+        file complete_manifest_junctions
 
-	output:
-	file "*"
-	file("*.count") into regtools_outputs
+    output:
+        file "*"
+        file("*.count") into regtools_outputs
 
-	shell:
-	outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
-	outcount = "${junction_prefix}_junctions_primaryOnly_regtools.count"
-    if (params.strand == "unstranded") {
-        strand_integer = "0"
-    } else if (params.strand == "reverse") {
-        strand_integer = "1"
-    } else {
-        strand_integer = "2"
-    }
-	'''
-	!{params.regtools} junctions extract -m !{params.min_intron_len} -s !{strand_integer} -o !{outjxn} !{alignment_bam}
-	python2.7 !{bed_to_juncs_script} < !{outjxn} > !{outcount}
-	'''
+    shell:
+        outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
+        outcount = "${junction_prefix}_junctions_primaryOnly_regtools.count"
+        '''
+        #  Find this sample's strandness and determine strand flag
+        strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+        if [ $strand == 'forward' ]; then
+            strand_integer=2
+        elif [ $strand == 'reverse' ]
+            strand_integer=1
+        else
+            strand_integer=0
+        fi
+        
+        !{params.regtools} junctions extract -m !{params.min_intron_len} -s !{strand_integer} -o !{outjxn} !{alignment_bam}
+        python2.7 !{bed_to_juncs_script} < !{outjxn} > !{outcount}
+        '''
 }
 
 /*
  * Step 5a: Coverage
  */
 
-//
-if (params.strand == "unstranded") {
-	params.strandprefix="*"
-} else if (params.strand == "forward") {
-    params.strandprefix=".Forward"
-} else {
-    params.strandprefix=".Reverse"
-}
-
 process Coverage {
 
-	tag "Prefix: $coverage_prefix"
-	publishDir "${params.output}/Coverage/wigs",mode:'copy'
+    tag "Prefix: $coverage_prefix"
+    publishDir "${params.output}/Coverage/wigs",mode:'copy'
 
-	input:
-	file inferred_strand from inferred_strand_coverage
-	set val(coverage_prefix), file(sorted_coverage_bam), file(sorted_bam_index) from coverage_bam_inputs
-	file chr_sizes from chr_sizes
+    input:
+        file complete_manifest_cov
+        set val(coverage_prefix), file(sorted_coverage_bam), file(sorted_bam_index) from coverage_bam_inputs
+        file chr_sizes from chr_sizes
 
-	output:
-    file "${coverage_prefix}${params.strandprefix}.wig" into wig_files_temp
-    file "bam2wig_${coverage_prefix}.log"
+    output:
+        file "${coverage_prefix}*.wig" into wig_files_temp
+        file "bam2wig_${coverage_prefix}.log"
 
-	shell:
-	'''
-	export coverage_strand_rule=$(cat !{inferred_strand})
-	if [ $coverage_strand_rule == "none" ] ; then
-		python2.7 $(which !{params.bam2wig}) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix}
-	else
-		python2.7 $(which !{params.bam2wig}) -s !{chr_sizes} -i !{sorted_coverage_bam} -t !{params.bam2wig_depth_thres} -o !{coverage_prefix} -d "${coverage_strand_rule}"
-	fi
- 
-    cp .command.log bam2wig_!{coverage_prefix}.log
-	'''
+    shell:
+        '''
+        #  Find this sample's strandness and determine strand flag
+        strand=$(cat samples_complete.manifest | grep !{coverage_prefix} | awk -F ' ' '{print $NF}')
+        if [ $strand == 'forward' ]; then
+            if [ !{params.sample} == "paired" ]; then
+                strand_flag="-d 1++,1--,2+-,2-+"
+            else
+                strand_flag="-d ++,--"
+            fi
+        elif [ $strand == 'reverse' ]
+            if [ !{params.sample} == "paired" ]; then
+                strand_flag="-d 1+-,1-+,2++,2--"
+            else
+                strand_flag="-d +-,-+"
+            fi
+        else
+            strand_flag=""
+        fi
+
+        python2.7 $(which !{params.bam2wig}) \
+            -s !{chr_sizes} \
+            -i !{sorted_coverage_bam} \
+            -t !{params.bam2wig_depth_thres} \
+            -o !{coverage_prefix} \
+            $strand_flag
+
+        cp .command.log bam2wig_!{coverage_prefix}.log
+        '''
 }
 
 /*
