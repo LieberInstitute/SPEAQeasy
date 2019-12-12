@@ -41,8 +41,6 @@ vim: syntax=groovy
 	-  2c: FastQC Trimmed Quality Analysis (Sample Dependent)
 	-  3a: Hisat2 Index Creation
 	-  3b: Convert Sam to Bam
-	-  3c: Infer Experiment
-	-  3d: Infer Strandness
 	-  4a: Feature Counts
 	-  4b: Primary Alignments
 	-  4c: Junctions
@@ -1012,7 +1010,7 @@ process SamtoBam {
 	set val(sam_to_bam_prefix), file(sam_to_bam_input) from sam_to_bam_inputs
 
 	output:
-	set val("${sam_to_bam_prefix}"), file("${sam_to_bam_prefix}*.sorted.bam"), file("${sam_to_bam_prefix}*.sorted.bam.bai") into infer_experiment_inputs, feature_bam_inputs, alignment_bam_inputs, coverage_bam_inputs, full_coverage_bams, count_objects_bam_files, variant_calls_bam
+	set val("${sam_to_bam_prefix}"), file("${sam_to_bam_prefix}*.sorted.bam"), file("${sam_to_bam_prefix}*.sorted.bam.bai") into feature_bam_inputs, alignment_bam_inputs, coverage_bam_inputs, full_coverage_bams, count_objects_bam_files, variant_calls_bam
 
 	script:
 	original_bam = "${sam_to_bam_prefix}_accepted_hits.bam"
@@ -1022,59 +1020,6 @@ process SamtoBam {
 	${params.samtools} sort -T temporary -@ $task.cpus $original_bam -o ${sorted_bam}.bam
 	${params.samtools} index ${sorted_bam}.bam
 	"""
-}
-
-infer_experiment_inputs
-  .combine(bedfile)
-  .set{ infer_experiments }
-
-/*
- * Step 3c: Infer Experiment
- */
-
-process InferExperiment {
-
-	tag "Prefix: $infer_prefix"
-	publishDir "${params.output}/HISAT2_out/infer_experiment",'mode':'copy'
-
-	input:
-	set val(infer_prefix), file(bam_file), file(bam_index), file(bed_file) from infer_experiments
-
-	output:
-	file "*"
-	file "*_experiment.txt" into infer_experiment_outputs
-
-	shell:
-	'''
-	python2.7 $(which !{params.infer_experiment}) \
-	-i !{bam_file} \
-	-r !{bed_file} \
-	1> !{infer_prefix}_experiment.txt \
-	2> !{infer_prefix}_experiment_summary_out.txt
-	'''
-}
-
-
-/*
- * Step 3d: Infer Strandness
- */
-
-process InferStrandness {
-
-	publishDir "${params.output}/HISAT2_out/infer_strandness/",'mode':'copy'
-
-	input:
-	file infer_strandness_script from file("${params.scripts}/step3b_infer_strandness.R")
-	file infer_experiment_files from infer_experiment_outputs.collect()
-
-	output:
-	file "*"
-	file "inferred_strandness_pattern.txt" into inferred_strand_coverage, inferred_strand_mean_coverage, inferred_strand_objects
-
-	shell:
-	'''
-	!{params.Rscript} !{infer_strandness_script} -p inferred_strandness_pattern.txt
-	'''
 }
 
 feature_bam_inputs
