@@ -656,7 +656,7 @@ process CompleteManifest {
         file manifest_script from file("${params.scripts}/complete_manifest.R")
         
     output:
-        file "samples_complete.manifest" into complete_manifest
+        file "samples_complete.manifest" into complete_manifest_ercc
         
     shell:
         '''
@@ -678,27 +678,33 @@ if (params.ercc) {
     input:
       file erccidx from file("${params.annotation}/ERCC/ERCC92.idx")
       set val(prefix), file(ercc_input) from ercc_inputs
+      file complete_manifest_ercc
 
     output:
       file "${prefix}_abundance.tsv" into ercc_abundances
       file "ercc_${prefix}.log"
 
-    script:
+    shell:
       if (params.sample == "single") {
-          kallisto_strand = "--single -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
+          kallisto_flags = "--single -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
       } else {
-          kallisto_strand = ""
+          kallisto_flags = ""
       }
-      if (params.strand == "forward") {
-          kallisto_strand += " --fr-stranded"
-      } else if (params.strand == "reverse") {
-          kallisto_strand += " --rf-stranded"
-      }
-      """
-      ${params.kallisto} quant -i $erccidx -t $task.cpus -o . ${kallisto_strand} $ercc_input
-      cp abundance.tsv ${prefix}_abundance.tsv
-      cp .command.log ercc_${prefix}.log
-      """
+      '''
+      #  Find this sample's strandness and determine kallisto flags to set
+      strand=$(cat samples_complete.manifest | grep ${prefix} | awk -F ' ' '{print $NF}')
+      if [ $strand == 'forward' ]; then
+          kallisto_strand=" --fr-stranded"
+      elif [ $strand == 'reverse' ]
+          kallisto_strand=" --rf-stranded"
+      else
+          kallisto_strand=""
+      fi
+      
+      !{params.kallisto} quant -i !{erccidx} -t !{task.cpus} !{kallisto_flags} -o . $kallisto_strand !{ercc_input}
+      cp abundance.tsv !{prefix}_abundance.tsv
+      cp .command.log ercc_!{prefix}.log
+      '''
   }
 }
 
