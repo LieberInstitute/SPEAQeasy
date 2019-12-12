@@ -521,7 +521,7 @@ process buildSALMONindex {
       file transcript_fa
 
     output:
-      file("${params.salmon_prefix}") into salmon_index_built
+      file("${params.salmon_prefix}") into salmon_index
       file("build_salmon_index.log")
 
     script:
@@ -535,11 +535,6 @@ process buildSALMONindex {
       cp .command.log build_salmon_index.log
       """
 }
-
-// Post-processing of built index for use as input to TXQuant process
-salmon_index_built
-    .collect()
-    .set{ salmon_index }
 
 
 //  Step A: Merge files as necessary, rename files based on sample ids provided
@@ -586,9 +581,9 @@ if (params.sample == "single") {
 
 //  Copy the processed input channel to channels used by dependent processes
 if (params.ercc) { 
-  temp_inputs.into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs; ercc_inputs }
+  temp_inputs.into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; salmon_inputs; ercc_inputs }
 } else {
-  temp_inputs.into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; manifest_creation; salmon_inputs }
+  temp_inputs.into{ fastqc_untrimmed_inputs; adaptive_trimming_fastqs; salmon_inputs }
 }
 
 /*
