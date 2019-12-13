@@ -940,147 +940,147 @@ process QualityTrimmed {
 if (params.sample == "single") {
 
     //Here trimmed and not trimmed data is mixed in a channel to ensure the flow of the pipeline
-	trimmed_hisat_inputs
-	  .flatten()
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .mix(no_trim_fastqs)
-	  .ifEmpty{ error "Single End Channel for HISAT is empty" }
-	  .set{ single_hisat_inputs }
+    trimmed_hisat_inputs
+        .flatten()
+        .map{ file -> tuple(get_prefix(file), file) }
+        .mix(no_trim_fastqs)
+        .ifEmpty{ error "Single End Channel for HISAT is empty" }
+        .set{ single_hisat_inputs }
 
-  process SingleEndHISAT {
+    process SingleEndHISAT {
 
-	  tag "Prefix: $single_hisat_prefix"
-	  publishDir "${params.output}/HISAT2_out",mode:'copy'
+        tag "Prefix: $single_hisat_prefix"
+        publishDir "${params.output}/HISAT2_out",mode:'copy'
 
-	  input:
-	  file hisat_index from hisat_index
-	  set val(single_hisat_prefix), file(single_hisat_input) from single_hisat_inputs
+        input:
+            file hisat_index from hisat_index
+            set val(single_hisat_prefix), file(single_hisat_input) from single_hisat_inputs
 
-	  output:
-	  file "*_hisat_out.sam" into hisat_single_output
-	  file "*"
-	  file "*_align_summary.txt" into alignment_summaries
+        output:
+            file "*_hisat_out.sam" into hisat_single_output
+            file "*"
+            file "*_align_summary.txt" into alignment_summaries
 
-	  shell:
-	  hisat_full_prefix = "${params.assembly}/assembly/index/${params.hisat_prefix}"
-	  '''
-      !{params.hisat2} \
-          -p !{task.cpus} \
-          -x !{hisat_full_prefix} \
-          -U !{single_hisat_input} \
-          -S !{single_hisat_prefix}_hisat_out.sam \
-          !{params.hisat_strand} \
-          --phred33 \
-          --min-intronlen !{params.min_intron_len} \
-          2> !{single_hisat_prefix}_align_summary.txt
-	  '''
-	}
+        shell:
+            hisat_full_prefix = "${params.assembly}/assembly/index/${params.hisat_prefix}"
+            '''
+            !{params.hisat2} \
+                -p !{task.cpus} \
+                -x !{hisat_full_prefix} \
+                -U !{single_hisat_input} \
+                -S !{single_hisat_prefix}_hisat_out.sam \
+                !{params.hisat_strand} \
+                --phred33 \
+                --min-intronlen !{params.min_intron_len} \
+                2> !{single_hisat_prefix}_align_summary.txt
+            '''
+    }
 
-	hisat_single_output
-	  .flatten()
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .set{ sam_to_bam_inputs }
-     
+    hisat_single_output
+        .flatten()
+        .map{ file -> tuple(get_prefix(file), file) }
+        .set{ sam_to_bam_inputs }
+
 } else { // sample is paired-end
 
-	no_trim_fastqs
-	  .set{ notrim_paired_hisat_inputs }
+    no_trim_fastqs
+        .set{ notrim_paired_hisat_inputs }
 
-	process PairedEndNoTrimHISAT {
-  
-	  tag "Prefix: $paired_notrim_hisat_prefix"
-	  publishDir "${params.output}/HISAT2_out",'mode':'copy'
+    process PairedEndNoTrimHISAT {
 
-	  input:
-	  file hisatidx from hisat_index
-	  set val(paired_notrim_hisat_prefix), file(paired_no_trim_hisat) from notrim_paired_hisat_inputs
+        tag "Prefix: $paired_notrim_hisat_prefix"
+        publishDir "${params.output}/HISAT2_out",'mode':'copy'
 
-	  output:
-	  file "*_hisat_out.sam" into hisat_paired_notrim_output
-	  file "*"
-	  file "*_align_summary.txt" into paired_notrim_alignment_summaries
+        input:
+            file hisatidx from hisat_index
+            set val(paired_notrim_hisat_prefix), file(paired_no_trim_hisat) from notrim_paired_hisat_inputs
 
-	  shell:
-      file_ext = get_file_ext(paired_no_trim_hisat[0])
-	  sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR" + file_ext
-	  sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR" + file_ext
-	  if (params.unalign) {
-		  unaligned_opt = "--un-conc ${paired_notrim_hisat_prefix}.fastq"
-	  } else {
-		  unaligned_opt = ""
-	  }
-	  '''
-      !{params.hisat2} \
-          -p !{task.cpus} \
-          -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
-          -1 !{sample_1_hisat} \
-          -2 !{sample_2_hisat} \
-          -S !{paired_notrim_hisat_prefix}_hisat_out.sam \
-          !{params.hisat_strand} \
-          --phred33 \
-          --min-intronlen !{params.min_intron_len} \
-	      !{unaligned_opt} \
-	      2> !{paired_notrim_hisat_prefix}_align_summary.txt
-	  '''
-  }
+        output:
+            file "*_hisat_out.sam" into hisat_paired_notrim_output
+            file "*"
+            file "*_align_summary.txt" into paired_notrim_alignment_summaries
 
-	 trimmed_hisat_inputs
-	  .flatten()
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .groupTuple()
-	  .set{ trim_paired_hisat_inputs }
+        shell:
+            file_ext = get_file_ext(paired_no_trim_hisat[0])
+            sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR" + file_ext
+            sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR" + file_ext
+            if (params.unalign) {
+                unaligned_opt = "--un-conc ${paired_notrim_hisat_prefix}.fastq"
+            } else {
+                unaligned_opt = ""
+            }
+            '''
+            !{params.hisat2} \
+                -p !{task.cpus} \
+                -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
+                -1 !{sample_1_hisat} \
+                -2 !{sample_2_hisat} \
+                -S !{paired_notrim_hisat_prefix}_hisat_out.sam \
+                !{params.hisat_strand} \
+                --phred33 \
+                --min-intronlen !{params.min_intron_len} \
+                !{unaligned_opt} \
+                2> !{paired_notrim_hisat_prefix}_align_summary.txt
+            '''
+    }
 
-  process PairedEndTrimmedHISAT {
- 
-	  tag "Prefix: $paired_trimmed_prefix"
-	  publishDir "${params.output}/HISAT2_out",'mode':'copy'
+    trimmed_hisat_inputs
+        .flatten()
+        .map{ file -> tuple(get_prefix(file), file) }
+        .groupTuple()
+        .set{ trim_paired_hisat_inputs }
 
-	  input:
-	  file hisatidx from hisat_index
-	  set val(paired_trimmed_prefix), file(paired_trimmed_fastqs) from trim_paired_hisat_inputs
+    process PairedEndTrimmedHISAT {
 
-	  output:
-	  file "*_hisat_out.sam" into hisat_paired_trim_output
-	  file "*"
-	  file "*_align_summary.txt" into paired_trim_alignment_summaries
+        tag "Prefix: $paired_trimmed_prefix"
+        publishDir "${params.output}/HISAT2_out",'mode':'copy'
 
-	  shell:
-      file_ext=get_file_ext(paired_trimmed_fastqs[0])
-	  forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired" + file_ext
-	  reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired" + file_ext
-	  forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired" + file_ext
-	  reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_reverse_unpaired" + file_ext
-	  if (params.unalign) {
-		  unaligned_opt = "--un-conc ${paired_trimmed_prefix}.fastq"
-	  } else {
-		  unaligned_opt = ""
-	  }
-	  '''
-      !{params.hisat2} \
-          -p !{task.cpus} \
-          -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
-          -1 !{forward_paired} \
-          -2 !{reverse_paired} \
-          -U !{forward_unpaired},!{reverse_unpaired} \
-          -S !{paired_trimmed_prefix}_hisat_out.sam \
-          !{params.hisat_strand} \
-          --phred33 \
-          --min-intronlen !{params.min_intron_len} \
-          !{unaligned_opt} \
-          2> !{paired_trimmed_prefix}_align_summary.txt
-	  '''
-  }
-  
-  hisat_paired_notrim_output
-    .mix(hisat_paired_trim_output)
-    .flatten()
-    .map{ file -> tuple(get_prefix(file), file) }
-    .set{ sam_to_bam_inputs }
+        input:
+            file hisatidx from hisat_index
+            set val(paired_trimmed_prefix), file(paired_trimmed_fastqs) from trim_paired_hisat_inputs
 
-	paired_trim_alignment_summaries
-	  .mix(paired_notrim_alignment_summaries)
-	  .flatten()
-	  .set{ alignment_summaries } // think this is causing conflicts...
+        output:
+            file "*_hisat_out.sam" into hisat_paired_trim_output
+            file "*"
+            file "*_align_summary.txt" into paired_trim_alignment_summaries
+
+        shell:
+            file_ext=get_file_ext(paired_trimmed_fastqs[0])
+            forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired" + file_ext
+            reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired" + file_ext
+            forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired" + file_ext
+            reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_reverse_unpaired" + file_ext
+            if (params.unalign) {
+                unaligned_opt = "--un-conc ${paired_trimmed_prefix}.fastq"
+            } else {
+                unaligned_opt = ""
+            }
+            '''
+            !{params.hisat2} \
+                -p !{task.cpus} \
+                -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
+                -1 !{forward_paired} \
+                -2 !{reverse_paired} \
+                -U !{forward_unpaired},!{reverse_unpaired} \
+                -S !{paired_trimmed_prefix}_hisat_out.sam \
+                !{params.hisat_strand} \
+                --phred33 \
+                --min-intronlen !{params.min_intron_len} \
+                !{unaligned_opt} \
+                2> !{paired_trimmed_prefix}_align_summary.txt
+            '''
+    }
+
+    hisat_paired_notrim_output
+        .mix(hisat_paired_trim_output)
+        .flatten()
+        .map{ file -> tuple(get_prefix(file), file) }
+        .set{ sam_to_bam_inputs }
+
+    paired_trim_alignment_summaries
+        .mix(paired_notrim_alignment_summaries)
+        .flatten()
+        .set{ alignment_summaries } // think this is causing conflicts...
 }
 
 /*
