@@ -327,11 +327,11 @@ def get_prefix(f) {
 def get_read_type(f) {
   baseName = f.name.toString().tokenize('.')[0]
   if (baseName.endsWith('_Forward')) {
-    return('Forward')
+    return('forward')
   } else if (baseName.endsWith('_Reverse')) {
-    return('Reverse')
+    return('reverse')
   } else {
-    return('Unstranded')
+    return('unstranded')
   }
 }
 
@@ -656,7 +656,7 @@ process CompleteManifest {
         file manifest_script from file("${params.scripts}/complete_manifest.R")
         
     output:
-        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov
+        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts
         
     shell:
         '''
@@ -1317,32 +1317,30 @@ coverage_bigwigs
  */
 
 process MeanCoverage {
-	
-	tag "Strand: ${read_type}"
-	publishDir "${params.output}/Coverage/mean",'mode':'copy'
 
-	input:
-	file inferred_strand_file from inferred_strand_mean_coverage
-	set val(read_type), file(mean_coverage_bigwig) from mean_coverage_bigwigs
-	file chr_sizes from chr_sizes
+    tag "Strand: ${read_type}"
+    publishDir "${params.output}/Coverage/mean",'mode':'copy'
 
-	output:
-	file "mean*.bw" into mean_bigwigs, expressed_regions_mean_bigwigs
+    input:
+        set val(read_type), file(mean_coverage_bigwig) from mean_coverage_bigwigs
+        file chr_sizes from chr_sizes
 
-	shell:
-	'''
-	export coverage_strand_rule=$(cat !{inferred_strand_file})
-	if [ $coverage_strand_rule == "none" ] ; then
-		!{params.wiggletools} write mean.wig mean !{mean_coverage_bigwig}
-		!{params.wigToBigWig} mean.wig !{chr_sizes} mean.bw
-	elif [ !{read_type} == "Forward" ]; then
-		!{params.wiggletools} write mean.forward.wig mean !{mean_coverage_bigwig}
-		!{params.wigToBigWig} mean.forward.wig !{chr_sizes} mean.forward.bw
-    else
-		!{params.wiggletools} write mean.reverse.wig mean !{mean_coverage_bigwig}
-		!{params.wigToBigWig} mean.reverse.wig !{chr_sizes} mean.reverse.bw
-	fi
-	'''
+    output:
+        file "mean*.bw" into mean_bigwigs, expressed_regions_mean_bigwigs
+
+    shell:
+        '''
+        if [ !{read_type} == "unstranded" ] ; then
+            !{params.wiggletools} write mean.wig mean !{mean_coverage_bigwig}
+            !{params.wigToBigWig} mean.wig !{chr_sizes} mean.bw
+        elif [ !{read_type} == "forward" ]; then
+            !{params.wiggletools} write mean.forward.wig mean !{mean_coverage_bigwig}
+            !{params.wigToBigWig} mean.forward.wig !{chr_sizes} mean.forward.bw
+        else
+            !{params.wiggletools} write mean.reverse.wig mean !{mean_coverage_bigwig}
+            !{params.wigToBigWig} mean.reverse.wig !{chr_sizes} mean.reverse.bw
+        fi
+        '''
 }
 
 
@@ -1466,39 +1464,39 @@ if(params.reference == "hg19") {
 
 process CountObjects {
 
-	publishDir "${params.output}/Count_Objects",'mode':'copy'
+    publishDir "${params.output}/Count_Objects",'mode':'copy'
 
-	input:
-	file counts_input from counts_inputs
-	file counts_annotation from counts_annotations
-	file create_counts from file("${params.scripts}/create_count_objects-${params.reference_type}.R")
-	file ercc_actual_conc from file("${params.annotation}/ERCC/ercc_actual_conc.txt")
-	file counts_sample_manifest from counts_samples_manifest
+    input:
+        file counts_input from counts_inputs
+        file counts_annotation from counts_annotations
+        file create_counts from file("${params.scripts}/create_count_objects-${params.reference_type}.R")
+        file ercc_actual_conc from file("${params.annotation}/ERCC/ercc_actual_conc.txt")
+        file complete_manifest_counts
 
-	output:
-	file "*"
+    output:
+        file "*"
 
-	shell:
-	if (params.ercc) {
-		ercc_bool = "TRUE"
-	} else {
-		ercc_bool = "FALSE"
-	}
-	if (params.sample == "paired") {
-		counts_pe = "TRUE"
-	} else {
-		counts_pe = "FALSE"
-	}
-	if (params.strand == "unstranded") {
-		counts_strand = "-s FALSE"
-    } else {
-        counts_strand = "-s " + params.strand
-	}
-	'''
-  !{params.Rscript} !{create_counts} -o !{params.reference} -m ./ -e !{params.experiment} -p !{params.prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
-    
-    cp .command.log counts.log
-	'''
+    shell:
+        if (params.ercc) {
+            ercc_bool = "TRUE"
+        } else {
+            ercc_bool = "FALSE"
+        }
+        if (params.sample == "paired") {
+            counts_pe = "TRUE"
+        } else {
+            counts_pe = "FALSE"
+        }
+        if (params.strand == "unstranded") {
+            counts_strand = "-s FALSE"
+        } else {
+            counts_strand = "-s " + params.strand
+        }
+        '''
+        !{params.Rscript} !{create_counts} -o !{params.reference} -m ./ -e !{params.experiment} -p !{params.prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
+
+        cp .command.log counts.log
+        '''
 }
 
 if (params.fullCov) {
