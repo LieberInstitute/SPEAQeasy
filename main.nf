@@ -196,25 +196,6 @@ if (params.small_test) {
   params.input = "${workflow.projectDir}/input"
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Strandness-related command-line variables
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-if (params.strand == "unstranded") {
-    params.hisat_strand = ""
-} else if (params.strand == "forward") {
-    if (params.sample == "single") {
-        params.hisat_strand = "--rna-strandness F"
-    } else {
-        params.hisat_strand = "--rna-strandness FR"
-    }
-} else {
-    if (params.sample == "single") {
-        params.hisat_strand = "--rna-strandness R"
-    } else {
-        params.hisat_strand = "--rna-strandness RF"
-    }
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Define Reference Paths/Scripts + Reference-dependent Parameters
@@ -656,7 +637,7 @@ process CompleteManifest {
         file manifest_script from file("${params.scripts}/complete_manifest.R")
         
     output:
-        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts
+        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_single_hisat, complete_manifest_paired_hisat1, file complete_manifest_paired_hisat2
         
     shell:
         '''
@@ -954,6 +935,7 @@ if (params.sample == "single") {
 
         input:
             file hisat_index from hisat_index
+            file complete_manifest_single_hisat
             set val(single_hisat_prefix), file(single_hisat_input) from single_hisat_inputs
 
         output:
@@ -964,12 +946,23 @@ if (params.sample == "single") {
         shell:
             hisat_full_prefix = "${params.assembly}/assembly/index/${params.hisat_prefix}"
             '''
+            #  Find this sample's strandness and determine strand flag
+            strand=$(cat samples_complete.manifest | grep !{single_hisat_prefix} | awk -F ' ' '{print $NF}')
+            if [ !{strand} == "unstranded" ]; then
+                hisat_strand=""
+            elif [ !{strand} == "forward" ]
+                hisat_strand="--rna-strandness F"
+            else
+                hisat_strand="--rna-strandness R"
+            fi
+            
+            #  Run Hisat2
             !{params.hisat2} \
                 -p !{task.cpus} \
                 -x !{hisat_full_prefix} \
                 -U !{single_hisat_input} \
                 -S !{single_hisat_prefix}_hisat_out.sam \
-                !{params.hisat_strand} \
+                !{hisat_strand} \
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
                 2> !{single_hisat_prefix}_align_summary.txt
@@ -993,6 +986,7 @@ if (params.sample == "single") {
 
         input:
             file hisatidx from hisat_index
+            file complete_manifest_paired_hisat1
             set val(paired_notrim_hisat_prefix), file(paired_no_trim_hisat) from notrim_paired_hisat_inputs
 
         output:
@@ -1010,13 +1004,24 @@ if (params.sample == "single") {
                 unaligned_opt = ""
             }
             '''
+            #  Find this sample's strandness and determine strand flag
+            strand=$(cat samples_complete.manifest | grep !{paired_notrim_hisat_prefix} | awk -F ' ' '{print $NF}')
+            if [ !{strand} == "unstranded" ]; then
+                hisat_strand=""
+            elif [ !{strand} == "forward" ]
+                hisat_strand="--rna-strandness FR"
+            else
+                hisat_strand="--rna-strandness RF"
+            fi
+            
+            #  Run Hisat2
             !{params.hisat2} \
                 -p !{task.cpus} \
                 -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
                 -1 !{sample_1_hisat} \
                 -2 !{sample_2_hisat} \
                 -S !{paired_notrim_hisat_prefix}_hisat_out.sam \
-                !{params.hisat_strand} \
+                !{hisat_strand} \
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
                 !{unaligned_opt} \
@@ -1037,6 +1042,7 @@ if (params.sample == "single") {
 
         input:
             file hisatidx from hisat_index
+            file complete_manifest_paired_hisat2
             set val(paired_trimmed_prefix), file(paired_trimmed_fastqs) from trim_paired_hisat_inputs
 
         output:
@@ -1056,6 +1062,17 @@ if (params.sample == "single") {
                 unaligned_opt = ""
             }
             '''
+            #  Find this sample's strandness and determine strand flag
+            strand=$(cat samples_complete.manifest | grep !{paired_trimmed_prefix} | awk -F ' ' '{print $NF}')
+            if [ !{strand} == "unstranded" ]; then
+                hisat_strand=""
+            elif [ !{strand} == "forward" ]
+                hisat_strand="--rna-strandness FR"
+            else
+                hisat_strand="--rna-strandness RF"
+            fi
+            
+            #  Run Hisat2
             !{params.hisat2} \
                 -p !{task.cpus} \
                 -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
@@ -1063,7 +1080,7 @@ if (params.sample == "single") {
                 -2 !{reverse_paired} \
                 -U !{forward_unpaired},!{reverse_unpaired} \
                 -S !{paired_trimmed_prefix}_hisat_out.sam \
-                !{params.hisat_strand} \
+                !{hisat_strand} \
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
                 !{unaligned_opt} \
