@@ -426,7 +426,7 @@ process pullGENCODEgtf {
   storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
 
   output:
-    file "${baseName}" into gencode_gtf, create_counts_gtf, gencode_feature_gtf
+    file "${baseName}" into create_counts_gtf, gencode_feature_gtf
 
   shell:
     baseName = file("${params.gencode_gtf_link}").getName() - ".gz"
@@ -436,32 +436,6 @@ process pullGENCODEgtf {
     '''
 }
 
-/*
- * Step IIb: Build Bed File
- */
-
-// Uses "storeDir" to build bed file only when it doesn't exist, and output the cached
-// file if it does already exist
-process buildPrepBED {
-	
-  tag "Building Bed File: ${params.reference}"
-  storeDir "${params.annotation}/RSeQC/${params.reference}/bed"
-
-  input:
-    file gencode_gtf from gencode_gtf
-    file prep_bed_script from file("${params.scripts}/prep_bed.R")
-
-  output:
-    file("${params.reference}.bed") into bedfile
-
-  shell:
-    '''
-    !{params.Rscript} !{prep_bed_script} -f !{gencode_gtf} -n !{params.reference}
-    '''
-}
-
-
-params.salmon_idx_output = "${params.assembly}/transcripts"
 
 /*
  * Step IIIa: GENCODE TX FA Download
