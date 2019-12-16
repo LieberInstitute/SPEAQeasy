@@ -43,9 +43,9 @@ if (1 - f_frac < thres) {
 #######################################################################
 
 if (opt$paired == "paired") {
-    id = strsplit(list.files(".+_1\.f.*q.*"), "_1.f", fixed=TRUE)[[1]][1]
+    id = strsplit(list.files(pattern=".+_1\\.f.*q.*"), "_1\\.f")[[1]][1]
 } else {
-    id = strsplit(list.files(".+\.f.*q.*"), ".f", fixed=TRUE)[[1]][1]
+    id = strsplit(list.files(pattern=".+\\.f.*q.*"), "\\.f")[[1]][1]
 }
 
 writeLines(strandness, con=paste0(id, "_strandness_pattern.txt"))
