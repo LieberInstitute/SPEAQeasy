@@ -630,7 +630,7 @@ process CompleteManifest {
         file manifest_script from file("${params.scripts}/complete_manifest.R")
         
     output:
-        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_single_hisat, complete_manifest_paired_hisat1, file complete_manifest_paired_hisat2
+        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_single_hisat, complete_manifest_paired_hisat1, complete_manifest_paired_hisat2, complete_manifest_salmon
         
     shell:
         '''
@@ -1355,54 +1355,53 @@ process MeanCoverage {
 
 
 /*
- * Step 6: txQuant
+ * Step 6: Transcript quantification with Salmon
  */
 
 process TXQuant {
 
-    tag "Prefix: $salmon_input_prefix"
-    publishDir "${params.output}/Salmon_tx/${salmon_input_prefix}",mode:'copy'
+    tag "Prefix: $prefix"
+    publishDir "${params.output}/Salmon_tx/${prefix}",mode:'copy'
 
     input:
-		file salmon_index from salmon_index
-		set val(salmon_input_prefix), file(salmon_inputs) from salmon_inputs
+        file salmon_index
+        set val(prefix), file(salmon_inputs) from salmon_inputs
 
     output:
-        file "${salmon_input_prefix}/*"
-        file "${salmon_input_prefix}_quant.sf" into salmon_quants
-        file "tx_quant_${salmon_input_prefix}.log"
+        file complete_manifest_salmon
+        file "${prefix}/*"
+        file "${prefix}_quant.sf" into salmon_quants
+        file "tx_quant_${prefix}.log"
 
     shell:
-		if (params.sample == "single") {
-			sample_command = "-r ${salmon_input_prefix}.f*q*"
-			if (params.strand == "unstranded" ) {
-				salmon_strand = "U"
-			} else if (params.strand == "forward" ) {
-				salmon_strand = "SF"
-			} else { // reverse
-				salmon_strand = "SR"
-			}
-		} else { // paired
-			sample_command = "-1 ${salmon_input_prefix}_1.f*q* -2 ${salmon_input_prefix}_2.f*q*"
-			if (params.strand == "unstranded" ) {
-				salmon_strand = "IU"
-			} else if (params.strand == "forward" ) {
-				salmon_strand = "ISF"
-			} else { // reverse
-				salmon_strand = "ISR"
-			}
-		}
-		'''
-		!{params.salmon} quant \
-		-i !{salmon_index} \
-		-p !{task.cpus} \
-		-l !{salmon_strand} \
-		!{sample_command} \
-		-o !{salmon_input_prefix}
-    
-        cp !{salmon_input_prefix}/quant.sf !{salmon_input_prefix}_quant.sf
-        cp .command.log tx_quant_!{salmon_input_prefix}.log
-		'''
+        '''
+        #  Find this sample's strandness and determine strand flag
+        strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+        if [ $strand == 'forward' ]; then
+            strand_flag="SF"
+        elif [ $strand == 'reverse' ]
+            strand_flag="SR"
+        else
+            strand_flag="U"
+        fi
+        
+        if [ !{params.sample} == "paired" ]; then
+            strand_flag="I${strand_flag}"
+            sample_flag="-1 !{prefix}_1.f*q* -2 !{prefix}_2.f*q*"
+        else
+            sample_flag="-r !{prefix}.f*q*"
+        fi
+        
+        !{params.salmon} quant \
+            -i !{salmon_index} \
+            -p !{task.cpus} \
+            -l !{salmon_strand} \
+            !{sample_command} \
+            -o !{prefix}
+
+        cp !{prefix}/quant.sf !{prefix}_quant.sf
+        cp .command.log tx_quant_!{prefix}.log
+        '''
 }
 
 /*
