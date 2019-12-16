@@ -497,12 +497,12 @@ process BuildKallistoIndex {
         file transcript_fa
 
     output:
-        file "*.idx" into kallisto_index
+        file "kallisto.idx" into kallisto_index
         file "build_kallisto_index.log"
 
     shell:
         '''
-        !{params.kallisto} index -i kallisto_index !{transcript_fa}
+        !{params.kallisto} index -i kallisto.idx !{transcript_fa}
         cp .command.log build_kallisto_index.log
         '''
 }
@@ -522,7 +522,7 @@ process PreprocessInputs {
 
   output:
     file "*.f*q*" into merged_inputs_flat
-    file "samples_processed.manifest" into processed_manifest
+    file "samples_processed.manifest" into strandness_manifest
     file "preprocess_inputs.log"
   
   shell:
@@ -577,11 +577,11 @@ process InferStrandness {
 
             #  Subset the FASTQ files by the given number of reads
             if [ $(basename $fq1 | grep ".gz" | wc -l) == 1 ]; then
-                zcat $fq1 | head -n !{num_reads_infer_strand} > test_1.fastq
-                zcat $fq2 | head -n !{num_reads_infer_strand} > test_2.fastq
+                zcat $fq1 | head -n !{params.num_reads_infer_strand} > test_1.fastq
+                zcat $fq2 | head -n !{params.num_reads_infer_strand} > test_2.fastq
             else
-                cat $fq1 | head -n !{num_reads_infer_strand} > test_1.fastq
-                cat $fq2 | head -n !{num_reads_infer_strand} > test_2.fastq
+                cat $fq1 | head -n !{params.num_reads_infer_strand} > test_1.fastq
+                cat $fq2 | head -n !{params.num_reads_infer_strand} > test_2.fastq
             fi
         
             #  Try pseduoalignment to chr21 assuming each type of strandness possible
@@ -594,20 +594,34 @@ process InferStrandness {
             
             #  Subset the FASTQ file by the given number of reads
             if [ $(basename $fq | grep ".gz" | wc -l) == 1 ]; then
-                zcat $fq | head -n !{num_reads_infer_strand} > test.fastq
+                zcat $fq | head -n !{params.num_reads_infer_strand} > test.fastq
             else
-                cat $fq | head -n !{num_reads_infer_strand} > test.fastq
+                cat $fq | head -n !{params.num_reads_infer_strand} > test.fastq
             fi
             
             #  Try pseduoalignment to chr21 assuming each type of strandness possible
             echo "Testing pseudoalignment assuming forward-strandness..."
-            !{params.kallisto} quant -t !{task.cpus} --single --fr-stranded -i *.idx -o ./forward test.fastq
+            !{params.kallisto} quant \
+                -t !{task.cpus} \
+                --single \
+                -l !{params.kallisto_len_mean} \
+                -s !{params.kallisto_len_sd} \
+                --fr-stranded \
+                -i *.idx \
+                -o ./forward test.fastq
             echo "Testing pseudoalignment assuming reverse-strandness..."
-            !{params.kallisto} quant -t !{task.cpus} --single --rf-stranded -i *.idx -o ./reverse test.fastq
+            !{params.kallisto} quant \
+                -t !{task.cpus} \
+                --single \
+                -l !{params.kallisto_len_mean} \
+                -s !{params.kallisto_len_sd} \
+                --rf-stranded \
+                -i *.idx \
+                -o ./reverse test.fastq
         fi
         
-        forward_count=$(sed -n '2p' forward/abundance.tsv | cut -f 4)
-        reverse_count=$(sed -n '2p' reverse/abundance.tsv | cut -f 4)
+        forward_count=$(grep "n_pseudoaligned" forward/run_info.json | cut -d ":" -f 2 | cut -d "," -f 1)
+        reverse_count=$(grep "n_pseudoaligned" reverse/run_info.json | cut -d ":" -f 2 | cut -d "," -f 1)
         
         #  Pass number of reads pseudoaligned for each test to the R script, which will
         #  ultimately infer strandness (and print additional info/ potential warnings)
@@ -1365,10 +1379,10 @@ process TXQuant {
 
     input:
         file salmon_index
+        file complete_manifest_salmon
         set val(prefix), file(salmon_inputs) from salmon_inputs
 
     output:
-        file complete_manifest_salmon
         file "${prefix}/*"
         file "${prefix}_quant.sf" into salmon_quants
         file "tx_quant_${prefix}.log"
