@@ -489,6 +489,24 @@ process buildSALMONindex {
       """
 }
 
+process BuildKallistoIndex {
+
+    storeDir "${params.assembly}/transcripts/kallisto"
+    
+    input:
+        file transcript_fa
+
+    output:
+        file "*.idx" into kallisto_index
+        file "build_kallisto_index.log"
+
+    shell:
+        '''
+        !{params.kallisto} index -i kallisto_index !{transcript_fa}
+        cp .command.log build_kallisto_index.log
+        '''
+}
+
 
 //  Step A: Merge files as necessary, rename files based on sample ids provided
 //          in the manifest, and create a new manifest for internal use based
@@ -545,6 +563,7 @@ process InferStrandness {
     
     input:
         file infer_strand_script from file("${params.scripts}/infer_strand.R")
+        file kallisto_index
         set val(prefix), file(fq_file) from strandness_inputs
         
     output:
