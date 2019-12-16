@@ -559,6 +559,7 @@ if (params.ercc) {
 
 process InferStrandness {
 
+    tag "${prefix}"
     publishDir "${params.output}/InferStrandness", mode:'copy'
     
     input:
@@ -567,6 +568,7 @@ process InferStrandness {
         set val(prefix), file(fq_file) from strandness_inputs
         
     output:
+        file "${prefix}_infer_strand.log"
         file "${prefix}_strandness_pattern.txt" into strandness_patterns
         
     shell:
@@ -955,9 +957,9 @@ if (params.sample == "single") {
             '''
             #  Find this sample's strandness and determine strand flag
             strand=$(cat samples_complete.manifest | grep !{single_hisat_prefix} | awk -F ' ' '{print $NF}')
-            if [ !{strand} == "unstranded" ]; then
+            if [ ${strand} == "unstranded" ]; then
                 hisat_strand=""
-            elif [ !{strand} == "forward" ]
+            elif [ ${strand} == "forward" ]; then
                 hisat_strand="--rna-strandness F"
             else
                 hisat_strand="--rna-strandness R"
@@ -969,7 +971,7 @@ if (params.sample == "single") {
                 -x !{hisat_full_prefix} \
                 -U !{single_hisat_input} \
                 -S !{single_hisat_prefix}_hisat_out.sam \
-                !{hisat_strand} \
+                ${hisat_strand} \
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
                 2> !{single_hisat_prefix}_align_summary.txt
@@ -1013,9 +1015,9 @@ if (params.sample == "single") {
             '''
             #  Find this sample's strandness and determine strand flag
             strand=$(cat samples_complete.manifest | grep !{paired_notrim_hisat_prefix} | awk -F ' ' '{print $NF}')
-            if [ !{strand} == "unstranded" ]; then
+            if [ ${strand} == "unstranded" ]; then
                 hisat_strand=""
-            elif [ !{strand} == "forward" ]
+            elif [ ${strand} == "forward" ]; then
                 hisat_strand="--rna-strandness FR"
             else
                 hisat_strand="--rna-strandness RF"
@@ -1028,7 +1030,7 @@ if (params.sample == "single") {
                 -1 !{sample_1_hisat} \
                 -2 !{sample_2_hisat} \
                 -S !{paired_notrim_hisat_prefix}_hisat_out.sam \
-                !{hisat_strand} \
+                ${hisat_strand} \
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
                 !{unaligned_opt} \
@@ -1071,9 +1073,9 @@ if (params.sample == "single") {
             '''
             #  Find this sample's strandness and determine strand flag
             strand=$(cat samples_complete.manifest | grep !{paired_trimmed_prefix} | awk -F ' ' '{print $NF}')
-            if [ !{strand} == "unstranded" ]; then
+            if [ ${strand} == "unstranded" ]; then
                 hisat_strand=""
-            elif [ !{strand} == "forward" ]
+            elif [ ${strand} == "forward" ]; then
                 hisat_strand="--rna-strandness FR"
             else
                 hisat_strand="--rna-strandness RF"
@@ -1087,7 +1089,7 @@ if (params.sample == "single") {
                 -2 !{reverse_paired} \
                 -U !{forward_unpaired},!{reverse_unpaired} \
                 -S !{paired_trimmed_prefix}_hisat_out.sam \
-                !{hisat_strand} \
+                ${hisat_strand} \
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
                 !{unaligned_opt} \
@@ -1163,33 +1165,33 @@ process FeatureCounts {
  
         """
         #  Find this sample's strandness and determine strand flag
-        strand=\$(cat samples_complete.manifest | grep ${prefix} | awk -F ' ' '{print \$NF}')
+        strand=\$(cat samples_complete.manifest | grep ${feature_prefix} | awk -F ' ' '{print \$NF}')
         if [ \$strand == 'forward' ]; then
             feature_strand=1
-        elif [ \$strand == 'reverse' ]
+        elif [ \$strand == 'reverse' ]; then
             feature_strand=2
         else
             feature_strand=0
         fi
         
         ${params.featureCounts} \
-          -s ${feature_strand} \
-          $sample_option \
-          ${params.feat_counts_gene_opts} \
-          -T $task.cpus \
-          -a $gencode_gtf_feature \
-          -o ${feature_out}_Genes.counts \
-          $feature_bam
+            -s \$feature_strand \
+            $sample_option \
+            ${params.feat_counts_gene_opts} \
+            -T $task.cpus \
+            -a $gencode_gtf_feature \
+            -o ${feature_out}_Genes.counts \
+            $feature_bam
 
         ${params.featureCounts} \
-          -s ${feature_strand} \
-          $sample_option \
-          ${params.feat_counts_exon_opts} \
-          -f \
-          -T $task.cpus \
-          -a $gencode_gtf_feature \
-          -o ${feature_out}_Exons.counts \
-          $feature_bam
+            -s \$feature_strand \
+            $sample_option \
+            ${params.feat_counts_exon_opts} \
+            -f \
+            -T $task.cpus \
+            -a $gencode_gtf_feature \
+            -o ${feature_out}_Exons.counts \
+            $feature_bam
 
         cp .command.log feature_counts_${feature_prefix}.log
         """
@@ -1223,12 +1225,12 @@ process PrimaryAlignments {
 
 process Junctions {
 
-    tag "Prefix: $junction_prefix"
+    tag "Prefix: $prefix"
     publishDir "${params.output}/Counts/junction",'mode':'copy'
 
     input:
         file bed_to_juncs_script from file("${params.scripts}/bed_to_juncs.py")
-        set val(junction_prefix), file(alignment_bam), file(alignment_index) from primary_alignments
+        set val(prefix), file(alignment_bam), file(alignment_index) from primary_alignments
         file complete_manifest_junctions
 
     output:
@@ -1236,20 +1238,20 @@ process Junctions {
         file("*.count") into regtools_outputs
 
     shell:
-        outjxn = "${junction_prefix}_junctions_primaryOnly_regtools.bed"
-        outcount = "${junction_prefix}_junctions_primaryOnly_regtools.count"
+        outjxn = "${prefix}_junctions_primaryOnly_regtools.bed"
+        outcount = "${prefix}_junctions_primaryOnly_regtools.count"
         '''
         #  Find this sample's strandness and determine strand flag
         strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
         if [ $strand == 'forward' ]; then
             strand_integer=2
-        elif [ $strand == 'reverse' ]
+        elif [ $strand == 'reverse' ]; then
             strand_integer=1
         else
             strand_integer=0
         fi
         
-        !{params.regtools} junctions extract -m !{params.min_intron_len} -s !{strand_integer} -o !{outjxn} !{alignment_bam}
+        !{params.regtools} junctions extract -m !{params.min_intron_len} -s ${strand_integer} -o !{outjxn} !{alignment_bam}
         python2.7 !{bed_to_juncs_script} < !{outjxn} > !{outcount}
         '''
 }
@@ -1282,7 +1284,7 @@ process Coverage {
             else
                 strand_flag="-d ++,--"
             fi
-        elif [ $strand == 'reverse' ]
+        elif [ $strand == 'reverse' ]; then
             if [ !{params.sample} == "paired" ]; then
                 strand_flag="-d 1+-,1-+,2++,2--"
             else
@@ -1393,14 +1395,14 @@ process TXQuant {
         strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
         if [ $strand == 'forward' ]; then
             strand_flag="SF"
-        elif [ $strand == 'reverse' ]
+        elif [ $strand == 'reverse' ]; then
             strand_flag="SR"
         else
             strand_flag="U"
         fi
         
         if [ !{params.sample} == "paired" ]; then
-            strand_flag="I${strand_flag}"
+            strand_flag="I$strand_flag"
             sample_flag="-1 !{prefix}_1.f*q* -2 !{prefix}_2.f*q*"
         else
             sample_flag="-r !{prefix}.f*q*"
@@ -1409,8 +1411,8 @@ process TXQuant {
         !{params.salmon} quant \
             -i !{salmon_index} \
             -p !{task.cpus} \
-            -l !{salmon_strand} \
-            !{sample_command} \
+            -l ${strand_flag} \
+            ${sample_flag} \
             -o !{prefix}
 
         cp !{prefix}/quant.sf !{prefix}_quant.sf
