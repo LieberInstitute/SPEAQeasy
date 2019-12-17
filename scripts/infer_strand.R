@@ -21,7 +21,7 @@ r_frac = opt$reverse / (opt$forward + opt$reverse)
 #######################################################################
 
 if (1 - f_frac < thres) {
-    strandness = "reverse"
+    strandness = "forward"
     print(paste0("Greater than ", round(100 * (1 - thres), 2), "% of pseudoaligned reads matches forward-strandness."))
 } else if (1 - r_frac < thres) {
     strandness = "reverse"
