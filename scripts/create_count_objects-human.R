@@ -11,7 +11,6 @@ library('getopt')
 library('rafalib')
 library('devtools')
 library('SummarizedExperiment')
-library('plyr')
 
 suppressWarnings(library(DelayedArray))
 suppressWarnings(library(matrixStats))
@@ -21,15 +20,16 @@ suppressWarnings(library(plyr))
 
 ## Specify parameters
 spec <- matrix(c(
-	'organism', 'o', 1, 'character', 'Either hg19 or hg38',
-	'maindir', 'm', 1, 'character', 'Main directory',
-	'experiment', 'e', 1, 'character', 'Experiment',
-	'prefix', 'p', 1, 'character', 'Prefix',
+    'organism', 'o', 1, 'character', 'Either hg19 or hg38',
+    'maindir', 'm', 1, 'character', 'Main directory',
+    'experiment', 'e', 1, 'character', 'Experiment',
+    'prefix', 'p', 1, 'character', 'Prefix',
     'paired', 'l', 1, 'logical', 'Whether the reads are paired-end or not',
-	'stranded', 's', 1, 'character', "Strandedness of the data: Either 'FALSE', 'forward' or 'reverse'",
+    'stranded', 's', 1, 'character', "Strandedness of the data: Either 'FALSE', 'forward' or 'reverse'",
     'ercc', 'c', 1, 'logical', 'Whether the reads include ERCC or not',
     'cores', 't', 1, 'integer', 'Number of cores to use',
-	'help' , 'h', 0, 'logical', 'Display help'
+    'salmon', 'n', 1, 'logical', 'Whether to use salmon quants rather than kallisto',
+    'help' , 'h', 0, 'logical', 'Display help'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
 
@@ -270,34 +270,47 @@ if (opt$paired==TRUE) {
 }
 ############################################################ 
 
-
-############################################################ 
-###### salmon quantification
-
 sampIDs = as.vector(metrics$SAMPLE_ID)
-
-##observed tpm and number of reads
-txTpm = bplapply(sampIDs, function(x) {
-	read.table(file.path(".", paste0(x, "_quant.sf")),header = TRUE)$TPM }, 
-	BPPARAM = MulticoreParam(opt$cores))
-txTpm = do.call(cbind,txTpm)
-
-txNumReads = bplapply(sampIDs, function(x) {
-	read.table(file.path(".", paste0(x, "_quant.sf")),header = TRUE)$NumReads }, 
-	BPPARAM = MulticoreParam(opt$cores))
-txNumReads = do.call(cbind,txNumReads)
+if (opt$salmon) {
+    ############################################################ 
+    ###### salmon quantification
+    
+    ##observed tpm and number of reads
+    txTpm = bplapply(sampIDs, function(x) {
+    	read.table(file.path(".", paste0(x, "_quant.sf")),header = TRUE)$TPM }, 
+    	BPPARAM = MulticoreParam(opt$cores))
+    txTpm = do.call(cbind,txTpm)
+    
+    txNumReads = bplapply(sampIDs, function(x) {
+    	read.table(file.path(".", paste0(x, "_quant.sf")),header = TRUE)$NumReads }, 
+    	BPPARAM = MulticoreParam(opt$cores))
+    txNumReads = do.call(cbind,txNumReads)
+    
+    ##get names of transcripts
+    txNames = read.table(file.path(".", paste0(sampIDs[1], "_quant.sf")),
+    						header = TRUE)$Name
+    txNames = as.character(txNames)
+} else {
+    #######################################################################
+    #  Use Kallisto quantification (also is the InferExperiment step)
+    #######################################################################
+    txMatrices = bplapply(sampIDs, function(x) {
+        read.table(paste0(x, "_abundance.tsv"),header = TRUE)}, 
+        BPPARAM = MulticoreParam(opt$cores))
+        
+    txTpm = do.call(cbind,lapply(txMatrices, function(x) x$tpm))
+    txNumReads = do.call(cbind,lapply(txMatrices, function(x) x$est_counts))
+    txNames = as.character(txMatrices[[1]]$target_id)
+    rm(txMatrices)
+}
 
 colnames(txTpm) = colnames(txNumReads) = sampIDs
 
-##get names of transcripts
-txNames = read.table(file.path(".", paste0(sampIDs[1], "_quant.sf")),
-						header = TRUE)$Name
-txNames = as.character(txNames)
 txMap = t(ss(txNames, "\\|",c(1,7,2,6,8)))
 txMap = as.data.frame(txMap)
 rm(txNames)
-colnames(txMap) = c("gencodeTx","txLength","gencodeID","Symbol","gene_type")
 
+colnames(txMap) = c("gencodeTx","txLength","gencodeID","Symbol","gene_type")
 rownames(txMap) = rownames(txTpm) = rownames(txNumReads) = txMap$gencodeTx
 
 ############################################################ 
