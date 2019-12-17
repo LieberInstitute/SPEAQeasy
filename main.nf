@@ -122,6 +122,8 @@ def helpMessage() {
 	-----------------------------------------------------------------------------------------------------------------------------------
     --force_trim    Include to perform trimming on all inputs, rather than just those failing QC due to detected adapter content
     -----------------------------------------------------------------------------------------------------------------------------------
+    --use_salmon  Include this flag to perform transcript quantification with salmon (which output objects will reflect), rather than just kallisto
+    -----------------------------------------------------------------------------------------------------------------------------------
 	""".stripIndent()
 }
 /*
@@ -155,6 +157,7 @@ params.ercc = false
 params.fullCov = false
 params.small_test = false
 params.force_trim = false
+params.use_salmon = false
 workflow.runName = "RNAsp_run"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -552,9 +555,9 @@ if (params.sample == "single") {
 
 //  Copy the processed input channel to channels used by dependent processes
 if (params.ercc) { 
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; adaptive_trimming_fastqs; salmon_inputs; ercc_inputs }
+  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; adaptive_trimming_fastqs; tx_quant_inputs; ercc_inputs }
 } else {
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; adaptive_trimming_fastqs; salmon_inputs }
+  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; adaptive_trimming_fastqs; tx_quant_inputs }
 }
 
 process InferStrandness {
@@ -646,7 +649,7 @@ process CompleteManifest {
         file manifest_script from file("${params.scripts}/complete_manifest.R")
         
     output:
-        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_single_hisat, complete_manifest_paired_hisat1, complete_manifest_paired_hisat2, complete_manifest_salmon
+        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_single_hisat, complete_manifest_paired_hisat1, complete_manifest_paired_hisat2, complete_manifest_quant
         
     shell:
         '''
@@ -1371,53 +1374,105 @@ process MeanCoverage {
 
 
 /*
- * Step 6: Transcript quantification with Salmon
+ * Step 6: Transcript quantification
  */
 
-process TXQuant {
-
-    tag "Prefix: $prefix"
-    publishDir "${params.output}/Salmon_tx/${prefix}",mode:'copy'
-
-    input:
-        file salmon_index
-        file complete_manifest_salmon
-        set val(prefix), file(salmon_inputs) from salmon_inputs
-
-    output:
-        file "${prefix}/*"
-        file "${prefix}_quant.sf" into salmon_quants
-        file "tx_quant_${prefix}.log"
-
-    shell:
-        '''
-        #  Find this sample's strandness and determine strand flag
-        strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
-        if [ $strand == 'forward' ]; then
-            strand_flag="SF"
-        elif [ $strand == 'reverse' ]; then
-            strand_flag="SR"
-        else
-            strand_flag="U"
-        fi
-        
-        if [ !{params.sample} == "paired" ]; then
-            strand_flag="I$strand_flag"
-            sample_flag="-1 !{prefix}_1.f*q* -2 !{prefix}_2.f*q*"
-        else
-            sample_flag="-r !{prefix}.f*q*"
-        fi
-        
-        !{params.salmon} quant \
-            -i !{salmon_index} \
-            -p !{task.cpus} \
-            -l ${strand_flag} \
-            ${sample_flag} \
-            -o !{prefix}
-
-        cp !{prefix}/quant.sf !{prefix}_quant.sf
-        cp .command.log tx_quant_!{prefix}.log
-        '''
+if (params.use_salmon) {
+    process TXQuantSalmon {
+    
+        tag "Prefix: $prefix"
+        publishDir "${params.output}/Salmon_tx/${prefix}",mode:'copy'
+    
+        input:
+            file salmon_index
+            file complete_manifest_quant
+            set val(prefix), file(salmon_inputs) from tx_quant_inputs
+    
+        output:
+            file "${prefix}/*"
+            file "${prefix}_quant.sf" into tx_quants
+            file "tx_quant_${prefix}.log"
+    
+        shell:
+            '''
+            #  Find this sample's strandness and determine strand flag
+            strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+            if [ $strand == 'forward' ]; then
+                strand_flag="SF"
+            elif [ $strand == 'reverse' ]; then
+                strand_flag="SR"
+            else
+                strand_flag="U"
+            fi
+            
+            if [ !{params.sample} == "paired" ]; then
+                strand_flag="I$strand_flag"
+                sample_flag="-1 !{prefix}_1.f*q* -2 !{prefix}_2.f*q*"
+            else
+                sample_flag="-r !{prefix}.f*q*"
+            fi
+            
+            !{params.salmon} quant \
+                -i !{salmon_index} \
+                -p !{task.cpus} \
+                -l ${strand_flag} \
+                ${sample_flag} \
+                -o !{prefix}
+    
+            cp !{prefix}/quant.sf !{prefix}_quant.sf
+            cp .command.log tx_quant_!{prefix}.log
+            '''
+    }
+} else {
+    process TXQuantKallisto {
+    
+        tag "Prefix: $prefix"
+        publishDir "${params.output}/kallisto_tx/${prefix}", mode:'copy'
+    
+        input:
+            file kallisto_index
+            file complete_manifest_quant
+            set val(prefix), file(fastqs) from tx_quant_inputs
+    
+        output:
+            file "*"
+            file "${prefix}_abundance.tsv" into tx_quants
+            
+        shell:
+            '''
+            #  Find this sample's strandness
+            strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+            if [ $strand == 'forward' ]; then
+                strand_flag="--fr-stranded"
+            elif [ $strand == 'reverse' ]; then
+                strand_flag="--rf-stranded"
+            else
+                strand_flag=""
+            fi
+            
+            #  Run the quantification step
+            if [ !{params.sample} == "paired" ]; then
+                fq1=$(ls *_1.f*q*)
+                fq2=$(ls *_2.f*q*)
+            
+                !{params.kallisto} quant -t !{task.cpus} $strand_flag -i *.idx -o . $fq1 $fq2
+            else
+                fq=$(ls *.f*q*)
+                
+                !{params.kallisto} quant \
+                    -t !{task.cpus} \
+                    --single \
+                    -l !{params.kallisto_len_mean} \
+                    -s !{params.kallisto_len_sd} \
+                    $strand_flag \
+                    -i *.idx \
+                    -o . $fq
+            fi
+            
+            mv abundance.tsv !{prefix}_abundance.tsv
+            cp .command.log tx_quant_!{prefix}.log
+            '''
+    }
 }
 
 /*
@@ -1432,7 +1487,7 @@ count_objects_bam_files // this puts sorted.bams and bais into the channel
   .mix(create_counts_gtf) // this puts gencode.v25.annotation.gtf file into the channel
   .mix(sample_counts) // !! this one puts sample_05_Gencode.v25.hg38_Exons.counts and sample_05_Gencode.v25.hg38_Genes.counts into the channel
   .mix(regtools_outputs) // !! this one includes the missing *_junctions_primaryOnly_regtools.count files for the CountObjects process
-  .mix(salmon_quants)
+  .mix(tx_quants)
   .set{counts_objects_channel_1}
 
 if (params.ercc) {
@@ -1502,11 +1557,6 @@ process CountObjects {
         file "*"
 
     shell:
-        if (params.ercc) {
-            ercc_bool = "TRUE"
-        } else {
-            ercc_bool = "FALSE"
-        }
         if (params.sample == "paired") {
             counts_pe = "TRUE"
         } else {
@@ -1518,7 +1568,7 @@ process CountObjects {
             counts_strand = "-s " + params.strand
         }
         '''
-        !{params.Rscript} !{create_counts} -o !{params.reference} -m ./ -e !{params.experiment} -p !{params.prefix} -l !{counts_pe} -c !{ercc_bool} -t !{task.cpus} !{counts_strand}
+        !{params.Rscript} !{create_counts} -o !{params.reference} -m ./ -e !{params.experiment} -p !{params.prefix} -l !{counts_pe} -c !{params.ercc} -t !{task.cpus} !{counts_strand} -n !{params.use_salmon}
 
         cp .command.log counts.log
         '''
