@@ -40,7 +40,7 @@ Software | Version | Command used by the pipeline |
 |[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 18.10.0) | `nextflow` |
 |[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.6 | `Rscript` |
 |[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.1 | `regtools` |
-|[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `infer_experiment.py`, `bam2wig.py`|
+|[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `bam2wig.py`|
 |[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 1.0.0 | `salmon` |
 |[samtools](http://www.htslib.org/download/) | 1.9 | `samtools` |
 |[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 2.0.0 | `featureCounts` |
@@ -85,7 +85,7 @@ Note that the configuration files also include command-line options passed to ma
 ### Mandatory Parameters ###
 
 + `--sample`		"single" or "paired": the orientation of your reads
-+ `--strand`		"unstranded", "forward, or "reverse": the strandness of your reads. Note "unstranded" may be used if you are not sure- specifying "forward" or "reverse" (in the future) will tell the pipeline to confirm your reads are stranded in the expected way.
++ `--strand`		"unstranded", "forward, or "reverse": the strandness of your reads. Since strandness is inferred by sample in the pipeline, this option informs the pipeline to generate appropriate warnings if unexpected strandness is inferred.
 + `--reference`		"hg38", "hg19", "mm10", or "rn6": the reference genome to which reads are aligned
 
 ### Optional Parameters ###
@@ -100,6 +100,7 @@ Note that the configuration files also include command-line options passed to ma
 + `--fullCov`		Flag to perform full coverage analysis
 + `--small_test`	Uses sample files located in the test folder as input. Overrides the "--input" option.
 + `--force_trim`  Include this flag to perform triming on all inputs. By default, only inputs failing fastQC on the adapter content metric are trimmed.
++ `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
 
 ### Manifest ###
 
