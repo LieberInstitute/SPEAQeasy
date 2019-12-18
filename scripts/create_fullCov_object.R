@@ -6,14 +6,12 @@ library('getopt')
 
 ## Specify parameters
 spec <- matrix(c(
-	'organism', 'o', 1, 'character', 'Either rn6, mm10 or human',
-	'maindir', 'm', 1, 'character', 'Main directory',
-	'experiment', 'e', 1, 'character', 'Experiment',
-	'prefix', 'p', 1, 'character', 'Prefix',
+    'organism', 'o', 1, 'character', 'Either rn6, mm10 or human',
+    'experiment', 'e', 1, 'character', 'Experiment',
     'paired', 'l', 1, 'logical', 'Whether the reads are paired-end or not',
     'fullcov', 'f', 1, 'logical', 'Whether to create the full coverage object or not',
     'cores', 'c', 1, 'integer', 'Number of cores to use',
-	'help' , 'h', 0, 'logical', 'Display help'
+    'help' , 'h', 0, 'logical', 'Display help'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
 
@@ -24,21 +22,27 @@ if (!is.null(opt$help)) {
 	q(status=1)
 }
 
-EXPNAME <- paste0(opt$experiment, "_", opt$prefix)
-
 if(opt$fullcov) {
     ## read in pheno
-    manifest <- read.table(file.path(opt$maindir, 'samples.manifest'),
+    manifest <- read.table('samples_complete.manifest',
         sep = ' ', header = FALSE, stringsAsFactors = FALSE)
-    info <- data.frame('SAMPLE_ID' = manifest[, ncol(manifest)],
+    info <- data.frame('SAMPLE_ID' = manifest[, ncol(manifest)-1],
         stringsAsFactors = FALSE)
     N <- length(info$SAMPLE_ID)
+    
+    #  Infer the strand used for the experiment
+    strandness = manifest[,ncol(manifest)]
+    strand_counts = sapply(unique(strandness), function(x) length(which(strandness == x)))
+    bad_indices = which((strand_counts > 0) & (strand_counts < max(strand_counts)))
+    if (length(bad_indices) > 1) {
+        print(paste0("[Warning] ", sum(strand_counts[bad_indices]), 
+                     " samples had an inferred strand different from the majority strandness."))
+    }
+    experiment_strand = unique(strandness)[match(max(strand_counts), strand_counts)]
 
     ## add bigwig and bam files
-    info$bamFile <- file.path(opt$maindir, paste0(info$SAMPLE_ID,
-        '_accepted_hits.sorted.bam'))
-    info$bwFile <- file.path(opt$maindir, paste0(info$SAMPLE_ID,
-        '.bw'))
+    info$bamFile <- paste0(info$SAMPLE_ID, '_accepted_hits.sorted.bam')
+    info$bwFile <- paste0(info$SAMPLE_ID, '.bw')
 
     ## Chrs to use, mitocondrial chromosome has to be the last one for the code
     ## to work later on
@@ -62,9 +66,7 @@ if(opt$fullcov) {
     ###################################################################
 
     ## Uses BAM files if the bigwigs are strand specific
-    strandrule <- readLines(file.path(opt$maindir,
-        'inferred_strandness_pattern.txt'))
-    if(strandrule == 'none') {
+    if (experiment_strand == "unstranded") {
         fullCov <- fullCoverage(files = info$bwFile, chrs = CHR,
             mc.cores = opt$cores)
     } else {
@@ -73,8 +75,7 @@ if(opt$fullcov) {
             mc.cores = opt$cores)
     }
 
-    save(fullCov, file = file.path(opt$maindir, paste0('fullCoverage_', EXPNAME,
-        '_n', N, '.rda')))
+    save(fullCov, file = paste0('fullCoverage_', opt$experiment, '_n', N, '.rda'))
 }
 
 

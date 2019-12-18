@@ -649,7 +649,7 @@ process CompleteManifest {
         file manifest_script from file("${params.scripts}/complete_manifest.R")
         
     output:
-        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_single_hisat, complete_manifest_paired_hisat1, complete_manifest_paired_hisat2, complete_manifest_quant
+        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_single_hisat, complete_manifest_paired_hisat1, complete_manifest_paired_hisat2, complete_manifest_quant, complete_manifest_fullcov
         
     shell:
         '''
@@ -1580,7 +1580,7 @@ if (params.fullCov) {
 	  .flatten()
 	  .mix(full_coverage_bigwigs)
 	  .flatten()
-	  .toSortedList()
+	  .collect()
 	  .set{ full_coverage_inputs }
   
 	/*
@@ -1593,9 +1593,8 @@ if (params.fullCov) {
 
         input:
             file fullCov_script from file("${params.scripts}/create_fullCov_object.R")
-            file fullCov_samples_manifest from fullCov_samples_manifest
+            file complete_manifest_fullcov
             file full_coverage_input from full_coverage_inputs
-            file inferred_strand_R_object from inferred_strand_objects
 
         output:
             file "*"
@@ -1607,7 +1606,12 @@ if (params.fullCov) {
               coverage_pe = "FALSE"
             }
             '''
-            !{params.Rscript} !{fullCov_script} -o !{params.reference} -m . -e !{params.experiment} -p !{params.prefix} -l !{coverage_pe} -f TRUE -c !{task.cpus}
+            !{params.Rscript} !{fullCov_script} \
+                -o !{params.reference} \
+                -e !{params.experiment} \
+                -l !{coverage_pe} \
+                -f TRUE \
+                -c !{task.cpus}
             
             cp .command.log coverage_objects.log
             '''
