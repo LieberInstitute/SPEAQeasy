@@ -1610,7 +1610,6 @@ if (params.fullCov) {
                 -o !{params.reference} \
                 -e !{params.experiment} \
                 -l !{coverage_pe} \
-                -f TRUE \
                 -c !{task.cpus}
             
             cp .command.log coverage_objects.log
