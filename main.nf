@@ -28,18 +28,16 @@ vim: syntax=groovy
    Preprocessing:
 	-   Ia: Download Assembly FA
 	-   Ib: Build HISAT Index
-	-  IIa: Download GENCODE GTF File
-	-  IIb: Build Bed File
-	- IIIa: Download Salmon TX FA
-	- IIIb: Build Salmon Index
+	-   II: Download GENCODE GTF File
+	- IIIa: Download Transcript Fasta
+	- IIIb: Build Salmon or Kallisto Index
 	Sample Processing:
 	-   A: Input preprocessing
 	-   B: ERCC Quality Analysis (Optional)
 	-   1: FastQC Quality Analysis
-	-  2a: Adaptive Trimming Filter (Sample Dependent)
-	-  2b: File Trimming (Sample Dependent)
-	-  2c: FastQC Trimmed Quality Analysis (Sample Dependent)
-	-  3a: Hisat2 Index Creation
+	-  2a: File Trimming (Sample-dependent)
+	-  2b: FastQC on trimmed samples
+	-  3a: Hisat2 Alignment
 	-  3b: Convert Sam to Bam
 	-  4a: Feature Counts
 	-  4b: Primary Alignments
@@ -47,7 +45,7 @@ vim: syntax=groovy
 	-  5a: Coverage
 	-  5b: WigtoBigWig
 	-  5c: Mean Coverage
-	-   6: Salmon TXQuant
+	-   6: Transcript Quantification (Salmon or Kallisto)
 	-  7a: Create Counts Objects
 	-  7b: Create Coverage Objects
 	-  8a: Call Variants
@@ -226,7 +224,7 @@ if (params.reference == "hg38") {
 	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz"
 	params.feature_output_prefix = "Gencode.v25.hg38"
 
-	// Step 6: salmon
+	// Step 6: transcript quantification
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
 
 	// Step 7: Make R objects	
@@ -247,7 +245,7 @@ if (params.reference == "hg19") {
 	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"
 	params.feature_output_prefix = "Gencode.v25lift37.hg19"
 
-	// Step 6: salmon
+	// Step 6: transcript quantification
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
 
 	// Step 7: Make R objects
@@ -267,7 +265,7 @@ if (params.reference == "mm10") {
 	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.annotation.gtf.gz"
 	params.feature_output_prefix = "Gencode.M11.mm10"
 
-	// Step 6: salmon
+	// Step 6: transcript quantification
 	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
 
 	// Step 7: Make R objects
@@ -283,7 +281,7 @@ if (params.reference == "rn6") {
 	params.gencode_gtf_link = "ftp://ftp.ensembl.org/pub/release-86/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
 	params.feature_output_prefix = "Rnor_6.0.86"
 	
-	// Step 6: Salmon
+	// Step 6: transcript quantification
     params.tx_fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/cdna/Rattus_norvegicus.Rnor_6.0.cdna.all.fa.gz"
 
 	// Step 7: Make R objects
@@ -417,7 +415,7 @@ hisat_index_built // get every *.ht2 file in this channel
 	.set{ hisat_index } // pass *.ht2 list to a new channel
 
 /*
- * Step IIa: GENCODE GTF Download
+ * Step II: GENCODE GTF Download
  */
 
 
@@ -463,7 +461,7 @@ process pullGENCODEtranscripts {
 }
 
 /*
- * Step IIIb: Salmon Transcript Build
+ * Step IIIb: Build transcript index for Salmon or Kallisto
  */
 
 // Uses "storeDir" to build salmon index only if the pre-built file is not present; outputs
@@ -755,6 +753,10 @@ if (params.sample == "single") {
         .set{ trimming_inputs }
 }    
 
+/*
+ * Step 2a: Trim samples (dependent on user-chosen settings)
+ */
+ 
 process Trimming {
 
     tag "Prefix: $fq_prefix"
@@ -842,7 +844,7 @@ process Trimming {
 
 
 /*
- * Step 2c: Run FastQC Quality Check on Trimmed Files
+ * Step 2b: Run FastQC Quality Check on Trimmed Files
  */
 
 process QualityTrimmed {
