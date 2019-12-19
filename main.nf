@@ -297,7 +297,7 @@ if (params.reference == "rn6") {
 
 def get_prefix(f) {
   //  Remove these regardless of position in the string
-  String blackListAny = "_summary|_TR|_TNR|_trimmed|_reverse_paired|_1|_2|_reverse_unpaired|_forward_paired|_forward_unpaired|_hisat_out"
+  String blackListAny = "_summary|_trimmed|_untrimmed|_unpaired|_paired|_1|_2|_hisat_out"
   
   f.name.toString()
    .replaceAll("_read1.", ".")
@@ -555,9 +555,9 @@ if (params.sample == "single") {
 
 //  Copy the processed input channel to channels used by dependent processes
 if (params.ercc) { 
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; adaptive_trimming_fastqs; tx_quant_inputs; ercc_inputs }
+  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs; ercc_inputs }
 } else {
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; adaptive_trimming_fastqs; tx_quant_inputs }
+  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs }
 }
 
 process InferStrandness {
@@ -649,7 +649,7 @@ process CompleteManifest {
         file manifest_script from file("${params.scripts}/complete_manifest.R")
         
     output:
-        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_single_hisat, complete_manifest_paired_hisat1, complete_manifest_paired_hisat2, complete_manifest_quant, complete_manifest_fullcov
+        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_hisat, complete_manifest_quant, complete_manifest_fullcov
         
     shell:
         '''
@@ -734,173 +734,110 @@ process QualityUntrimmed {
 	"""
 }
 
-/*
- * Step 2a: Adaptive Trimming
- */
-
+//  Combine FASTQ files and FastQC result summaries for each sample, to form the input channel for Trimming
 if (params.sample == "single") {
 
-	quality_reports
-	  .flatten()
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .join(adaptive_trimming_fastqs)
-	  .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Single Adaptive Trimming" }
-	  .set{ adaptive_trimming_single_inputs }
-
-	process AdaptiveTrimSingleReads {
-	  
-	  tag "Prefix: $single_adaptive_prefix"
-	  publishDir "${params.output}/Adaptive_Trim",'mode':'copy'
-
-	  input:
-	  set val(single_adaptive_prefix), file(single_adaptive_summary), file(single_adaptive_fastq) from adaptive_trimming_single_inputs
-
-	  output:
-	  file "*" into trimming_fastqs, no_trimming_fastqs
-
-	  shell:
-	  single_quality_report = single_adaptive_prefix.toString() + "_summary.txt"
-	  single_trimming_input = single_adaptive_prefix.toString() + ".f*q*"
-      suffix = get_file_ext(single_adaptive_fastq)
-	  '''
-	  export result=$(grep "Adapter Content" !{single_quality_report} | cut -f1)
-	  if [ $result == "FAIL" ] || [ !{params.force_trim} == "true" ] ; then
-		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TR!{suffix}"
-	  else
-		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TNR!{suffix}"
-	  fi
-	  '''
-	}
-
+    quality_reports
+        .flatten()
+        .map{ file -> tuple(get_prefix(file), file) }
+        .join(trimming_fqs)
+        .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
+        .set{ trimming_inputs }
+        
 } else { // paired
 
-	quality_reports
-	  .flatten()
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .groupTuple()
-	  .join(adaptive_trimming_fastqs)
-	  .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Paired Adaptive Trimming" }
-	  .set{ adaptive_trimming_paired_inputs }
-
-	process AdaptiveTrimPairedReads {
-	  
-	  tag "Prefix: $paired_adaptive_prefix"
-	  publishDir "${params.output}/Adaptive_Trim",mode:'copy'
-
-	  input:
-	  set val(paired_adaptive_prefix), file(paired_adaptive_summary), file(paired_adaptive_fastq) from adaptive_trimming_paired_inputs
-
-	  output:
-	  file "*" into trimming_fastqs, no_trimming_fastqs
-
-	  shell:
-      suffix = get_file_ext(paired_adaptive_fastq[0])
-      prefix_str = paired_adaptive_prefix.toString()
-	  '''
-	  export result1=$(grep "Adapter Content" !{prefix_str}_1_summary.txt | cut -c1-4)
-	  export result2=$(grep "Adapter Content" !{prefix_str}_2_summary.txt | cut -c1-4)
-	  if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ] || [ !{params.force_trim} == "true" ]; then
-		  cp !{prefix_str}_1.f*q* "!{prefix_str}_1_TR!{suffix}"
-		  cp !{prefix_str}_2.f*q* "!{prefix_str}_2_TR!{suffix}"
-	  else
-		  cp !{prefix_str}_1.f*q* "!{prefix_str}_1_TNR!{suffix}"
-		  cp !{prefix_str}_2.f*q* "!{prefix_str}_2_TNR!{suffix}"
-	  fi
-	  '''
-	}
-}
-
-/*
- * Modify the Trimming Input Channel 
- */
-
-if (params.sample == "single") {
-
-	trimming_fastqs
-	  .flatten()
-	  .filter{ file -> file.name.toString() =~ /_TR.*/ }
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .set{ trimming_inputs }
-
-	no_trimming_fastqs
-	  .flatten()
-	  .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .set{ no_trim_fastqs }
-
-} else { // paired
-
-	trimming_fastqs
-	  .flatten()
-	  .filter{ file -> file.name.toString() =~ /_TR.*/ }
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .groupTuple()
-	  .set{ trimming_inputs }
-
-	no_trimming_fastqs
-	  .flatten()
-	  .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .groupTuple()
-	  .set{ no_trim_fastqs }
-}
-
-/*
- * Step 2b: Trimming 
- */
+    quality_reports
+        .flatten()
+        .map{ file -> tuple(get_prefix(file), file) }
+        .groupTuple()
+        .join(trimming_fqs)
+        .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
+        .set{ trimming_inputs }
+}    
 
 process Trimming {
-	
-	tag "Prefix: $trimming_prefix"
-	publishDir "${params.output}/trimmed_fq",'mode':'copy'
 
-	input:
-	set val(trimming_prefix), file(trimming_input) from trimming_inputs
+    tag "Prefix: $fq_prefix"
+    publishDir "${params.output}/Trimming",mode:'copy'
 
-	output:
-	file "*.f*q*" into trimmed_fastqc_inputs, trimmed_hisat_inputs
-    file "trimming_${trimming_prefix}.log"
+    input:
+        set val(fq_prefix), file(fq_summary), file(fq_file) from trimming_inputs
 
-	script:
-    file_ext = get_file_ext(trimming_input[0])
-	if (params.sample == "single") {
-        trim_sample = "SE"
-		output_option = "${trimming_prefix}_trimmed${file_ext}"
-        adapter_fa_temp = "${params.adapter_fasta_single}"
-        trim_clip = "${params.trim_clip_single}"
-	} else {
-        trim_sample = "PE"
-		output_option = "${trimming_prefix}_trimmed_forward_paired${file_ext} ${trimming_prefix}_trimmed_forward_unpaired${file_ext} ${trimming_prefix}_trimmed_reverse_paired${file_ext} ${trimming_prefix}_trimmed_reverse_unpaired${file_ext}"
-        adapter_fa_temp = "${params.adapter_fasta_paired}"
-        trim_clip = "${params.trim_clip_paired}"
-	}
- 
-	"""
-    #  This solves the problem of trimmomatic and the adapter fasta
-    #  needing hard paths, even when on the PATH.
-    if [ ${params.use_long_paths} == "true" ]; then
-        trim_jar=${params.trimmomatic}
-        adapter_fa=${adapter_fa_temp}
-    else
-        trim_jar=\$(which ${params.trimmomatic})
-        adapter_fa=\$(which ${adapter_fa_temp})
-    fi
+    output:
+        file "${fq_prefix}_trimmed*.fastq" optional true into trimmed_fastqc_inputs
+        file "${fq_prefix}*.f*q*" into trimming_outputs
 
-	java -Xmx512M \
-	-jar \$trim_jar \
-	$trim_sample \
-	-threads $task.cpus \
-	-phred33 \
-	$trimming_input \
-	$output_option \
-	ILLUMINACLIP:\$adapter_fa:${trim_clip} \
-	LEADING:${params.trim_lead} \
-	TRAILING:${params.trim_trail} \
-	SLIDINGWINDOW:${params.trim_slide_window} \
-	MINLEN:${params.trim_min_len}
- 
-    cp .command.log trimming_${trimming_prefix}.log
-	"""
+    shell:
+        file_ext = get_file_ext(fq_file[0])
+        if (params.sample == "single") {
+            output_option = "${fq_prefix}_trimmed.fastq"
+            trim_mode = "SE"
+            adapter_fa_temp = params.adapter_fasta_single
+            trim_clip = params.trim_clip_single
+        } else {
+            output_option = "${fq_prefix}_trimmed_paired_1.fastq ${fq_prefix}_unpaired_1.fastq ${fq_prefix}_trimmed_paired_2.fastq ${fq_prefix}_unpaired_2.fastq"
+            trim_mode = "PE"
+            adapter_fa_temp = params.adapter_fasta_paired
+            trim_clip = params.trim_clip_paired
+        }
+        '''
+        #  Determine whether to trim the FASTQ file(s). This is done if the user
+        #  adds the --force_trim flag, or if fastQC adapter content metrics fail
+        #  for at least one FASTQ
+        if [ "!{params.force_trim}" == true ]; then
+            do_trim=true
+        elif [ "!{params.sample}" == "single" ]; then
+            if [ $(grep "Adapter Content" !{fq_summary} | cut -f 1)  == "FAIL" ]; then
+                do_trim=true
+            else
+                do_trim=false
+            fi
+        else
+            result1=$(grep "Adapter Content" !{fq_prefix}_1_summary.txt | cut -c1-4)
+            result2=$(grep "Adapter Content" !{fq_prefix}_2_summary.txt | cut -c1-4)
+            if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ]; then
+                do_trim=true
+            else
+                do_trim=false
+            fi
+        fi
+        
+        #  Run trimming if required
+        if [ "$do_trim" == true ]; then
+            #  This solves the problem of trimmomatic and the adapter fasta
+            #  needing hard paths, even when on the PATH.
+            if [ !{params.use_long_paths} == "true" ]; then
+                trim_jar=!{params.trimmomatic}
+                adapter_fa=!{adapter_fa_temp}
+            else
+                trim_jar=$(which !{params.trimmomatic})
+                adapter_fa=$(which !{adapter_fa_temp})
+            fi
+
+            java -Xmx512M \
+                -jar $trim_jar \
+                !{trim_mode} \
+                -threads !{task.cpus} \
+                -phred33 \
+                *.f*q* \
+                !{output_option} \
+                ILLUMINACLIP:$adapter_fa:!{trim_clip} \
+                LEADING:!{params.trim_lead} \
+                TRAILING:!{params.trim_trail} \
+                SLIDINGWINDOW:!{params.trim_slide_window} \
+                MINLEN:!{params.trim_min_len}
+        else
+            #  Otherwise rename files (signal to nextflow to output these files)
+            if [ "!{params.sample}" == "single" ]; then
+                mv !{fq_prefix}!{file_ext} !{fq_prefix}_untrimmed!{file_ext}
+            else
+                mv !{fq_prefix}_1!{file_ext} !{fq_prefix}_untrimmed_1!{file_ext}
+                mv !{fq_prefix}_2!{file_ext} !{fq_prefix}_untrimmed_2!{file_ext}
+            fi
+        fi
+        
+        cp .command.log trimming_!{fq_prefix}.log
+        '''
 }
 
 
@@ -927,39 +864,37 @@ process QualityTrimmed {
 }
 
 /*
- * Step 3a: Hisat Sam File
+ * Step 3a: Hisat Alignment
  */
 
+trimming_outputs
+    .flatten()
+    .map{ file -> tuple(get_prefix(file), file) }
+    .ifEmpty{ error "Input channel to HISAT is empty" }
+    .groupTuple()
+    .set{ hisat_inputs }
+        
 if (params.sample == "single") {
-
-    //Here trimmed and not trimmed data is mixed in a channel to ensure the flow of the pipeline
-    trimmed_hisat_inputs
-        .flatten()
-        .map{ file -> tuple(get_prefix(file), file) }
-        .mix(no_trim_fastqs)
-        .ifEmpty{ error "Single End Channel for HISAT is empty" }
-        .set{ single_hisat_inputs }
 
     process SingleEndHISAT {
 
-        tag "Prefix: $single_hisat_prefix"
+        tag "Prefix: $prefix"
         publishDir "${params.output}/HISAT2_out",mode:'copy'
 
         input:
-            file hisat_index from hisat_index
-            file complete_manifest_single_hisat
-            set val(single_hisat_prefix), file(single_hisat_input) from single_hisat_inputs
+            file hisat_index
+            file complete_manifest_hisat
+            set val(prefix), file(single_hisat_input) from hisat_inputs
 
         output:
-            file "*_hisat_out.sam" into hisat_single_output
+            file "*_hisat_out.sam" into hisat_output
             file "*"
             file "*_align_summary.txt" into alignment_summaries
 
         shell:
-            hisat_full_prefix = "${params.assembly}/assembly/index/${params.hisat_prefix}"
             '''
             #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep !{single_hisat_prefix} | awk -F ' ' '{print $NF}')
+            strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
             if [ ${strand} == "unstranded" ]; then
                 hisat_strand=""
             elif [ ${strand} == "forward" ]; then
@@ -971,53 +906,41 @@ if (params.sample == "single") {
             #  Run Hisat2
             !{params.hisat2} \
                 -p !{task.cpus} \
-                -x !{hisat_full_prefix} \
+                -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
                 -U !{single_hisat_input} \
-                -S !{single_hisat_prefix}_hisat_out.sam \
+                -S !{prefix}_hisat_out.sam \
                 ${hisat_strand} \
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
-                2> !{single_hisat_prefix}_align_summary.txt
+                2> !{prefix}_align_summary.txt
             '''
     }
-
-    hisat_single_output
-        .flatten()
-        .map{ file -> tuple(get_prefix(file), file) }
-        .set{ sam_to_bam_inputs }
-
 } else { // sample is paired-end
 
-    no_trim_fastqs
-        .set{ notrim_paired_hisat_inputs }
+    process PairedEndHISAT {
 
-    process PairedEndNoTrimHISAT {
-
-        tag "Prefix: $paired_notrim_hisat_prefix"
+        tag "Prefix: $prefix"
         publishDir "${params.output}/HISAT2_out",'mode':'copy'
 
         input:
-            file hisatidx from hisat_index
-            file complete_manifest_paired_hisat1
-            set val(paired_notrim_hisat_prefix), file(paired_no_trim_hisat) from notrim_paired_hisat_inputs
+            file hisat_index
+            file complete_manifest_hisat
+            set val(prefix), file(fq_files) from hisat_inputs
 
         output:
-            file "*_hisat_out.sam" into hisat_paired_notrim_output
+            file "*_hisat_out.sam" into hisat_output
             file "*"
-            file "*_align_summary.txt" into paired_notrim_alignment_summaries
+            file "*_align_summary.txt" into alignment_summaries
 
         shell:
-            file_ext = get_file_ext(paired_no_trim_hisat[0])
-            sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR" + file_ext
-            sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR" + file_ext
             if (params.unalign) {
-                unaligned_opt = "--un-conc ${paired_notrim_hisat_prefix}.fastq"
+                unaligned_opt = "--un-conc ${prefix}_discordant.fastq"
             } else {
                 unaligned_opt = ""
             }
             '''
             #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep !{paired_notrim_hisat_prefix} | awk -F ' ' '{print $NF}')
+            strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
             if [ ${strand} == "unstranded" ]; then
                 hisat_strand=""
             elif [ ${strand} == "forward" ]; then
@@ -1026,91 +949,34 @@ if (params.sample == "single") {
                 hisat_strand="--rna-strandness RF"
             fi
             
-            #  Run Hisat2
-            !{params.hisat2} \
-                -p !{task.cpus} \
-                -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
-                -1 !{sample_1_hisat} \
-                -2 !{sample_2_hisat} \
-                -S !{paired_notrim_hisat_prefix}_hisat_out.sam \
-                ${hisat_strand} \
-                --phred33 \
-                --min-intronlen !{params.min_intron_len} \
-                !{unaligned_opt} \
-                2> !{paired_notrim_hisat_prefix}_align_summary.txt
-            '''
-    }
-
-    trimmed_hisat_inputs
-        .flatten()
-        .map{ file -> tuple(get_prefix(file), file) }
-        .groupTuple()
-        .set{ trim_paired_hisat_inputs }
-
-    process PairedEndTrimmedHISAT {
-
-        tag "Prefix: $paired_trimmed_prefix"
-        publishDir "${params.output}/HISAT2_out",'mode':'copy'
-
-        input:
-            file hisatidx from hisat_index
-            file complete_manifest_paired_hisat2
-            set val(paired_trimmed_prefix), file(paired_trimmed_fastqs) from trim_paired_hisat_inputs
-
-        output:
-            file "*_hisat_out.sam" into hisat_paired_trim_output
-            file "*"
-            file "*_align_summary.txt" into paired_trim_alignment_summaries
-
-        shell:
-            file_ext=get_file_ext(paired_trimmed_fastqs[0])
-            forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired" + file_ext
-            reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired" + file_ext
-            forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired" + file_ext
-            reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_reverse_unpaired" + file_ext
-            if (params.unalign) {
-                unaligned_opt = "--un-conc ${paired_trimmed_prefix}.fastq"
-            } else {
-                unaligned_opt = ""
-            }
-            '''
-            #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep !{paired_trimmed_prefix} | awk -F ' ' '{print $NF}')
-            if [ ${strand} == "unstranded" ]; then
-                hisat_strand=""
-            elif [ ${strand} == "forward" ]; then
-                hisat_strand="--rna-strandness FR"
+            #  If this sample had unpaired trimming outputs, include them
+            if [ -f !{prefix}_unpaired_1.fastq ]; then
+                unpaired_opt='-U !{prefix}_unpaired_1.fastq,!{prefix}_unpaired_2.fastq'
             else
-                hisat_strand="--rna-strandness RF"
+                unpaired_opt=''
             fi
             
             #  Run Hisat2
             !{params.hisat2} \
                 -p !{task.cpus} \
                 -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
-                -1 !{forward_paired} \
-                -2 !{reverse_paired} \
-                -U !{forward_unpaired},!{reverse_unpaired} \
-                -S !{paired_trimmed_prefix}_hisat_out.sam \
+                -1 !{prefix}*_1.f*q* \
+                -2 !{prefix}*_2.f*q* \
+                -S !{prefix}_hisat_out.sam \
+                $unpaired_opt \
                 ${hisat_strand} \
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
                 !{unaligned_opt} \
-                2> !{paired_trimmed_prefix}_align_summary.txt
+                2> !{prefix}_align_summary.txt
             '''
     }
-
-    hisat_paired_notrim_output
-        .mix(hisat_paired_trim_output)
-        .flatten()
-        .map{ file -> tuple(get_prefix(file), file) }
-        .set{ sam_to_bam_inputs }
-
-    paired_trim_alignment_summaries
-        .mix(paired_notrim_alignment_summaries)
-        .flatten()
-        .set{ alignment_summaries } // think this is causing conflicts...
 }
+
+hisat_output
+    .flatten()
+    .map{ file -> tuple(get_prefix(file), file) }
+    .set{ sam_to_bam_inputs }
 
 /*
  * Step 3b: Sam to Bam 
