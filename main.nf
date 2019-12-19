@@ -965,7 +965,7 @@ if (params.sample == "single") {
                 -1 !{prefix}*_1.f*q* \
                 -2 !{prefix}*_2.f*q* \
                 -S !{prefix}_hisat_out.sam \
-                $unpaired_opt \
+                ${unpaired_opt} \
                 ${hisat_strand} \
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
