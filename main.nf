@@ -962,8 +962,8 @@ if (params.sample == "single") {
             !{params.hisat2} \
                 -p !{task.cpus} \
                 -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
-                -1 !{prefix}*_1.f*q* \
-                -2 !{prefix}*_2.f*q* \
+                -1 !{prefix}*trimmed*_1.f*q* \
+                -2 !{prefix}*trimmed*_2.f*q* \
                 -S !{prefix}_hisat_out.sam \
                 ${unpaired_opt} \
                 ${hisat_strand} \
