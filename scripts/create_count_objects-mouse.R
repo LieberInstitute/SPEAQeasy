@@ -22,6 +22,7 @@ spec <- matrix(c(
   'ercc', 'c', 1, 'logical', 'Whether the reads include ERCC or not',
   'cores', 't', 1, 'integer', 'Number of cores to use',
   'stranded', 's', 1, 'character', "Strandedness of the data: Either 'FALSE', 'forward' or 'reverse'",
+  'salmon', 'n', 1, 'logical', 'Whether to use salmon quants rather than kallisto',
   'help' , 'h', 0, 'logical', 'Display help'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
@@ -60,34 +61,48 @@ metrics <- data.frame('SAMPLE_ID' = manifest[, ncol(manifest)-1],
                       stringsAsFactors = FALSE)
 N <- length(metrics$SAMPLE_ID)
 
-
-############################################################
-###### salmon quantification
-
 sampIDs = as.vector(metrics$SAMPLE_ID)
 
-##observed tpm and number of reads
-txTpm = bplapply(sampIDs, function(x) {
-  read.table(file.path(paste0(x, "_quant.sf")),header = TRUE)$TPM },
-  BPPARAM = MulticoreParam(opt$cores))
-txTpm = do.call(cbind,txTpm)
-
-txNumReads = bplapply(sampIDs, function(x) {
-  read.table(file.path(paste0(x, "_quant.sf")),header = TRUE)$NumReads },
-  BPPARAM = MulticoreParam(opt$cores))
-txNumReads = do.call(cbind,txNumReads)
+if (opt$salmon) {
+    ############################################################
+    ###### salmon quantification
+    
+    ##observed tpm and number of reads
+    txTpm = bplapply(sampIDs, function(x) {
+      read.table(file.path(paste0(x, "_quant.sf")),header = TRUE)$TPM },
+      BPPARAM = MulticoreParam(opt$cores))
+    txTpm = do.call(cbind,txTpm)
+    
+    txNumReads = bplapply(sampIDs, function(x) {
+      read.table(file.path(paste0(x, "_quant.sf")),header = TRUE)$NumReads },
+      BPPARAM = MulticoreParam(opt$cores))
+    txNumReads = do.call(cbind,txNumReads)
+    
+    #get names of transcripts
+    txNames = read.table(file.path(".", paste0(sampIDs[1], "_quant.sf")),
+                     header = TRUE)$Name
+txNames = as.character(txNames)
+} else {
+    #######################################################################
+    #  Kallisto quantification 
+    #######################################################################
+    txMatrices = bplapply(sampIDs, function(x) {
+        read.table(paste0(x, "_abundance.tsv"),header = TRUE)}, 
+        BPPARAM = MulticoreParam(opt$cores))
+        
+    txTpm = do.call(cbind,lapply(txMatrices, function(x) x$tpm))
+    txNumReads = do.call(cbind,lapply(txMatrices, function(x) x$est_counts))
+    txNames = as.character(txMatrices[[1]]$target_id)
+    rm(txMatrices)
+}
 
 colnames(txTpm) = colnames(txNumReads) = sampIDs
 
-#get names of transcripts
-txNames = read.table(file.path(".", paste0(sampIDs[1], "_quant.sf")),
-                     header = TRUE)$Name
-txNames = as.character(txNames)
 txMap = t(ss(txNames, "\\|",c(1,7,2,6,8)))
 txMap = as.data.frame(txMap)
 rm(txNames)
-colnames(txMap) = c("gencodeTx","txLength","gencodeID","Symbol","gene_type")
 
+colnames(txMap) = c("gencodeTx","txLength","gencodeID","Symbol","gene_type")
 rownames(txMap) = rownames(txTpm) = rownames(txNumReads) = txMap$gencodeTx
 
 
