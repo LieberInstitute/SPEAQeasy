@@ -292,7 +292,7 @@ if (opt$salmon) {
     txNames = as.character(txNames)
 } else {
     #######################################################################
-    #  Use Kallisto quantification (also is the InferExperiment step)
+    #  Kallisto quantification 
     #######################################################################
     txMatrices = bplapply(sampIDs, function(x) {
         read.table(paste0(x, "_abundance.tsv"),header = TRUE)}, 
