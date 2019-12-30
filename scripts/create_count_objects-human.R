@@ -797,6 +797,7 @@ save(rse_jx, file = paste0('rse_jx_', EXPNAME, '_n', N, '.Rdata'))
 ## transcript
 tx = gencodeGTF[which(gencodeGTF$type == "transcript")]
 names(tx) = tx$transcript_id
+txTpm = txTpm[which(rownames(txTpm) %in% names(tx)),]
 txMap = tx[rownames(txTpm)]
 rse_tx = SummarizedExperiment(
 	assays = list('tpm' = txTpm),
