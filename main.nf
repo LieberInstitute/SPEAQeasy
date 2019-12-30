@@ -202,11 +202,6 @@ if (params.small_test) {
 // Define Reference Paths/Scripts + Reference-dependent Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-params.assembly = "${params.annotation}/reference/${params.reference}"
-params.hisat_prefix = "hisat2_assembly_${params.reference}"
-params.salmon_prefix = "salmon_index_${params.reference}.transcripts"
-chr_sizes = file("${params.annotation}/chrom_sizes/${params.reference}.chrom.sizes")
-
 // Variant calling is only enabled for human
 if (params.reference_type == "human") {
     params.step8 = true
@@ -216,76 +211,62 @@ if (params.reference_type == "human") {
 }
 
 if (params.reference == "hg38") {
+  params.gencode_version = params.gencode_version_human
+  params.gencode_suffix = params.reference + '_gencode_v' + params.gencode_version + '_main'
 	
 	// Step 3: hisat2
-	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz"
+	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/GRCh38.primary_assembly.genome.fa.gz"
 
 	// Step 4: gencode gtf
-	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz"
-	params.feature_output_prefix = "Gencode.v25.hg38"
+	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/gencode.v${params.gencode_version_human}.annotation.gtf.gz"
 
 	// Step 6: transcript quantification
-	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
+	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/gencode.v${params.gencode_version}.transcripts.fa.gz"
 
-	// Step 7: Make R objects	
-	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg38_gencode_v25.rda")
-	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg38_ensembl_v85.rda")
-	junction_annotation_genes = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
-	feature_to_tx_gencode = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
-	feature_to_tx_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
+    // Our extra exon annotation if user defaults to gencode release 25
     exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
 
-}
-if (params.reference == "hg19") {
+} else if (params.reference == "hg19") {
+  params.gencode_version = params.gencode_version_human
+  params.gencode_suffix = params.reference + '_gencode_v' + params.gencode_version + 'lift37_main'
 	
 	// Step 3: hisat2
-	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
+	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
 	
 	// Step 4: gencode gtf
-	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"
-	params.feature_output_prefix = "Gencode.v25lift37.hg19"
+	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/GRCh37_mapping/gencode.v${params.gencode_version}lift37.annotation.gtf.gz"
 
 	// Step 6: transcript quantification
-	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
+	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/GRCh37_mapping/gencode.v${params.gencode_version}lift37.transcripts.fa.gz"
 
-	// Step 7: Make R objects
-	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_gencode_v25lift37.rda")
-	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_ensembl_v75.rda")
-	junction_annotation_genes = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
-	feature_to_tx_gencode = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
-	feature_to_tx_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
-
-}
-if (params.reference == "mm10") {
+} else if (params.reference == "mm10") {
+  params.gencode_version = params.gencode_version_mouse
+  params.gencode_suffix = params.reference + '_gencode_' + params.gencode_version + '_main'
 
 	// Step 3: hisat2
-	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/GRCm38.primary_assembly.genome.fa.gz"
+	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.gencode_version}/GRCm38.primary_assembly.genome.fa.gz"
 
 	// Step 4: gencode gtf
-	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.annotation.gtf.gz"
-	params.feature_output_prefix = "Gencode.M11.mm10"
+	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.gencode_version}/gencode.v${params.gencode_version}.annotation.gtf.gz"
 
 	// Step 6: transcript quantification
-	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
+	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.gencode_version}/gencode.v${params.gencode_version}.transcripts.fa.gz"
 
-	// Step 7: Make R objects
-	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
-	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
 }
 if (params.reference == "rn6") {
 
-	// Step 3: hisat2
-	params.fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
+    // Step 3: hisat2
+    params.fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
 
-	// Step 4: gencode gtf (ensembl for rn6)
-	params.gencode_gtf_link = "ftp://ftp.ensembl.org/pub/release-86/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
-	params.feature_output_prefix = "Rnor_6.0.86"
-	
-	// Step 6: transcript quantification
+    // Step 4: gencode gtf (ensembl for rn6)
+    params.gencode_gtf_link = "ftp://ftp.ensembl.org/pub/release-86/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
+    params.feature_output_prefix = "Rnor_6.0.86"
+
+    // Step 6: transcript quantification
     params.tx_fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/cdna/Rattus_norvegicus.Rnor_6.0.cdna.all.fa.gz"
 
-	// Step 7: Make R objects
-	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
+    // Step 7: Make R objects
+    junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
 
 }
 
@@ -372,18 +353,52 @@ log.info "==========================================="
 // if it already exists
 process pullGENCODEassemblyfa {
 
-  tag "Downloading Assembly FA File: ${baseName}"
-  storeDir "${params.assembly}/assembly/fa"
+    tag "Downloading Assembly FA File: ${baseName}"
+    storeDir "${params.annotation}/reference/${params.reference}/assembly/fa"
+        
+    output:
+        file "${out_fasta}" into reference_assembly, variant_assembly, annotation_assembly
 
-	output:
-	  file "${baseName}" into reference_assembly, variant_assembly
-
-	shell:
-      baseName = file("${params.fa_link}").getName() - ".gz"
-	  '''
-      wget "!{params.fa_link}"
-      gunzip "!{baseName}.gz"
-      '''
+    shell:
+        //  Name of the primary assembly fasta
+        baseName = file("${params.fa_link}").getName() - ".gz"
+        
+        //  Which fasta to use for this pipeline execution instance
+        if (params.gencode_build == "main") {
+            out_fasta = "assembly_${params.gencode_suffix}.fa"
+        } else {
+            out_fasta = baseName
+        }
+        '''
+        #  Pull and unzip primary assembly fasta, if this hasn't been done. Otherwise
+        #  symbolically link the fasta into the working directory
+        if [ -f !{params.annotation}/reference/!{params.reference}/assembly/fa/!{baseName} ]; then
+            ln -s !{params.annotation}/reference/!{params.reference}/assembly/fa/!{baseName} !{baseName}
+        else
+            wget "!{params.fa_link}"
+            gunzip "!{baseName}.gz"
+        fi
+        
+        #######################################################################
+        #  Create the "main" fasta of canonical seqs only
+        #######################################################################
+        
+        #  Determine how many chromosomes/seqs to keep
+        if [ !{params.reference_type} == "human" ]; then
+            num_chrs=25
+        elif [ !{params.reference} == "mm10" ]; then
+            num_chrs=22
+        else
+            num_chrs=23
+        fi
+        
+        #  Find the line of the header for the first extra contig (to not
+        #  include in the "main" annotation fasta
+        first_bad_line=$(grep -n ">" !{baseName} | cut -d : -f 1 | paste -s | cut -f $(($num_chrs + 1)))
+        
+        #  Make a new file out of all the lines up and not including that
+        sed -n "1,$(($first_bad_line - 1))p;${first_bad_line}q" !{baseName} > assembly_!{params.gencode_suffix}.fa
+        '''
 }
 
 /*
@@ -394,25 +409,22 @@ process pullGENCODEassemblyfa {
 // files if they do already exist
 process buildHISATindex {
 		
-  tag "Building HISAT2 Index: ${params.hisat_prefix}"
-  storeDir "${params.assembly}/assembly/index"
+  tag "Building HISAT2 Index: ${hisat_prefix}"
+  storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
 
   input:
     file reference_fasta from reference_assembly
 
   output:
-    file("${params.hisat_prefix}.*") into hisat_index_built
+    file("${hisat_prefix}.*") into hisat_index
 
   shell:
+    hisat_prefix = "hisat2_assembly_${params.gencode_suffix}"
     '''
-    !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{params.hisat_prefix}
+    !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{hisat_prefix}
     '''
 }
 
-// Channel post-processing
-hisat_index_built // get every *.ht2 file in this channel
-	.toList() // group every *.ht2 item into a single list
-	.set{ hisat_index } // pass *.ht2 list to a new channel
 
 /*
  * Step II: GENCODE GTF Download
@@ -423,20 +435,50 @@ hisat_index_built // get every *.ht2 file in this channel
 // file if it does already exist
 process pullGENCODEgtf {
 
-  tag "Downloading GTF File: ${baseName}"
-  storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
+    tag "Downloading GTF File: ${baseName}"
+    storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
 
-  output:
-    file "${baseName}" into create_counts_gtf, gencode_feature_gtf
+    output:
+        file "${out_gtf}" into create_counts_gtf, gencode_feature_gtf, annotation_gtf
 
-  shell:
-    baseName = file("${params.gencode_gtf_link}").getName() - ".gz"
-    '''
-    wget "!{params.gencode_gtf_link}"
-    gunzip "!{baseName}.gz"
-    '''
+    shell:
+        baseName = file("${params.gencode_gtf_link}").getName() - ".gz"
+
+        //  Which fasta to use for this pipeline execution instance
+        if (params.gencode_build == "main") {
+            out_gtf = "transcripts_${params.gencode_suffix}.gtf"
+        } else {
+            out_gtf = baseName
+        }
+        '''
+        #  Pull and unzip transcript gtf
+        wget "!{params.gencode_gtf_link}"
+        gunzip "!{baseName}.gz"
+
+        #  Create the "main" transcripts gtf excluding non-canonical contigs
+        grep -E "^(chr|#).*" !{baseName} > transcripts_!{params.gencode_suffix}.gtf
+        '''
 }
 
+process BuildAnnotationObjects {
+
+  storeDir "${params.annotation}/junction_txdb"
+  
+  input:
+      file annotation_assembly
+      file annotation_gtf
+      file build_ann_script from file("${params.scripts}/build_annotation_objects_gencode.R")
+      
+  output:
+      file "junction_annotation_${params.gencode_suffix}.rda" into junction_annotation_gencode
+      file "feature_to_Tx_${params.gencode_suffix}.rda" into feature_to_tx_gencode
+      file "chrom_sizes_${params.gencode_suffix}" into chr_sizes
+      
+  shell:
+      '''
+      !{params.Rscript} !{build_ann_script} -r !{params.reference} -v !{params.gencode_version} -t "main"
+      '''
+}
 
 /*
  * Step IIIa: GENCODE TX FA Download
@@ -447,7 +489,7 @@ process pullGENCODEgtf {
 process pullGENCODEtranscripts {
 			
     tag "Downloading TX FA File: ${baseName}"
-    storeDir "${params.assembly}/transcripts/fa"
+    storeDir "${params.annotation}/reference/${params.reference}/transcripts/fa"
 
     output:
         file baseName into transcript_fa
@@ -468,43 +510,43 @@ process pullGENCODEtranscripts {
 // this cached file otherwise
 process buildSALMONindex {
 
-    tag "Building Salmon Index: ${params.salmon_prefix}"
-    storeDir "${params.assembly}/transcripts/salmon"
+    tag "Building Salmon Index: salmon_index_${params.gencode_suffix}"
+    storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon"
 
     input:
       file transcript_fa
 
     output:
-      file("${params.salmon_prefix}") into salmon_index
+      file("salmon_index_${params.gencode_suffix}") into salmon_index
       file("build_salmon_index.log")
 
     script:
       """
       ${params.salmon} index \
           -t $transcript_fa \
-          -i ${params.salmon_prefix} \
+          -i salmon_index_${params.gencode_suffix} \
           -p $task.cpus \
           --gencode \
           -k ${params.salmon_min_read_len}
-      cp .command.log build_salmon_index.log
+      cp .command.log build_salmon_index_${params.gencode_suffix}.log
       """
 }
 
 process BuildKallistoIndex {
 
-    storeDir "${params.assembly}/transcripts/kallisto"
+    storeDir "${params.annotation}/reference/${params.reference}/transcripts/kallisto"
     
     input:
         file transcript_fa
 
     output:
-        file "kallisto.idx" into kallisto_index
-        file "build_kallisto_index.log"
+        file "kallisto_index_${params.gencode_suffix}" into kallisto_index
+        file "build_kallisto_index_${params.gencode_suffix}.log"
 
     shell:
         '''
-        !{params.kallisto} index -i kallisto.idx !{transcript_fa}
-        cp .command.log build_kallisto_index.log
+        !{params.kallisto} index -i kallisto_index_!{params.gencode_suffix} !{transcript_fa}
+        cp .command.log build_kallisto_index_!{params.gencode_suffix}.log
         '''
 }
 
@@ -589,9 +631,9 @@ process InferStrandness {
         
             #  Try pseduoalignment to chr21 assuming each type of strandness possible
             echo "Testing pseudoalignment assuming forward-strandness..."
-            !{params.kallisto} quant -t !{task.cpus} --fr-stranded -i *.idx -o ./forward test_1.fastq test_2.fastq
+            !{params.kallisto} quant -t !{task.cpus} --fr-stranded -i kallisto_index_* -o ./forward test_1.fastq test_2.fastq
             echo "Testing pseudoalignment assuming reverse-strandness..."
-            !{params.kallisto} quant -t !{task.cpus} --rf-stranded -i *.idx -o ./reverse test_1.fastq test_2.fastq
+            !{params.kallisto} quant -t !{task.cpus} --rf-stranded -i kallisto_index_* -o ./reverse test_1.fastq test_2.fastq
         else
             fq=$(ls *.f*q*)
             
@@ -610,7 +652,7 @@ process InferStrandness {
                 -l !{params.kallisto_len_mean} \
                 -s !{params.kallisto_len_sd} \
                 --fr-stranded \
-                -i *.idx \
+                -i kallisto_index_* \
                 -o ./forward test.fastq
             echo "Testing pseudoalignment assuming reverse-strandness..."
             !{params.kallisto} quant \
@@ -619,7 +661,7 @@ process InferStrandness {
                 -l !{params.kallisto_len_mean} \
                 -s !{params.kallisto_len_sd} \
                 --rf-stranded \
-                -i *.idx \
+                -i kallisto_index_* \
                 -o ./reverse test.fastq
         fi
         
@@ -908,7 +950,7 @@ if (params.sample == "single") {
             #  Run Hisat2
             !{params.hisat2} \
                 -p !{task.cpus} \
-                -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
+                -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.gencode_suffix} \
                 -U !{single_hisat_input} \
                 -S !{prefix}_hisat_out.sam \
                 ${hisat_strand} \
@@ -961,7 +1003,7 @@ if (params.sample == "single") {
             #  Run Hisat2
             !{params.hisat2} \
                 -p !{task.cpus} \
-                -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
+                -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.gencode_suffix} \
                 -1 !{prefix}*trimmed*_1.f*q* \
                 -2 !{prefix}*trimmed*_2.f*q* \
                 -S !{prefix}_hisat_out.sam \
@@ -1032,7 +1074,7 @@ process FeatureCounts {
         } else {
             sample_option = "-p"
         }
-        feature_out = "${feature_prefix}_${params.feature_output_prefix}"
+        feature_out = "${feature_prefix}_${params.gencode_suffix}"
  
         """
         #  Find this sample's strandness and determine strand flag
@@ -1323,7 +1365,7 @@ if (params.use_salmon) {
                 fq1=$(ls *_1.f*q*)
                 fq2=$(ls *_2.f*q*)
             
-                !{params.kallisto} quant -t !{task.cpus} $strand_flag -i *.idx -o . $fq1 $fq2
+                !{params.kallisto} quant -t !{task.cpus} $strand_flag -i !{kallisto_index} -o . $fq1 $fq2
             else
                 fq=$(ls *.f*q*)
                 
@@ -1333,7 +1375,7 @@ if (params.use_salmon) {
                     -l !{params.kallisto_len_mean} \
                     -s !{params.kallisto_len_sd} \
                     $strand_flag \
-                    -i *.idx \
+                    -i !{kallisto_index} \
                     -o . $fq
             fi
             
@@ -1349,12 +1391,12 @@ if (params.use_salmon) {
 
 count_objects_bam_files // this puts sorted.bams and bais into the channel
   .flatten()
-  .mix(count_objects_quality_reports) //this puts sample_XX_summary.txt files into the channel
+  .mix(count_objects_quality_reports) // this puts sample_XX_summary.txt files into the channel
   .mix(count_objects_quality_metrics) // this puts sample_XX_fastqc_data.txt into the channel
   .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
   .mix(create_counts_gtf) // this puts gencode.v25.annotation.gtf file into the channel
-  .mix(sample_counts) // !! this one puts sample_05_Gencode.v25.hg38_Exons.counts and sample_05_Gencode.v25.hg38_Genes.counts into the channel
-  .mix(regtools_outputs) // !! this one includes the missing *_junctions_primaryOnly_regtools.count files for the CountObjects process
+  .mix(sample_counts) // this puts sample_XX_*_Exons.counts and sample_XX_*_Genes.counts into the channel
+  .mix(regtools_outputs) // this puts the *_junctions_primaryOnly_regtools.count files into the channel
   .mix(tx_quants)
   .set{counts_objects_channel_1}
 
@@ -1378,32 +1420,23 @@ if (params.ercc) {
  */
 
 //  Mix with reference-dependent annotation info
-if(params.reference == "hg19") {
-  junction_annotation_ensembl
-    .mix(junction_annotation_genes)
-    .mix(junction_annotation_gencode)
-    .mix(feature_to_tx_gencode)
-    .mix(feature_to_tx_ensembl)
-    .toSortedList()
-    .set{counts_annotations}
-} else if (params.reference == "hg38") {
-  junction_annotation_ensembl
-    .mix(junction_annotation_genes)
-    .mix(junction_annotation_gencode)
-    .mix(feature_to_tx_gencode)
-    .mix(feature_to_tx_ensembl)
-    .mix(exon_maps_by_coord_hg38)
-    .toSortedList()
-    .set{counts_annotations}
+if(params.reference == "hg19" || (params.reference == "hg38" && params.gencode_version != 25)) {
+    junction_annotation_gencode
+        .mix(feature_to_tx_gencode)
+        .toList()
+        .set{counts_annotations}
+} else if (params.reference == "hg38" && params.gencode_version == 25) {
+    junction_annotation_gencode
+        .mix(feature_to_tx_gencode)
+        .mix(exon_maps_by_coord_hg38)
+        .toList()
+        .set{counts_annotations}
 } else if (params.reference == "mm10") {
-  junction_annotation_ensembl
-    .mix(junction_annotation_gencode)
-    .toSortedList()
-    .set{counts_annotations}
+    junction_annotation_gencode
+        .set{counts_annotations}
 } else {  // rat
-  junction_annotation_ensembl
-    .toSortedList()
-    .set{counts_annotations}
+    junction_annotation_ensembl
+        .set{counts_annotations}
 }
 
 /*
@@ -1415,8 +1448,8 @@ process CountObjects {
     publishDir "${params.output}/Count_Objects",'mode':'copy'
 
     input:
-        file counts_input from counts_inputs
-        file counts_annotation from counts_annotations
+        file counts_inputs
+        file counts_annotations
         file create_counts from file("${params.scripts}/create_count_objects-${params.reference_type}.R")
         file ercc_actual_conc from file("${params.annotation}/ERCC/ercc_actual_conc.txt")
         file complete_manifest_counts
@@ -1436,7 +1469,15 @@ process CountObjects {
             counts_strand = "-s " + params.strand
         }
         '''
-        !{params.Rscript} !{create_counts} -o !{params.reference} -m ./ -e !{params.experiment} -p !{params.prefix} -l !{counts_pe} -c !{params.ercc} -t !{task.cpus} !{counts_strand} -n !{params.use_salmon}
+        !{params.Rscript} !{create_counts} \
+            -o !{params.reference} \
+            -e !{params.experiment} \
+            -p !{params.prefix} \
+            -l !{counts_pe} \
+            -c !{params.ercc} \
+            -t !{task.cpus} \
+            !{counts_strand} \
+            -n !{params.use_salmon}
 
         cp .command.log counts.log
         '''
