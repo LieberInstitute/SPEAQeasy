@@ -506,30 +506,32 @@ process pullGENCODEtranscripts {
  * Step IIIb: Build transcript index for Salmon or Kallisto
  */
 
-// Uses "storeDir" to build salmon index only if the pre-built file is not present; outputs
+// Uses "storeDir" to build the index only if the built file is not present; outputs
 // this cached file otherwise
-process buildSALMONindex {
-
-    tag "Building Salmon Index: salmon_index_${params.gencode_suffix}"
-    storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon"
-
-    input:
-      file transcript_fa
-
-    output:
-      file("salmon_index_${params.gencode_suffix}") into salmon_index
-      file("build_salmon_index.log")
-
-    script:
-      """
-      ${params.salmon} index \
-          -t $transcript_fa \
-          -i salmon_index_${params.gencode_suffix} \
-          -p $task.cpus \
-          --gencode \
-          -k ${params.salmon_min_read_len}
-      cp .command.log build_salmon_index_${params.gencode_suffix}.log
-      """
+if (params.use_salmon) {
+    process buildSALMONindex {
+    
+        tag "Building Salmon Index: salmon_index_${params.gencode_suffix}"
+        storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon"
+    
+        input:
+          file transcript_fa
+    
+        output:
+          file("salmon_index_${params.gencode_suffix}") into salmon_index
+          file("build_salmon_index.log")
+    
+        script:
+          """
+          ${params.salmon} index \
+              -t $transcript_fa \
+              -i salmon_index_${params.gencode_suffix} \
+              -p $task.cpus \
+              --gencode \
+              -k ${params.salmon_min_read_len}
+          cp .command.log build_salmon_index_${params.gencode_suffix}.log
+          """
+    }
 }
 
 process BuildKallistoIndex {
