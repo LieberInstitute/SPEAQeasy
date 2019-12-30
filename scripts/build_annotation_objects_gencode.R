@@ -17,7 +17,11 @@ spec <- matrix(c(
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
 
-suffix = paste0('_', opt$reference, '_gencode_v', opt$version, '_', opt$type)
+if (opt$reference == "hg19") {
+    suffix = paste0('_', opt$reference, '_gencode_v', opt$version, 'lift37_', opt$type)
+} else {
+    suffix = paste0('_', opt$reference, '_gencode_v', opt$version, '_', opt$type)
+}
 
 ########################################################
 #  Create chrom sizes file from assembly fasta
