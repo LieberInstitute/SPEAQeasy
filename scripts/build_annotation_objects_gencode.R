@@ -19,8 +19,10 @@ opt <- getopt(spec)
 
 if (opt$reference == "hg19") {
     suffix = paste0('_', opt$reference, '_gencode_v', opt$version, 'lift37_', opt$type)
-} else {
+} else if (opt$reference == "hg38") {
     suffix = paste0('_', opt$reference, '_gencode_v', opt$version, '_', opt$type)
+} else {
+    suffix = paste0('_', opt$reference, '_gencode_', opt$version, '_', opt$type)
 }
 
 ########################################################
