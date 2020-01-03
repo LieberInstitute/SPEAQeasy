@@ -28,18 +28,16 @@ vim: syntax=groovy
    Preprocessing:
 	-   Ia: Download Assembly FA
 	-   Ib: Build HISAT Index
-	-  IIa: Download GENCODE GTF File
-	-  IIb: Build Bed File
-	- IIIa: Download Salmon TX FA
-	- IIIb: Build Salmon Index
+	-   II: Download GENCODE GTF File
+	- IIIa: Download Transcript Fasta
+	- IIIb: Build Salmon or Kallisto Index
 	Sample Processing:
 	-   A: Input preprocessing
 	-   B: ERCC Quality Analysis (Optional)
 	-   1: FastQC Quality Analysis
-	-  2a: Adaptive Trimming Filter (Sample Dependent)
-	-  2b: File Trimming (Sample Dependent)
-	-  2c: FastQC Trimmed Quality Analysis (Sample Dependent)
-	-  3a: Hisat2 Index Creation
+	-  2a: File Trimming (Sample-dependent)
+	-  2b: FastQC on trimmed samples
+	-  3a: Hisat2 Alignment
 	-  3b: Convert Sam to Bam
 	-  4a: Feature Counts
 	-  4b: Primary Alignments
@@ -47,7 +45,7 @@ vim: syntax=groovy
 	-  5a: Coverage
 	-  5b: WigtoBigWig
 	-  5c: Mean Coverage
-	-   6: Salmon TXQuant
+	-   6: Transcript Quantification (Salmon or Kallisto)
 	-  7a: Create Counts Objects
 	-  7b: Create Coverage Objects
 	-  8a: Call Variants
@@ -204,11 +202,6 @@ if (params.small_test) {
 // Define Reference Paths/Scripts + Reference-dependent Parameters
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-params.assembly = "${params.annotation}/reference/${params.reference}"
-params.hisat_prefix = "hisat2_assembly_${params.reference}"
-params.salmon_prefix = "salmon_index_${params.reference}.transcripts"
-chr_sizes = file("${params.annotation}/chrom_sizes/${params.reference}.chrom.sizes")
-
 // Variant calling is only enabled for human
 if (params.reference_type == "human") {
     params.step8 = true
@@ -218,76 +211,62 @@ if (params.reference_type == "human") {
 }
 
 if (params.reference == "hg38") {
+  params.gencode_version = params.gencode_version_human
+  params.gencode_suffix = params.reference + '_gencode_v' + params.gencode_version + '_main'
 	
 	// Step 3: hisat2
-	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh38.primary_assembly.genome.fa.gz"
+	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/GRCh38.primary_assembly.genome.fa.gz"
 
 	// Step 4: gencode gtf
-	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.annotation.gtf.gz"
-	params.feature_output_prefix = "Gencode.v25.hg38"
+	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/gencode.v${params.gencode_version_human}.annotation.gtf.gz"
 
-	// Step 6: salmon
-	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/gencode.v25.transcripts.fa.gz"
+	// Step 6: transcript quantification
+	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/gencode.v${params.gencode_version}.transcripts.fa.gz"
 
-	// Step 7: Make R objects	
-	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg38_gencode_v25.rda")
-	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg38_ensembl_v85.rda")
-	junction_annotation_genes = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg38_refseq_grch38.rda")
-	feature_to_tx_gencode = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_hg38_gencode_v25.rda")
-	feature_to_tx_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_ensembl_v85.rda")
+    // Our extra exon annotation if user defaults to gencode release 25
     exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
 
-}
-if (params.reference == "hg19") {
+} else if (params.reference == "hg19") {
+  params.gencode_version = params.gencode_version_human
+  params.gencode_suffix = params.reference + '_gencode_v' + params.gencode_version + 'lift37_main'
 	
 	// Step 3: hisat2
-	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
+	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
 	
 	// Step 4: gencode gtf
-	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.annotation.gtf.gz"
-	params.feature_output_prefix = "Gencode.v25lift37.hg19"
+	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/GRCh37_mapping/gencode.v${params.gencode_version}lift37.annotation.gtf.gz"
 
-	// Step 6: salmon
-	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_25/GRCh37_mapping/gencode.v25lift37.transcripts.fa.gz"
+	// Step 6: transcript quantification
+	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.gencode_version}/GRCh37_mapping/gencode.v${params.gencode_version}lift37.transcripts.fa.gz"
 
-	// Step 7: Make R objects
-	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_gencode_v25lift37.rda")
-	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_ensembl_v75.rda")
-	junction_annotation_genes = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_hg19_refseq_grch37.rda")
-	feature_to_tx_gencode = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_hg19_gencode_v25lift37.rda")
-	feature_to_tx_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/feature_to_Tx_ensembl_v75.rda")
-
-}
-if (params.reference == "mm10") {
+} else if (params.reference == "mm10") {
+  params.gencode_version = params.gencode_version_mouse
+  params.gencode_suffix = params.reference + '_gencode_' + params.gencode_version + '_main'
 
 	// Step 3: hisat2
-	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/GRCm38.primary_assembly.genome.fa.gz"
+	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.gencode_version}/GRCm38.primary_assembly.genome.fa.gz"
 
 	// Step 4: gencode gtf
-	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.annotation.gtf.gz"
-	params.feature_output_prefix = "Gencode.M11.mm10"
+	params.gencode_gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.gencode_version}/gencode.v${params.gencode_version}.annotation.gtf.gz"
 
-	// Step 6: salmon
-	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M11/gencode.vM11.transcripts.fa.gz"
+	// Step 6: transcript quantification
+	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.gencode_version}/gencode.v${params.gencode_version}.transcripts.fa.gz"
 
-	// Step 7: Make R objects
-	junction_annotation_gencode = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_mm10_gencode_vM11.rda")
-	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_mm10_ensembl_v86.rda")
 }
 if (params.reference == "rn6") {
 
-	// Step 3: hisat2
-	params.fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
+    // Step 3: hisat2
+    params.fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
 
-	// Step 4: gencode gtf (ensembl for rn6)
-	params.gencode_gtf_link = "ftp://ftp.ensembl.org/pub/release-86/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
-	params.feature_output_prefix = "Rnor_6.0.86"
-	
-	// Step 6: Salmon
+    // Step 4: gencode gtf (ensembl for rn6)
+    params.gencode_gtf_link = "ftp://ftp.ensembl.org/pub/release-86/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.86.gtf.gz"
+    params.feature_output_prefix = "Rnor_6.0.86"
+
+    // Step 6: transcript quantification
     params.tx_fa_link = "ftp://ftp.ensembl.org/pub/release-86/fasta/rattus_norvegicus/cdna/Rattus_norvegicus.Rnor_6.0.cdna.all.fa.gz"
 
-	// Step 7: Make R objects
-	junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
+    // Step 7: Make R objects
+    junction_annotation_ensembl = Channel.fromPath("${params.annotation}/junction_txdb/junction_annotation_rn6_ensembl_v86.rda")
 
 }
 
@@ -297,7 +276,7 @@ if (params.reference == "rn6") {
 
 def get_prefix(f) {
   //  Remove these regardless of position in the string
-  String blackListAny = "_summary|_TR|_TNR|_trimmed|_reverse_paired|_1|_2|_reverse_unpaired|_forward_paired|_forward_unpaired|_hisat_out"
+  String blackListAny = "_summary|_trimmed|_untrimmed|_unpaired|_paired|_1|_2|_hisat_out"
   
   f.name.toString()
    .replaceAll("_read1.", ".")
@@ -374,18 +353,52 @@ log.info "==========================================="
 // if it already exists
 process pullGENCODEassemblyfa {
 
-  tag "Downloading Assembly FA File: ${baseName}"
-  storeDir "${params.assembly}/assembly/fa"
+    tag "Downloading Assembly FA File: ${baseName}"
+    storeDir "${params.annotation}/reference/${params.reference}/assembly/fa"
+        
+    output:
+        file "${out_fasta}" into reference_assembly, variant_assembly, annotation_assembly
 
-	output:
-	  file "${baseName}" into reference_assembly, variant_assembly
-
-	shell:
-      baseName = file("${params.fa_link}").getName() - ".gz"
-	  '''
-      wget "!{params.fa_link}"
-      gunzip "!{baseName}.gz"
-      '''
+    shell:
+        //  Name of the primary assembly fasta
+        baseName = file("${params.fa_link}").getName() - ".gz"
+        
+        //  Which fasta to use for this pipeline execution instance
+        if (params.gencode_build == "main") {
+            out_fasta = "assembly_${params.gencode_suffix}.fa"
+        } else {
+            out_fasta = baseName
+        }
+        '''
+        #  Pull and unzip primary assembly fasta, if this hasn't been done. Otherwise
+        #  symbolically link the fasta into the working directory
+        if [ -f !{params.annotation}/reference/!{params.reference}/assembly/fa/!{baseName} ]; then
+            ln -s !{params.annotation}/reference/!{params.reference}/assembly/fa/!{baseName} !{baseName}
+        else
+            wget "!{params.fa_link}"
+            gunzip "!{baseName}.gz"
+        fi
+        
+        #######################################################################
+        #  Create the "main" fasta of canonical seqs only
+        #######################################################################
+        
+        #  Determine how many chromosomes/seqs to keep
+        if [ !{params.reference_type} == "human" ]; then
+            num_chrs=25
+        elif [ !{params.reference} == "mm10" ]; then
+            num_chrs=22
+        else
+            num_chrs=23
+        fi
+        
+        #  Find the line of the header for the first extra contig (to not
+        #  include in the "main" annotation fasta
+        first_bad_line=$(grep -n ">" !{baseName} | cut -d : -f 1 | paste -s | cut -f $(($num_chrs + 1)))
+        
+        #  Make a new file out of all the lines up and not including that
+        sed -n "1,$(($first_bad_line - 1))p;${first_bad_line}q" !{baseName} > assembly_!{params.gencode_suffix}.fa
+        '''
 }
 
 /*
@@ -396,28 +409,25 @@ process pullGENCODEassemblyfa {
 // files if they do already exist
 process buildHISATindex {
 		
-  tag "Building HISAT2 Index: ${params.hisat_prefix}"
-  storeDir "${params.assembly}/assembly/index"
+  tag "Building HISAT2 Index: ${hisat_prefix}"
+  storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
 
   input:
     file reference_fasta from reference_assembly
 
   output:
-    file("${params.hisat_prefix}.*") into hisat_index_built
+    file("${hisat_prefix}.*") into hisat_index
 
   shell:
+    hisat_prefix = "hisat2_assembly_${params.gencode_suffix}"
     '''
-    !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{params.hisat_prefix}
+    !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{hisat_prefix}
     '''
 }
 
-// Channel post-processing
-hisat_index_built // get every *.ht2 file in this channel
-	.toList() // group every *.ht2 item into a single list
-	.set{ hisat_index } // pass *.ht2 list to a new channel
 
 /*
- * Step IIa: GENCODE GTF Download
+ * Step II: GENCODE GTF Download
  */
 
 
@@ -425,20 +435,50 @@ hisat_index_built // get every *.ht2 file in this channel
 // file if it does already exist
 process pullGENCODEgtf {
 
-  tag "Downloading GTF File: ${baseName}"
-  storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
+    tag "Downloading GTF File: ${baseName}"
+    storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
 
-  output:
-    file "${baseName}" into create_counts_gtf, gencode_feature_gtf
+    output:
+        file "${out_gtf}" into create_counts_gtf, gencode_feature_gtf, annotation_gtf
 
-  shell:
-    baseName = file("${params.gencode_gtf_link}").getName() - ".gz"
-    '''
-    wget "!{params.gencode_gtf_link}"
-    gunzip "!{baseName}.gz"
-    '''
+    shell:
+        baseName = file("${params.gencode_gtf_link}").getName() - ".gz"
+
+        //  Which fasta to use for this pipeline execution instance
+        if (params.gencode_build == "main") {
+            out_gtf = "transcripts_${params.gencode_suffix}.gtf"
+        } else {
+            out_gtf = baseName
+        }
+        '''
+        #  Pull and unzip transcript gtf
+        wget "!{params.gencode_gtf_link}"
+        gunzip "!{baseName}.gz"
+
+        #  Create the "main" transcripts gtf excluding non-canonical contigs
+        grep -E "^(chr|#).*" !{baseName} > transcripts_!{params.gencode_suffix}.gtf
+        '''
 }
 
+process BuildAnnotationObjects {
+
+  storeDir "${params.annotation}/junction_txdb"
+  
+  input:
+      file annotation_assembly
+      file annotation_gtf
+      file build_ann_script from file("${params.scripts}/build_annotation_objects_gencode.R")
+      
+  output:
+      file "junction_annotation_${params.gencode_suffix}.rda" into junction_annotation_gencode
+      file "feature_to_Tx_${params.gencode_suffix}.rda" into feature_to_tx_gencode
+      file "chrom_sizes_${params.gencode_suffix}" into chr_sizes
+      
+  shell:
+      '''
+      !{params.Rscript} !{build_ann_script} -r !{params.reference} -v !{params.gencode_version} -t "main"
+      '''
+}
 
 /*
  * Step IIIa: GENCODE TX FA Download
@@ -449,7 +489,7 @@ process pullGENCODEgtf {
 process pullGENCODEtranscripts {
 			
     tag "Downloading TX FA File: ${baseName}"
-    storeDir "${params.assembly}/transcripts/fa"
+    storeDir "${params.annotation}/reference/${params.reference}/transcripts/fa"
 
     output:
         file baseName into transcript_fa
@@ -463,50 +503,52 @@ process pullGENCODEtranscripts {
 }
 
 /*
- * Step IIIb: Salmon Transcript Build
+ * Step IIIb: Build transcript index for Salmon or Kallisto
  */
 
-// Uses "storeDir" to build salmon index only if the pre-built file is not present; outputs
+// Uses "storeDir" to build the index only if the built file is not present; outputs
 // this cached file otherwise
-process buildSALMONindex {
-
-    tag "Building Salmon Index: ${params.salmon_prefix}"
-    storeDir "${params.assembly}/transcripts/salmon"
-
-    input:
-      file transcript_fa
-
-    output:
-      file("${params.salmon_prefix}") into salmon_index
-      file("build_salmon_index.log")
-
-    script:
-      """
-      ${params.salmon} index \
-          -t $transcript_fa \
-          -i ${params.salmon_prefix} \
-          -p $task.cpus \
-          --gencode \
-          -k ${params.salmon_min_read_len}
-      cp .command.log build_salmon_index.log
-      """
+if (params.use_salmon) {
+    process buildSALMONindex {
+    
+        tag "Building Salmon Index: salmon_index_${params.gencode_suffix}"
+        storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon"
+    
+        input:
+          file transcript_fa
+    
+        output:
+          file("salmon_index_${params.gencode_suffix}") into salmon_index
+          file("build_salmon_index.log")
+    
+        script:
+          """
+          ${params.salmon} index \
+              -t $transcript_fa \
+              -i salmon_index_${params.gencode_suffix} \
+              -p $task.cpus \
+              --gencode \
+              -k ${params.salmon_min_read_len}
+          cp .command.log build_salmon_index_${params.gencode_suffix}.log
+          """
+    }
 }
 
 process BuildKallistoIndex {
 
-    storeDir "${params.assembly}/transcripts/kallisto"
+    storeDir "${params.annotation}/reference/${params.reference}/transcripts/kallisto"
     
     input:
         file transcript_fa
 
     output:
-        file "kallisto.idx" into kallisto_index
-        file "build_kallisto_index.log"
+        file "kallisto_index_${params.gencode_suffix}" into kallisto_index
+        file "build_kallisto_index_${params.gencode_suffix}.log"
 
     shell:
         '''
-        !{params.kallisto} index -i kallisto.idx !{transcript_fa}
-        cp .command.log build_kallisto_index.log
+        !{params.kallisto} index -i kallisto_index_!{params.gencode_suffix} !{transcript_fa}
+        cp .command.log build_kallisto_index_!{params.gencode_suffix}.log
         '''
 }
 
@@ -555,9 +597,9 @@ if (params.sample == "single") {
 
 //  Copy the processed input channel to channels used by dependent processes
 if (params.ercc) { 
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; adaptive_trimming_fastqs; tx_quant_inputs; ercc_inputs }
+  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs; ercc_inputs }
 } else {
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; adaptive_trimming_fastqs; tx_quant_inputs }
+  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs }
 }
 
 process InferStrandness {
@@ -591,9 +633,9 @@ process InferStrandness {
         
             #  Try pseduoalignment to chr21 assuming each type of strandness possible
             echo "Testing pseudoalignment assuming forward-strandness..."
-            !{params.kallisto} quant -t !{task.cpus} --fr-stranded -i *.idx -o ./forward test_1.fastq test_2.fastq
+            !{params.kallisto} quant -t !{task.cpus} --fr-stranded -i kallisto_index_* -o ./forward test_1.fastq test_2.fastq
             echo "Testing pseudoalignment assuming reverse-strandness..."
-            !{params.kallisto} quant -t !{task.cpus} --rf-stranded -i *.idx -o ./reverse test_1.fastq test_2.fastq
+            !{params.kallisto} quant -t !{task.cpus} --rf-stranded -i kallisto_index_* -o ./reverse test_1.fastq test_2.fastq
         else
             fq=$(ls *.f*q*)
             
@@ -612,7 +654,7 @@ process InferStrandness {
                 -l !{params.kallisto_len_mean} \
                 -s !{params.kallisto_len_sd} \
                 --fr-stranded \
-                -i *.idx \
+                -i kallisto_index_* \
                 -o ./forward test.fastq
             echo "Testing pseudoalignment assuming reverse-strandness..."
             !{params.kallisto} quant \
@@ -621,7 +663,7 @@ process InferStrandness {
                 -l !{params.kallisto_len_mean} \
                 -s !{params.kallisto_len_sd} \
                 --rf-stranded \
-                -i *.idx \
+                -i kallisto_index_* \
                 -o ./reverse test.fastq
         fi
         
@@ -649,7 +691,7 @@ process CompleteManifest {
         file manifest_script from file("${params.scripts}/complete_manifest.R")
         
     output:
-        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_single_hisat, complete_manifest_paired_hisat1, complete_manifest_paired_hisat2, complete_manifest_quant, complete_manifest_fullcov
+        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_hisat, complete_manifest_quant, complete_manifest_fullcov
         
     shell:
         '''
@@ -734,178 +776,119 @@ process QualityUntrimmed {
 	"""
 }
 
-/*
- * Step 2a: Adaptive Trimming
- */
-
+//  Combine FASTQ files and FastQC result summaries for each sample, to form the input channel for Trimming
 if (params.sample == "single") {
 
-	quality_reports
-	  .flatten()
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .join(adaptive_trimming_fastqs)
-	  .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Single Adaptive Trimming" }
-	  .set{ adaptive_trimming_single_inputs }
-
-	process AdaptiveTrimSingleReads {
-	  
-	  tag "Prefix: $single_adaptive_prefix"
-	  publishDir "${params.output}/Adaptive_Trim",'mode':'copy'
-
-	  input:
-	  set val(single_adaptive_prefix), file(single_adaptive_summary), file(single_adaptive_fastq) from adaptive_trimming_single_inputs
-
-	  output:
-	  file "*" into trimming_fastqs, no_trimming_fastqs
-
-	  shell:
-	  single_quality_report = single_adaptive_prefix.toString() + "_summary.txt"
-	  single_trimming_input = single_adaptive_prefix.toString() + ".f*q*"
-      suffix = get_file_ext(single_adaptive_fastq)
-	  '''
-	  export result=$(grep "Adapter Content" !{single_quality_report} | cut -f1)
-	  if [ $result == "FAIL" ] || [ !{params.force_trim} == "true" ] ; then
-		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TR!{suffix}"
-	  else
-		  mv !{single_trimming_input} "!{single_adaptive_prefix}_TNR!{suffix}"
-	  fi
-	  '''
-	}
-
+    quality_reports
+        .flatten()
+        .map{ file -> tuple(get_prefix(file), file) }
+        .join(trimming_fqs)
+        .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
+        .set{ trimming_inputs }
+        
 } else { // paired
 
-	quality_reports
-	  .flatten()
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .groupTuple()
-	  .join(adaptive_trimming_fastqs)
-	  .ifEmpty{ error "Cannot Find Combined Quality and Trimming Channel for Paired Adaptive Trimming" }
-	  .set{ adaptive_trimming_paired_inputs }
-
-	process AdaptiveTrimPairedReads {
-	  
-	  tag "Prefix: $paired_adaptive_prefix"
-	  publishDir "${params.output}/Adaptive_Trim",mode:'copy'
-
-	  input:
-	  set val(paired_adaptive_prefix), file(paired_adaptive_summary), file(paired_adaptive_fastq) from adaptive_trimming_paired_inputs
-
-	  output:
-	  file "*" into trimming_fastqs, no_trimming_fastqs
-
-	  shell:
-      suffix = get_file_ext(paired_adaptive_fastq[0])
-      prefix_str = paired_adaptive_prefix.toString()
-	  '''
-	  export result1=$(grep "Adapter Content" !{prefix_str}_1_summary.txt | cut -c1-4)
-	  export result2=$(grep "Adapter Content" !{prefix_str}_2_summary.txt | cut -c1-4)
-	  if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ] || [ !{params.force_trim} == "true" ]; then
-		  cp !{prefix_str}_1.f*q* "!{prefix_str}_1_TR!{suffix}"
-		  cp !{prefix_str}_2.f*q* "!{prefix_str}_2_TR!{suffix}"
-	  else
-		  cp !{prefix_str}_1.f*q* "!{prefix_str}_1_TNR!{suffix}"
-		  cp !{prefix_str}_2.f*q* "!{prefix_str}_2_TNR!{suffix}"
-	  fi
-	  '''
-	}
-}
+    quality_reports
+        .flatten()
+        .map{ file -> tuple(get_prefix(file), file) }
+        .groupTuple()
+        .join(trimming_fqs)
+        .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
+        .set{ trimming_inputs }
+}    
 
 /*
- * Modify the Trimming Input Channel 
+ * Step 2a: Trim samples (dependent on user-chosen settings)
  */
-
-if (params.sample == "single") {
-
-	trimming_fastqs
-	  .flatten()
-	  .filter{ file -> file.name.toString() =~ /_TR.*/ }
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .set{ trimming_inputs }
-
-	no_trimming_fastqs
-	  .flatten()
-	  .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .set{ no_trim_fastqs }
-
-} else { // paired
-
-	trimming_fastqs
-	  .flatten()
-	  .filter{ file -> file.name.toString() =~ /_TR.*/ }
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .groupTuple()
-	  .set{ trimming_inputs }
-
-	no_trimming_fastqs
-	  .flatten()
-	  .filter{ file -> file.name.toString() =~ /_TNR.*/ }
-	  .map{ file -> tuple(get_prefix(file), file) }
-	  .groupTuple()
-	  .set{ no_trim_fastqs }
-}
-
-/*
- * Step 2b: Trimming 
- */
-
+ 
 process Trimming {
-	
-	tag "Prefix: $trimming_prefix"
-	publishDir "${params.output}/trimmed_fq",'mode':'copy'
 
-	input:
-	set val(trimming_prefix), file(trimming_input) from trimming_inputs
+    tag "Prefix: $fq_prefix"
+    publishDir "${params.output}/Trimming",mode:'copy'
 
-	output:
-	file "*.f*q*" into trimmed_fastqc_inputs, trimmed_hisat_inputs
-    file "trimming_${trimming_prefix}.log"
+    input:
+        set val(fq_prefix), file(fq_summary), file(fq_file) from trimming_inputs
 
-	script:
-    file_ext = get_file_ext(trimming_input[0])
-	if (params.sample == "single") {
-        trim_sample = "SE"
-		output_option = "${trimming_prefix}_trimmed${file_ext}"
-        adapter_fa_temp = "${params.adapter_fasta_single}"
-        trim_clip = "${params.trim_clip_single}"
-	} else {
-        trim_sample = "PE"
-		output_option = "${trimming_prefix}_trimmed_forward_paired${file_ext} ${trimming_prefix}_trimmed_forward_unpaired${file_ext} ${trimming_prefix}_trimmed_reverse_paired${file_ext} ${trimming_prefix}_trimmed_reverse_unpaired${file_ext}"
-        adapter_fa_temp = "${params.adapter_fasta_paired}"
-        trim_clip = "${params.trim_clip_paired}"
-	}
- 
-	"""
-    #  This solves the problem of trimmomatic and the adapter fasta
-    #  needing hard paths, even when on the PATH.
-    if [ ${params.use_long_paths} == "true" ]; then
-        trim_jar=${params.trimmomatic}
-        adapter_fa=${adapter_fa_temp}
-    else
-        trim_jar=\$(which ${params.trimmomatic})
-        adapter_fa=\$(which ${adapter_fa_temp})
-    fi
+    output:
+        file "${fq_prefix}_trimmed*.fastq" optional true into trimmed_fastqc_inputs
+        file "${fq_prefix}*.f*q*" into trimming_outputs
 
-	java -Xmx512M \
-	-jar \$trim_jar \
-	$trim_sample \
-	-threads $task.cpus \
-	-phred33 \
-	$trimming_input \
-	$output_option \
-	ILLUMINACLIP:\$adapter_fa:${trim_clip} \
-	LEADING:${params.trim_lead} \
-	TRAILING:${params.trim_trail} \
-	SLIDINGWINDOW:${params.trim_slide_window} \
-	MINLEN:${params.trim_min_len}
- 
-    cp .command.log trimming_${trimming_prefix}.log
-	"""
+    shell:
+        file_ext = get_file_ext(fq_file[0])
+        if (params.sample == "single") {
+            output_option = "${fq_prefix}_trimmed.fastq"
+            trim_mode = "SE"
+            adapter_fa_temp = params.adapter_fasta_single
+            trim_clip = params.trim_clip_single
+        } else {
+            output_option = "${fq_prefix}_trimmed_paired_1.fastq ${fq_prefix}_unpaired_1.fastq ${fq_prefix}_trimmed_paired_2.fastq ${fq_prefix}_unpaired_2.fastq"
+            trim_mode = "PE"
+            adapter_fa_temp = params.adapter_fasta_paired
+            trim_clip = params.trim_clip_paired
+        }
+        '''
+        #  Determine whether to trim the FASTQ file(s). This is done if the user
+        #  adds the --force_trim flag, or if fastQC adapter content metrics fail
+        #  for at least one FASTQ
+        if [ "!{params.force_trim}" == true ]; then
+            do_trim=true
+        elif [ "!{params.sample}" == "single" ]; then
+            if [ $(grep "Adapter Content" !{fq_summary} | cut -f 1)  == "FAIL" ]; then
+                do_trim=true
+            else
+                do_trim=false
+            fi
+        else
+            result1=$(grep "Adapter Content" !{fq_prefix}_1_summary.txt | cut -c1-4)
+            result2=$(grep "Adapter Content" !{fq_prefix}_2_summary.txt | cut -c1-4)
+            if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ]; then
+                do_trim=true
+            else
+                do_trim=false
+            fi
+        fi
+        
+        #  Run trimming if required
+        if [ "$do_trim" == true ]; then
+            #  This solves the problem of trimmomatic and the adapter fasta
+            #  needing hard paths, even when on the PATH.
+            if [ !{params.use_long_paths} == "true" ]; then
+                trim_jar=!{params.trimmomatic}
+                adapter_fa=!{adapter_fa_temp}
+            else
+                trim_jar=$(which !{params.trimmomatic})
+                adapter_fa=$(which !{adapter_fa_temp})
+            fi
+
+            java -Xmx512M \
+                -jar $trim_jar \
+                !{trim_mode} \
+                -threads !{task.cpus} \
+                -phred33 \
+                *.f*q* \
+                !{output_option} \
+                ILLUMINACLIP:$adapter_fa:!{trim_clip} \
+                LEADING:!{params.trim_lead} \
+                TRAILING:!{params.trim_trail} \
+                SLIDINGWINDOW:!{params.trim_slide_window} \
+                MINLEN:!{params.trim_min_len}
+        else
+            #  Otherwise rename files (signal to nextflow to output these files)
+            if [ "!{params.sample}" == "single" ]; then
+                mv !{fq_prefix}!{file_ext} !{fq_prefix}_untrimmed!{file_ext}
+            else
+                mv !{fq_prefix}_1!{file_ext} !{fq_prefix}_untrimmed_1!{file_ext}
+                mv !{fq_prefix}_2!{file_ext} !{fq_prefix}_untrimmed_2!{file_ext}
+            fi
+        fi
+        
+        cp .command.log trimming_!{fq_prefix}.log
+        '''
 }
 
 
 /*
- * Step 2c: Run FastQC Quality Check on Trimmed Files
+ * Step 2b: Run FastQC Quality Check on Trimmed Files
  */
 
 process QualityTrimmed {
@@ -927,39 +910,37 @@ process QualityTrimmed {
 }
 
 /*
- * Step 3a: Hisat Sam File
+ * Step 3a: Hisat Alignment
  */
 
+trimming_outputs
+    .flatten()
+    .map{ file -> tuple(get_prefix(file), file) }
+    .ifEmpty{ error "Input channel to HISAT is empty" }
+    .groupTuple()
+    .set{ hisat_inputs }
+        
 if (params.sample == "single") {
-
-    //Here trimmed and not trimmed data is mixed in a channel to ensure the flow of the pipeline
-    trimmed_hisat_inputs
-        .flatten()
-        .map{ file -> tuple(get_prefix(file), file) }
-        .mix(no_trim_fastqs)
-        .ifEmpty{ error "Single End Channel for HISAT is empty" }
-        .set{ single_hisat_inputs }
 
     process SingleEndHISAT {
 
-        tag "Prefix: $single_hisat_prefix"
+        tag "Prefix: $prefix"
         publishDir "${params.output}/HISAT2_out",mode:'copy'
 
         input:
-            file hisat_index from hisat_index
-            file complete_manifest_single_hisat
-            set val(single_hisat_prefix), file(single_hisat_input) from single_hisat_inputs
+            file hisat_index
+            file complete_manifest_hisat
+            set val(prefix), file(single_hisat_input) from hisat_inputs
 
         output:
-            file "*_hisat_out.sam" into hisat_single_output
+            file "*_hisat_out.sam" into hisat_output
             file "*"
             file "*_align_summary.txt" into alignment_summaries
 
         shell:
-            hisat_full_prefix = "${params.assembly}/assembly/index/${params.hisat_prefix}"
             '''
             #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep !{single_hisat_prefix} | awk -F ' ' '{print $NF}')
+            strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
             if [ ${strand} == "unstranded" ]; then
                 hisat_strand=""
             elif [ ${strand} == "forward" ]; then
@@ -971,53 +952,41 @@ if (params.sample == "single") {
             #  Run Hisat2
             !{params.hisat2} \
                 -p !{task.cpus} \
-                -x !{hisat_full_prefix} \
+                -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.gencode_suffix} \
                 -U !{single_hisat_input} \
-                -S !{single_hisat_prefix}_hisat_out.sam \
+                -S !{prefix}_hisat_out.sam \
                 ${hisat_strand} \
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
-                2> !{single_hisat_prefix}_align_summary.txt
+                2> !{prefix}_align_summary.txt
             '''
     }
-
-    hisat_single_output
-        .flatten()
-        .map{ file -> tuple(get_prefix(file), file) }
-        .set{ sam_to_bam_inputs }
-
 } else { // sample is paired-end
 
-    no_trim_fastqs
-        .set{ notrim_paired_hisat_inputs }
+    process PairedEndHISAT {
 
-    process PairedEndNoTrimHISAT {
-
-        tag "Prefix: $paired_notrim_hisat_prefix"
+        tag "Prefix: $prefix"
         publishDir "${params.output}/HISAT2_out",'mode':'copy'
 
         input:
-            file hisatidx from hisat_index
-            file complete_manifest_paired_hisat1
-            set val(paired_notrim_hisat_prefix), file(paired_no_trim_hisat) from notrim_paired_hisat_inputs
+            file hisat_index
+            file complete_manifest_hisat
+            set val(prefix), file(fq_files) from hisat_inputs
 
         output:
-            file "*_hisat_out.sam" into hisat_paired_notrim_output
+            file "*_hisat_out.sam" into hisat_output
             file "*"
-            file "*_align_summary.txt" into paired_notrim_alignment_summaries
+            file "*_align_summary.txt" into alignment_summaries
 
         shell:
-            file_ext = get_file_ext(paired_no_trim_hisat[0])
-            sample_1_hisat = paired_notrim_hisat_prefix.toString() + "_1_TNR" + file_ext
-            sample_2_hisat = paired_notrim_hisat_prefix.toString() + "_2_TNR" + file_ext
             if (params.unalign) {
-                unaligned_opt = "--un-conc ${paired_notrim_hisat_prefix}.fastq"
+                unaligned_opt = "--un-conc ${prefix}_discordant.fastq"
             } else {
                 unaligned_opt = ""
             }
             '''
             #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep !{paired_notrim_hisat_prefix} | awk -F ' ' '{print $NF}')
+            strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
             if [ ${strand} == "unstranded" ]; then
                 hisat_strand=""
             elif [ ${strand} == "forward" ]; then
@@ -1026,91 +995,34 @@ if (params.sample == "single") {
                 hisat_strand="--rna-strandness RF"
             fi
             
-            #  Run Hisat2
-            !{params.hisat2} \
-                -p !{task.cpus} \
-                -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
-                -1 !{sample_1_hisat} \
-                -2 !{sample_2_hisat} \
-                -S !{paired_notrim_hisat_prefix}_hisat_out.sam \
-                ${hisat_strand} \
-                --phred33 \
-                --min-intronlen !{params.min_intron_len} \
-                !{unaligned_opt} \
-                2> !{paired_notrim_hisat_prefix}_align_summary.txt
-            '''
-    }
-
-    trimmed_hisat_inputs
-        .flatten()
-        .map{ file -> tuple(get_prefix(file), file) }
-        .groupTuple()
-        .set{ trim_paired_hisat_inputs }
-
-    process PairedEndTrimmedHISAT {
-
-        tag "Prefix: $paired_trimmed_prefix"
-        publishDir "${params.output}/HISAT2_out",'mode':'copy'
-
-        input:
-            file hisatidx from hisat_index
-            file complete_manifest_paired_hisat2
-            set val(paired_trimmed_prefix), file(paired_trimmed_fastqs) from trim_paired_hisat_inputs
-
-        output:
-            file "*_hisat_out.sam" into hisat_paired_trim_output
-            file "*"
-            file "*_align_summary.txt" into paired_trim_alignment_summaries
-
-        shell:
-            file_ext=get_file_ext(paired_trimmed_fastqs[0])
-            forward_paired = paired_trimmed_prefix.toString() + "_trimmed_forward_paired" + file_ext
-            reverse_paired = paired_trimmed_prefix.toString() + "_trimmed_reverse_paired" + file_ext
-            forward_unpaired = paired_trimmed_prefix.toString() + "_trimmed_forward_unpaired" + file_ext
-            reverse_unpaired = paired_trimmed_prefix.toString() + "_trimmed_reverse_unpaired" + file_ext
-            if (params.unalign) {
-                unaligned_opt = "--un-conc ${paired_trimmed_prefix}.fastq"
-            } else {
-                unaligned_opt = ""
-            }
-            '''
-            #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep !{paired_trimmed_prefix} | awk -F ' ' '{print $NF}')
-            if [ ${strand} == "unstranded" ]; then
-                hisat_strand=""
-            elif [ ${strand} == "forward" ]; then
-                hisat_strand="--rna-strandness FR"
+            #  If this sample had unpaired trimming outputs, include them
+            if [ -f !{prefix}_unpaired_1.fastq ]; then
+                unpaired_opt='-U !{prefix}_unpaired_1.fastq,!{prefix}_unpaired_2.fastq'
             else
-                hisat_strand="--rna-strandness RF"
+                unpaired_opt=''
             fi
             
             #  Run Hisat2
             !{params.hisat2} \
                 -p !{task.cpus} \
-                -x !{params.assembly}/assembly/index/!{params.hisat_prefix} \
-                -1 !{forward_paired} \
-                -2 !{reverse_paired} \
-                -U !{forward_unpaired},!{reverse_unpaired} \
-                -S !{paired_trimmed_prefix}_hisat_out.sam \
+                -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.gencode_suffix} \
+                -1 !{prefix}*trimmed*_1.f*q* \
+                -2 !{prefix}*trimmed*_2.f*q* \
+                -S !{prefix}_hisat_out.sam \
+                ${unpaired_opt} \
                 ${hisat_strand} \
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
                 !{unaligned_opt} \
-                2> !{paired_trimmed_prefix}_align_summary.txt
+                2> !{prefix}_align_summary.txt
             '''
     }
-
-    hisat_paired_notrim_output
-        .mix(hisat_paired_trim_output)
-        .flatten()
-        .map{ file -> tuple(get_prefix(file), file) }
-        .set{ sam_to_bam_inputs }
-
-    paired_trim_alignment_summaries
-        .mix(paired_notrim_alignment_summaries)
-        .flatten()
-        .set{ alignment_summaries } // think this is causing conflicts...
 }
+
+hisat_output
+    .flatten()
+    .map{ file -> tuple(get_prefix(file), file) }
+    .set{ sam_to_bam_inputs }
 
 /*
  * Step 3b: Sam to Bam 
@@ -1164,7 +1076,7 @@ process FeatureCounts {
         } else {
             sample_option = "-p"
         }
-        feature_out = "${feature_prefix}_${params.feature_output_prefix}"
+        feature_out = "${feature_prefix}_${params.gencode_suffix}"
  
         """
         #  Find this sample's strandness and determine strand flag
@@ -1455,7 +1367,7 @@ if (params.use_salmon) {
                 fq1=$(ls *_1.f*q*)
                 fq2=$(ls *_2.f*q*)
             
-                !{params.kallisto} quant -t !{task.cpus} $strand_flag -i *.idx -o . $fq1 $fq2
+                !{params.kallisto} quant -t !{task.cpus} $strand_flag -i !{kallisto_index} -o . $fq1 $fq2
             else
                 fq=$(ls *.f*q*)
                 
@@ -1465,7 +1377,7 @@ if (params.use_salmon) {
                     -l !{params.kallisto_len_mean} \
                     -s !{params.kallisto_len_sd} \
                     $strand_flag \
-                    -i *.idx \
+                    -i !{kallisto_index} \
                     -o . $fq
             fi
             
@@ -1481,12 +1393,12 @@ if (params.use_salmon) {
 
 count_objects_bam_files // this puts sorted.bams and bais into the channel
   .flatten()
-  .mix(count_objects_quality_reports) //this puts sample_XX_summary.txt files into the channel
+  .mix(count_objects_quality_reports) // this puts sample_XX_summary.txt files into the channel
   .mix(count_objects_quality_metrics) // this puts sample_XX_fastqc_data.txt into the channel
   .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
   .mix(create_counts_gtf) // this puts gencode.v25.annotation.gtf file into the channel
-  .mix(sample_counts) // !! this one puts sample_05_Gencode.v25.hg38_Exons.counts and sample_05_Gencode.v25.hg38_Genes.counts into the channel
-  .mix(regtools_outputs) // !! this one includes the missing *_junctions_primaryOnly_regtools.count files for the CountObjects process
+  .mix(sample_counts) // this puts sample_XX_*_Exons.counts and sample_XX_*_Genes.counts into the channel
+  .mix(regtools_outputs) // this puts the *_junctions_primaryOnly_regtools.count files into the channel
   .mix(tx_quants)
   .set{counts_objects_channel_1}
 
@@ -1510,32 +1422,23 @@ if (params.ercc) {
  */
 
 //  Mix with reference-dependent annotation info
-if(params.reference == "hg19") {
-  junction_annotation_ensembl
-    .mix(junction_annotation_genes)
-    .mix(junction_annotation_gencode)
-    .mix(feature_to_tx_gencode)
-    .mix(feature_to_tx_ensembl)
-    .toSortedList()
-    .set{counts_annotations}
-} else if (params.reference == "hg38") {
-  junction_annotation_ensembl
-    .mix(junction_annotation_genes)
-    .mix(junction_annotation_gencode)
-    .mix(feature_to_tx_gencode)
-    .mix(feature_to_tx_ensembl)
-    .mix(exon_maps_by_coord_hg38)
-    .toSortedList()
-    .set{counts_annotations}
+if(params.reference == "hg19" || (params.reference == "hg38" && params.gencode_version != 25)) {
+    junction_annotation_gencode
+        .mix(feature_to_tx_gencode)
+        .toList()
+        .set{counts_annotations}
+} else if (params.reference == "hg38" && params.gencode_version == 25) {
+    junction_annotation_gencode
+        .mix(feature_to_tx_gencode)
+        .mix(exon_maps_by_coord_hg38)
+        .toList()
+        .set{counts_annotations}
 } else if (params.reference == "mm10") {
-  junction_annotation_ensembl
-    .mix(junction_annotation_gencode)
-    .toSortedList()
-    .set{counts_annotations}
+    junction_annotation_gencode
+        .set{counts_annotations}
 } else {  // rat
-  junction_annotation_ensembl
-    .toSortedList()
-    .set{counts_annotations}
+    junction_annotation_ensembl
+        .set{counts_annotations}
 }
 
 /*
@@ -1547,8 +1450,8 @@ process CountObjects {
     publishDir "${params.output}/Count_Objects",'mode':'copy'
 
     input:
-        file counts_input from counts_inputs
-        file counts_annotation from counts_annotations
+        file counts_inputs
+        file counts_annotations
         file create_counts from file("${params.scripts}/create_count_objects-${params.reference_type}.R")
         file ercc_actual_conc from file("${params.annotation}/ERCC/ercc_actual_conc.txt")
         file complete_manifest_counts
@@ -1568,7 +1471,15 @@ process CountObjects {
             counts_strand = "-s " + params.strand
         }
         '''
-        !{params.Rscript} !{create_counts} -o !{params.reference} -m ./ -e !{params.experiment} -p !{params.prefix} -l !{counts_pe} -c !{params.ercc} -t !{task.cpus} !{counts_strand} -n !{params.use_salmon}
+        !{params.Rscript} !{create_counts} \
+            -o !{params.reference} \
+            -e !{params.experiment} \
+            -p !{params.prefix} \
+            -l !{counts_pe} \
+            -c !{params.ercc} \
+            -t !{task.cpus} \
+            !{counts_strand} \
+            -n !{params.use_salmon}
 
         cp .command.log counts.log
         '''

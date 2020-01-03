@@ -15,13 +15,13 @@ library('plyr')
 ## Specify parameters
 spec <- matrix(c(
   'organism', 'o', 2, 'character', 'mm10',
-  'maindir', 'm', 1, 'character', 'Main directory',
   'experiment', 'e', 1, 'character', 'Experiment',
   'prefix', 'p', 1, 'character', 'Prefix',
   'paired', 'l', 1, 'logical', 'Whether the reads are paired-end or not',
   'ercc', 'c', 1, 'logical', 'Whether the reads include ERCC or not',
   'cores', 't', 1, 'integer', 'Number of cores to use',
   'stranded', 's', 1, 'character', "Strandedness of the data: Either 'FALSE', 'forward' or 'reverse'",
+  'salmon', 'n', 1, 'logical', 'Whether to use salmon quants rather than kallisto',
   'help' , 'h', 0, 'logical', 'Display help'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
@@ -49,7 +49,6 @@ if(FALSE){
 
 stopifnot(opt$stranded %in% c('FALSE', 'forward', 'reverse'))
 
-RDIR="./"
 EXPNAME = paste0(opt$experiment,"_",opt$prefix)
 
 
@@ -60,34 +59,48 @@ metrics <- data.frame('SAMPLE_ID' = manifest[, ncol(manifest)-1],
                       stringsAsFactors = FALSE)
 N <- length(metrics$SAMPLE_ID)
 
-
-############################################################
-###### salmon quantification
-
 sampIDs = as.vector(metrics$SAMPLE_ID)
 
-##observed tpm and number of reads
-txTpm = bplapply(sampIDs, function(x) {
-  read.table(file.path(paste0(x, "_quant.sf")),header = TRUE)$TPM },
-  BPPARAM = MulticoreParam(opt$cores))
-txTpm = do.call(cbind,txTpm)
-
-txNumReads = bplapply(sampIDs, function(x) {
-  read.table(file.path(paste0(x, "_quant.sf")),header = TRUE)$NumReads },
-  BPPARAM = MulticoreParam(opt$cores))
-txNumReads = do.call(cbind,txNumReads)
+if (opt$salmon) {
+    ############################################################
+    ###### salmon quantification
+    
+    ##observed tpm and number of reads
+    txTpm = bplapply(sampIDs, function(x) {
+      read.table(file.path(paste0(x, "_quant.sf")),header = TRUE)$TPM },
+      BPPARAM = MulticoreParam(opt$cores))
+    txTpm = do.call(cbind,txTpm)
+    
+    txNumReads = bplapply(sampIDs, function(x) {
+      read.table(file.path(paste0(x, "_quant.sf")),header = TRUE)$NumReads },
+      BPPARAM = MulticoreParam(opt$cores))
+    txNumReads = do.call(cbind,txNumReads)
+    
+    #get names of transcripts
+    txNames = read.table(file.path(".", paste0(sampIDs[1], "_quant.sf")),
+                     header = TRUE)$Name
+txNames = as.character(txNames)
+} else {
+    #######################################################################
+    #  Kallisto quantification 
+    #######################################################################
+    txMatrices = bplapply(sampIDs, function(x) {
+        read.table(paste0(x, "_abundance.tsv"),header = TRUE)}, 
+        BPPARAM = MulticoreParam(opt$cores))
+        
+    txTpm = do.call(cbind,lapply(txMatrices, function(x) x$tpm))
+    txNumReads = do.call(cbind,lapply(txMatrices, function(x) x$est_counts))
+    txNames = as.character(txMatrices[[1]]$target_id)
+    rm(txMatrices)
+}
 
 colnames(txTpm) = colnames(txNumReads) = sampIDs
 
-#get names of transcripts
-txNames = read.table(file.path(".", paste0(sampIDs[1], "_quant.sf")),
-                     header = TRUE)$Name
-txNames = as.character(txNames)
 txMap = t(ss(txNames, "\\|",c(1,7,2,6,8)))
 txMap = as.data.frame(txMap)
 rm(txNames)
-colnames(txMap) = c("gencodeTx","txLength","gencodeID","Symbol","gene_type")
 
+colnames(txMap) = c("gencodeTx","txLength","gencodeID","Symbol","gene_type")
 rownames(txMap) = rownames(txTpm) = rownames(txNumReads) = txMap$gencodeTx
 
 
@@ -191,7 +204,7 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped +  metrics$totalMap
 
 ###################################################################
 
-gencodeGTF = import(con="gencode.vM11.annotation.gtf", format="gtf")
+gencodeGTF = import(con=list.files(pattern="transcripts_.*\\.gtf"), format="gtf")
 gencodeGENES = mcols(gencodeGTF)[which(gencodeGTF$type=="gene"),c("gene_id","type","gene_type")]
 rownames(gencodeGENES) = gencodeGENES$gene_id
 
@@ -201,9 +214,9 @@ names(gencodeEXONS) = c("Chr","Start","End","exon_gencodeID")
 
 ###############
 ### gene counts
-geneFn <- file.path(paste0(metrics$SAMPLE_ID, '_Gencode.M11.mm10_Genes.counts'))
-names(geneFn) = metrics$SAMPLE_ID
-stopifnot(all(file.exists(geneFn)))
+geneFn <- list.files(pattern='.*_mm10.*_Genes\\.counts$')
+stopifnot(length(geneFn) == length(metrics$SAMPLE_ID))
+names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_'))]
 
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -258,16 +271,15 @@ widG = matrix(rep(geneMap$Length), nr = nrow(geneCounts),
 geneRpkm = geneCounts/(widG/1000)/(bg/1e6)
 
 ## save metrics
-write.csv(metrics, file = file.path(opt$maindir,
-                                    paste0('read_and_alignment_metrics_', opt$experiment, '_', opt$prefix,
-                                           '.csv')))
+write.csv(metrics, file = paste0('read_and_alignment_metrics_', opt$experiment,
+                                 '_', opt$prefix, '.csv'))
 
 
 ###############
 ### exon counts
-exonFn <- file.path(paste0(metrics$SAMPLE_ID, '_Gencode.M11.mm10_Exons.counts'))
-names(exonFn) = metrics$SAMPLE_ID
-stopifnot(all(file.exists(exonFn)))
+exonFn <- list.files(pattern='.*_mm10.*_Exons\\.counts$')
+stopifnot(length(exonFn) == length(metrics$SAMPLE_ID))
+names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_'))]
 
 ### read in annotation ##
 exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -369,7 +381,7 @@ junctionFiles <- file.path(paste0(metrics$SAMPLE_ID, '_junctions_primaryOnly_reg
 stopifnot(all(file.exists(junctionFiles))) #  TRUE
 
 ## annotate junctions
-load(file.path(RDIR, "junction_annotation_mm10_gencode_vM11.rda"))
+load(list.files(pattern="junction_annotation_mm10.*_gencode_.*\\.rda"))
 
 if (opt$stranded %in% c('forward', 'reverse')) {
   juncCounts = junctionCount(junctionFiles, metrics$SAMPLE_ID,

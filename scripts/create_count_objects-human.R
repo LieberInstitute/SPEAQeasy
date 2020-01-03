@@ -21,7 +21,6 @@ suppressWarnings(library(plyr))
 ## Specify parameters
 spec <- matrix(c(
     'organism', 'o', 1, 'character', 'Either hg19 or hg38',
-    'maindir', 'm', 1, 'character', 'Main directory',
     'experiment', 'e', 1, 'character', 'Experiment',
     'prefix', 'p', 1, 'character', 'Prefix',
     'paired', 'l', 1, 'logical', 'Whether the reads are paired-end or not',
@@ -61,7 +60,6 @@ if (opt$organism == "hg19") {
 	library('BSgenome.Hsapiens.UCSC.hg38')
 }
 
-RDIR="./"
 EXPNAME = paste0(opt$experiment,"_",opt$prefix)
 
 ## print dirctory files to screen
@@ -292,7 +290,7 @@ if (opt$salmon) {
     txNames = as.character(txNames)
 } else {
     #######################################################################
-    #  Use Kallisto quantification (also is the InferExperiment step)
+    #  Kallisto quantification 
     #######################################################################
     txMatrices = bplapply(sampIDs, function(x) {
         read.table(paste0(x, "_abundance.tsv"),header = TRUE)}, 
@@ -417,13 +415,7 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped +  metrics$totalMap
 
 ###################################################################
 
-if (opt$organism == "hg19") {
-	filename = "_Gencode.v25lift37.hg19"
-	gencodeGTF = import(con="gencode.v25lift37.annotation.gtf", format="gtf")
-} else if (opt$organism == "hg38") {
-	filename = "_Gencode.v25.hg38"
-	gencodeGTF = import(con="gencode.v25.annotation.gtf", format="gtf")
-}
+gencodeGTF = import(con=list.files(pattern="transcripts_.*\\.gtf"), format="gtf")
 gencodeGENES = mcols(gencodeGTF)[which(gencodeGTF$type=="gene"),c("gene_id","type","gene_type","gene_name")]
 rownames(gencodeGENES) = gencodeGENES$gene_id
 
@@ -436,9 +428,9 @@ gencodeEXONS = gencodeEXONS[,-4]
 
 ###############
 ### gene counts
-geneFn <- file.path(".", paste0(metrics$SAMPLE_ID, filename, '_Genes.counts'))
-names(geneFn) = metrics$SAMPLE_ID
-stopifnot(all(file.exists(geneFn)))
+geneFn <- list.files(pattern='.*_hg.*_Genes\\.counts$')
+stopifnot(length(geneFn) == length(metrics$SAMPLE_ID))
+names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_'))]
 
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -514,9 +506,9 @@ write.csv(metrics, file = file.path(".",
 
 ###############
 ### exon counts
-exonFn <- file.path(".", paste0(metrics$SAMPLE_ID,  filename, '_Exons.counts'))
-names(exonFn) = metrics$SAMPLE_ID
-stopifnot(all(file.exists(exonFn)))
+exonFn <- list.files(pattern='.*_hg.*_Exons\\.counts$')
+stopifnot(length(exonFn) == length(metrics$SAMPLE_ID))
+names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_'))]
 
 ### read in annotation ##
 exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -578,11 +570,11 @@ exonRpkm = exonCounts/(widE/1000)/(bgE/1e6)
 
 ############################
 ### add transcript maps ####
-if (opt$organism == "hg19") { 
-	load(file.path(RDIR, "feature_to_Tx_hg19_gencode_v25lift37.rda"))
-} else if (opt$organism == "hg38") { 
-	load(file.path(RDIR, "feature_to_Tx_hg38_gencode_v25.rda")) 
-	load(file.path(RDIR, "exonMaps_by_coord_hg38_gencode_v25.rda"))
+
+load(list.files(pattern="feature_to_Tx_hg.*_gencode_v.*\\.rda"))
+#  For gencode version 25 (the pipeline default), we have additional exon annotation
+if (opt$organism == "hg38" && file.exists("exonMaps_by_coord_hg38_gencode_v25.rda")) {
+    load("exonMaps_by_coord_hg38_gencode_v25.rda")
 }
 
 ## gene annotation
@@ -665,11 +657,7 @@ save(rse_exon, getRPKM, file = paste0('rse_exon_', EXPNAME, '_n', N, '.Rdata'))
 ##### junctions
 
 ## import theJunctions annotation
-if (opt$organism == "hg19") { 
-	load(file.path(RDIR, "junction_annotation_hg19_gencode_v25lift37.rda"))
-} else if (opt$organism == "hg38") { 
-	load(file.path(RDIR, "junction_annotation_hg38_gencode_v25.rda"))
-}
+load(list.files(pattern="junction_annotation_hg.*_gencode_v.*\\.rda"))
 
 ## via primary alignments only
 junctionFiles <- file.path(".", paste0(metrics$SAMPLE_ID, '_junctions_primaryOnly_regtools.count'))
@@ -809,6 +797,7 @@ save(rse_jx, file = paste0('rse_jx_', EXPNAME, '_n', N, '.Rdata'))
 ## transcript
 tx = gencodeGTF[which(gencodeGTF$type == "transcript")]
 names(tx) = tx$transcript_id
+txTpm = txTpm[which(rownames(txTpm) %in% names(tx)),]
 txMap = tx[rownames(txTpm)]
 rse_tx = SummarizedExperiment(
 	assays = list('tpm' = txTpm),
