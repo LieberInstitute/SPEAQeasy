@@ -276,7 +276,7 @@ if (params.reference == "rn6") {
 
 def get_prefix(f) {
   //  Remove these regardless of position in the string
-  String blackListAny = "_summary|_trimmed|_untrimmed|_unpaired|_paired|_hisat_out"
+  String blackListAny = "(_1|_2)*_summary|(_1|_2)*_fastqc_data|_trimmed|_untrimmed|_unpaired|_paired|_hisat_out"
   
   f.name.toString()
    .replaceAll("_1\\.", ".")
@@ -679,10 +679,10 @@ if (params.ercc) {
       }
       '''
       #  Find this sample's strandness and determine kallisto flags to set
-      strand=$(cat samples_complete.manifest | grep ${prefix} | awk -F ' ' '{print $NF}')
+      strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
       if [ $strand == 'forward' ]; then
           kallisto_strand=" --fr-stranded"
-      elif [ $strand == 'reverse' ]
+      elif [ $strand == 'reverse' ]; then
           kallisto_strand=" --rf-stranded"
       else
           kallisto_strand=""
