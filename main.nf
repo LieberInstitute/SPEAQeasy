@@ -276,13 +276,13 @@ if (params.reference == "rn6") {
 
 def get_prefix(f) {
   //  Remove these regardless of position in the string
-  String blackListAny = "_summary|_trimmed|_untrimmed|_unpaired|_paired|_1|_2|_hisat_out"
+  String blackListAny = "_summary|_trimmed|_untrimmed|_unpaired|_paired|_hisat_out"
   
   f.name.toString()
-   .replaceAll("_read1.", ".")
-   .replaceAll("_read2.", ".")
-   .replaceAll(".Forward", "_Forward")
-   .replaceAll(".Reverse", "_Reverse")
+   .replaceAll("_1\\.", ".")
+   .replaceAll("_2\\.", ".")
+   .replaceAll("\\.Forward", "_Forward")
+   .replaceAll("\\.Reverse", "_Reverse")
    .tokenize('.')[0]
    .replaceAll(blackListAny, "")
 }
@@ -608,7 +608,8 @@ process InferStrandness {
     publishDir "${params.output}/InferStrandness", mode:'copy'
     
     input:
-        file infer_strand_script from file("${params.scripts}/infer_strand.R")
+        file infer_strand_R from file("${params.scripts}/infer_strand.R")
+        file infer_strand_sh from file("${params.scripts}/infer_strand.sh")
         file kallisto_index
         set val(prefix), file(fq_file) from strandness_inputs
         
@@ -618,70 +619,15 @@ process InferStrandness {
         
     shell:
         '''
-        if [ !{task.cpus} == 1 ]; then
-            thread_opt=""
-        else
-            thread_opt="-t !{task.cpus}"
-        fi
-        
-        if [ !{params.sample} == "paired" ]; then
-            fq1=$(ls *_1.f*q*)
-            fq2=$(ls *_2.f*q*)
-
-            #  Subset the FASTQ files by the given number of reads
-            if [ $(basename $fq1 | grep ".gz" | wc -l) == 1 ]; then
-                zcat $fq1 | head -n !{params.num_reads_infer_strand} > test_1.fastq
-                zcat $fq2 | head -n !{params.num_reads_infer_strand} > test_2.fastq
-            else
-                cat $fq1 | head -n !{params.num_reads_infer_strand} > test_1.fastq
-                cat $fq2 | head -n !{params.num_reads_infer_strand} > test_2.fastq
-            fi
-        
-            #  Try pseduoalignment to chr21 assuming each type of strandness possible
-            echo "Testing pseudoalignment assuming forward-strandness..."
-            !{params.kallisto} quant $thread_opt --fr-stranded -i kallisto_index_* -o ./forward test_1.fastq test_2.fastq
-            echo "Testing pseudoalignment assuming reverse-strandness..."
-            !{params.kallisto} quant $thread_opt --rf-stranded -i kallisto_index_* -o ./reverse test_1.fastq test_2.fastq
-        else
-            fq=$(ls *.f*q*)
-            
-            #  Subset the FASTQ file by the given number of reads
-            if [ $(basename $fq | grep ".gz" | wc -l) == 1 ]; then
-                zcat $fq | head -n !{params.num_reads_infer_strand} > test.fastq
-            else
-                cat $fq | head -n !{params.num_reads_infer_strand} > test.fastq
-            fi
-            
-            #  Try pseduoalignment to chr21 assuming each type of strandness possible
-            echo "Testing pseudoalignment assuming forward-strandness..."
-            !{params.kallisto} quant \
-                $thread_opt \
-                --single \
-                -l !{params.kallisto_len_mean} \
-                -s !{params.kallisto_len_sd} \
-                --fr-stranded \
-                -i kallisto_index_* \
-                -o ./forward test.fastq
-            echo "Testing pseudoalignment assuming reverse-strandness..."
-            !{params.kallisto} quant \
-                $thread_opt \
-                --single \
-                -l !{params.kallisto_len_mean} \
-                -s !{params.kallisto_len_sd} \
-                --rf-stranded \
-                -i kallisto_index_* \
-                -o ./reverse test.fastq
-        fi
-        
-        forward_count=$(grep "n_pseudoaligned" forward/run_info.json | cut -d ":" -f 2 | cut -d "," -f 1)
-        reverse_count=$(grep "n_pseudoaligned" reverse/run_info.json | cut -d ":" -f 2 | cut -d "," -f 1)
-        
-        #  Pass number of reads pseudoaligned for each test to the R script, which will
-        #  ultimately infer strandness (and print additional info/ potential warnings)
-        
-        echo "Passing this info to the R script to infer strand..."
-        !{params.Rscript} !{infer_strand_script} -f $forward_count -r $reverse_count -p !{params.sample} -s !{params.strand}
-        echo "Done."
+        bash !{infer_strand_sh} \
+            !{params.sample} \
+            !{params.num_reads_infer_strand} \
+            !{params.kallisto} \
+            !{task.cpus} \
+            !{params.kallisto_len_mean} \
+            !{params.kallisto_len_sd} \
+            !{params.strand} \
+            !{params.Rscript}
         
         cp .command.log !{prefix}_infer_strand.log
         '''
