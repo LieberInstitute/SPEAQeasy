@@ -618,6 +618,12 @@ process InferStrandness {
         
     shell:
         '''
+        if [ !{task.cpus} == 1 ]; then
+            thread_opt=""
+        else
+            thread_opt="-t !{task.cpus}"
+        fi
+        
         if [ !{params.sample} == "paired" ]; then
             fq1=$(ls *_1.f*q*)
             fq2=$(ls *_2.f*q*)
@@ -633,9 +639,9 @@ process InferStrandness {
         
             #  Try pseduoalignment to chr21 assuming each type of strandness possible
             echo "Testing pseudoalignment assuming forward-strandness..."
-            !{params.kallisto} quant -t !{task.cpus} --fr-stranded -i kallisto_index_* -o ./forward test_1.fastq test_2.fastq
+            !{params.kallisto} quant $thread_opt --fr-stranded -i kallisto_index_* -o ./forward test_1.fastq test_2.fastq
             echo "Testing pseudoalignment assuming reverse-strandness..."
-            !{params.kallisto} quant -t !{task.cpus} --rf-stranded -i kallisto_index_* -o ./reverse test_1.fastq test_2.fastq
+            !{params.kallisto} quant $thread_opt --rf-stranded -i kallisto_index_* -o ./reverse test_1.fastq test_2.fastq
         else
             fq=$(ls *.f*q*)
             
@@ -649,7 +655,7 @@ process InferStrandness {
             #  Try pseduoalignment to chr21 assuming each type of strandness possible
             echo "Testing pseudoalignment assuming forward-strandness..."
             !{params.kallisto} quant \
-                -t !{task.cpus} \
+                $thread_opt \
                 --single \
                 -l !{params.kallisto_len_mean} \
                 -s !{params.kallisto_len_sd} \
@@ -658,7 +664,7 @@ process InferStrandness {
                 -o ./forward test.fastq
             echo "Testing pseudoalignment assuming reverse-strandness..."
             !{params.kallisto} quant \
-                -t !{task.cpus} \
+                $thread_opt \
                 --single \
                 -l !{params.kallisto_len_mean} \
                 -s !{params.kallisto_len_sd} \
