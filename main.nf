@@ -684,7 +684,7 @@ if (params.ercc) {
       strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
       if [ $strand == 'forward' ]; then
           kallisto_strand=" --fr-stranded"
-      elif [ $strand == 'reverse' ]
+      elif [ $strand == 'reverse' ]; then
           kallisto_strand=" --rf-stranded"
       else
           kallisto_strand=""
