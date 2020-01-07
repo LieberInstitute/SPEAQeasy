@@ -15,15 +15,15 @@ library('SummarizedExperiment')
 
 ## Specify parameters
 spec <- matrix(c(
-	'organism', 'o', 2, 'character', 'rn6',
-	'maindir', 'm', 1, 'character', 'Main directory',
-	'experiment', 'e', 1, 'character', 'Experiment',
-	'prefix', 'p', 1, 'character', 'Prefix',
+    'organism', 'o', 2, 'character', 'rn6',
+    'experiment', 'e', 1, 'character', 'Experiment',
+    'prefix', 'p', 1, 'character', 'Prefix',
     'paired', 'l', 1, 'logical', 'Whether the reads are paired-end or not',
     'ercc', 'c', 1, 'logical', 'Whether the reads include ERCC or not',
     'cores', 't', 1, 'integer', 'Number of cores to use',
     'stranded', 's', 1, 'character', "Strandedness of the data: Either 'FALSE', 'forward' or 'reverse'",
-	'help' , 'h', 0, 'logical', 'Display help'
+    'salmon', 'n', 1, 'logical', 'Whether to use salmon quants rather than kallisto',
+    'help' , 'h', 0, 'logical', 'Display help'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
 
@@ -36,7 +36,6 @@ if (!is.null(opt$help)) {
 
 stopifnot(opt$stranded %in% c('FALSE', 'forward', 'reverse'))
 
-RDIR="./"
 EXPNAME = paste0(opt$experiment,"_",opt$prefix)
 
 ## read in pheno	
@@ -147,9 +146,9 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped +  metrics$totalMap
 
 ###############
 ### gene counts
-geneFn <- file.path(paste0(metrics$SAMPLE_ID, '_Rnor_6.0.86_Genes.counts'))
-names(geneFn) = metrics$SAMPLE_ID
-stopifnot(all(file.exists(geneFn)))
+geneFn <- list.files(pattern='.*_rn6.*_Genes\\.counts$')
+stopifnot(length(geneFn) == length(metrics$SAMPLE_ID))
+names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_'))]
 
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -205,9 +204,9 @@ write.csv(metrics, file = file.path(
 
 ###############
 ### exon counts
-exonFn <- file.path(paste0(metrics$SAMPLE_ID, '_Rnor_6.0.86_Exons.counts'))
-names(exonFn) = metrics$SAMPLE_ID
-stopifnot(all(file.exists(exonFn)))
+exonFn <- list.files(pattern='.*_rn6.*_Exons\\.counts$')
+stopifnot(length(exonFn) == length(metrics$SAMPLE_ID))
+names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_'))]
 
 ### read in annotation ##
 exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -312,7 +311,7 @@ jIndex = which(rowSums(as.data.frame(jCountsLogical)) >= n)
 juncCounts = lapply(juncCounts, function(x) x[jIndex,])
 	
 ## annotate junctions
-load(file.path(RDIR, "junction_annotation_rn6_ensembl_v86.rda"))
+load(list.files(pattern="junction_annotation_rn6.*_ensembl_.*\\.rda"))
 
 ############ anno/jMap	
 anno = juncCounts$anno
