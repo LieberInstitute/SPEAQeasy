@@ -342,26 +342,29 @@ log.info "==========================================="
 ################################### */
 
 /*
- * Step Ia: GENCODE Assembly FA
+ * Step Ia: Pull assembly fasta (from GENCODE for human/ mouse, or ensembl for
+ *          rat). Build a "main" fasta of only canonical sequences from the
+ *          pulled "primary" fasta containing all sequences/contigs.
  */
 
 
 // Uses "storeDir" to download assembly file if required, and otherwise output the cached file
 // if it already exists
-process pullGENCODEassemblyfa {
+process PullAssemblyFasta {
 
     tag "Downloading Assembly FA File: ${baseName}"
     storeDir "${params.annotation}/reference/${params.reference}/assembly/fa"
         
     output:
         file "${out_fasta}" into reference_fasta, variant_assembly, annotation_assembly
+        file "*.fa" // to store the primary and main fastas, regardless of which is used
 
     shell:
         //  Name of the primary assembly fasta
         baseName = file("${params.fa_link}").getName() - ".gz"
         
         //  Which fasta to use for this pipeline execution instance
-        if (params.gencode_build == "main") {
+        if (params.anno_build == "main") {
             out_fasta = "assembly_${params.anno_suffix}.fa"
         } else {
             out_fasta = baseName
@@ -424,25 +427,25 @@ process buildHISATindex {
 
 
 /*
- * Step II: GENCODE GTF Download
+ * Step II: Download reference .gtf (from GENCODE for human/ mouse, ensembl for rat)
  */
 
 // Uses "storeDir" to download gtf only when it doesn't exist, and output the cached
 // file if it does already exist
-process pullGENCODEgtf {
+process PullGtf {
 
     tag "Downloading GTF File: ${baseName}"
     storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
 
     output:
         file "${out_gtf}" into create_counts_gtf, gencode_feature_gtf, annotation_gtf
-        file "${baseName}"
+        file "*.gtf" // to store the 'primary' and 'main' gtfs, regardless of which is used
 
     shell:
         baseName = file("${params.gtf_link}").getName() - ".gz"
 
         //  Which fasta to use for this pipeline execution instance
-        if (params.gencode_build == "main") {
+        if (params.anno_build == "main") {
             out_gtf = "transcripts_${params.anno_suffix}.gtf"
         } else {
             out_gtf = baseName
@@ -478,12 +481,12 @@ process BuildAnnotationObjects {
 }
 
 /*
- * Step IIIa: GENCODE TX FA Download
+ * Step IIIa: Transcript FASTA download
  */
 		
 // Uses "storeDir" to download files only when they don't exist, and output the cached
 // files if they do already exist
-process pullGENCODEtranscripts {
+process PullTranscriptFasta {
 			
     tag "Downloading TX FA File: ${baseName}"
     storeDir "${params.annotation}/reference/${params.reference}/transcripts/fa"
