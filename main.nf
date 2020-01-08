@@ -199,7 +199,7 @@ if (params.small_test) {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Define Reference Paths/Scripts + Reference-dependent Parameters
+// Define reference-dependent variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Variant calling is only enabled for human
@@ -211,59 +211,42 @@ if (params.reference_type == "human") {
 }
 
 if (params.reference == "hg38") {
-  params.anno_version = params.gencode_version_human
-  params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + '_main'
-	
-	// Step 3: hisat2
-	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh38.primary_assembly.genome.fa.gz"
+    params.anno_version = params.gencode_version_human
+    params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + '_main'
 
-	// Step 4: gencode gtf
-	params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.annotation.gtf.gz"
-
-	// Step 6: transcript quantification
-	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.transcripts.fa.gz"
+    // Reference assembly fasta, gtf, and transcript fasta
+    params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh38.primary_assembly.genome.fa.gz"
+    params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.annotation.gtf.gz"
+    params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.transcripts.fa.gz"
 
     // Our extra exon annotation if user defaults to gencode release 25
     exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
 
 } else if (params.reference == "hg19") {
-  params.anno_version = params.gencode_version_human
-  params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + 'lift37_main'
-	
-	// Step 3: hisat2
-	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
-	
-	// Step 4: gencode gtf
-	params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh37_mapping/gencode.v${params.anno_version}lift37.annotation.gtf.gz"
+    params.anno_version = params.gencode_version_human
+    params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + 'lift37_main'
 
-	// Step 6: transcript quantification
-	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh37_mapping/gencode.v${params.anno_version}lift37.transcripts.fa.gz"
+    // Reference assembly fasta, gtf, and transcript fasta
+    params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
+    params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh37_mapping/gencode.v${params.anno_version}lift37.annotation.gtf.gz"
+    params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh37_mapping/gencode.v${params.anno_version}lift37.transcripts.fa.gz"
 
 } else if (params.reference == "mm10") {
-  params.anno_version = params.gencode_version_mouse
-  params.anno_suffix = params.reference + '_gencode_' + params.anno_version + '_main'
+    params.anno_version = params.gencode_version_mouse
+    params.anno_suffix = params.reference + '_gencode_' + params.anno_version + '_main'
 
-	// Step 3: hisat2
-	params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/GRCm38.primary_assembly.genome.fa.gz"
+    // Reference assembly fasta, gtf, and transcript fasta
+    params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/GRCm38.primary_assembly.genome.fa.gz"
+    params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/gencode.v${params.anno_version}.annotation.gtf.gz"
+    params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/gencode.v${params.anno_version}.transcripts.fa.gz"
 
-	// Step 4: gencode gtf
-	params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/gencode.v${params.anno_version}.annotation.gtf.gz"
-
-	// Step 6: transcript quantification
-	params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/gencode.v${params.anno_version}.transcripts.fa.gz"
-
-}
-if (params.reference == "rn6") {
+} else { // rat
     params.anno_version = params.ensembl_version_rat
     params.anno_suffix = params.reference + '_ensembl_' + params.anno_version + '_main'
-    
-    // Step 3: hisat2
+
+    // Reference assembly fasta, gtf, and transcript fasta
     params.fa_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
-
-    // Step 4: ensembl gtf
     params.gtf_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.${params.anno_version}.gtf.gz"
-
-    // Step 6: transcript quantification
     params.tx_fa_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/fasta/rattus_norvegicus/cdna/Rattus_norvegicus.Rnor_6.0.cdna.all.fa.gz"
 }
 
