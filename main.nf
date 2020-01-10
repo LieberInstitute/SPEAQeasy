@@ -212,7 +212,7 @@ if (params.reference_type == "human") {
 
 if (params.reference == "hg38") {
     params.anno_version = params.gencode_version_human
-    params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + '_main'
+    params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + '_' + params.anno_build
 
     // Reference assembly fasta, gtf, and transcript fasta
     params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh38.primary_assembly.genome.fa.gz"
@@ -224,7 +224,7 @@ if (params.reference == "hg38") {
 
 } else if (params.reference == "hg19") {
     params.anno_version = params.gencode_version_human
-    params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + 'lift37_main'
+    params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + 'lift37_' + params.anno_build
 
     // Reference assembly fasta, gtf, and transcript fasta
     params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
@@ -233,7 +233,7 @@ if (params.reference == "hg38") {
 
 } else if (params.reference == "mm10") {
     params.anno_version = params.gencode_version_mouse
-    params.anno_suffix = params.reference + '_gencode_' + params.anno_version + '_main'
+    params.anno_suffix = params.reference + '_gencode_' + params.anno_version + '_' + params.anno_build
 
     // Reference assembly fasta, gtf, and transcript fasta
     params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/GRCm38.primary_assembly.genome.fa.gz"
@@ -242,7 +242,7 @@ if (params.reference == "hg38") {
 
 } else { // rat
     params.anno_version = params.ensembl_version_rat
-    params.anno_suffix = params.reference + '_ensembl_' + params.anno_version + '_main'
+    params.anno_suffix = params.reference + '_ensembl_' + params.anno_version + '_' + params.anno_build
 
     // Reference assembly fasta, gtf, and transcript fasta
     params.fa_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
@@ -343,23 +343,25 @@ process PullAssemblyFasta {
         file "*.fa" // to store the primary and main fastas, regardless of which is used
 
     shell:
-        //  Name of the primary assembly fasta
+        //  Name of the primary assembly fasta after being downloaded and unzipped
         baseName = file("${params.fa_link}").getName() - ".gz"
         
-        //  Which fasta to use for this pipeline execution instance
-        if (params.anno_build == "main") {
-            out_fasta = "assembly_${params.anno_suffix}.fa"
-        } else {
-            out_fasta = baseName
-        }
+        //  Name the pipeline will use for the primary and main assembly fastas, respectively
+        primaryName = "assembly_${params.anno_suffix}.fa".replaceAll("main", "primary")
+        mainName = "assembly_${params.anno_suffix}.fa".replaceAll("primary", "main")
+        
+        //  Name of fasta to use for this pipeline execution instance
+        out_fasta = "assembly_${params.anno_suffix}.fa"
+        
         '''
         #  Pull and unzip primary assembly fasta, if this hasn't been done. Otherwise
         #  symbolically link the fasta into the working directory
-        if [ -f !{params.annotation}/reference/!{params.reference}/assembly/fa/!{baseName} ]; then
-            ln -s !{params.annotation}/reference/!{params.reference}/assembly/fa/!{baseName} !{baseName}
+        if [ -f !{params.annotation}/reference/!{params.reference}/assembly/fa/!{primaryName} ]; then
+            ln -s !{params.annotation}/reference/!{params.reference}/assembly/fa/!{primaryName} !{primaryName}
         else
             wget "!{params.fa_link}"
             gunzip "!{baseName}.gz"
+            mv !{baseName} !{primaryName} # rename for consistency with pipeline naming conventions
         fi
         
         #######################################################################
@@ -377,10 +379,10 @@ process PullAssemblyFasta {
         
         #  Find the line of the header for the first extra contig (to not
         #  include in the "main" annotation fasta
-        first_bad_line=$(grep -n ">" !{baseName} | cut -d : -f 1 | paste -s | cut -f $(($num_chrs + 1)))
+        first_bad_line=$(grep -n ">" !{primaryName} | cut -d : -f 1 | paste -s | cut -f $(($num_chrs + 1)))
         
         #  Make a new file out of all the lines up and not including that
-        sed -n "1,$(($first_bad_line - 1))p;${first_bad_line}q" !{baseName} > assembly_!{params.anno_suffix}.fa
+        sed -n "1,$(($first_bad_line - 1))p;${first_bad_line}q" !{primaryName} > !{mainName}
         '''
 }
 
@@ -459,7 +461,7 @@ process BuildAnnotationObjects {
       
   shell:
       '''
-      !{params.Rscript} !{build_ann_script} -r !{params.reference} -v !{params.anno_version} -t "main"
+      !{params.Rscript} !{build_ann_script} -r !{params.reference} -v !{params.anno_version} -t !{params.anno_build}
       '''
 }
 
@@ -1362,12 +1364,12 @@ if (params.ercc) {
  */
 
 //  Mix with reference-dependent annotation info
-if(params.reference == "hg19" || (params.reference == "hg38" && params.anno_version != 25)) {
+if(params.reference == "hg19" || (params.reference == "hg38" && params.anno_version != "25")) {
     junction_annotation
         .mix(feature_to_tx_gencode)
         .toList()
         .set{counts_annotations}
-} else if (params.reference == "hg38" && params.anno_version == 25) {
+} else if (params.reference == "hg38" && params.anno_version == "25") {
     junction_annotation
         .mix(feature_to_tx_gencode)
         .mix(exon_maps_by_coord_hg38)
