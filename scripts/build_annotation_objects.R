@@ -146,11 +146,11 @@ if (opt$reference != "rn6") {
     exonMapGR$GenTx[!is.na(mm)] = exonToTx[mm[!is.na(mm)]]
     
     ## and junction:
-    names(gencode_junctions) = paste0(seqnames(gencode_junctions),
-    	":", start(gencode_junctions), "-", end(gencode_junctions), "(",
-    	strand(gencode_junctions), ")")
-    gencode_junctions$nonStrandName = paste0(seqnames(gencode_junctions),
-    	":", start(gencode_junctions), "-", end(gencode_junctions), "(*)")
+    names(theJunctions) = paste0(seqnames(theJunctions),
+    	":", start(theJunctions), "-", end(theJunctions), "(",
+    	strand(theJunctions), ")")
+    theJunctions$nonStrandName = paste0(seqnames(theJunctions),
+    	":", start(theJunctions), "-", end(theJunctions), "(*)")
     
     ############################
     #### features to tx ########
@@ -158,9 +158,9 @@ if (opt$reference != "rn6") {
     names(gn) = names(geneMapGR)
     exn = exonMapGR$GenTx
     names(exn) = names(exonMapGR)
-    jxn = jxn2 = gencode_junctions$tx
-    names(jxn) = names(gencode_junctions)
-    names(jxn2) = gencode_junctions$nonStrandName
+    jxn = jxn2 = theJunctions$tx
+    names(jxn) = names(theJunctions)
+    names(jxn2) = theJunctions$nonStrandName
     allTx = c(gn, exn, jxn,jxn2)
     
     save(allTx, file=paste0("feature_to_Tx", suffix, ".rda"))
