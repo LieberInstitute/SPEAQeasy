@@ -383,12 +383,15 @@ stopifnot(all(file.exists(junctionFiles))) #  TRUE
 ## annotate junctions
 load(list.files(pattern="junction_annotation_mm10.*_gencode_.*\\.rda"))
 
-if (opt$stranded %in% c('forward', 'reverse')) {
-  juncCounts = junctionCount(junctionFiles, metrics$SAMPLE_ID,
-                             output = "Count", maxCores=opt$cores,strandSpecific=TRUE)
-} else {
+#  Handle strand in a consistent way regardless of differences between samples-
+#  if any samples are determined to be unstranded, process all samples as if unstranded.
+#  Otherwise, process samples as all stranded.
+if (any(manifest[,ncol(manifest)] == "unstranded")) {
   juncCounts = junctionCount(junctionFiles, metrics$SAMPLE_ID,
                              output = "Count", maxCores=opt$cores,strandSpecific=FALSE)
+} else {
+  juncCounts = junctionCount(junctionFiles, metrics$SAMPLE_ID,
+                             output = "Count", maxCores=opt$cores,strandSpecific=TRUE)
 }
 ## filter junction counts - drop jxns in <1% of samples
 n = max(1, floor(N/100))

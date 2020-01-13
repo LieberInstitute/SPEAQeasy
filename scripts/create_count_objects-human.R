@@ -661,12 +661,15 @@ load(list.files(pattern="junction_annotation_hg.*_gencode_v.*\\.rda"))
 junctionFiles <- file.path(".", paste0(metrics$SAMPLE_ID, '_junctions_primaryOnly_regtools.count'))
 stopifnot(all(file.exists(junctionFiles))) #  TRUE
 
-if (opt$stranded %in% c('forward', 'reverse')) {
-	juncCounts = junctionCount(junctionFiles, metrics$SAMPLE_ID,
-		output = "Count", maxCores=opt$cores,strandSpecific=TRUE)
-} else {
+#  Handle strand in a consistent way regardless of differences between samples-
+#  if any samples are determined to be unstranded, process all samples as if unstranded.
+#  Otherwise, process samples as all stranded.
+if (any(manifest[,ncol(manifest)] == "unstranded")) {
 	juncCounts = junctionCount(junctionFiles, metrics$SAMPLE_ID,
 		output = "Count", maxCores=opt$cores,strandSpecific=FALSE)
+} else {
+	juncCounts = junctionCount(junctionFiles, metrics$SAMPLE_ID,
+		output = "Count", maxCores=opt$cores,strandSpecific=TRUE)
 }
 ## filter junction counts - drop jxns in <1% of samples
 n = max(1, floor(N/100))
@@ -677,9 +680,6 @@ juncCounts = lapply(juncCounts, function(x) x[jIndex,])
 
 ############ anno/jMap
 anno = juncCounts$anno
-### seqlevels(force= argument seems to require an updated version of R, and bioconductor)
-### For compatibility with the testing server, line has been changed to use the pruning.mode="coarse" argument
-##seqlevels(anno, force=TRUE) = paste0("chr", c(1:22,"X","Y","M"))
 seqlevels(anno, pruning.mode="coarse") = paste0("chr", c(1:22,"X","Y","M"))
 ## add additional annotation
 anno$inGencode = countOverlaps(anno, theJunctions, type="equal") > 0
