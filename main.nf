@@ -150,7 +150,6 @@ params.unalign = false
 params.reference = ""
 params.annotation = "${workflow.projectDir}/Annotation"
 params.output = "${workflow.projectDir}/results"
-params.scripts = "${workflow.projectDir}/scripts"
 params.ercc = false
 params.fullCov = false
 params.small_test = false
@@ -312,11 +311,12 @@ log.info "============================================================="
 def summary = [:]
 summary['Run Name']			= workflow.runName
 summary['Sample']			  = params.sample
-summary['Reference']		   = params.reference
 summary['Strand']			  = params.strand
-summary['Annotation']		 = params.annotation
+summary['Reference']		   = params.reference
+summary['Annotation release'] = params.anno_version
+summary['Annotation build'] = params.anno_build
+summary['Annotation dir']		 = params.annotation
 summary['Input']			   = params.input
-summary['scripts']      = params.scripts
 summary['Experiment'] = params.experiment
 if(params.unalign) summary['Align'] = "True"
 if(params.fullCov) summary['Full Coverage'] = "True"
@@ -459,7 +459,7 @@ process BuildAnnotationObjects {
   input:
       file annotation_assembly
       file annotation_gtf
-      file build_ann_script from file("${params.scripts}/build_annotation_objects.R")
+      file build_ann_script from file("${workflow.projectDir}/scripts/build_annotation_objects.R")
       
   output:
       file "junction_annotation_${params.anno_suffix}.rda" into junction_annotation
@@ -560,7 +560,7 @@ process PreprocessInputs {
 
   input:
     file original_manifest from file("${params.input}/samples.manifest")
-    file merge_script from file("${params.scripts}/preprocess_inputs.R")
+    file merge_script from file("${workflow.projectDir}/scripts/preprocess_inputs.R")
 
   output:
     file "*.f*q*" into merged_inputs_flat
@@ -605,8 +605,8 @@ process InferStrandness {
     publishDir "${params.output}/InferStrandness", mode:'copy'
     
     input:
-        file infer_strand_R from file("${params.scripts}/infer_strand.R")
-        file infer_strand_sh from file("${params.scripts}/infer_strand.sh")
+        file infer_strand_R from file("${workflow.projectDir}/scripts/infer_strand.R")
+        file infer_strand_sh from file("${workflow.projectDir}/scripts/infer_strand.sh")
         file kallisto_index
         set val(prefix), file(fq_file) from strandness_inputs
         
@@ -637,7 +637,7 @@ process CompleteManifest {
     input:
         file strandness_files from strandness_patterns.collect()
         file strandness_manifest
-        file manifest_script from file("${params.scripts}/complete_manifest.R")
+        file manifest_script from file("${workflow.projectDir}/scripts/complete_manifest.R")
         
     output:
         file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_hisat, complete_manifest_quant, complete_manifest_fullcov
@@ -1093,7 +1093,7 @@ process Junctions {
     publishDir "${params.output}/Counts/junction",'mode':'copy'
 
     input:
-        file bed_to_juncs_script from file("${params.scripts}/bed_to_juncs.py")
+        file bed_to_juncs_script from file("${workflow.projectDir}/scripts/bed_to_juncs.py")
         set val(prefix), file(alignment_bam), file(alignment_index) from primary_alignments
         file complete_manifest_junctions
 
@@ -1185,7 +1185,7 @@ process WigToBigWig {
 
 	input:
 	set val(wig_prefix), file(wig_file) from wig_files
-	file chr_sizes from chr_sizes
+	file chr_sizes
 
 	output:
 	file "*.bw" into coverage_bigwigs
@@ -1356,13 +1356,13 @@ if (params.ercc) {
 	counts_objects_channel_1
 	  .mix(ercc_abundances)
 	  .flatten()
-	  .toSortedList()
+	  .toList()
 	  .set{ counts_inputs }
 } else {
 
 	counts_objects_channel_1
 	  .flatten()
-	  .toSortedList()
+	  .toList()
 	  .set{ counts_inputs }
 }
 
@@ -1398,7 +1398,7 @@ process CountObjects {
     input:
         file counts_inputs
         file counts_annotations
-        file create_counts from file("${params.scripts}/create_count_objects-${params.reference_type}.R")
+        file create_counts from file("${workflow.projectDir}/scripts/create_count_objects-${params.reference_type}.R")
         file ercc_actual_conc from file("${params.annotation}/ERCC/ercc_actual_conc.txt")
         file complete_manifest_counts
 
@@ -1449,9 +1449,9 @@ if (params.fullCov) {
         publishDir "${params.output}/Coverage_Objects",'mode':'copy'
 
         input:
-            file fullCov_script from file("${params.scripts}/create_fullCov_object.R")
+            file fullCov_script from file("${workflow.projectDir}/scripts/create_fullCov_object.R")
             file complete_manifest_fullcov
-            file full_coverage_input from full_coverage_inputs
+            file full_coverage_inputs
 
         output:
             file "*"
@@ -1535,20 +1535,20 @@ if (params.step8) {
 
 process ExpressedRegions {
  
-  tag "Sample: $expressed_regions_mean_bigwig"
+  tag "Sample: $expressed_regions_mean_bigwigs"
   publishDir "${params.output}/Expressed_Regions",mode:'copy'
 
   input:
-    file expressed_regions_script from file("${params.scripts}/step9-find_expressed_regions.R")
-    file chr_sizes from chr_sizes
-    file expressed_regions_mean_bigwig from expressed_regions_mean_bigwigs
+    file expressed_regions_script from file("${workflow.projectDir}/scripts/step9-find_expressed_regions.R")
+    file chr_sizes
+    file expressed_regions_mean_bigwigs
 
   output:
     file "*" 
 
   shell:
     // "strand" is used for naming the log file for this execution of the process
-    strand = expressed_regions_mean_bigwig.toString().replaceAll("mean.|.bw|bw", "")
+    strand = expressed_regions_mean_bigwigs.toString().replaceAll("mean.|.bw|bw", "")
     if (strand.length() > 0) {
         strand = '_' + strand
     }
