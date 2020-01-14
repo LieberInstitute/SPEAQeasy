@@ -333,11 +333,6 @@ log.info "==========================================="
 // BEGIN PIPELINE
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/* ###################################
-
-	STARTS REFERENCES BUILDING BLOCK 
-
-################################### */
 
 /*
  * Step Ia: Pull assembly fasta (from GENCODE for human/ mouse, or ensembl for
@@ -452,6 +447,10 @@ process PullGtf {
         '''
 }
 
+// Build "objects" from the assembly fasta and reference gtf. These objects include
+// .rda files with junction and transcript feature information, and a file listing
+// the size of each chromosome/ sequence. These objects are for internal use by
+// the pipeline.
 process BuildAnnotationObjects {
 
   storeDir "${params.annotation}/junction_txdb"
@@ -599,6 +598,10 @@ if (params.ercc) {
   temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs }
 }
 
+// Perform pseudoaligment by sample on a subset of reads, and see which strandness
+// assumption passed to kallisto results in the largest number of alignments. This
+// determines strandness for each sample, used by all remaining pipeline steps which
+// require this information.
 process InferStrandness {
 
     tag "${prefix}"
@@ -630,6 +633,9 @@ process InferStrandness {
         '''
 }
 
+// Attach strandness information from the InferStrandness process to a copy
+// of the user-provided samples.manifest file, for internal use by the
+// pipeline.
 process CompleteManifest {
 
     publishDir "${params.output}", mode:'copy'
@@ -694,7 +700,7 @@ if (params.ercc) {
 
 
 /*
- * Step 1: Untrimmed Quality Report
+ * Step 1: Perform FastQC on the untrimmed reads, as an initial quality gauge 
  */
 
 process QualityUntrimmed {
@@ -974,7 +980,8 @@ hisat_output
     .set{ sam_to_bam_inputs }
 
 /*
- * Step 3b: Sam to Bam 
+ * Step 3b: Sam to Bam (Drop low-quality alignments, sort and index the BAM
+ *          file produced from the original SAM)
  */
 
 process SamtoBam {
