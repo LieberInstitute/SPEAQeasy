@@ -216,13 +216,20 @@ if (params.reference == "hg38") {
 
     // Reference assembly fasta, gtf, and transcript fasta
     params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh38.primary_assembly.genome.fa.gz"
-    params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.annotation.gtf.gz"
+    if (params.anno_build == "primary") {
+        params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.primary_assembly.annotation.gtf.gz"
+    } else {
+        params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.annotation.gtf.gz"
+    }
     params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.transcripts.fa.gz"
 
     // Our extra exon annotation if user defaults to gencode release 25
     exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
 
 } else if (params.reference == "hg19") {
+    print("Warning: use of 'primary' annotation is not supported for hg19, as GENCODE does not provide a primary .gtf file. Continuing with annotation build 'main'.")
+    params.anno_build = "main"
+    
     params.anno_version = params.gencode_version_human
     params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + 'lift37_' + params.anno_build
 
@@ -237,7 +244,11 @@ if (params.reference == "hg38") {
 
     // Reference assembly fasta, gtf, and transcript fasta
     params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/GRCm38.primary_assembly.genome.fa.gz"
-    params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/gencode.v${params.anno_version}.annotation.gtf.gz"
+    if (params.anno_build == "primary") {
+        params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/gencode.v${params.anno_version}.primary_assembly.annotation.gtf.gz"
+    } else {
+        params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/gencode.v${params.anno_version}.annotation.gtf.gz"
+    }
     params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_${params.anno_version}/gencode.v${params.anno_version}.transcripts.fa.gz"
 
 } else { // rat
@@ -246,7 +257,11 @@ if (params.reference == "hg38") {
 
     // Reference assembly fasta, gtf, and transcript fasta
     params.fa_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
-    params.gtf_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.${params.anno_version}.gtf.gz"
+    if (params.anno_build == "primary") {
+        params.gtf_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.${params.anno_version}.gtf.gz"
+    } else {
+        params.gtf_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.${params.anno_version}.chr.gtf.gz"
+    }
     params.tx_fa_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/fasta/rattus_norvegicus/cdna/Rattus_norvegicus.Rnor_6.0.cdna.all.fa.gz"
 }
 
@@ -331,8 +346,8 @@ log.info "==========================================="
  */
 
 
-// Uses "storeDir" to download assembly file if required, and otherwise output the cached file
-// if it already exists
+// If any files are not already downloaded/ prepared: download the primary
+// assembly fasta and create a subsetted fasta of "main" (reference) sequences only
 process PullAssemblyFasta {
 
     tag "Downloading Assembly FA File: ${baseName}"
@@ -424,24 +439,16 @@ process PullGtf {
 
     output:
         file "${out_gtf}" into create_counts_gtf, gencode_feature_gtf, annotation_gtf
-        file "*.gtf" // to store the 'primary' and 'main' gtfs, regardless of which is used
 
     shell:
+        // Names of gtf file when downloaded + unzipped and after renamed, respectively
         baseName = file("${params.gtf_link}").getName() - ".gz"
-
-        //  Which fasta to use for this pipeline execution instance
-        if (params.anno_build == "main") {
-            out_gtf = "transcripts_${params.anno_suffix}.gtf"
-        } else {
-            out_gtf = baseName
-        }
+        out_gtf = "transcripts_${params.anno_suffix}.gtf"
         '''
-        #  Pull and unzip transcript gtf
+        #  Pull, unzip, and rename transcript gtf
         wget "!{params.gtf_link}"
         gunzip "!{baseName}.gz"
-
-        #  Create the "main" transcripts gtf excluding non-canonical contigs
-        grep -E "^(chr|#|[[:digit:]]).*" !{baseName} > transcripts_!{params.anno_suffix}.gtf
+        mv !{baseName} !{out_gtf}
         '''
 }
 
