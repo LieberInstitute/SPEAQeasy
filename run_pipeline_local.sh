@@ -11,7 +11,7 @@ export _JAVA_OPTIONS="-Xms5g -Xmx7g"
     --ercc \
     --fullCov \
     --force_trim \
-    -with-report execution_reports/System_mode_test_run.html \
-    -with-dag execution_DAGs/System_mode_test_run.png \
+    -with-report execution_reports/local_run.html \
+    -with-dag execution_DAGs/localt_run.html \
     -profile standard \
     $@

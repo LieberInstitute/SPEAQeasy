@@ -19,8 +19,8 @@ nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \
     --strand "unstranded" \
     --ercc \
     --small_test \
-    -with-report /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_reports/JHPCE_mode_test_run.html \
-    -with-dag /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_DAGs/JHPCE_mode_test_run.DAG \
+    -with-report /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_reports/JHPCE_run.html \
+    -with-dag /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_DAGs/JHPCE_run.html \
     -profile jhpce  \
     -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
     --annotation "/users/neagles/rna_sp/Annotation" \

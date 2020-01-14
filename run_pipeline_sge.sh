@@ -9,8 +9,7 @@ nextflow main.nf \
 	--strand "unstranded" \
 	--ercc \
 	--fullCov \
-	-with-report execution_reports/SGE_mode_test_run.html \
-	-with-dag execution_DAGs/SGE_mode_test_run.png \
-	-resume \
-	-profile sge,quick \
+	-with-report execution_reports/SGE_run.html \
+	-with-dag execution_DAGs/SGE_run.html \
+	-profile sge \
 	$@
