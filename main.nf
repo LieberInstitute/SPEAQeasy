@@ -662,7 +662,7 @@ if (params.ercc) {
 
   process ERCC {
 		
-    tag "Prefix: $prefix"
+    tag "$prefix"
     publishDir "${params.output}/ercc/${prefix}",'mode':'copy'
 
     input:
@@ -705,7 +705,7 @@ if (params.ercc) {
 
 process QualityUntrimmed {
 
-	tag "Prefix: $untrimmed_prefix"
+	tag "$untrimmed_prefix"
 	publishDir "${params.output}/FastQC/Untrimmed",mode:'copy'
 
 	input:
@@ -758,7 +758,7 @@ if (params.sample == "single") {
  
 process Trimming {
 
-    tag "Prefix: $fq_prefix"
+    tag "$fq_prefix"
     publishDir "${params.output}/Trimming",mode:'copy'
 
     input:
@@ -848,7 +848,7 @@ process Trimming {
 
 process QualityTrimmed {
 
-	tag "Prefix: $fastq_name"
+	tag "$fastq_name"
 	publishDir "${params.output}/FastQC/Trimmed",'mode':'copy'
 
 	input:
@@ -879,7 +879,7 @@ if (params.sample == "single") {
 
     process SingleEndHISAT {
 
-        tag "Prefix: $prefix"
+        tag "$prefix"
         publishDir "${params.output}/HISAT2_out",mode:'copy'
 
         input:
@@ -920,7 +920,7 @@ if (params.sample == "single") {
 
     process PairedEndHISAT {
 
-        tag "Prefix: $prefix"
+        tag "$prefix"
         publishDir "${params.output}/HISAT2_out",'mode':'copy'
 
         input:
@@ -986,7 +986,7 @@ hisat_output
 
 process SamtoBam {
 	
-	tag "Prefix: $sam_to_bam_prefix"
+	tag "$sam_to_bam_prefix"
 	publishDir "${params.output}/HISAT2_out/sam_to_bam",'mode':'copy'
 
 	input:
@@ -1015,7 +1015,7 @@ feature_bam_inputs
 
 process FeatureCounts {
 
-    tag "Prefix: $feature_prefix"
+    tag "$feature_prefix"
     publishDir "${params.output}/Counts",'mode':'copy'
 
     input:
@@ -1074,7 +1074,7 @@ process FeatureCounts {
 
 process PrimaryAlignments {
 
-	tag "Prefix: $alignment_prefix"
+	tag "$alignment_prefix"
 	publishDir "${params.output}/Counts/junction/primary_aligments",'mode':'copy'
 
 	input:
@@ -1096,7 +1096,7 @@ process PrimaryAlignments {
 
 process Junctions {
 
-    tag "Prefix: $prefix"
+    tag "$prefix"
     publishDir "${params.output}/Counts/junction",'mode':'copy'
 
     input:
@@ -1133,7 +1133,7 @@ process Junctions {
 
 process Coverage {
 
-    tag "Prefix: $coverage_prefix"
+    tag "$coverage_prefix"
     publishDir "${params.output}/Coverage/wigs",mode:'copy'
 
     input:
@@ -1187,7 +1187,7 @@ wig_files_temp
 
 process WigToBigWig {
 
-	tag "Prefix: $wig_prefix"
+	tag "$wig_prefix"
 	publishDir "${params.output}/Coverage/BigWigs",mode:'copy'
 
 	input:
@@ -1248,7 +1248,7 @@ process MeanCoverage {
 if (params.use_salmon) {
     process TXQuantSalmon {
     
-        tag "Prefix: $prefix"
+        tag "$prefix"
         publishDir "${params.output}/Salmon_tx/${prefix}",mode:'copy'
     
         input:
@@ -1294,7 +1294,7 @@ if (params.use_salmon) {
 } else {
     process TXQuantKallisto {
     
-        tag "Prefix: $prefix"
+        tag "$prefix"
         publishDir "${params.output}/kallisto_tx/${prefix}", mode:'copy'
     
         input:
@@ -1494,7 +1494,7 @@ if (params.step8) {
 
 	process VariantCalls {
  
-		tag "Prefix: $variant_bams_prefix"
+		tag "$variant_bams_prefix"
 		publishDir "${params.output}/Variant_Calls",'mode':'copy'
 
 		input:
@@ -1542,7 +1542,7 @@ if (params.step8) {
 
 process ExpressedRegions {
  
-  tag "Sample: $expressed_regions_mean_bigwigs"
+  tag "$expressed_regions_mean_bigwigs"
   publishDir "${params.output}/Expressed_Regions",mode:'copy'
 
   input:
