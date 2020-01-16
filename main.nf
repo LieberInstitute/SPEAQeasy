@@ -671,7 +671,7 @@ if (params.ercc) {
       file complete_manifest_ercc
 
     output:
-      file "${prefix}_abundance.tsv" into ercc_abundances
+      file "${prefix}_ercc_abundance.tsv" into ercc_abundances
       file "ercc_${prefix}.log"
 
     shell:
@@ -692,7 +692,7 @@ if (params.ercc) {
       fi
       
       !{params.kallisto} quant -i !{erccidx} -t !{task.cpus} !{kallisto_flags} -o . $kallisto_strand !{ercc_input}
-      cp abundance.tsv !{prefix}_abundance.tsv
+      cp abundance.tsv !{prefix}_ercc_abundance.tsv
       cp .command.log ercc_!{prefix}.log
       '''
   }

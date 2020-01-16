@@ -52,9 +52,9 @@ if (opt$ercc == TRUE ){
 
 	##observed kallisto tpm
 	erccTPM = sapply(sampIDs, function(x) {
-	  read.table(file.path(".", paste0(x, "_abundance.tsv")),header = TRUE)$tpm
+	  read.table(paste0(x, "_ercc_abundance.tsv"),header = TRUE)$tpm
 	})
-	rownames(erccTPM) = read.table(file.path(paste0(sampIDs[1], "_abundance.tsv")),
+	rownames(erccTPM) = read.table(paste0(sampIDs[1], "_ercc_abundance.tsv"),
 							header = TRUE)$target_id
 	#check finiteness / change NaNs to 0s
 	erccTPM[which(is.na(erccTPM),arr.ind=T)] = 0
