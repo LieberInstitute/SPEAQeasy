@@ -23,7 +23,7 @@ nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \
     -with-dag /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_DAGs/JHPCE_run.html \
     -profile jhpce  \
     -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
-    --annotation "/users/neagles/rna_sp/Annotation" \
+    --annotation "/dcl01/lieber/ajaffe/Nick/RNAsp/Annotation" \
     --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results" \
     $@
 

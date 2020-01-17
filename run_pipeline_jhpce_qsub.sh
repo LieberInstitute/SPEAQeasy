@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=50G
+#$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=150G
 #$ -o ./run_pipeline_jhpce_qsub.log
 #$ -e ./run_pipeline_jhpce_qsub.log
 #$ -cwd
@@ -16,7 +16,7 @@ nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \
     -with-report execution_reports/JHPCE_run.html \
     -with-dag execution_DAGs/JHPCE_run.html \
     -profile jhpce \
-    --annotation "/users/neagles/rna_sp/Annotation" \
+    --annotation "/dcl01/lieber/ajaffe/Nick/RNAsp/Annotation" \
     -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
     --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results" \
 	$@
