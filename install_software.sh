@@ -8,6 +8,11 @@
 #  than through a cluster/ resource manager).
 local_install=false
 
+#  Users wishing to run the pipeline using docker have no need to install R
+#  packages used by the pipeline, and may prefer to set this variable to false.
+install_R_packages=true
+
+
 #  --------------------------------------------------------
 #  Users should not need to alter code below this point
 #  --------------------------------------------------------
@@ -81,6 +86,9 @@ if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
       
     #  Install packages that will be used by the pipeline
     ./R-3.6.1/bin/Rscript ../scripts/check_R_packages.R
+    
+    #  Create the test samples.manifest files
+    ./R-3.6.1/bin/Rscript ../scripts/make_test_manifests.R
     
     #  regtools (0.5.1)  -------------------------------------------------------------
     
@@ -168,12 +176,18 @@ if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
     rm download
     
   else
-    #  Already installed nextflow; simply need to install R packages used in the pipeline.
+    #  Already installed nextflow; now install R packages used by the pipeline,
+    #  and create the samples.manifest files used for test runs.
     #  Here it is assumed 'Rscript' is on the PATH (R is installed and accessible).
     echo -e "User selected typical install (bioinformatics tools will not be installed locally).\n\n"
     
-    Rscript ../scripts/check_R_packages.R
+    if [ "$install_R_packages" = true ]; then
+      Rscript ../scripts/check_R_packages.R
+    fi
+    
+    Rscript ../scripts/make_test_manifests.R
   fi
+  
 else #  Java or Python could not be found on the system
   if ! [ -x "$(command -v java)" ]; then
     echo "A java runtime could not be found or accessed. Is it installed and on the PATH? You can install it by running 'apt install default-jre', which requires root/sudo privileges."
@@ -196,3 +210,4 @@ else #  Java or Python could not be found on the system
   echo "After installing the required software, rerun this script to finish the installation procedure."
     
 fi
+
