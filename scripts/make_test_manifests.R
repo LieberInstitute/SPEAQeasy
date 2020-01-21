@@ -1,5 +1,7 @@
 library('jaffelab')
 
+setwd('..') # since this script will be called from [Repo]/Software and not [Repo]
+
 for (species in c("human", "mouse", "rat")) {
     for (pairing in c("single", "paired")) {
         for (strand in c("stranded", "unstranded")) {
