@@ -191,6 +191,7 @@ if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
 else #  Java or Python could not be found on the system
   if ! [ -x "$(command -v java)" ]; then
     echo "A java runtime could not be found or accessed. Is it installed and on the PATH? You can install it by running 'apt install default-jre', which requires root/sudo privileges."
+  fi
     
   if ! [ -x "$(command -v python2.7)" ]; then
     echo "Python 2.7 could not be found or executed. Please install it (this requires root privileges)- ask an admin if needed. If you have root priveleges, you can execute this code to install from source (places a folder in the current directory):"
@@ -210,4 +211,3 @@ else #  Java or Python could not be found on the system
   echo "After installing the required software, rerun this script to finish the installation procedure."
     
 fi
-
