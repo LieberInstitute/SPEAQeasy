@@ -8,6 +8,7 @@ work*
 execution_*
 run_pipeline_jhpce_qsub.log
 Software*
+test/*/samples.manifest
 
 ## ignore big reference files/ files pulled with 1st execution
 Annotation/reference/*
