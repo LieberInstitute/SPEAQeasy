@@ -13,7 +13,7 @@
 
 
 #  This is the docker image to be used for execution of R via docker (with docker mode)
-R_container="bioconductor/bioconductor_full:RELEASE_3_10"
+R_container="libddocker/r_3.6.1_bioc"
 
 #  --------------------------------------------------------
 #  Users should not need to alter code below this point
@@ -21,8 +21,7 @@ R_container="bioconductor/bioconductor_full:RELEASE_3_10"
 
 if [ "$1" == "docker" ]; then
 
-    echo "User selected docker mode: nextflow will be installed, and an R image with the necessary"
-    echo -e "packages will be built. This may take some time, but need only be done once.\n\n"
+    echo "User selected docker mode: nextflow will be installed, along with some test files."
     
     INSTALL_DIR=$(pwd)/Software
     mkdir $INSTALL_DIR
@@ -31,38 +30,17 @@ if [ "$1" == "docker" ]; then
     #  Install nextflow (latest)
     wget -qO- https://get.nextflow.io | bash
     cd ..
-    
-    ###########################################################################
-    #  Pull Bioconductor's image of R, install packages this pipeline uses
-    #  from within the container, then commit changes so the container has
-    #  packages installed upon subsequent starts
-    ###########################################################################
-    
-    #  Grab the container
-    docker pull $R_container
-
-    #  Install necessary packages from within container
-    docker run \
-        -v $(pwd)/scripts:/scripts/ \
-        --user bioc $R_container \
-        Rscript scripts/check_R_packages.R
-
-    #  Match the container name to the ID
-    container_id=$(docker ps -a | grep "$R_container" | head -n 1 | cut -d " " -f 1)
-
-    #  Commit modifications to container (made by installing packages)
-    docker commit \
-        -m "Installed necessary packages" \
-        -a "$USER" \
-        $container_id $R_container
         
     ###########################################################################
     #  Create the samples.manifest files for test directories
     ###########################################################################
     
+    #  Grab the container
+    docker pull $R_container
+    
     docker run \
         -v $(pwd)/scripts:/scripts/ \
-        --user bioc $R_container \
+        $R_container \
         Rscript scripts/make_test_manifests.R
         
 elif [ "$1" == "local" ]; then
@@ -251,5 +229,6 @@ else # neither "docker" nor "local" was chosen
     
     echo 'Error: please specify "docker" or "local" and rerun this script.'
     echo '    eg. bash install_software.sh "local"'
+    exit 1
     
 fi
