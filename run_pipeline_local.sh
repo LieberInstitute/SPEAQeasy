@@ -12,6 +12,5 @@ export _JAVA_OPTIONS="-Xms5g -Xmx7g"
     --fullCov \
     --force_trim \
     -with-report execution_reports/local_run.html \
-    -with-dag execution_DAGs/localt_run.html \
-    -profile standard \
-    $@
+    -with-dag execution_DAGs/local_run.html \
+    -profile local
