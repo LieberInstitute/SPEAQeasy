@@ -11,7 +11,6 @@ REPO=..
 mkdir $REPO/r_3.6.1_bioc
 cp $REPO/scripts/check_R_packages.R $REPO/r_3.6.1_bioc/
 #  produce $REPO/r_3.6.1_bioc/Dockerfile
-docker pull bioconductor/bioconductor_full:RELEASE_3_10
 docker build -t libddocker/r_3.6.1_bioc $REPO/r_3.6.1_bioc
 docker push libddocker/r_3.6.1_bioc
 
@@ -21,7 +20,6 @@ docker push libddocker/r_3.6.1_bioc
 
 mkdir $REPO/infer_strandness
 #  produce $REPO/infer_strandness/Dockerfile
-docker pull libddocker/r_3.6.1_bioc
 docker build -t libddocker/infer_strandness $REPO/infer_strandness
 docker push libddocker/infer_strandness
 
@@ -31,7 +29,6 @@ docker push libddocker/infer_strandness
 
 mkdir -p $REPO/regtools/0.5.1
 # produce $REPO/regtools/0.5.1/Dockerfile
-docker pull libddocker/ubuntu16.04_base:latest
 docker build -t libddocker/regtools:0.5.1 $REPO/regtools/0.5.1
 docker push libddocker/regtools:0.5.1
 
@@ -41,6 +38,5 @@ docker push libddocker/regtools:0.5.1
 
 mkdir -p $REPO/samtools/1.9
 #  produce $REPO/samtools/1.9/Dockerfile
-docker pull libddocker/ubuntu16.04_base:latest
 docker build -t libddocker/samtools:1.9 $REPO/samtools/1.9
 docker push libddocker/samtools:1.9
