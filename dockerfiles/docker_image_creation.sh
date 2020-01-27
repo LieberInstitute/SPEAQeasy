@@ -50,3 +50,12 @@ mkdir -p $REPO/variant_calling/1.9
 #  produce $REPO/variant_calling/1.9/Dockerfile
 docker build -t libddocker/variant_calling:1.9 $REPO/variant_calling/1.9
 docker push libddocker/variant_calling:1.9
+
+########################################################
+#  trimmomatic (0.39)
+########################################################
+
+mkdir -p $REPO/trimmomatic/0.39
+#  produce $REPO/trimmomatic/0.39/Dockerfile
+docker build -t libddocker/trimmomatic:0.39 $REPO/trimmomatic/0.39
+docker push libddocker/trimmomatic:0.39
