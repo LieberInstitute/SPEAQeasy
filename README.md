@@ -19,8 +19,8 @@ This pipeline allows researchers to contribute data to the recount2 project even
 
 + This pipeline runs [nextflow](https://www.nextflow.io/), which requires a Java runtime. If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer. Python 2.7 is required as well.
 + Additional software configuration depends on the options available on your system/ execution environment:
-    + **Installing dependencies locally** (Recommended for non-JHPCE users): The script `install_software.sh` is included in the repository, and automates the installation process. Make sure that you first just have Java (8 or later) and Python 2.7 installed globally (requiring root privileges). Then, from within the repository, run `bash install_software.sh "local"` for one-time setup of the pipeline.
-    + **Using docker** (Experimental): If docker is installed in your environment, this option requires minimal setup/ installation. From within the repository, run `bash install_software.sh "docker"`. This installs nextflow and attaches R packages to the R docker image, which is a one-time setup.
+    + **Using docker** (Recommended for non-JHPCE users): If docker is installed in your environment, this option requires minimal setup/ installation. From within the repository, run `bash install_software.sh "docker"`. This installs nextflow and prepares some test files, which is a one-time setup.
+    + **Installing dependencies locally** (Alternative not requiring docker): The script `install_software.sh` is included in the repository, and automates the installation process. Make sure that you first just have Java (8 or later) and Python 2.7 installed globally (requiring root privileges). Then, from within the repository, run `bash install_software.sh "local"` for one-time setup of the pipeline.
 
 ### Advanced info regarding installation ###
 
@@ -79,7 +79,11 @@ See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional
 4. **Modify the main script and run**: the main script is *run_pipeline_local.sh*. If you are using docker, make sure to change the line `-profile local` to `profile docker_local`. After configuring options for your use-case (See "Full list of command-line options"), simply run on the command-line with `bash run_pipeline_local.sh`.
   
 Note that the configuration files also include command-line options passed to many of the software tools (such as minimum mapping quality used in samtools for filtering). This gives control over many of the parameters in the pipeline that we deemed to involve preference, or to involve variability among use-cases.
+
+## Sharing the pipeline among many users ##
   
++ A common use-case may involve wanting to set up this pipeline once, and have potentially many users running this pipeline without additional work from the users. This can be achieved by following the above procedure to first set up the pipeline; any user wishing to execute the pipeline from a different location may copy the "main" script (`run_pipeline_[executor].sh`). Then, in this copy of the "main" script, simply change `nextflow main.nf` to `[path to nextflow executable] [path to main.nf in the original repository]` to complete the setup.
+
 ## Full list of command-line options ##
 
 ### Mandatory Parameters ###
