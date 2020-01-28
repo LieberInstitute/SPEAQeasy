@@ -59,3 +59,12 @@ mkdir -p $REPO/trimmomatic/0.39
 #  produce $REPO/trimmomatic/0.39/Dockerfile
 docker build -t libddocker/trimmomatic:0.39 $REPO/trimmomatic/0.39
 docker push libddocker/trimmomatic:0.39
+
+########################################################
+#  salmon (0.14.1)
+########################################################
+
+mkdir -p $REPO/salmon/0.14.1
+#  produce $REPO/salmon/0.14.1/Dockerfile
+docker build -t libddocker/salmon:0.14.1 $REPO/salmon/0.14.1
+docker push libddocker/salmon:0.14.1
