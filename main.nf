@@ -510,7 +510,7 @@ if (params.use_salmon) {
     
         output:
           file("salmon_index_${params.anno_suffix}") into salmon_index
-          file("build_salmon_index.log")
+          file("build_salmon_index_${params.anno_suffix}.log")
     
         script:
           if (params.reference == "rn6") {
