@@ -68,3 +68,9 @@ mkdir -p $REPO/salmon/0.14.1
 #  produce $REPO/salmon/0.14.1/Dockerfile
 docker build -t libddocker/salmon:0.14.1 $REPO/salmon/0.14.1
 docker push libddocker/salmon:0.14.1
+
+#  Also fixed code in salmon 0.9.1 dockerfile:
+cd dockerfiles
+docker build -f salmon-0.9.1.dockerfile -t libddocker/salmon-0.9.1:1_v4 .
+docker push libddocker/salmon-0.9.1:1_v4
+cd ..
