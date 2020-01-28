@@ -430,7 +430,7 @@ gencodeEXONS = gencodeEXONS[,-4]
 ### gene counts
 geneFn <- list.files(pattern='.*_hg.*_Genes\\.counts$')
 stopifnot(length(geneFn) == length(metrics$SAMPLE_ID))
-names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_'))]
+names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_hg'))]
 
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -455,17 +455,22 @@ if (opt$organism=="hg19") {
 		dataset="hsapiens_gene_ensembl", host="feb2014.archive.ensembl.org")
 	sym = getBM(attributes = c("ensembl_gene_id","hgnc_symbol","entrezgene"), 
 		values=geneMap$ensemblID, mart=ensembl)
+   
+  #  Rename for compatibility with hg38 data 
+  sym$entrezgene_id = sym$entrezgene
+  sym$entrezgene = NULL
+  
 } else if (opt$organism=="hg38") {
-	# VERSION 85, GRCh38.p7
+	# Latest GRCh38 biomaRt data
 	ensembl = useMart("ENSEMBL_MART_ENSEMBL",  
-		dataset="hsapiens_gene_ensembl", host="jul2016.archive.ensembl.org")
-	sym = getBM(attributes = c("ensembl_gene_id","hgnc_symbol","entrezgene"), 
+		dataset="hsapiens_gene_ensembl")
+	sym = getBM(attributes = c("ensembl_gene_id","hgnc_symbol","entrezgene_id"), 
 			values=geneMap$ensemblID, mart=ensembl)
 }
 #########
 
 # geneMap$Symbol = sym$hgnc_symbol[match(geneMap$ensemblID, sym$ensembl_gene_id)]
-geneMap$EntrezID = sym$entrezgene[match(geneMap$ensemblID, sym$ensembl_gene_id)]
+geneMap$EntrezID = sym$entrezgene_id[match(geneMap$ensemblID, sym$ensembl_gene_id)]
 
 ## counts
 geneCountList = mclapply(geneFn, function(x) {
@@ -508,7 +513,7 @@ write.csv(metrics, file = file.path(".",
 ### exon counts
 exonFn <- list.files(pattern='.*_hg.*_Exons\\.counts$')
 stopifnot(length(exonFn) == length(metrics$SAMPLE_ID))
-names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_'))]
+names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_hg'))]
 
 ### read in annotation ##
 exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -520,7 +525,7 @@ exonMap$gene_type = gencodeGENES[exonMap$gencodeID,"gene_type"]
 exonMap$Symbol = gencodeGENES[exonMap$gencodeID,"gene_name"]
 
 # exonMap$Symbol = sym$hgnc_symbol[match(exonMap$ensemblID, sym$ensembl_gene_id)]
-exonMap$EntrezID = sym$entrezgene[match(exonMap$ensemblID, sym$ensembl_gene_id)]
+exonMap$EntrezID = sym$entrezgene_id[match(exonMap$ensemblID, sym$ensembl_gene_id)]
 
 ## add gencode exon id
 exonMap = join(exonMap, gencodeEXONS, type="left", match="first")

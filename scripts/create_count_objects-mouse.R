@@ -216,13 +216,12 @@ names(gencodeEXONS) = c("Chr","Start","End","exon_gencodeID")
 ### gene counts
 geneFn <- list.files(pattern='.*_mm10.*_Genes\\.counts$')
 stopifnot(length(geneFn) == length(metrics$SAMPLE_ID))
-names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_'))]
+names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_mm10'))]
 
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
 
 ######### biomart
-# VERSION M11, GRCm38.p4
 ensembl = useMart("ensembl")
 ensembl = useDataset("mmusculus_gene_ensembl",mart=ensembl)
 sym = getBM(attributes = c("ensembl_gene_id","mgi_symbol","entrezgene_id"),
@@ -242,7 +241,7 @@ geneMap$Geneid = NULL
 geneMap$gene_type = gencodeGENES[geneMap$gencodeID,"gene_type"]
 
 geneMap$Symbol = sym$mgi_symbol[match(geneMap$ensemblID, sym$ensembl_gene_id)]
-geneMap$EntrezID = sym$entrezgene[match(geneMap$ensemblID, sym$ensembl_gene_id)]
+geneMap$EntrezID = sym$entrezgene_id[match(geneMap$ensemblID, sym$ensembl_gene_id)]
 
 ## counts
 geneCountList = mclapply(geneFn, function(x) {
@@ -279,7 +278,7 @@ write.csv(metrics, file = paste0('read_and_alignment_metrics_', opt$experiment,
 ### exon counts
 exonFn <- list.files(pattern='.*_mm10.*_Exons\\.counts$')
 stopifnot(length(exonFn) == length(metrics$SAMPLE_ID))
-names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_'))]
+names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_mm10'))]
 
 ### read in annotation ##
 exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -290,7 +289,7 @@ exonMap$Geneid = NULL
 exonMap$gene_type = gencodeGENES[exonMap$gencodeID,"gene_type"]
 
 exonMap$Symbol = sym$mgi_symbol[match(exonMap$ensemblID, sym$ensembl_gene_id)]
-exonMap$EntrezID = sym$entrezgene[match(exonMap$ensemblID, sym$ensembl_gene_id)]
+exonMap$EntrezID = sym$entrezgene_id[match(exonMap$ensemblID, sym$ensembl_gene_id)]
 
 ## add gencode exon id
 exonMap = join(exonMap, gencodeEXONS, type="left", match="first")

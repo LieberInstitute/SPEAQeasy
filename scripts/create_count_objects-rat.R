@@ -148,7 +148,7 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped +  metrics$totalMap
 ### gene counts
 geneFn <- list.files(pattern='.*_rn6.*_Genes\\.counts$')
 stopifnot(length(geneFn) == length(metrics$SAMPLE_ID))
-names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_'))]
+names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_rn6'))]
 
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -171,7 +171,7 @@ geneMap$Strand = ss(geneMap$Strand, ";")
 rownames(geneMap) = geneMap$Geneid
 
 geneMap$Symbol = sym$rgd_symbol[match(rownames(geneMap), sym$ensembl_gene_id)]
-geneMap$EntrezID = sym$entrezgene[match(rownames(geneMap), sym$ensembl_gene_id)]
+geneMap$EntrezID = sym$entrezgene_id[match(rownames(geneMap), sym$ensembl_gene_id)]
 	
 ## counts
 geneCountList = mclapply(geneFn, function(x) {
@@ -206,7 +206,7 @@ write.csv(metrics, file = file.path(
 ### exon counts
 exonFn <- list.files(pattern='.*_rn6.*_Exons\\.counts$')
 stopifnot(length(exonFn) == length(metrics$SAMPLE_ID))
-names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_'))]
+names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_rn6'))]
 
 ### read in annotation ##
 exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -214,7 +214,7 @@ exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
 rownames(exonMap) = paste0("e", rownames(exonMap))
 
 exonMap$Symbol = sym$rgd_symbol[match(exonMap$Geneid, sym$ensembl_gene_id)]
-exonMap$EntrezID = sym$entrezgene[match(exonMap$Geneid, sym$ensembl_gene_id)]
+exonMap$EntrezID = sym$entrezgene_id[match(exonMap$Geneid, sym$ensembl_gene_id)]
 
 ## counts
 exonCountList = mclapply(exonFn, function(x) {
