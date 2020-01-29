@@ -257,41 +257,6 @@ The following container versions are used in this pipeline.
 | libddocker/wiggletools-1.2 | 1_v3 | Wiggletools |
 | libddocker/variant_calling | 1.9 | Samtools, BCFTools |
 
-Once Docker is installed, required docker images can be pulled down from **[DockerHub](https://hub.docker.com/u/libdocker/)**, 
-or built locally. The dockerfiles for each container can be found in the ./dockerfiles folder, and are built 
-using versioning to maintain reproducibility, based on [best practices for writting dockers](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/).
-
-* Docker Images
-
-Required docker containers can be obtained locally in 1 of 2 ways:
-
-1) Docker pull command
-
-```
-docker pull libdocker/${CONTAINER}
-```
-
-2) Docker build command
-
-```
-docker build -t libdocker/${CONTAINER} .
-```	
-
-An example of how to build and deploy all the required docker images can be found in _dockerfiles/make.log_
-
-* Potential Issues with Docker
-
-R-Base Dockerfile: This dockerfile holds all of the R packages needed throughout the pipeline. 
-In order to maintain a specific version combination for required software, all packages are manually installed 
-from source. However, this causes the dockerfile to have numerous commit layers, and risks reaching maximum depth ~125 
-layers. In this case, packages can be consolidated and installed by name (rather than source link) to decrease the 
-number of layers. OR, the existing docker image can be squashed using --squash (with docker in --experimental mode) to 
-flatten the existing image
-
-The dockerfiles declare specific versions of the required software, since software becomes outdated and links need to 
-be updated, the dockerfiles will become less likely to build successfully. In this case its much easier to simply run 
-make pull in the dockerfiles directory to pull the current working version of each image.
-
 
 ### Authors ###
 
