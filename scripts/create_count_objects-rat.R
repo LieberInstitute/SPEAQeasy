@@ -319,9 +319,8 @@ load(list.files(pattern="junction_annotation_rn6.*_ensembl_.*\\.rda"))
 ############ anno/jMap	
 anno = juncCounts$anno
 
-#  Rename to "UCSC"-style seq names, keeping just canonical seqs
+#  Rename to "UCSC"-style seq names
 seqlevelsStyle(anno) = "UCSC"
-seqlevels(anno, pruning.mode="coarse") = paste0("chr", c(1:20,"X","Y","M"))
 
 ## add additional annotation
 anno$inEnsembl = countOverlaps(anno, theJunctions, type="equal") > 0
