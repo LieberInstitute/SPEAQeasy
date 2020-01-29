@@ -106,6 +106,15 @@ Note that the configuration files also include command-line options passed to ma
 + `--force_trim`  Include this flag to perform triming on all inputs. By default, only inputs failing fastQC on the adapter content metric are trimmed.
 + `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
 
+### Nextflow Options ###
+
+The nextflow command itself provides many additional options you may add to your "main" script. A few of the most commonly applicable ones are documented below. For a full list, type `[path to nextflow] run -h`- the full list does not appear to be documented at [nextflow's website](https://www.nextflow.io/).
+
++ `-w [path]` Path to the directory where nextflow will place temporary files. This directory can fill up very quickly, especially for large experiments, and so it can be useful to set this to a scratch directory or filesystem with plenty of storage capacity.
++ `-resume` Include this flag if pipeline execution halts with an error for any reason, and you wish to continue where you left off from last run. Otherwise, BY DEFAULT, NEXTFLOW WILL RESTART EXECUTION FROM THE BEGINNING.
++ `-with-report [filename]` Include this to produce an html report with execution details (such as memory usage, completion details, and much more)
++ `N [email address]` Sends email to the specified address to notify the user regarding pipeline completion. Note that nextflow relies on the `sendmail` tool for this functionality- therefore `sendmail` must be available for this option to work.
+
 ### Manifest ###
 
 This pipeline requires that a `samples.manifest` file exists (see the `--input` flag), to describe the samples to be processed by the pipeline. The `samples.manifest` file associates each FASTQ file with a path and ID, and allows the pipeline to automatically merge files if necessary. Each line in `samples.manifest` should have the following format:
@@ -124,6 +133,7 @@ A line of paired-end reads could look like this:
 + If you have a single sample split across multiple files, you can signal for the pipeline to merge these files by repeating the sample label/id on each line of files to merge.
 + Input FASTQ files can have the following file extensions: `.fastq`, `.fq`, `.fastq.gz`, `.fq.gz`
 + A `samples.manifest` file cannot include both single-end and paired-end reads; separate pipeline runs should be performed for each of these read types.
++ FASTQ files must not contain "." characters before the typical extension (e.g. sample.1.fastq), since some internal functions rely on splitting file names by ".".
 
 
 ### Version description ###
@@ -182,7 +192,6 @@ The pipeline uses many reference files during a run. Due to size limitations in 
 
 The basic Annotation and Genotyping directories are cloned with this repository. On the first run (test run or real run) for a particular species (i. e. hg38, h19, mm10 or rn6), the missing annotation files are built in a species-dependent manner.
 
-A tree view for full Annotation and Genotyping directories can be consulted in ***notes/reference_directories_structure.md***.
 
 #### Genomes ####
 
@@ -194,11 +203,6 @@ This pipeline works for the following genomes and versions:
 |hg38| human |
 |mm10| mouse |
 |rna6| rat |
-
-
-### File Naming ###
-
-NOTICE: File names must not contain "." in the name because the pipeline operates on file names by splitting along the "." to determine prefixes. If needed, change all "." characters to "\_"
 
 
 ### Output data formats ###
@@ -229,20 +233,6 @@ nextflow main.nf --sample "single" --reference "hg38" --strand "unstranded" --er
 
 This command will read files from `./input`, run as __single__ end __unstranded__ samples, with __hg38__ human genome and transcriptome as the reference, __ercc__ process for spiking quantification will also run, and so will the __fullCoverage__ process to create Coverge R data. The __sge__ profile has been selected, for execution under a SGE environment.
 
-### Email notifications
-
-We use the built-in notification system form nextflow, as described [here](https://www.nextflow.io/docs/latest/mail.html?highlight=email#workflow-notification) :
-
-> Nextflow includes a built-in workflow notification features that automatically sends a notification message when a workflow execution terminates.   
-To enable simply specify the -N option when launching the pipeline execution. For example:  
-
-````
-nextflow run main.nf <pipeline options> -N <recipient email address>
-````  
-
-This will send a notification mail when the execution completes.  
-
-**Warning**: By default the notification message is sent by using the `sendmail` system tool which is assumed to be available in the computer where Nextflow is running. Make sure it's properly installed and configured.
 
 ### Run with Docker ###
 
@@ -250,22 +240,22 @@ This will send a notification mail when the execution completes.
 
 The following container versions are used in this pipeline.
 
-| Container | tag | software |
+| Image | Tag | Software |
 |:-------------:| -----:| -----: |
-| r3.4.3_base | 1_v3 | R Base |
+| libddocker/r_3.6.1_bioc | latest | R and Bioconductor 3.10 |
 | ubuntu16.04_base | 1_v3 | Ubuntu Base |
-| kallisto_v0.43.1 | 1_v3 | Kallisto |
-| fastqc_v0.11.5 | 1_v3 | FastQC |
-| trimmomatic-0.36 | 1_v3 | Trimmomatic |
-| hisat2-2.0.4 | 1_v3 | HISAT |
-| rseqc-v2.6.4 | 1_v3 | RSeQC |
-| samtools-1.3.1 | 1_v3 | Samtools |
-| salmon-0.9.1 | 1_v3 | Salmon |
-| regtools-0.3.0 | 1_v3 | Regtools |
-| subread-1.6.0 | 1_v3 | SubRead |
-| wiggletools-1.2 | 1_v3 | Wiggletools |
-| bcftools-1.3.1 | 1_v3 | BCFTools |
-| vcftools-v0.1.15 | 1_v3 | VCFTOols |
+| libddocker/infer_strandness | latest | R, Bioconductor 3.10, Kallisto |
+| zlskidmore/kallisto | 0.46.0 | Kallisto |
+| libddocker/fastqc_v0.11.5 | 1_v3 | FastQC |
+| libddocker/trimmomatic | 0.39 | Trimmomatic |
+| kapeel/hisat2 | v2.1 | HISAT |
+| libddocker/rseqc-v2.6.4 | 1_v3 | RSeQC |
+| libddocker/samtools | 1.9 | Samtools |
+| libddocker/salmon | 0.14.1 | Salmon |
+| libddocker/regtools | 0.5.1 | Regtools |
+| welliton/subread | 2.0.0 | SubRead |
+| libddocker/wiggletools-1.2 | 1_v3 | Wiggletools |
+| libddocker/variant_calling | 1.9 | Samtools, BCFTools |
 
 Once Docker is installed, required docker images can be pulled down from **[DockerHub](https://hub.docker.com/u/libdocker/)**, 
 or built locally. The dockerfiles for each container can be found in the ./dockerfiles folder, and are built 
