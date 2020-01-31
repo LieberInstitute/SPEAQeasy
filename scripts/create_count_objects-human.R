@@ -454,7 +454,7 @@ if (opt$organism=="hg19") {
 	ensembl = useMart("ENSEMBL_MART_ENSEMBL", 
 		dataset="hsapiens_gene_ensembl", host="feb2014.archive.ensembl.org")
 	sym = getBM(attributes = c("ensembl_gene_id","hgnc_symbol","entrezgene"), 
-		values=geneMap$ensemblID, mart=ensembl)
+		filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
    
   #  Rename for compatibility with hg38 data 
   sym$entrezgene_id = sym$entrezgene
@@ -465,7 +465,7 @@ if (opt$organism=="hg19") {
 	ensembl = useMart("ENSEMBL_MART_ENSEMBL",  
 		dataset="hsapiens_gene_ensembl")
 	sym = getBM(attributes = c("ensembl_gene_id","hgnc_symbol","entrezgene_id"), 
-			values=geneMap$ensemblID, mart=ensembl)
+			filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
 }
 #########
 
