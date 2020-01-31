@@ -135,6 +135,10 @@ A line of paired-end reads could look like this:
 + A `samples.manifest` file cannot include both single-end and paired-end reads; separate pipeline runs should be performed for each of these read types.
 + FASTQ files must not contain "." characters before the typical extension (e.g. sample.1.fastq), since some internal functions rely on splitting file names by ".".
 
+### Pipeline use with limited internet access ###
+
++ For users who do not have internet access when executing pipeline runs, you may first run `bash scripts/manual_annotation.sh`. This script must be run from the repository directory (from a machine with internet access). Modify the four lines in the "user configuration section" at the top of the script for you particular set-up. This sets up everything so that subsequent runs of the pipeline do not need an internet connection to complete.
++ Towards the end of the pipeline run, when R objects are created containing gene/exon/junction counts, some additional data is pulled from biomaRt databases by default. However, if an internet connection is not available, this extra information is not pulled (and a warning is generated). This is the only difference between runs with and without internet access.
 
 ### Version description ###
 

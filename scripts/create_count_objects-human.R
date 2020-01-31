@@ -448,29 +448,40 @@ geneMap$Geneid = NULL
 geneMap$gene_type = gencodeGENES[geneMap$gencodeID,"gene_type"]
 geneMap$Symbol = gencodeGENES[geneMap$gencodeID,"gene_name"]
 
-######### biomart 
-if (opt$organism=="hg19") {
-	# VERSION 75, GRCh37.p13
-	ensembl = useMart("ENSEMBL_MART_ENSEMBL", 
-		dataset="hsapiens_gene_ensembl", host="feb2014.archive.ensembl.org")
-	sym = getBM(attributes = c("ensembl_gene_id","hgnc_symbol","entrezgene"), 
-		filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
-   
-  #  Rename for compatibility with hg38 data 
-  sym$entrezgene_id = sym$entrezgene
-  sym$entrezgene = NULL
-  
-} else if (opt$organism=="hg38") {
-	# Latest GRCh38 biomaRt data
-	ensembl = useMart("ENSEMBL_MART_ENSEMBL",  
-		dataset="hsapiens_gene_ensembl")
-	sym = getBM(attributes = c("ensembl_gene_id","hgnc_symbol","entrezgene_id"), 
-			filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
-}
+######### query biomart if there is an internet connection
+result = tryCatch({
+    if (opt$organism=="hg19") {
+        # VERSION 75, GRCh37.p13
+        ensembl = useMart("ENSEMBL_MART_ENSEMBL", 
+            dataset="hsapiens_gene_ensembl", host="feb2014.archive.ensembl.org")
+        sym = getBM(attributes = c("ensembl_gene_id", "entrezgene"), 
+            filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
+
+        #  Rename for compatibility with hg38 data 
+        sym$entrezgene_id = sym$entrezgene
+        sym$entrezgene = NULL
+
+    } else if (opt$organism=="hg38") {
+        # Latest GRCh38 biomaRt data
+        ensembl = useMart("ENSEMBL_MART_ENSEMBL",  
+            dataset="hsapiens_gene_ensembl")
+        sym = getBM(attributes = c("ensembl_gene_id", "entrezgene_id"), 
+            filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
+    }
+    return(list(sym, TRUE))
+}, error = function(e) {
+    print("Warning: proceeding without ensembl_gene_id and entrezgene_id info from biomaRt, as the databases could not be reached (is there an internet connection?)") 
+    return(list(c(), FALSE))
+})
+
+sym = result[[1]]
+has_internet_con = result[[2]]
+
 #########
 
-# geneMap$Symbol = sym$hgnc_symbol[match(geneMap$ensemblID, sym$ensembl_gene_id)]
-geneMap$EntrezID = sym$entrezgene_id[match(geneMap$ensemblID, sym$ensembl_gene_id)]
+if (has_internet_con) {
+    geneMap$EntrezID = sym$entrezgene_id[match(geneMap$ensemblID, sym$ensembl_gene_id)]
+}
 
 ## counts
 geneCountList = mclapply(geneFn, function(x) {
@@ -524,8 +535,9 @@ exonMap$Geneid = NULL
 exonMap$gene_type = gencodeGENES[exonMap$gencodeID,"gene_type"]
 exonMap$Symbol = gencodeGENES[exonMap$gencodeID,"gene_name"]
 
-# exonMap$Symbol = sym$hgnc_symbol[match(exonMap$ensemblID, sym$ensembl_gene_id)]
-exonMap$EntrezID = sym$entrezgene_id[match(exonMap$ensemblID, sym$ensembl_gene_id)]
+if (has_internet_con) {
+    exonMap$EntrezID = sym$entrezgene_id[match(exonMap$ensemblID, sym$ensembl_gene_id)]
+}
 
 ## add gencode exon id
 exonMap = join(exonMap, gencodeEXONS, type="left", match="first")
@@ -812,3 +824,5 @@ Sys.time()
 proc.time()
 options(width = 120)
 session_info()
+stopifnot(1 == 0)
+

@@ -221,11 +221,21 @@ names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_mm10'))]
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
 
-######### biomart
-ensembl = useMart("ensembl")
-ensembl = useDataset("mmusculus_gene_ensembl",mart=ensembl)
-sym = getBM(attributes = c("ensembl_gene_id","mgi_symbol","entrezgene_id"),
-            filters="ensembl_gene_id", values=rownames(geneMap), mart=ensembl)
+######### query biomart if there is an internet connection
+result = tryCatch({
+    ensembl = useMart("ensembl")
+    ensembl = useDataset("mmusculus_gene_ensembl",mart=ensembl)
+    sym = getBM(attributes = c("ensembl_gene_id","mgi_symbol","entrezgene_id"),
+                filters="ensembl_gene_id", values=rownames(geneMap), mart=ensembl)
+    return(list(sym, TRUE))
+}, error = function(e) {
+    print("Warning: proceeding without ensembl_gene_id and entrezgene_id info from biomaRt, as the databases could not be reached (is there an internet connection?)")
+    return(list(c(), FALSE))
+})
+
+sym = result[[1]]
+has_internet_con = result[[2]] 
+
 #########
 
 ## organize gene map
@@ -240,8 +250,10 @@ geneMap$ensemblID = ss(geneMap$Geneid, "\\.")
 geneMap$Geneid = NULL
 geneMap$gene_type = gencodeGENES[geneMap$gencodeID,"gene_type"]
 
-geneMap$Symbol = sym$mgi_symbol[match(geneMap$ensemblID, sym$ensembl_gene_id)]
-geneMap$EntrezID = sym$entrezgene_id[match(geneMap$ensemblID, sym$ensembl_gene_id)]
+if (has_internet_con) {
+    geneMap$Symbol = sym$mgi_symbol[match(geneMap$ensemblID, sym$ensembl_gene_id)]
+    geneMap$EntrezID = sym$entrezgene_id[match(geneMap$ensemblID, sym$ensembl_gene_id)]
+}
 
 ## counts
 geneCountList = mclapply(geneFn, function(x) {
@@ -288,8 +300,10 @@ rownames(exonMap) = paste0("e", rownames(exonMap))
 exonMap$Geneid = NULL
 exonMap$gene_type = gencodeGENES[exonMap$gencodeID,"gene_type"]
 
-exonMap$Symbol = sym$mgi_symbol[match(exonMap$ensemblID, sym$ensembl_gene_id)]
-exonMap$EntrezID = sym$entrezgene_id[match(exonMap$ensemblID, sym$ensembl_gene_id)]
+if (has_internet_con) {
+    exonMap$Symbol = sym$mgi_symbol[match(exonMap$ensemblID, sym$ensembl_gene_id)]
+    exonMap$EntrezID = sym$entrezgene_id[match(exonMap$ensemblID, sym$ensembl_gene_id)]
+}
 
 ## add gencode exon id
 exonMap = join(exonMap, gencodeEXONS, type="left", match="first")

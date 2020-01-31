@@ -153,12 +153,23 @@ names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_rn6'))]
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
 
-######### biomart 
+######### query biomart if there is an internet connection
 # VERSION Rnor_6.0
-ensembl = useMart("ensembl")
-ensembl = useDataset("rnorvegicus_gene_ensembl",mart=ensembl)
-sym = getBM(attributes = c("ensembl_gene_id","rgd_symbol","entrezgene_id"), 
-	filters="ensembl_gene_id", values=rownames(geneMap), mart=ensembl)
+result = tryCatch({
+    ensembl = useMart("ensembl")
+    ensembl = useDataset("rnorvegicus_gene_ensembl",mart=ensembl)
+    sym = getBM(attributes = c("ensembl_gene_id","rgd_symbol","entrezgene_id"), 
+        filters="ensembl_gene_id", values=rownames(geneMap), mart=ensembl)
+
+    return(list(sym, TRUE))
+}, error = function(e) {
+    print("Warning: proceeding without ensembl_gene_id and entrezgene_id info from biomaRt, as the databases could not be reached (is there an internet connection?)")
+    return(list(c(), FALSE))
+})
+
+sym = result[[1]]
+has_internet_con = result[[2]]
+
 #########
 
 ## organize gene map
@@ -170,8 +181,10 @@ geneMap$End = as.numeric(sapply(tmp, function(x) x[length(x)]))
 geneMap$Strand = ss(geneMap$Strand, ";")
 rownames(geneMap) = geneMap$Geneid
 
-geneMap$Symbol = sym$rgd_symbol[match(rownames(geneMap), sym$ensembl_gene_id)]
-geneMap$EntrezID = sym$entrezgene_id[match(rownames(geneMap), sym$ensembl_gene_id)]
+if (has_internet_con) {
+    geneMap$Symbol = sym$rgd_symbol[match(rownames(geneMap), sym$ensembl_gene_id)]
+    geneMap$EntrezID = sym$entrezgene_id[match(rownames(geneMap), sym$ensembl_gene_id)]
+}
 	
 ## counts
 geneCountList = mclapply(geneFn, function(x) {
@@ -213,8 +226,10 @@ exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
 #exonMap$Chr = ifelse(exonMap$Chr=='MT','chrM',paste0('chr',exonMap$Chr))
 rownames(exonMap) = paste0("e", rownames(exonMap))
 
-exonMap$Symbol = sym$rgd_symbol[match(exonMap$Geneid, sym$ensembl_gene_id)]
-exonMap$EntrezID = sym$entrezgene_id[match(exonMap$Geneid, sym$ensembl_gene_id)]
+if (has_internet_con) {
+    exonMap$Symbol = sym$rgd_symbol[match(exonMap$Geneid, sym$ensembl_gene_id)]
+    exonMap$EntrezID = sym$entrezgene_id[match(exonMap$Geneid, sym$ensembl_gene_id)]
+}
 
 ## counts
 exonCountList = mclapply(exonFn, function(x) {
@@ -339,7 +354,9 @@ anno$ensemblTx[queryHits(oo)] = theJunctions$tx[subjectHits(oo)]
 anno$numTx = elementNROWS(anno$ensemblTx)
 
 # clean up
-anno$ensemblSymbol = geneMap$Symbol[match(anno$ensemblGeneID, rownames(geneMap))]
+if (has_internet_con) {
+    anno$ensemblSymbol = geneMap$Symbol[match(anno$ensemblGeneID, rownames(geneMap))]
+}
 
 ## junction code
 anno$code = ifelse(anno$inEnsembl, "InEns", 
