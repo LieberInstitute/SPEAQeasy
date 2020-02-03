@@ -12,20 +12,12 @@ library('getopt')
 
 spec <- matrix(c(
     'reference', 'r', 1, 'character', 'hg38, hg19, mm10, or rn6',
-    'version', 'v', 1, 'character', 'release number for genome build',
-    'type', 't', 1, 'character', '"primary" or "main" (referring to included chrs)'
+    'suffix', 's', 1, 'character', 'suffix for filenames based on anno version',
+    'type', 't', 1, 'character', '"main", "primary", or "custom"'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
 
-if (opt$reference == "hg19") {
-    suffix = paste0('_', opt$reference, '_gencode_v', opt$version, 'lift37_', opt$type)
-} else if (opt$reference == "hg38") {
-    suffix = paste0('_', opt$reference, '_gencode_v', opt$version, '_', opt$type)
-} else if (opt$reference == "mm10") {
-    suffix = paste0('_', opt$reference, '_gencode_', opt$version, '_', opt$type)
-} else {  # rn6
-    suffix = paste0('_', opt$reference, '_ensembl_', opt$version, '_', opt$type)
-}
+suffix = paste0('_', opt$suffix)
 
 ########################################################
 #  Create chrom sizes file from assembly fasta
@@ -68,6 +60,8 @@ si = with(chrInfo, Seqinfo(as.character(chrom), length, isCircular, genome=opt$r
 ## read in GTF as GRanges
 gencode_gtf = import(con = list.files(pattern=".*\\.gtf"), format = "gtf")
 seqlevelsStyle(gencode_gtf) = "UCSC"
+
+seqlevels(gencode_gtf,pruning.mode="coarse") = seqlevels(si)
 seqinfo(gencode_gtf) = si
 
 # get map
