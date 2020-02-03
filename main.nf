@@ -122,7 +122,7 @@ def helpMessage() {
     -----------------------------------------------------------------------------------------------------------------------------------
     --use_salmon  Include this flag to perform transcript quantification with salmon (which output objects will reflect), rather than just kallisto
     -----------------------------------------------------------------------------------------------------------------------------------
-    --custom_anno Include this flag to state that the directory specified by "--annotation [dir]" has a user-provided assembly fasta, transcript fasta, and reference gtf to be used. Defaults to false (i.e. check for and potentially pull annotation specified by gencode/ensembl version)
+    --custom_anno [string] Include this flag to state that the directory specified by "--annotation [dir]" has user-provided annotation files to use, and objects built from these files should be labelled with the specified string. See the README for specifics. Defaults to "" (indicating to check for and potentially pull annotation specified by gencode/ensembl version)
     -----------------------------------------------------------------------------------------------------------------------------------
 	""".stripIndent()
 }
@@ -157,7 +157,7 @@ params.fullCov = false
 params.small_test = false
 params.force_trim = false
 params.use_salmon = false
-params.custom_anno = false
+params.custom_anno = ""
 workflow.runName = "RNAsp_run"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -211,9 +211,8 @@ if (params.reference_type == "human") {
     params.step8 = false
 }
 
-if (params.custom_anno) {
-    params.anno_suffix = params.reference + "_custom_build"
-    params.anno_build = "custom" // this is actually overridden by the config's anno_build variable
+if (params.custom_anno != "") {
+    params.anno_suffix = params.custom_anno + "_custom_build"
     params.anno_version = "custom"
 } else if (params.reference == "hg38") {
     params.anno_version = params.gencode_version_human
@@ -346,7 +345,7 @@ log.info "==========================================="
  *          pulled "primary" fasta containing all sequences/contigs.
  */
 
-if (params.custom_anno) {
+if (params.custom_anno != "") {
     Channel.fromPath("${params.annotation}/*assembly*.fa*")
         .ifEmpty{ error "Cannot find assembly fasta in annotation directory (and --custom_anno was specified)" }
         .first()  // This proves to nextflow that the channel will always hold one value/file
@@ -437,7 +436,7 @@ process buildHISATindex {
  * Step II: Download reference .gtf (from GENCODE for human/ mouse, ensembl for rat)
  */
 
-if (params.custom_anno) {
+if (params.custom_anno != "") {
     Channel.fromPath("${params.annotation}/*.gtf")
         .ifEmpty{ error "Cannot find reference gtf in annotation directory (and --custom_anno was specified)" }
         .first()  // This proves to nextflow that the channel will always hold one value/file
@@ -486,7 +485,7 @@ process BuildAnnotationObjects {
       
   shell:
       '''
-      !{params.Rscript} !{build_ann_script} -r !{params.reference} -s !{params.anno_suffix} -t !{params.anno_build}
+      !{params.Rscript} !{build_ann_script} -r !{params.reference} -s !{params.anno_suffix}
       '''
 }
 
@@ -494,7 +493,7 @@ process BuildAnnotationObjects {
  * Step IIIa: Transcript FASTA download
  */
 
-if (params.custom_anno) {
+if (params.custom_anno != "") {
     Channel.fromPath("${params.annotation}/*transcripts*.fa*")
         .ifEmpty{ error "Cannot find transcripts fasta in annotation directory (and --custom_anno was specified)" }
         .first()  // This proves to nextflow that the channel will always hold one value/file
@@ -685,7 +684,7 @@ process CompleteManifest {
  */
  
 if (params.ercc) {
-    if (params.custom_anno) {
+    if (params.custom_anno != "") {
         erccidx = Channel.fromPath("${params.annotation}/*ERCC*.idx")
     } else {
         erccidx = Channel.fromPath("${params.annotation}/ERCC/ERCC92.idx")
@@ -1518,7 +1517,7 @@ if (params.step8) {
 	 * Step 8: Call Variants
 	*/
  
-  if (params.custom_anno) {
+  if (params.custom_anno != "") {
       snvbed = Channel.fromPath("${params.annotation}/*.bed")
   } else {
       snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
