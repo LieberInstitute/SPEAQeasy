@@ -349,6 +349,7 @@ log.info "==========================================="
 if (params.custom_anno) {
     Channel.fromPath("${params.annotation}/*assembly*.fa*")
         .ifEmpty{ error "Cannot find assembly fasta in annotation directory (and --custom_anno was specified)" }
+        .first()  // This proves to nextflow that the channel will always hold one value/file
         .into{ reference_fasta; variant_assembly; annotation_assembly }
 } else {
     // If any files are not already downloaded/ prepared: download the primary
@@ -439,6 +440,7 @@ process buildHISATindex {
 if (params.custom_anno) {
     Channel.fromPath("${params.annotation}/*.gtf")
         .ifEmpty{ error "Cannot find reference gtf in annotation directory (and --custom_anno was specified)" }
+        .first()  // This proves to nextflow that the channel will always hold one value/file
         .into{ create_counts_gtf; gencode_feature_gtf; annotation_gtf }
 } else {
     // Uses "storeDir" to download gtf only when it doesn't exist, and output the cached
@@ -495,6 +497,7 @@ process BuildAnnotationObjects {
 if (params.custom_anno) {
     Channel.fromPath("${params.annotation}/*transcripts*.fa*")
         .ifEmpty{ error "Cannot find transcripts fasta in annotation directory (and --custom_anno was specified)" }
+        .first()  // This proves to nextflow that the channel will always hold one value/file
         .set{ transcript_fa }
 } else {			
     // Uses "storeDir" to download files only when they don't exist, and output the cached
@@ -1167,7 +1170,7 @@ process Coverage {
     input:
         file complete_manifest_cov
         set val(coverage_prefix), file(sorted_coverage_bam), file(sorted_bam_index) from coverage_bam_inputs
-        file chr_sizes from chr_sizes
+        file chr_sizes
 
     output:
         file "${coverage_prefix}*.wig" into wig_files_temp
