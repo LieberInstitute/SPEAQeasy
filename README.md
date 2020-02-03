@@ -105,6 +105,7 @@ Note that the configuration files also include command-line options passed to ma
 + `--small_test`	Uses sample files located in the test folder as input. Overrides the "--input" option.
 + `--force_trim`  Include this flag to perform triming on all inputs. By default, only inputs failing fastQC on the adapter content metric are trimmed.
 + `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
++ `--custom_anno [label]` Include this flag to indicate that the directory specified with `--annotation [dir]` includes user-provided annotation files to use instead of the default files. See the "Using custom annotation" section for more details.
 
 ### Nextflow Options ###
 
@@ -114,6 +115,32 @@ The nextflow command itself provides many additional options you may add to your
 + `-resume` Include this flag if pipeline execution halts with an error for any reason, and you wish to continue where you left off from last run. Otherwise, BY DEFAULT, NEXTFLOW WILL RESTART EXECUTION FROM THE BEGINNING.
 + `-with-report [filename]` Include this to produce an html report with execution details (such as memory usage, completion details, and much more)
 + `N [email address]` Sends email to the specified address to notify the user regarding pipeline completion. Note that nextflow relies on the `sendmail` tool for this functionality- therefore `sendmail` must be available for this option to work.
+
+### Annotation ###
+
+The pipeline is intended to be easily customizable regarding which annotation/ reference-related files can be used. By default, for "hg19", "hg38", and "mm10" references, the pipeline uses files provided by GENCODE; for "rn6" reference, the files are provided by Ensembl. These files are managed automatically- necessary files are downloaded whenever they are not already present, and cached for future runs.
+
+#### Configuration ####
+
+The user can specify in the config file (determined above) the following information:
+
++ *Annotation version*: The variables `gencode_version_human` and `gencode_version_mouse` refer to the GENCODE release number. Similarly, the variable `ensembl_version_rat` specifies the Ensembl version for "rn6" reference.
++ *Annotation build*: The `annotation_build` variable controls whether the user wishes to include extra scaffolds. Two values are currently supported for this variable. The value "main" indicates only the main reference sequences should be included (e.g. the 25 sequences chr1-chrM for human). A value of "primary" specifies to include additional scaffolds- these definitions of "main" and "primary" come from the convention GENCODE uses in naming their reference files; however, `annotation_build` also applies to the Ensembl-based "rn6" annotation files.
+
+#### Using custom annotation ####
+
+You may wish to provide specific reference files in place of the automatically managed files described above. In this case, you must supply the following files in the directory specified in the command-line option `--annotation [dir]`:
+
++ A genome assembly fasta (the reference genome to align reads to), such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/GRCh38.primary_assembly.genome.fa.gz). Make sure the file has the string "assembly" in the filename, to specify to the pipeline that it is the genome reference fasta.
++ Gene annotation gtf, such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.annotation.gtf.gz)- but not gzipped. This file can have any name, so long as it ends in ".gtf".
++ A transcripts fasta, such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.transcripts.fa.gz)- but not gzipped. Make sure to include "transcripts" anywhere in the filename (provided the file ends in ".fa") to differentiate this file from the reference genome.
+
+*Optional files to include depending on your use-case:*
+
++ An ERCC index (this is a file specific to Kallisto needed for ERCC quantification, which is an optional component of the pipeline). You can find the index used by default at `[repository directory]/Annotation/ERCC/ERCC92.idx`. This file must end in ".idx".
++ A list of SNV sites at which to call variants (in .bed format). Variant calling is by default only enabled for human reference. You can find the .bed files used by default for "hg38" and "hg19" at `[repository directory]/Annotation/Genotyping/common_missense_SNVs_hg*.bed`. This file can have any name provided it has the ".bed" extension.
+
+You must also add the `--custom_anno [label]` argument to your `run_pipeline_X.sh` script, to specify you are using custom annotation files. The "label" is a string you want to include in filenames generated from the annotation files you provided. This is intended to allow the use of potentially many different custom annotations, assigned a unique and informative name you choose each time. This can be anything except an empty string (which internally signifies not to use custom annotation).
 
 ### Manifest ###
 
