@@ -12,12 +12,13 @@ library('getopt')
 
 spec <- matrix(c(
     'reference', 'r', 1, 'character', 'hg38, hg19, mm10, or rn6',
-    'suffix', 's', 1, 'character', 'suffix for filenames based on anno version',
-    'type', 't', 1, 'character', '"main", "primary", or "custom"'
+    'suffix', 's', 1, 'character', 'suffix for filenames based on anno version'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
 
 suffix = paste0('_', opt$suffix)
+temp = strsplit(suffix, '_')[[1]]
+opt$type = temp[length(temp)] # "main", "primary", or "custom"
 
 ########################################################
 #  Create chrom sizes file from assembly fasta
