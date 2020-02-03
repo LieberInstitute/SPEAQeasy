@@ -122,6 +122,8 @@ def helpMessage() {
     -----------------------------------------------------------------------------------------------------------------------------------
     --use_salmon  Include this flag to perform transcript quantification with salmon (which output objects will reflect), rather than just kallisto
     -----------------------------------------------------------------------------------------------------------------------------------
+    --custom_anno Include this flag to state that the directory specified by "--annotation [dir]" has a user-provided assembly fasta, transcript fasta, and reference gtf to be used. Defaults to false (i.e. check for and potentially pull annotation specified by gencode/ensembl version)
+    -----------------------------------------------------------------------------------------------------------------------------------
 	""".stripIndent()
 }
 /*
@@ -155,6 +157,7 @@ params.fullCov = false
 params.small_test = false
 params.force_trim = false
 params.use_salmon = false
+params.custom_anno = false
 workflow.runName = "RNAsp_run"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,12 +207,15 @@ if (params.small_test) {
 // Variant calling is only enabled for human
 if (params.reference_type == "human") {
     params.step8 = true
-    snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
 } else {
     params.step8 = false
 }
 
-if (params.reference == "hg38") {
+if (params.custom_anno) {
+    params.anno_suffix = params.reference + "_custom_build"
+    params.anno_build = "custom" // this is actually overridden by the config's anno_build variable
+    params.anno_version = "custom"
+} else if (params.reference == "hg38") {
     params.anno_version = params.gencode_version_human
     params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + '_' + params.anno_build
 
@@ -340,60 +346,65 @@ log.info "==========================================="
  *          pulled "primary" fasta containing all sequences/contigs.
  */
 
-
-// If any files are not already downloaded/ prepared: download the primary
-// assembly fasta and create a subsetted fasta of "main" (reference) sequences only
-process PullAssemblyFasta {
-
-    tag "Downloading Assembly FA File: ${baseName}"
-    storeDir "${params.annotation}/reference/${params.reference}/assembly/fa"
-        
-    output:
-        file "${out_fasta}" into reference_fasta, variant_assembly, annotation_assembly
-        file "*.fa" // to store the primary and main fastas, regardless of which is used
-
-    shell:
-        //  Name of the primary assembly fasta after being downloaded and unzipped
-        baseName = file("${params.fa_link}").getName() - ".gz"
-        
-        //  Name the pipeline will use for the primary and main assembly fastas, respectively
-        primaryName = "assembly_${params.anno_suffix}.fa".replaceAll("main", "primary")
-        mainName = "assembly_${params.anno_suffix}.fa".replaceAll("primary", "main")
-        
-        //  Name of fasta to use for this pipeline execution instance
-        out_fasta = "assembly_${params.anno_suffix}.fa"
-        
-        '''
-        #  Pull and unzip primary assembly fasta, if this hasn't been done. Otherwise
-        #  symbolically link the fasta into the working directory
-        if [ -f !{params.annotation}/reference/!{params.reference}/assembly/fa/!{primaryName} ]; then
-            ln -s !{params.annotation}/reference/!{params.reference}/assembly/fa/!{primaryName} !{primaryName}
-        else
-            wget "!{params.fa_link}"
-            gunzip "!{baseName}.gz"
-            mv !{baseName} !{primaryName} # rename for consistency with pipeline naming conventions
-        fi
-        
-        #######################################################################
-        #  Create the "main" fasta of canonical seqs only
-        #######################################################################
-        
-        #  Determine how many chromosomes/seqs to keep
-        if [ !{params.reference_type} == "human" ]; then
-            num_chrs=25
-        elif [ !{params.reference} == "mm10" ]; then
-            num_chrs=22
-        else
-            num_chrs=23
-        fi
-        
-        #  Find the line of the header for the first extra contig (to not
-        #  include in the "main" annotation fasta
-        first_bad_line=$(grep -n ">" !{primaryName} | cut -d : -f 1 | paste -s | cut -f $(($num_chrs + 1)))
-        
-        #  Make a new file out of all the lines up and not including that
-        sed -n "1,$(($first_bad_line - 1))p;${first_bad_line}q" !{primaryName} > !{mainName}
-        '''
+if (params.custom_anno) {
+    Channel.fromPath("${params.annotation}/*assembly*.fa*")
+        .ifEmpty{ error "Cannot find assembly fasta in annotation directory (and --custom_anno was specified)" }
+        .into{ reference_fasta; variant_assembly; annotation_assembly }
+} else {
+    // If any files are not already downloaded/ prepared: download the primary
+    // assembly fasta and create a subsetted fasta of "main" (reference) sequences only
+    process PullAssemblyFasta {
+    
+        tag "Downloading Assembly FA File: ${baseName}"
+        storeDir "${params.annotation}/reference/${params.reference}/assembly/fa"
+            
+        output:
+            file "${out_fasta}" into reference_fasta, variant_assembly, annotation_assembly
+            file "*.fa" // to store the primary and main fastas, regardless of which is used
+    
+        shell:
+            //  Name of the primary assembly fasta after being downloaded and unzipped
+            baseName = file("${params.fa_link}").getName() - ".gz"
+            
+            //  Name the pipeline will use for the primary and main assembly fastas, respectively
+            primaryName = "assembly_${params.anno_suffix}.fa".replaceAll("main", "primary")
+            mainName = "assembly_${params.anno_suffix}.fa".replaceAll("primary", "main")
+            
+            //  Name of fasta to use for this pipeline execution instance
+            out_fasta = "assembly_${params.anno_suffix}.fa"
+            
+            '''
+            #  Pull and unzip primary assembly fasta, if this hasn't been done. Otherwise
+            #  symbolically link the fasta into the working directory
+            if [ -f !{params.annotation}/reference/!{params.reference}/assembly/fa/!{primaryName} ]; then
+                ln -s !{params.annotation}/reference/!{params.reference}/assembly/fa/!{primaryName} !{primaryName}
+            else
+                wget "!{params.fa_link}"
+                gunzip "!{baseName}.gz"
+                mv !{baseName} !{primaryName} # rename for consistency with pipeline naming conventions
+            fi
+            
+            #######################################################################
+            #  Create the "main" fasta of canonical seqs only
+            #######################################################################
+            
+            #  Determine how many chromosomes/seqs to keep
+            if [ !{params.reference_type} == "human" ]; then
+                num_chrs=25
+            elif [ !{params.reference} == "mm10" ]; then
+                num_chrs=22
+            else
+                num_chrs=23
+            fi
+            
+            #  Find the line of the header for the first extra contig (to not
+            #  include in the "main" annotation fasta
+            first_bad_line=$(grep -n ">" !{primaryName} | cut -d : -f 1 | paste -s | cut -f $(($num_chrs + 1)))
+            
+            #  Make a new file out of all the lines up and not including that
+            sed -n "1,$(($first_bad_line - 1))p;${first_bad_line}q" !{primaryName} > !{mainName}
+            '''
+    }
 }
 
 /*
@@ -425,26 +436,32 @@ process buildHISATindex {
  * Step II: Download reference .gtf (from GENCODE for human/ mouse, ensembl for rat)
  */
 
-// Uses "storeDir" to download gtf only when it doesn't exist, and output the cached
-// file if it does already exist
-process PullGtf {
-
-    tag "Downloading GTF File: ${baseName}"
-    storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
-
-    output:
-        file "${out_gtf}" into create_counts_gtf, gencode_feature_gtf, annotation_gtf
-
-    shell:
-        // Names of gtf file when downloaded + unzipped and after renamed, respectively
-        baseName = file("${params.gtf_link}").getName() - ".gz"
-        out_gtf = "transcripts_${params.anno_suffix}.gtf"
-        '''
-        #  Pull, unzip, and rename transcript gtf
-        wget "!{params.gtf_link}"
-        gunzip "!{baseName}.gz"
-        mv !{baseName} !{out_gtf}
-        '''
+if (params.custom_anno) {
+    Channel.fromPath("${params.annotation}/*.gtf")
+        .ifEmpty{ error "Cannot find reference gtf in annotation directory (and --custom_anno was specified)" }
+        .into{ create_counts_gtf; gencode_feature_gtf; annotation_gtf }
+} else {
+    // Uses "storeDir" to download gtf only when it doesn't exist, and output the cached
+    // file if it does already exist
+    process PullGtf {
+    
+        tag "Downloading GTF File: ${baseName}"
+        storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
+    
+        output:
+            file "${out_gtf}" into create_counts_gtf, gencode_feature_gtf, annotation_gtf
+    
+        shell:
+            // Names of gtf file when downloaded + unzipped and after renamed, respectively
+            baseName = file("${params.gtf_link}").getName() - ".gz"
+            out_gtf = "transcripts_${params.anno_suffix}.gtf"
+            '''
+            #  Pull, unzip, and rename transcript gtf
+            wget "!{params.gtf_link}"
+            gunzip "!{baseName}.gz"
+            mv !{baseName} !{out_gtf}
+            '''
+    }
 }
 
 // Build "objects" from the assembly fasta and reference gtf. These objects include
@@ -467,30 +484,36 @@ process BuildAnnotationObjects {
       
   shell:
       '''
-      !{params.Rscript} !{build_ann_script} -r !{params.reference} -v !{params.anno_version} -t !{params.anno_build}
+      !{params.Rscript} !{build_ann_script} -r !{params.reference} -s !{params.anno_suffix} -t !{params.anno_build}
       '''
 }
 
 /*
  * Step IIIa: Transcript FASTA download
  */
-		
-// Uses "storeDir" to download files only when they don't exist, and output the cached
-// files if they do already exist
-process PullTranscriptFasta {
-			
-    tag "Downloading TX FA File: ${baseName}"
-    storeDir "${params.annotation}/reference/${params.reference}/transcripts/fa"
 
-    output:
-        file baseName into transcript_fa
-
-    shell:
-        baseName = file("${params.tx_fa_link}").getName() - ".gz"
-        '''
-        wget !{params.tx_fa_link}
-        gunzip !{baseName}.gz
-        '''
+if (params.custom_anno) {
+    Channel.fromPath("${params.annotation}/*transcripts*.fa*")
+        .ifEmpty{ error "Cannot find transcripts fasta in annotation directory (and --custom_anno was specified)" }
+        .set{ transcript_fa }
+} else {			
+    // Uses "storeDir" to download files only when they don't exist, and output the cached
+    // files if they do already exist
+    process PullTranscriptFasta {
+    			
+        tag "Downloading TX FA File: ${baseName}"
+        storeDir "${params.annotation}/reference/${params.reference}/transcripts/fa"
+    
+        output:
+            file baseName into transcript_fa
+    
+        shell:
+            baseName = file("${params.tx_fa_link}").getName() - ".gz"
+            '''
+            wget !{params.tx_fa_link}
+            gunzip !{baseName}.gz
+            '''
+    }
 }
 
 /*
@@ -659,6 +682,11 @@ process CompleteManifest {
  */
  
 if (params.ercc) {
+    if (params.custom_anno) {
+        erccidx = Channel.fromPath("${params.annotation}/*ERCC*.idx")
+    } else {
+        erccidx = Channel.fromPath("${params.annotation}/ERCC/ERCC92.idx")
+    }
 
   process ERCC {
 		
@@ -1486,6 +1514,12 @@ if (params.step8) {
 	/*
 	 * Step 8: Call Variants
 	*/
+ 
+  if (params.custom_anno) {
+      snvbed = Channel.fromPath("${params.annotation}/*.bed")
+  } else {
+      snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
+  }
 
 	variant_calls_bam
 	  .combine(snvbed)
