@@ -824,5 +824,3 @@ Sys.time()
 proc.time()
 options(width = 120)
 session_info()
-stopifnot(1 == 0)
-
