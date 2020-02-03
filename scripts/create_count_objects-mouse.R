@@ -204,7 +204,7 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped +  metrics$totalMap
 
 ###################################################################
 
-gencodeGTF = import(con=list.files(pattern="transcripts_.*\\.gtf"), format="gtf")
+gencodeGTF = import(con=list.files(pattern=".*\\.gtf"), format="gtf")
 gencodeGENES = mcols(gencodeGTF)[which(gencodeGTF$type=="gene"),c("gene_id","type","gene_type")]
 rownames(gencodeGENES) = gencodeGENES$gene_id
 
@@ -214,7 +214,7 @@ names(gencodeEXONS) = c("Chr","Start","End","exon_gencodeID")
 
 ###############
 ### gene counts
-geneFn <- list.files(pattern='.*_mm10.*_Genes\\.counts$')
+geneFn <- list.files(pattern='.*_Genes\\.counts$')
 stopifnot(length(geneFn) == length(metrics$SAMPLE_ID))
 names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_mm10'))]
 
@@ -288,7 +288,7 @@ write.csv(metrics, file = paste0('read_and_alignment_metrics_', opt$experiment,
 
 ###############
 ### exon counts
-exonFn <- list.files(pattern='.*_mm10.*_Exons\\.counts$')
+exonFn <- list.files(pattern='.*_Exons\\.counts$')
 stopifnot(length(exonFn) == length(metrics$SAMPLE_ID))
 names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_mm10'))]
 
@@ -394,7 +394,7 @@ junctionFiles <- file.path(paste0(metrics$SAMPLE_ID, '_junctions_primaryOnly_reg
 stopifnot(all(file.exists(junctionFiles))) #  TRUE
 
 ## annotate junctions
-load(list.files(pattern="junction_annotation_mm10.*_gencode_.*\\.rda"))
+load(list.files(pattern="junction_annotation_.*_gencode_.*\\.rda"))
 
 #  Handle strand in a consistent way regardless of differences between samples-
 #  if any samples are determined to be unstranded, process all samples as if unstranded.

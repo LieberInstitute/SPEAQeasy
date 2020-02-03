@@ -415,7 +415,7 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped +  metrics$totalMap
 
 ###################################################################
 
-gencodeGTF = import(con=list.files(pattern="transcripts_.*\\.gtf"), format="gtf")
+gencodeGTF = import(con=list.files(pattern=".*\\.gtf"), format="gtf")
 gencodeGENES = mcols(gencodeGTF)[which(gencodeGTF$type=="gene"),c("gene_id","type","gene_type","gene_name")]
 rownames(gencodeGENES) = gencodeGENES$gene_id
 
