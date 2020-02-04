@@ -173,8 +173,7 @@ if [ "$(echo $config | grep 'docker')" ]; then
         -v $work_dir/:/$work_dir/ \
         libddocker/r_3.6.1_bioc Rscript /$work_dir/build_annotation_objects.R \
             -r $reference \
-            -s $anno_suffix \
-            -t $anno_build
+            -s $anno_suffix
     
     echo "Copying objects out of the container to their destinations..."
     docker cp libddocker/r_3.6.1_bioc:/chrom_sizes_${anno_suffix} ${annotation_dir}/junction_txdb/
@@ -186,8 +185,7 @@ else
     echo "User is using locally installed software; building annotation objects using local R install..."
     $origDir/Software/R-3.6.1/bin/Rscript $origDir/scripts/build_annotation_objects.R \
         -r $reference \
-        -s $anno_suffix \
-        -t $anno_build
+        -s $anno_suffix
     
     echo "Moving annotation objects to their destinations..."
     mv chrom_sizes_${anno_suffix} ${annotation_dir}/junction_txdb/
