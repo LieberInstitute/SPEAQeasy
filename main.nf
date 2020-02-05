@@ -278,8 +278,7 @@ def get_prefix(f) {
   String blackListAny = "(_1|_2)*_summary|(_1|_2)*_fastqc_data|_trimmed|_untrimmed|_unpaired|_paired|_hisat_out"
   
   f.name.toString()
-   .replaceAll("_1\\.", ".")
-   .replaceAll("_2\\.", ".")
+   .replaceAll("_[12]\\.", ".")
    .replaceAll("\\.Forward", "_Forward")
    .replaceAll("\\.Reverse", "_Reverse")
    .tokenize('.')[0]
