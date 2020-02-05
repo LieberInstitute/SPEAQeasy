@@ -69,20 +69,12 @@ if (paired) {
         #  Do the file merging
         files_to_combine = do.call(paste, as.list(manifest[indices, 1]))
         new_file = paste0(manifest[indices[1], 5], '_1.', first_ext)
-        if (is_zipped[indices[1]]) {
-            command = paste('zcat', files_to_combine, '| gzip >', new_file)
-        } else {
-            command = paste('cat', files_to_combine, '>', new_file)
-        }
+        command = paste('cat', files_to_combine, '>', new_file)
         run_command(command)
         
         files_to_combine = do.call(paste, as.list(manifest[indices, 3]))
         new_file = paste0(manifest[indices[1], 5], '_2.', first_ext)
-        if (is_zipped[indices[1]]) {
-            command = paste('zcat', files_to_combine, '| gzip >', new_file)
-        } else {
-            command = paste('cat', files_to_combine, '>', new_file)
-        }
+        command = paste('cat', files_to_combine, '>', new_file)
         run_command(command)
     }
     
@@ -120,17 +112,10 @@ if (paired) {
 } else {
     print("Merging any files that need to be merged...")
     for (indices in indicesToCombine) {
-        #  Determine file extension for the merged file to have
-        first_ext = actual_exts[indices[1]]
-        
         #  Do the file merging
         files_to_combine = do.call(paste, as.list(manifest[indices, 1]))
         new_file = paste0(manifest[indices[1], 3], '.', actual_exts[indices[1]])
-        if (is_zipped[indices[1]]) {
-            command = paste('zcat', files_to_combine, '| gzip >', new_file)
-        } else {
-            command = paste('cat', files_to_combine, '>', new_file)
-        }
+        command = paste('cat', files_to_combine, '>', new_file)
         run_command(command)
     }
     
