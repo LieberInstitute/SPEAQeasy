@@ -74,3 +74,12 @@ cd dockerfiles
 docker build -f salmon-0.9.1.dockerfile -t libddocker/salmon-0.9.1:1_v4 .
 docker push libddocker/salmon-0.9.1:1_v4
 cd ..
+
+########################################################
+#  hisat2 (2.1.0)
+########################################################
+
+mkdir -p $REPO/hisat2/2.1.0
+#  produce $REPO/hisat2/2.1.0/Dockerfile
+docker build -t libddocker/hisat2:2.1.0 $REPO/hisat2/2.1.0
+docker push libddocker/hisat2:2.1.0
