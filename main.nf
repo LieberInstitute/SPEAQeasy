@@ -13,7 +13,7 @@ vim: syntax=groovy
  Emily Burke <emily.burke@libd.org>
  Leonardo Collado-Tores <lcolladotor@gmail.com>
  Andrew Jaffe <andrew.jaffe@libd.org>
- BaDoi Phan <address@email.com>
+ BaDoi Phan <badoi.phan@pitt.edu>
  ##### Nextflow Version
  Jacob Leonard <leonard.jacob09@gmail.com>
  Israel Aguilar <iaguilaror@gmail.com>
