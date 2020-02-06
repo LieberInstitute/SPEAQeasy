@@ -274,12 +274,12 @@ The following container versions are used in this pipeline.
 | Image | Tag | Software |
 |:-------------:| -----:| -----: |
 | libddocker/r_3.6.1_bioc | latest | R and Bioconductor 3.10 |
-| ubuntu16.04_base | 1_v3 | Ubuntu Base |
+| libddocker/ubuntu16.04_base | 1_v3 | Ubuntu Base |
 | libddocker/infer_strandness | latest | R, Bioconductor 3.10, Kallisto |
 | zlskidmore/kallisto | 0.46.0 | Kallisto |
-| libddocker/fastqc_v0.11.5 | 1_v3 | FastQC |
+| libddocker/fastqc | 0.11.8  | FastQC |
 | libddocker/trimmomatic | 0.39 | Trimmomatic |
-| kapeel/hisat2 | v2.1 | HISAT |
+| libddocker/hisat2 | 2.1.0 | HISAT |
 | libddocker/rseqc-v2.6.4 | 1_v3 | RSeQC |
 | libddocker/samtools | 1.9 | Samtools |
 | libddocker/salmon | 0.14.1 | Salmon |
