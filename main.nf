@@ -1257,15 +1257,51 @@ process MeanCoverage {
     shell:
         '''
         if [ !{read_type} == "unstranded" ] ; then
-            !{params.wiggletools} write mean.wig mean !{mean_coverage_bigwig}
-            !{params.wigToBigWig} mean.wig !{chr_sizes} mean.bw
+            outwig="mean"
         elif [ !{read_type} == "forward" ]; then
-            !{params.wiggletools} write mean.forward.wig mean !{mean_coverage_bigwig}
-            !{params.wigToBigWig} mean.forward.wig !{chr_sizes} mean.forward.bw
+            outwig="mean.forward"
         else
-            !{params.wiggletools} write mean.reverse.wig mean !{mean_coverage_bigwig}
-            !{params.wigToBigWig} mean.reverse.wig !{chr_sizes} mean.reverse.bw
+            outwig="mean.reverse"
         fi
+        
+        batch_size=!{params.wiggletools_max_threads}
+        precision=8
+        num_files=$(ls -1 *.bw | wc -l)
+        if [ $num_files -gt $batch_size ]; then
+            num_batches=$(($num_files / $batch_size))
+            echo "Found $num_files files; divided into $num_batches full batches."
+            
+            for i in `seq 1 $num_batches`; do
+                start_file=$((($i - 1) * $batch_size + 1))
+                end_file=$(($i * $batch_size))
+                
+                #  The list of files comprising this "batch"
+                echo "On batch $i; this comprises files $start_file through $end_file..."
+                temp_files=$(ls -1 *.bw | sed -n "${start_file},${end_file}p")
+                
+                #  Sum over the batch and write a temporary file
+                !{params.wiggletools} write temp_wig$i.wig sum $temp_files
+            done
+            
+            #  If there's a remainder from dividing up batches
+            if [ $num_files -gt $((($num_files / $batch_size) * $batch_size)) ]; then
+                echo "On remaining piece..."
+                start_file=$(($num_batches * $batch_size + 1))
+                
+                temp_files=$(ls -1 *.bw | sed -n "${start_file},${num_files}p")
+                !{params.wiggletools} write temp_wig$(($num_batches + 1)).wig sum $temp_files
+            fi
+            
+            echo "Computing the mean of original files via the batch temporary files..."
+            scale_factor=$(bc <<< "scale=${precision};1/$num_files")
+            echo "Scale factor is $scale_factor."
+            !{params.wiggletools} write $outwig.wig scale $scale_factor sum temp_wig*.wig
+            echo "Done."
+        else
+            !{params.wiggletools} write $outwig.wig mean !{mean_coverage_bigwig}
+        fi
+        
+        !{params.wigToBigWig} $outwig.wig !{chr_sizes} $outwig.bw
         '''
 }
 
