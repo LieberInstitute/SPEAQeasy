@@ -1293,7 +1293,7 @@ process MeanCoverage {
             fi
             
             echo "Computing the mean of original files via the batch temporary files..."
-            scale_factor=$(bc <<< "scale=${precision};1/$num_files")
+            scale_factor=$(!{params.bc} <<< "scale=${precision};1/$num_files")
             echo "Scale factor is $scale_factor."
             !{params.wiggletools} write $outwig.wig scale $scale_factor sum temp_wig*.wig
             echo "Done."

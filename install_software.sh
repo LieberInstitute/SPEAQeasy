@@ -58,7 +58,14 @@ elif [ "$1" == "local" ]; then
         #  Install nextflow (latest)
         wget -qO- https://get.nextflow.io | bash 
     
-    
+        #  bc (1.06.95)
+        wget ftp://alpha.gnu.org/gnu/bc/bc-1.06.95.tar.bz2 && \
+            tar -xjvf bc-1.06.95.tar.bz2 && \
+            cd bc-1.06.95 && \
+            ./configure --prefix=$INSTALL_DIR
+            make
+            make install
+        
         #  bcftools (1.9)  -------------------------------------------------------------
     
         wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar.bz2 -O bcftools.tar.bz2 && \
@@ -218,7 +225,6 @@ elif [ "$1" == "local" ]; then
             echo "sudo ./configure"
             echo "sudo make"
             echo "sudo make install"
-            echo "rm Python-2.7.9.tgz"
             echo "----------------------------------------------"
         fi
     fi
