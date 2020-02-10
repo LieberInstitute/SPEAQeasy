@@ -92,3 +92,13 @@ mkdir -p $REPO/fastqc/0.11.8
 #  produce $REPO/fastqc/0.11.8/Dockerfile
 docker build -t libddocker/fastqc:0.11.8 $REPO/fastqc/0.11.8
 docker push libddocker/fastqc:0.11.8
+
+########################################################
+#  Add "bc" to wiggletools 1.2 image
+########################################################
+
+# Add line 7: "RUN apt-get install bc" to dockerfile
+cd dockerfiles
+docker build -f wiggletools-1.2.dockerfile -t libddocker/wiggletools-1.2:1_v4 .
+docker push libddocker/wiggletools-1.2:1_v4
+cd ..

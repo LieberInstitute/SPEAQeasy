@@ -4,6 +4,7 @@ MAINTAINER Jacob Leonard "leonard.jacob09@gmail.com"
 
 ######## Update/Install Core ######## 
 RUN apt-get update
+RUN apt-get install bc
 
 ## Define the folders for installation
 ENV SRC /usr/local/src
