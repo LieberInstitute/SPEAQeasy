@@ -7,6 +7,7 @@ kallisto_len_mean=$5
 kallisto_len_sd=$6
 strand=$7
 rscript=$8
+force_strand=$9
 
 if [ $num_threads == 1 ]; then
     thread_opt=""
@@ -70,5 +71,9 @@ reverse_count=$(grep "n_pseudoaligned" reverse/run_info.json | cut -d ":" -f 2 |
 #  ultimately infer strandness (and print additional info/ potential warnings)
         
 echo "Passing this info to the R script to infer strand..."
-$rscript infer_strand.R -f $forward_count -r $reverse_count -p $sample -s $strand
-echo "Done."
+$rscript infer_strand.R -f $forward_count -r $reverse_count -p $sample -s $strand -x $force_strand
+if [ ! "$?" == 0 ]; then
+    exit 1
+else
+    echo "Done."
+fi
