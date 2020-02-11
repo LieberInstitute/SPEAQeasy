@@ -124,6 +124,8 @@ def helpMessage() {
     -----------------------------------------------------------------------------------------------------------------------------------
     --custom_anno [string] Include this flag to state that the directory specified by "--annotation [dir]" has user-provided annotation files to use, and objects built from these files should be labelled with the specified string. See the README for specifics. Defaults to "" (indicating to check for and potentially pull annotation specified by gencode/ensembl version)
     -----------------------------------------------------------------------------------------------------------------------------------
+    --force_strand  Include this flag to continue pipeline execution with a warning, when user-provided strand contrasts with inferred strandness in any sample. Default: false (Halt pipeline execution with an error message if any sample appears to be a different strandness than stated by the user).
+    -----------------------------------------------------------------------------------------------------------------------------------
 	""".stripIndent()
 }
 /*
@@ -158,6 +160,7 @@ params.small_test = false
 params.force_trim = false
 params.use_salmon = false
 params.custom_anno = ""
+params.force_strand = false
 workflow.runName = "RNAsp_run"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -651,7 +654,8 @@ process InferStrandness {
             !{params.kallisto_len_mean} \
             !{params.kallisto_len_sd} \
             !{params.strand} \
-            !{params.Rscript}
+            !{params.Rscript} \
+            !{params.force_strand}
         
         cp .command.log !{prefix}_infer_strand.log
         '''
