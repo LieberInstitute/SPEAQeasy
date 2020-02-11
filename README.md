@@ -17,7 +17,7 @@ This pipeline allows researchers to contribute data to the recount2 project even
 
 ## Software Requirements ##
 
-+ This pipeline runs [nextflow](https://www.nextflow.io/), which requires a Java runtime. If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer. Python 2.7 is required as well.
++ This pipeline runs [nextflow](https://www.nextflow.io/), which requires a Java runtime. If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer. Python 2.7 and pip (automatically installed with typical installations of python >= 2.7.9) are required as well.
 + Additional software configuration depends on the options available on your system/ execution environment:
     + **Using docker** (Recommended for non-JHPCE users): If docker is installed in your environment, this option requires minimal setup/ installation. From within the repository, run `bash install_software.sh "docker"`. This installs nextflow and prepares some test files, which is a one-time setup.
     + **Installing dependencies locally** (Alternative not requiring docker): The script `install_software.sh` is included in the repository, and automates the installation process. Make sure that you first just have Java (8 or later) and Python 2.7 installed globally (requiring root privileges). Then, from within the repository, run `bash install_software.sh "local"` for one-time setup of the pipeline.
