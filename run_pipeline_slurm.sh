@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## Script to run the pipeline on a SLURM cluster
+
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
 Software/nextflow main.nf \
