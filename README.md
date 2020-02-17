@@ -106,6 +106,7 @@ Note that the configuration files also include command-line options passed to ma
 + `--force_trim`  Include this flag to perform triming on all inputs. By default, only inputs failing fastQC on the adapter content metric are trimmed.
 + `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
 + `--custom_anno [label]` Include this flag to indicate that the directory specified with `--annotation [dir]` includes user-provided annotation files to use instead of the default files. See the "Using custom annotation" section for more details.
++ `--force_strand` Include this flag to continue pipeline execution with a warning, when user-provided strand contrasts with inferred strandness in any sample. Default: false (halt pipeline execution with an error message if any sample appears to be a different strandness than stated by the user)
 
 ### Nextflow Options ###
 
