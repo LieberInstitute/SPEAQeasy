@@ -739,13 +739,13 @@ if (params.ercc) {
 process QualityUntrimmed {
 
 	tag "$untrimmed_prefix"
-	publishDir "${params.output}/FastQC/Untrimmed",mode:'copy'
+	publishDir "${params.output}/FastQC/Untrimmed", mode:'copy', pattern:'*_fastqc'
 
 	input:
 	set val(untrimmed_prefix), file(fastqc_untrimmed_input) from fastqc_untrimmed_inputs 
 
 	output:
-	file "*"
+	file "${untrimmed_prefix}*_fastqc"
 	file "*_summary.txt" into quality_reports, count_objects_quality_reports
 	file "*_fastqc_data.txt" into count_objects_quality_metrics
 
