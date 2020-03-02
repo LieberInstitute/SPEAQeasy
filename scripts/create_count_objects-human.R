@@ -60,7 +60,12 @@ if (opt$organism == "hg19") {
 	library('BSgenome.Hsapiens.UCSC.hg38')
 }
 
-EXPNAME = paste0(opt$experiment,"_",opt$prefix)
+#  The default "prefix" is empty (i.e. "")
+if (nchar(opt$prefix) > 0) {
+    EXPNAME = paste0(opt$experiment,"_",opt$prefix)
+} else {
+    EXPNAME = opt$experiment
+}
 
 ## print dirctory files to screen
 #list.dirs(path = ".", full.names = TRUE, recursive = TRUE)
@@ -516,7 +521,7 @@ geneRpkm = geneCounts/(widG/1000)/(bg/1e6)
 
 ## save metrics
 write.csv(metrics, file = file.path(".",
-    paste0('read_and_alignment_metrics_', opt$experiment, '_', opt$prefix,
+    paste0('read_and_alignment_metrics_', EXPNAME,
     '.csv')))
 
 

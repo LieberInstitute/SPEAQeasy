@@ -49,7 +49,12 @@ if(FALSE){
 
 stopifnot(opt$stranded %in% c('FALSE', 'forward', 'reverse'))
 
-EXPNAME = paste0(opt$experiment,"_",opt$prefix)
+#  The default "prefix" is empty (i.e. "")
+if (nchar(opt$prefix) > 0) {
+    EXPNAME = paste0(opt$experiment,"_",opt$prefix)
+} else {
+    EXPNAME = opt$experiment
+}
 
 
 ## read in pheno	
@@ -282,8 +287,7 @@ widG = matrix(rep(geneMap$Length), nr = nrow(geneCounts),
 geneRpkm = geneCounts/(widG/1000)/(bg/1e6)
 
 ## save metrics
-write.csv(metrics, file = paste0('read_and_alignment_metrics_', opt$experiment,
-                                 '_', opt$prefix, '.csv'))
+write.csv(metrics, file = paste0('read_and_alignment_metrics_', EXPNAME, '.csv'))
 
 
 ###############

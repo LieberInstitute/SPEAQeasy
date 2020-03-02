@@ -36,7 +36,12 @@ if (!is.null(opt$help)) {
 
 stopifnot(opt$stranded %in% c('FALSE', 'forward', 'reverse'))
 
-EXPNAME = paste0(opt$experiment,"_",opt$prefix)
+#  The default "prefix" is empty (i.e. "")
+if (nchar(opt$prefix) > 0) {
+    EXPNAME = paste0(opt$experiment,"_",opt$prefix)
+} else {
+    EXPNAME = opt$experiment
+}
 
 ## read in pheno	
 manifest <- read.table('samples_complete.manifest', sep = ' ',
@@ -211,7 +216,7 @@ geneRpkm = geneCounts/(widG/1000)/(bg/1e6)
 
 ## save metrics
 write.csv(metrics, file = file.path(
-    paste0('read_and_alignment_metrics_', opt$experiment, '_', opt$prefix,
+    paste0('read_and_alignment_metrics_', EXPNAME,
     '.csv')))
 
 
