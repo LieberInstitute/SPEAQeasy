@@ -9,4 +9,5 @@ ids = ss(strand_files, '_strandness', fixed=TRUE)
 strand_col = strands[match(ids, man[,ncol(man)])]
 man = cbind(man, strand_col)
 
-write.table(man, 'samples_complete.manifest', row.names=FALSE, col.names=FALSE)
+write.table(man, 'samples_complete.manifest', row.names=FALSE, col.names=FALSE,
+            quote=FALSE)
