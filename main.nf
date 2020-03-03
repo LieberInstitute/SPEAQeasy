@@ -60,17 +60,21 @@ def helpMessage() {
 	 LIEBER INSTITUTE JAFFE-LAB RNA-seq : RNA-Seq Multi-Input Analysis v${version}
 	=============================================================
 	Usage:
-	The typical command for running the pipeline is as follows:
+ 
+	A typical command for running the pipeline is as follows:
 
-	nextflow run main.nf --sample "single" --strand "unstranded" --reference "hg19" --ercc --fullCov -profile standard
+	nextflow run main.nf --sample "single" --strand "unstranded" \\
+      --reference "hg19" --ercc --fullCov -profile local
 
-	NOTES: The pipeline accepts single or paired end reads. These reads can be stranded or unstranded.
-
-	NOTE: File names can not have "." in the name due to the prefix functions in between process
+	NOTES: The pipeline accepts single or paired end reads. These reads can be
+         stranded or unstranded. Base names of FASTQ files can not contain "."
+         (e.g. "sample.1.fastq")
 
   nextflow run main.nf {CORE} {OPTIONS}
-    {CORE}:
-    --sample "single/paired"
+  
+    {CORE (mandatory)}:
+    
+    --sample "single"/"paired"
       single <- reads files individually
       paired <- reads files paired
     --reference
@@ -79,51 +83,61 @@ def helpMessage() {
       mm10 <- uses mouse reference mm10
       rn6  <- uses rat reference rn6
     --strand "forward"/"reverse"/"unstranded"
-      forward <- uses forward stranding
-      reverse <- uses reverse stranding
-      unstranded <- uses pipeline inferencing
+      forward    <- asserts reads are forward stranded
+      reverse    <- asserts reverse strandness
+      unstranded <- asserts no consistent strandness
+      
     {OPTIONS}:
-    --ercc  <- performs ercc quantification
-    --fullCov <- performs fullCov R analysis
-    --force_trim <- performs trimming on all inputs
-  
-    --help <- shows this message
+    
+    --annotation [path] <- the directory to store and check for annotation-
+                       related files. Default: "./Annotations" (relative to the
+                       repository)
+    --custom_anno [string] <- Include this flag to state that the directory
+                       specified by "--annotation [path]" has user-provided
+                       annotation files to use, and objects built from these
+                       files should be labelled with the specified string. See
+                       the README for specifics. Default: "" (indicating to
+                       check for and potentially pull annotation specified by
+                       gencode/ensembl version)
+    --ercc          <- Flag to enable ERCC quantification with Kallisto
+                       (default: false)
+    --experiment [string] <- main name for the experiment (default:
+                       "Jlab_experiment")
+    --force_trim    <- include to perform trimming on all inputs, rather than
+                       just those failing QC due to detected adapter content
+                       (default: false)
+    --force_strand  <- include this flag to continue pipeline execution with a
+                       warning, when user-provided strand contrasts with
+                       inferred strandness in any sample. Default: false (Halt
+                       pipeline execution with an error message if any sample
+                       appears to be a different strandness than stated by the
+                       user).
+    --fullCov       <- flag to perform full coverage analysis (default: false)
+    --help          <- shows this message
+    --input [path]  <- the directory containing samples.manifest, the file
+                       describing the input FASTQ files. Default: "./input"
+                       (relative to the repository)
+    --output [path] <- the directory to place pipeline outputs/results. Default:
+                       "./results" (relative to the repository)
+    --prefix [string] <- an additional identifier (name) for the experiment
+                       (e.g. date, genome)
+    --small_test	  <- use small test files as input, rather than the files
+                       specified in samples.manifest in the directory given by
+                       "--input [path]". Default: false.
+    --unalign       <- include this flag to additionally save discordant reads
+                       to the pipeline outputs (default: false; only concordant
+                       .sam files are saved)
+    --use_salmon    <- include this flag to perform transcript quantification
+                       with salmon instead of the default of kallisto. Default:
+                       false
+                       
+    The above was a comprehensive list of options specific to SPEQeasy. As a
+    pipeline based on nextflow, SPEQeasy also accepts any options the
+    "nextflow run" command accepts. To print the list of these, type:
+    
+          nextflow run -h
 
-	Mandatory Options:
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--sample		Runs the pipeline for "single" or "paired" end reads
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--strand		Runs pipeline for "unstranded, forward, reverse" read types
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--reference		Select the desired reference for the run (hg38, hg19, mm10, rn6)
-	-----------------------------------------------------------------------------------------------------------------------------------
-
-	Optional Parameters:
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--experiment	Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--prefix		Defines the prefix of the input files (not used to detect files)
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--input			The directory containing samples.manifest, the file describing the input FASTQ files. Defaults to "./input" (relative to the repository)
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--output		Defines the output folder for the files. Defaults to "./results" (relative to the repository)
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--unalign		Give the option to not algin the reads against a reference in HISAT step. Defaults to false 
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--annotation	Path to the folder containing pipeline annotations. Defaults to "./Annotations" (relative to the repository)
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--ercc			Flag to enable ERCC quantification with Kallisto
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--fullCov		Flag to perform full coverage in step 7b
-	-----------------------------------------------------------------------------------------------------------------------------------
-	--small_test	Runs the pipeline as a small test run on sample files located in the test folder
-	-----------------------------------------------------------------------------------------------------------------------------------
-    --force_trim    Include to perform trimming on all inputs, rather than just those failing QC due to detected adapter content
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --use_salmon  Include this flag to perform transcript quantification with salmon (which output objects will reflect), rather than just kallisto
-    -----------------------------------------------------------------------------------------------------------------------------------
-    --custom_anno [string] Include this flag to state that the directory specified by "--annotation [dir]" has user-provided annotation files to use, and objects built from these files should be labelled with the specified string. See the README for specifics. Defaults to "" (indicating to check for and potentially pull annotation specified by gencode/ensembl version)
-    -----------------------------------------------------------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------
 	""".stripIndent()
 }
 /*
@@ -145,7 +159,7 @@ if (params.help){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 params.experiment = "Jlab_experiment"
-params.prefix = "prefix"
+params.prefix = ""
 params.sample = ""
 params.strand = ""
 params.unalign = false
@@ -158,6 +172,7 @@ params.small_test = false
 params.force_trim = false
 params.use_salmon = false
 params.custom_anno = ""
+params.force_strand = false
 workflow.runName = "RNAsp_run"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -176,7 +191,7 @@ if (params.strand != "forward" && params.strand != "reverse" && params.strand !=
 
 // Reference Selection Validation
 if (params.reference != "hg19" && params.reference != "hg38" && params.reference != "mm10" && params.reference != "rn6") {
-	exit 1, "Error: enter hg19 or hg38, mm10 for mouse, or rn6 for rat as the reference."
+	exit 1, "Error: enter hg19 or hg38 for human, mm10 for mouse, or rn6 for rat as the reference."
 }
 
 // Get species name from genome build name
@@ -651,7 +666,8 @@ process InferStrandness {
             !{params.kallisto_len_mean} \
             !{params.kallisto_len_sd} \
             !{params.strand} \
-            !{params.Rscript}
+            !{params.Rscript} \
+            !{params.force_strand}
         
         cp .command.log !{prefix}_infer_strand.log
         '''
@@ -684,7 +700,7 @@ process CompleteManifest {
  
 if (params.ercc) {
     if (params.custom_anno != "") {
-        erccidx = Channel.fromPath("${params.annotation}/*ERCC*.idx")
+        erccidx = Channel.fromPath("${params.annotation}/*.idx")
     } else {
         erccidx = Channel.fromPath("${params.annotation}/ERCC/ERCC92.idx")
     }
@@ -735,13 +751,13 @@ if (params.ercc) {
 process QualityUntrimmed {
 
 	tag "$untrimmed_prefix"
-	publishDir "${params.output}/FastQC/Untrimmed",mode:'copy'
+	publishDir "${params.output}/FastQC/Untrimmed", mode:'copy', pattern:'*_fastqc'
 
 	input:
 	set val(untrimmed_prefix), file(fastqc_untrimmed_input) from fastqc_untrimmed_inputs 
 
 	output:
-	file "*"
+	file "${untrimmed_prefix}*_fastqc"
 	file "*_summary.txt" into quality_reports, count_objects_quality_reports
 	file "*_fastqc_data.txt" into count_objects_quality_metrics
 
@@ -1417,7 +1433,7 @@ count_objects_bam_files // this puts sorted.bams and bais into the channel
   .mix(count_objects_quality_reports) // this puts sample_XX_summary.txt files into the channel
   .mix(count_objects_quality_metrics) // this puts sample_XX_fastqc_data.txt into the channel
   .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
-  .mix(create_counts_gtf) // this puts gencode.v25.annotation.gtf file into the channel
+  .mix(create_counts_gtf) // this puts the transcript .gtf file into the channel
   .mix(sample_counts) // this puts sample_XX_*_Exons.counts and sample_XX_*_Genes.counts into the channel
   .mix(regtools_outputs) // this puts the *_junctions_primaryOnly_regtools.count files into the channel
   .mix(tx_quants)

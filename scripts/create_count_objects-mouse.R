@@ -49,7 +49,12 @@ if(FALSE){
 
 stopifnot(opt$stranded %in% c('FALSE', 'forward', 'reverse'))
 
-EXPNAME = paste0(opt$experiment,"_",opt$prefix)
+#  The default "prefix" is empty (i.e. "")
+if (nchar(opt$prefix) > 0) {
+    EXPNAME = paste0(opt$experiment,"_",opt$prefix)
+} else {
+    EXPNAME = opt$experiment
+}
 
 
 ## read in pheno	
@@ -282,8 +287,7 @@ widG = matrix(rep(geneMap$Length), nr = nrow(geneCounts),
 geneRpkm = geneCounts/(widG/1000)/(bg/1e6)
 
 ## save metrics
-write.csv(metrics, file = paste0('read_and_alignment_metrics_', opt$experiment,
-                                 '_', opt$prefix, '.csv'))
+write.csv(metrics, file = paste0('read_and_alignment_metrics_', EXPNAME, '.csv'))
 
 
 ###############
@@ -356,15 +360,6 @@ exonMap$meanExprs = rowMeans(exonRpkm)
 
 ## Create gene,exon RangedSummarizedExperiment objects
 
-## recount getRPKM version
-getRPKM <- function(rse, length_var = 'Length', mapped_var = NULL) {
-  mapped <- if(!is.null(mapped_var)) colData(rse)[, mapped_var] else colSums(assays(rse)$counts)
-  bg <- matrix(mapped, ncol = ncol(rse), nrow = nrow(rse), byrow = TRUE)
-  len <- if(!is.null(length_var)) rowData(rse)[, length_var] else width(rowRanges(rse))
-  wid <- matrix(len, nrow = nrow(rse), ncol = ncol(rse), byrow = FALSE)
-  assays(rse)$counts / (wid/1000) / (bg/1e6)
-}
-
 gr_genes <- GRanges(seqnames = geneMap$Chr,
                     IRanges(geneMap$Start, geneMap$End), strand = geneMap$Strand)
 names(gr_genes) <- rownames(geneMap)
@@ -373,7 +368,7 @@ mcols(gr_genes) <- DataFrame(geneMap[, - which(colnames(geneMap) %in%
 
 rse_gene <- SummarizedExperiment(assays = list('counts' = geneCounts),
                                  rowRanges = gr_genes, colData = metrics)
-save(rse_gene, getRPKM, file = paste0('rse_gene_', EXPNAME, '_n', N, '.Rdata'))
+save(rse_gene, file = paste0('rse_gene_', EXPNAME, '_n', N, '.Rdata'))
 
 gr_exons <- GRanges(seqnames = exonMap$Chr,
                     IRanges(exonMap$Start, exonMap$End), strand = exonMap$Strand)
@@ -383,7 +378,7 @@ mcols(gr_exons) <- DataFrame(exonMap[, - which(colnames(exonMap) %in%
 
 rse_exon <- SummarizedExperiment(assays = list('counts' = exonCounts),
                                  rowRanges = gr_exons, colData = metrics)
-save(rse_exon, getRPKM, file = paste0('rse_exon_', EXPNAME, '_n', N, '.Rdata'))
+save(rse_exon, file = paste0('rse_exon_', EXPNAME, '_n', N, '.Rdata'))
 
 
 ###################

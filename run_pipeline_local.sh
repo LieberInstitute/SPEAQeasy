@@ -1,16 +1,15 @@
 #!/bin/bash
 
-## Test using local hardware resources and software pointed to
-## in conf/command_paths_long.config
+#  Script to run pipeline using local hardware resources
+
 export _JAVA_OPTIONS="-Xms5g -Xmx7g"
-./Software/nextflow main.nf \
+
+Software/nextflow main.nf \
     --small_test \
     --sample "single" \
     --reference "hg38" \
     --strand "unstranded" \
     --ercc \
-    --fullCov \
-    --force_trim \
-    -with-report execution_reports/local_run.html \
-    -with-dag execution_DAGs/local_run.html \
+    -with-report execution_reports/pipeline_report.html \
+    -with-dag execution_DAGs/pipeline_DAG.html \
     -profile local
