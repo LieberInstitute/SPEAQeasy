@@ -4,6 +4,7 @@
 bed_to_juncs.py
 Created by Cole Trapnell on 2008-09-19.
 Copyright (c) 2008 Cole Trapnell. All rights reserved.
+Modified for use with Python 3.x within SPEQeasy
 """
 
 import sys
@@ -29,7 +30,7 @@ def main(argv=None):
     try:
         try:
             opts, args = getopt.getopt(argv[1:], "h", ["help"])
-        except getopt.error, msg:
+        except getopt.error as msg:
             raise Usage(msg)
     
         for option, value in opts:
@@ -53,10 +54,10 @@ def main(argv=None):
             right_pos = int(cols[1]) + block_starts[1]
             #print "%s\t%d\t%d\t%s" % (chromosome, left_pos, right_pos, orientation)
             counts = cols[4]
-            print "%s\t%d\t%d\t%s\t%s" % (chromosome, left_pos, right_pos, orientation, counts)
+            print("%s\t%d\t%d\t%s\t%s" % (chromosome, left_pos, right_pos, orientation, counts))
             
 
-    except Usage, err:
+    except Usage as err:
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
         print >> sys.stderr, "\t for help use --help"
         return 2
