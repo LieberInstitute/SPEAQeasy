@@ -1472,7 +1472,7 @@ process CountObjects {
         !{params.Rscript} !{create_counts} \
             -o !{params.reference} \
             -e !{params.experiment} \
-            -p !{params.prefix} \
+            -p "!{params.prefix}" \
             -l !{counts_pe} \
             -c !{params.ercc} \
             -t !{task.cpus} \
