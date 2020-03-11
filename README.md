@@ -103,7 +103,10 @@ Note that the configuration files also include command-line options passed to ma
 + `--ercc`			Include this flag to enable ERCC quantification with Kallisto
 + `--fullCov`		Flag to perform full coverage analysis
 + `--small_test`	Uses sample files located in the test folder as input. Overrides the "--input" option.
-+ `--force_trim`  Include this flag to perform triming on all inputs. By default, only inputs failing fastQC on the adapter content metric are trimmed.
++ `--trim_mode`  Determines the conditions under which trimming occurs:
+                    "skip": do not perform trimming on samples
+                    "adaptive": [default] perform trimming on samples that have failed the FastQC "Adapter content" metric
+                    "force": perform trimming on all samples
 + `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
 + `--custom_anno [label]` Include this flag to indicate that the directory specified with `--annotation [dir]` includes user-provided annotation files to use instead of the default files. See the "Using custom annotation" section for more details.
 + `--force_strand` Include this flag to continue pipeline execution with a warning, when user-provided strand contrasts with inferred strandness in any sample. Default: false (halt pipeline execution with an error message if any sample appears to be a different strandness than stated by the user)

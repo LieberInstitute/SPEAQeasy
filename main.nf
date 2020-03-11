@@ -103,9 +103,6 @@ def helpMessage() {
                        (default: false)
     --experiment [string] <- main name for the experiment (default:
                        "Jlab_experiment")
-    --force_trim    <- include to perform trimming on all inputs, rather than
-                       just those failing QC due to detected adapter content
-                       (default: false)
     --force_strand  <- include this flag to continue pipeline execution with a
                        warning, when user-provided strand contrasts with
                        inferred strandness in any sample. Default: false (Halt
@@ -124,6 +121,11 @@ def helpMessage() {
     --small_test	  <- use small test files as input, rather than the files
                        specified in samples.manifest in the directory given by
                        "--input [path]". Default: false.
+    --trim_mode [mode] <- determines the conditions under which trimming occurs:
+                          "skip": do not perform trimming on samples
+                          "adaptive": [default] perform trimming on samples that
+                              have failed the FastQC "Adapter content" metric
+                          "force": perform trimming on all samples
     --unalign       <- include this flag to additionally save discordant reads
                        to the pipeline outputs (default: false; only concordant
                        .sam files are saved)
@@ -169,7 +171,7 @@ params.output = "${workflow.projectDir}/results"
 params.ercc = false
 params.fullCov = false
 params.small_test = false
-params.force_trim = false
+params.trim_mode = "adaptive"
 params.use_salmon = false
 params.custom_anno = ""
 params.force_strand = false
@@ -181,17 +183,22 @@ workflow.runName = "RNAsp_run"
 
 // Sample Selection Validation
 if (params.sample != "single" && params.sample != "paired") {
-	exit 1, "Sample Type Not Provided or Invalid Choice. Please Provide a Valid Sample Type. Valid types are single or paired "
+    exit 1, "Sample Type Not Provided or Invalid Choice. Please Provide a Valid Sample Type. Valid types are single or paired "
 }
 
 // Strand Selection Validation
 if (params.strand != "forward" && params.strand != "reverse" && params.strand != "unstranded") {
-	exit 1, "Strand Type Not Provided or Invalid Choice. Please Provide a Valid Strand Type. Valid types are unstranded, forward or reverse"
+    exit 1, "Strand Type Not Provided or Invalid Choice. Please Provide a Valid Strand Type. Valid types are unstranded, forward or reverse"
 }
 
 // Reference Selection Validation
 if (params.reference != "hg19" && params.reference != "hg38" && params.reference != "mm10" && params.reference != "rn6") {
-	exit 1, "Error: enter hg19 or hg38 for human, mm10 for mouse, or rn6 for rat as the reference."
+    exit 1, "Error: enter hg19 or hg38 for human, mm10 for mouse, or rn6 for rat as the reference."
+}
+
+// Trim mode
+if (params.trim_mode != "skip" && params.trim_mode != "adaptive" && params.trim_mode != "force") {
+    exit 1, "'--trim_mode' accepts one of three possible arguments: 'skip', 'adaptive', or 'force'."
 }
 
 // Get species name from genome build name
@@ -337,6 +344,7 @@ summary['Annotation build'] = params.anno_build
 summary['Annotation dir']		 = params.annotation
 summary['Input']			   = params.input
 summary['Experiment'] = params.experiment
+summary['Trim mode'] = params.trim_mode
 if(params.unalign) summary['Align'] = "True"
 if(params.fullCov) summary['Full Coverage'] = "True"
 summary['Small test selected'] = params.small_test
@@ -827,18 +835,21 @@ process Trimming {
             trim_clip = params.trim_clip_paired
         }
         '''
-        #  Determine whether to trim the FASTQ file(s). This is done if the user
-        #  adds the --force_trim flag, or if fastQC adapter content metrics fail
-        #  for at least one FASTQ
-        if [ "!{params.force_trim}" == true ]; then
+        #  Determine whether to trim the FASTQ file(s). This is ultimately
+        #  controlled by the '--trim_mode' command flag.
+        if [ "!{params.trim_mode}" == "force" ]; then
             do_trim=true
+        elif [ "!{params.trim_mode}" == "skip" ]; then
+            do_trim=false
         elif [ "!{params.sample}" == "single" ]; then
+            #  Then '--trim_mode "adaptive"' was selected, and data is single-end
             if [ $(grep "Adapter Content" !{fq_summary} | cut -f 1)  == "FAIL" ]; then
                 do_trim=true
             else
                 do_trim=false
             fi
         else
+            #  Then '--trim_mode "adaptive"' was selected, and data is paired-end
             result1=$(grep "Adapter Content" !{fq_prefix}_1_summary.txt | cut -c1-4)
             result2=$(grep "Adapter Content" !{fq_prefix}_2_summary.txt | cut -c1-4)
             if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ]; then
