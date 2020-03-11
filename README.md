@@ -289,7 +289,7 @@ The following container versions are used in this pipeline.
 | libddocker/samtools | 1.9 | Samtools |
 | libddocker/salmon | 0.14.1 | Salmon |
 | libddocker/regtools | 0.5.1 | Regtools |
-| welliton/subread | 2.0.0 | SubRead |
+| libddocker/subread | 2.0.0 | SubRead/FeatureCounts |
 | libddocker/wiggletools-1.2 | 1_v3 | Wiggletools |
 | libddocker/variant_calling | 1.9 | Samtools, BCFTools |
 

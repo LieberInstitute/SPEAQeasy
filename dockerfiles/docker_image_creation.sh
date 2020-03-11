@@ -92,3 +92,12 @@ mkdir -p $REPO/fastqc/0.11.8
 #  produce $REPO/fastqc/0.11.8/Dockerfile
 docker build -t libddocker/fastqc:0.11.8 $REPO/fastqc/0.11.8
 docker push libddocker/fastqc:0.11.8
+
+########################################################
+#  Subread (2.0.0)
+########################################################
+
+mkdir -p $REPO/subread/2.0.0
+#  produce $REPO/subread/2.0.0/Dockerfile
+docker build -t libddocker/subread:2.0.0 $REPO/subread/2.0.0
+docker push libddocker/subread:2.0.0
