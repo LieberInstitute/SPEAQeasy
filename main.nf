@@ -114,6 +114,10 @@ def helpMessage() {
     --input [path]  <- the directory containing samples.manifest, the file
                        describing the input FASTQ files. Default: "./input"
                        (relative to the repository)
+    --keep_unpaired <- include this flag to keep unpaired reads output from
+                       trimming paired-end samples, for use in alignment.
+                       Default: false, as this can cause issues in downstream
+                       tools like FeatureCounts.
     --output [path] <- the directory to place pipeline outputs/results. Default:
                        "./results" (relative to the repository)
     --prefix [string] <- an additional identifier (name) for the experiment
@@ -172,6 +176,7 @@ params.ercc = false
 params.fullCov = false
 params.small_test = false
 params.trim_mode = "adaptive"
+params.keep_unpaired = false
 params.use_salmon = false
 params.custom_anno = ""
 params.force_strand = false
@@ -199,6 +204,11 @@ if (params.reference != "hg19" && params.reference != "hg38" && params.reference
 // Trim mode
 if (params.trim_mode != "skip" && params.trim_mode != "adaptive" && params.trim_mode != "force") {
     exit 1, "'--trim_mode' accepts one of three possible arguments: 'skip', 'adaptive', or 'force'."
+}
+
+// Keeping unpaired reads that are not produced
+if (params.keep_unpaired && params.trim_mode == "skip") {
+    exit 1, "You have opted to include unpaired outputs from trimming, but to skip trimming itself. Consider using a different 'trim_mode' or not using the '--keep_unpaired' option."
 }
 
 // Get species name from genome build name
@@ -345,6 +355,7 @@ summary['Annotation dir']		 = params.annotation
 summary['Input']			   = params.input
 summary['Experiment'] = params.experiment
 summary['Trim mode'] = params.trim_mode
+summary['Keep unpaired'] = params.keep_unpaired
 if(params.unalign) summary['Align'] = "True"
 if(params.fullCov) summary['Full Coverage'] = "True"
 summary['Small test selected'] = params.small_test
@@ -1007,7 +1018,7 @@ if (params.sample == "single") {
             fi
             
             #  If this sample had unpaired trimming outputs, include them
-            if [ -f !{prefix}_unpaired_1.fastq ]; then
+            if [ "!{params.keep_unpaired}" == "true" ]; then
                 unpaired_opt='-U !{prefix}_unpaired_1.fastq,!{prefix}_unpaired_2.fastq'
             else
                 unpaired_opt=''

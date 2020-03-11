@@ -107,6 +107,7 @@ Note that the configuration files also include command-line options passed to ma
                     "skip": do not perform trimming on samples
                     "adaptive": [default] perform trimming on samples that have failed the FastQC "Adapter content" metric
                     "force": perform trimming on all samples
++ `--keep_unpaired` include this flag to keep unpaired reads output from trimming paired-end samples, for use in alignment. Default: false, as this can cause issues in downstream tools like FeatureCounts.
 + `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
 + `--custom_anno [label]` Include this flag to indicate that the directory specified with `--annotation [dir]` includes user-provided annotation files to use instead of the default files. See the "Using custom annotation" section for more details.
 + `--force_strand` Include this flag to continue pipeline execution with a warning, when user-provided strand contrasts with inferred strandness in any sample. Default: false (halt pipeline execution with an error message if any sample appears to be a different strandness than stated by the user)
