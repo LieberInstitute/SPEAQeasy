@@ -1218,21 +1218,21 @@ process Coverage {
         strand=$(cat samples_complete.manifest | grep !{coverage_prefix} | awk -F ' ' '{print $NF}')
         if [ $strand == 'forward' ]; then
             if [ !{params.sample} == "paired" ]; then
-                strand_flag='-d "1++,1--,2+-,2-+"'
+                strand_flag='-d 1++,1--,2+-,2-+'
             else
-                strand_flag='-d "++,--"'
+                strand_flag='-d ++,--'
             fi
         elif [ $strand == 'reverse' ]; then
             if [ !{params.sample} == "paired" ]; then
-                strand_flag='-d "1+-,1-+,2++,2--"'
+                strand_flag='-d 1+-,1-+,2++,2--'
             else
-                strand_flag='-d "+-,-+"'
+                strand_flag='-d +-,-+'
             fi
         else
             strand_flag=""
         fi
 
-        python2.7 $(which !{params.bam2wig}) \
+        python $(which !{params.bam2wig}) \
             -s !{chr_sizes} \
             -i !{sorted_coverage_bam} \
             -t !{params.bam2wig_depth_thres} \
