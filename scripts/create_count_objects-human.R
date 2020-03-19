@@ -455,6 +455,7 @@ geneMap$Symbol = gencodeGENES[geneMap$gencodeID,"gene_name"]
 
 ######### query biomart if there is an internet connection
 result = tryCatch({
+    stop()
     if (opt$organism=="hg19") {
         # VERSION 75, GRCh37.p13
         ensembl = useMart("ENSEMBL_MART_ENSEMBL", 
@@ -563,9 +564,11 @@ eMap = GRanges(exonMap$Chr, IRanges(exonMap$Start, exonMap$End))
 i = grepl('-', exonMap$Symbol)
 j = countOverlaps(eMap[i], eMap[!i], type = 'equal') > 0
 dropIndex = which(i)[j]
-exonCounts = exonCounts[-dropIndex,]
-exonMap = exonMap[-dropIndex,]
-eMap = eMap[-dropIndex,]
+if (length(dropIndex) > 0) {
+    exonCounts = exonCounts[-dropIndex,]
+    exonMap = exonMap[-dropIndex,]
+    eMap = eMap[-dropIndex,]
+}
 
 ## drop duplicated exons
 keepIndex = which(!duplicated(eMap))
@@ -721,36 +724,50 @@ anno$startExon = match(paste0(seqnames(anno),":",start(anno)-1),
 	paste0(seqnames(exonGR), ":", end(exonGR)))
 anno$endExon = match(paste0(seqnames(anno),":",end(anno)+1),
 	paste0(seqnames(exonGR), ":", start(exonGR)))
-g = data.frame(leftGene = exonMap$gencodeID[anno$startExon],
-	rightGene = exonMap$gencodeID[anno$endExon],
-	leftGeneSym = exonMap$Symbol[anno$startExon],
-	rightGeneSym = exonMap$Symbol[anno$endExon],
-	stringsAsFactors=FALSE)
+
+if (has_internet_con) {
+    g = data.frame(leftGene = exonMap$gencodeID[anno$startExon],
+                   rightGene = exonMap$gencodeID[anno$endExon],
+                   leftGeneSym = exonMap$Symbol[anno$startExon],
+                   rightGeneSym = exonMap$Symbol[anno$endExon],
+                   stringsAsFactors=FALSE)
+} else {
+    g = data.frame(leftGene = exonMap$gencodeID[anno$startExon],
+                   rightGene = exonMap$gencodeID[anno$endExon],
+                   stringsAsFactors=FALSE)
+}
+
 g$newGene = NA
-g$newGeneSym = NA
 g$newGene[which(g$leftGene==g$rightGene)] = 
-	g$leftGene[which(g$leftGene==g$rightGene)] 
-g$newGeneSym[which(g$leftGene==g$rightGene)] = 
-	g$leftGeneSym[which(g$leftGene==g$rightGene)] 
+    g$leftGene[which(g$leftGene==g$rightGene)]
 g$newGene[which(g$leftGene!=g$rightGene)] = 
-	paste0(g$leftGene,"-",g$rightGene)[which(g$leftGene!=g$rightGene)] 
-g$newGeneSym[which(g$leftGene!=g$rightGene)] = 
-	paste0(g$leftGeneSym,"-",g$rightGeneSym)[which(g$leftGene!=g$rightGene)] 
+    paste0(g$leftGene,"-",g$rightGene)[which(g$leftGene!=g$rightGene)]
 g$newGene[which(is.na(g$newGene) & is.na(g$leftGene))] = 
-	g$rightGene[which(is.na(g$newGene) & is.na(g$leftGene))] 
+    g$rightGene[which(is.na(g$newGene) & is.na(g$leftGene))]
 g$newGene[which(is.na(g$newGene) & is.na(g$rightGene))] = 
-	g$leftGene[which(is.na(g$newGene) & is.na(g$rightGene))] 
-g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))] = 
-	g$rightGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))] 
-g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))] = 
-	g$leftGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))] 
-g$newGeneSym[g$newGeneSym==""] = NA
-g$newGeneSym[g$newGeneSym=="-"] = NA
+    g$leftGene[which(is.na(g$newGene) & is.na(g$rightGene))]
+    
 anno$newGeneID = g$newGene
-anno$newGeneSymbol = g$newGeneSym
 anno$isFusion = grepl("-", anno$newGeneID)
-anno$newGeneSymbol[anno$code =="InGen"] = anno$Symbol[anno$code =="InGen"]
 anno$newGeneID[anno$code =="InGen"] = anno$gencodeGeneID[anno$code =="InGen"]
+
+if (has_internet_con) {
+    g$newGeneSym = NA
+    g$newGeneSym[which(g$leftGene==g$rightGene)] = 
+        g$leftGeneSym[which(g$leftGene==g$rightGene)]
+    g$newGeneSym[which(g$leftGene!=g$rightGene)] = 
+        paste0(g$leftGeneSym,"-",g$rightGeneSym)[which(g$leftGene!=g$rightGene)]
+    g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))] = 
+        g$rightGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))] 
+    g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))] = 
+        g$leftGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))] 
+    g$newGeneSym[g$newGeneSym==""] = NA
+    g$newGeneSym[g$newGeneSym=="-"] = NA
+    
+    anno$newGeneSymbol = g$newGeneSym
+    anno$newGeneSymbol[anno$code =="InGen"] = anno$Symbol[anno$code =="InGen"]
+}
+
 
 ## extract out jMap
 jMap = anno
