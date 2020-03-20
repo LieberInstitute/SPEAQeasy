@@ -52,7 +52,7 @@ Software | Version | Command used by the pipeline |
 
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/jhpce.config*
-3. **Modify the main script and run**: this is *run_pipeline_jhpce_qsub.sh*. The pipeline run is submitted to the cluster by executing `qsub run_pipeline_jhpce_qsub.sh`. Alternatively, you may run the pipeline interactively via `bash run_pipeline_jhpce.sh`. See "Full list of command-line options" for details about modifying the script you choose.
+3. **Modify the main script and run**: this is *run_pipeline_jhpce.sh*. The pipeline run is submitted to the cluster by executing `qsub run_pipeline_jhpce.sh`. See "Full list of command-line options" for details about modifying the script you choose.
 
 
 ### Run on a Sun Grid Engines (SGE) cluster ###
