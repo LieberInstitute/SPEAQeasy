@@ -37,7 +37,7 @@ Software | Version | Command used by the pipeline |
 |[htslib](http://www.htslib.org/download/) | 1.9 | `tabix` |
 |[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
 |[kallisto](https://pachterlab.github.io/kallisto/source) | 0.46.1 | `kallisto` |
-|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 18.10.0) | `nextflow` |
+|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 20.01.0) | `nextflow` |
 |[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.6 | `Rscript` |
 |[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.1 | `regtools` |
 |[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `bam2wig.py`|
