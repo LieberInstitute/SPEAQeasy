@@ -1,22 +1,18 @@
 ## ignore local files from local executions
-input*
 *nextflow.log*
 *.nextflow/
 *pipeline_log/
 work*
 *results/
 execution_*
-run_pipeline_jhpce_qsub.log
 Software*
 test/*/*/*/samples.manifest
+logs/*_process_trace.log
+SPEQeasy_output.log
 
 ## ignore big reference files/ files pulled with 1st execution
 Annotation/reference/*
 Annotation/RSeQC/*
-
-## diagnostic html report and png flowcharts produced by test runs
-report.html*
-flowchart.png*
 
 ## backup stuff
 *.bkp
