@@ -60,7 +60,7 @@ Software | Version | Command used by the pipeline |
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. **Choose how to manage software dependencies**: see "Software requirements" section.
 3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/sge.config*, if you have installed software dependencies locally, or *conf/docker_sge.config* if you will use docker.
-4. **Modify the main script and run**: the main script is *run_pipeline_sge.sh*. Run the pipeline interactively with `bash run_pipeline_sge.sh`, or submit as a job to your cluster with `qsub run_pipeline_sge.sh`. If you are using docker, make sure to change the line `-profile sge` to `profile docker_sge`. See "Full list of command-line options" for other details about modifying the script for your use-case.
+4. **Modify the main script and run**: the main script is *run_pipeline_sge.sh*. Submit the script as a job to your cluster with `qsub run_pipeline_sge.sh`. If you are using docker, make sure to change the line `-profile sge` to `profile docker_sge`. See "Full list of command-line options" for other details about modifying the script for your use-case.
 
 See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional information on nextflow for SGE environments.
 
@@ -69,7 +69,7 @@ See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. **Choose how to manage software dependencies**: see "Software requirements" section.
 3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/slurm.config*, if you have installed software dependencies locally, or *conf/docker_slurm.config* if you will use docker.
-4. **Modify the main script and run**: the main script is *run_pipeline_slurm.sh*. Run the pipeline interactively with `bash run_pipeline_slurm.sh`, or submit as a job to your cluster with `sbatch run_pipeline_slurm.sh`. If you are using docker, make sure to change the line `-profile slurm` to `profile docker_slurm`. See "Full list of command-line options" for other details about modifying the script for your use-case.
+4. **Modify the main script and run**: the main script is *run_pipeline_slurm.sh*. Submit the script as a job to your cluster with `sbatch run_pipeline_slurm.sh`. If you are using docker, make sure to change the line `-profile slurm` to `profile docker_slurm`. See "Full list of command-line options" for other details about modifying the script for your use-case.
 
 ### Run locally ###
 
