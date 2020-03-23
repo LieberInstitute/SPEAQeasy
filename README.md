@@ -37,7 +37,7 @@ Software | Version | Command used by the pipeline |
 |[htslib](http://www.htslib.org/download/) | 1.9 | `tabix` |
 |[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8 | `java` |
 |[kallisto](https://pachterlab.github.io/kallisto/source) | 0.46.1 | `kallisto` |
-|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 18.10.0) | `nextflow` |
+|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 20.01.0) | `nextflow` |
 |[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.6 | `Rscript` |
 |[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.1 | `regtools` |
 |[RSeQC](http://rseqc.sourceforge.net/#installation) | 3.0.1 | `bam2wig.py`|
@@ -52,7 +52,7 @@ Software | Version | Command used by the pipeline |
 
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/jhpce.config*
-3. **Modify the main script and run**: this is *run_pipeline_jhpce_qsub.sh*. The pipeline run is submitted to the cluster by executing `qsub run_pipeline_jhpce_qsub.sh`. Alternatively, you may run the pipeline interactively via `bash run_pipeline_jhpce.sh`. See "Full list of command-line options" for details about modifying the script you choose.
+3. **Modify the main script and run**: this is *run_pipeline_jhpce.sh*. The pipeline run is submitted to the cluster by executing `qsub run_pipeline_jhpce.sh`. See "Full list of command-line options" for details about modifying the script you choose.
 
 
 ### Run on a Sun Grid Engines (SGE) cluster ###
@@ -60,7 +60,7 @@ Software | Version | Command used by the pipeline |
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. **Choose how to manage software dependencies**: see "Software requirements" section.
 3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/sge.config*, if you have installed software dependencies locally, or *conf/docker_sge.config* if you will use docker.
-4. **Modify the main script and run**: the main script is *run_pipeline_sge.sh*. Run the pipeline interactively with `bash run_pipeline_sge.sh`, or submit as a job to your cluster with `qsub run_pipeline_sge.sh`. If you are using docker, make sure to change the line `-profile sge` to `profile docker_sge`. See "Full list of command-line options" for other details about modifying the script for your use-case.
+4. **Modify the main script and run**: the main script is *run_pipeline_sge.sh*. Submit the script as a job to your cluster with `qsub run_pipeline_sge.sh`. If you are using docker, make sure to change the line `-profile sge` to `profile docker_sge`. See "Full list of command-line options" for other details about modifying the script for your use-case.
 
 See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional information on nextflow for SGE environments.
 
@@ -69,7 +69,7 @@ See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional
 1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
 2. **Choose how to manage software dependencies**: see "Software requirements" section.
 3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/slurm.config*, if you have installed software dependencies locally, or *conf/docker_slurm.config* if you will use docker.
-4. **Modify the main script and run**: the main script is *run_pipeline_slurm.sh*. Run the pipeline interactively with `bash run_pipeline_slurm.sh`, or submit as a job to your cluster with `sbatch run_pipeline_slurm.sh`. If you are using docker, make sure to change the line `-profile slurm` to `profile docker_slurm`. See "Full list of command-line options" for other details about modifying the script for your use-case.
+4. **Modify the main script and run**: the main script is *run_pipeline_slurm.sh*. Submit the script as a job to your cluster with `sbatch run_pipeline_slurm.sh`. If you are using docker, make sure to change the line `-profile slurm` to `profile docker_slurm`. See "Full list of command-line options" for other details about modifying the script for your use-case.
 
 ### Run locally ###
 
@@ -107,9 +107,11 @@ Note that the configuration files also include command-line options passed to ma
                     "skip": do not perform trimming on samples
                     "adaptive": [default] perform trimming on samples that have failed the FastQC "Adapter content" metric
                     "force": perform trimming on all samples
++ `--keep_unpaired` include this flag to keep unpaired reads output from trimming paired-end samples, for use in alignment. Default: false, as this can cause issues in downstream tools like FeatureCounts.
 + `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
 + `--custom_anno [label]` Include this flag to indicate that the directory specified with `--annotation [dir]` includes user-provided annotation files to use instead of the default files. See the "Using custom annotation" section for more details.
 + `--force_strand` Include this flag to continue pipeline execution with a warning, when user-provided strand contrasts with inferred strandness in any sample. Default: false (halt pipeline execution with an error message if any sample appears to be a different strandness than stated by the user)
++ `--no_biomart` Include this flag to suppress potential errors in retrieving additional annotation info, such as gene symbols, from biomaRt. BiomaRt will still be queried for this info, but the pipeline will proceed without it upon failure for any reason. This option is required for users without internet access during pipeline runs.
 
 ### Nextflow Options ###
 
@@ -169,7 +171,7 @@ A line of paired-end reads could look like this:
 ### Pipeline use with limited internet access ###
 
 + For users who do not have internet access when executing pipeline runs, you may first run `bash scripts/manual_annotation.sh`. This script must be run from the repository directory (from a machine with internet access). Modify the four lines in the "user configuration section" at the top of the script for you particular set-up. This sets up everything so that subsequent runs of the pipeline do not need an internet connection to complete.
-+ Towards the end of the pipeline run, when R objects are created containing gene/exon/junction counts, some additional data is pulled from biomaRt databases by default. However, if an internet connection is not available, this extra information is not pulled (and a warning is generated). This is the only difference between runs with and without internet access.
++ Towards the end of the pipeline run, when R objects are created containing gene/exon/junction counts, some additional data is pulled from biomaRt databases by default. However, if an internet connection is not available, this extra information is not pulled (and an error occurs). Users without access to the internet during pipeline execution should provide the `--no_biomart` command flag to suppress this error and continue without the additional biomaRt data. This is the only difference between runs with and without internet access.
 
 ### Version description ###
 
@@ -288,7 +290,7 @@ The following container versions are used in this pipeline.
 | libddocker/samtools | 1.9 | Samtools |
 | libddocker/salmon | 0.14.1 | Salmon |
 | libddocker/regtools | 0.5.1 | Regtools |
-| welliton/subread | 2.0.0 | SubRead |
+| libddocker/subread | 2.0.0 | SubRead/FeatureCounts |
 | libddocker/wiggletools-1.2 | 1_v3 | Wiggletools |
 | libddocker/variant_calling | 1.9 | Samtools, BCFTools |
 

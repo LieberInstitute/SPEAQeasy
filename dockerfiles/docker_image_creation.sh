@@ -102,3 +102,12 @@ cd dockerfiles
 docker build -f wiggletools-1.2.dockerfile -t libddocker/wiggletools-1.2:1_v4 .
 docker push libddocker/wiggletools-1.2:1_v4
 cd ..
+
+########################################################
+#  Subread (2.0.0)
+########################################################
+
+mkdir -p $REPO/subread/2.0.0
+#  produce $REPO/subread/2.0.0/Dockerfile
+docker build -t libddocker/subread:2.0.0 $REPO/subread/2.0.0
+docker push libddocker/subread:2.0.0

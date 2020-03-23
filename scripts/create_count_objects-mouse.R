@@ -14,15 +14,16 @@ library('plyr')
 
 ## Specify parameters
 spec <- matrix(c(
-  'organism', 'o', 2, 'character', 'mm10',
-  'experiment', 'e', 1, 'character', 'Experiment',
-  'prefix', 'p', 1, 'character', 'Prefix',
-  'paired', 'l', 1, 'logical', 'Whether the reads are paired-end or not',
-  'ercc', 'c', 1, 'logical', 'Whether the reads include ERCC or not',
-  'cores', 't', 1, 'integer', 'Number of cores to use',
-  'stranded', 's', 1, 'character', "Strandedness of the data: Either 'FALSE', 'forward' or 'reverse'",
-  'salmon', 'n', 1, 'logical', 'Whether to use salmon quants rather than kallisto',
-  'help' , 'h', 0, 'logical', 'Display help'
+    'organism', 'o', 2, 'character', 'mm10',
+    'experiment', 'e', 1, 'character', 'Experiment',
+    'prefix', 'p', 1, 'character', 'Prefix',
+    'paired', 'l', 1, 'logical', 'Whether the reads are paired-end or not',
+    'ercc', 'c', 1, 'logical', 'Whether the reads include ERCC or not',
+    'cores', 't', 1, 'integer', 'Number of cores to use',
+    'stranded', 's', 1, 'character', "Strandedness of the data: Either 'FALSE', 'forward' or 'reverse'",
+    'no_biomart', 'b', 1, 'logical', 'Whether to continue without error if biomaRt cannot be reached',
+    'salmon', 'n', 1, 'logical', 'Whether to use salmon quants rather than kallisto',
+    'help' , 'h', 0, 'logical', 'Display help'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
 
@@ -84,7 +85,7 @@ if (opt$salmon) {
     #get names of transcripts
     txNames = read.table(file.path(".", paste0(sampIDs[1], "_quant.sf")),
                      header = TRUE)$Name
-txNames = as.character(txNames)
+    txNames = as.character(txNames)
 } else {
     #######################################################################
     #  Kallisto quantification 
@@ -226,7 +227,7 @@ names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_mm10'))]
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
 
-######### query biomart if there is an internet connection
+######### attempt to query biomaRt
 result = tryCatch({
     ensembl = useMart("ensembl")
     ensembl = useDataset("mmusculus_gene_ensembl",mart=ensembl)
@@ -234,12 +235,19 @@ result = tryCatch({
                 filters="ensembl_gene_id", values=rownames(geneMap), mart=ensembl)
     return(list(sym, TRUE))
 }, error = function(e) {
-    print("Warning: proceeding without ensembl_gene_id and entrezgene_id info from biomaRt, as the databases could not be reached (is there an internet connection?)")
+    #  By default biomaRt info is required (failure to reach biomaRt is a fatal
+    #  error)
+    if (!opt$no_biomart) {
+        print("Error: the biomaRt query to obtain gene symbols failed. BiomaRt servers are likely down.")
+        stop()
+    }
+    #  Otherwise proceed with a warning
+    print("Proceeding without ensembl_gene_id and entrezgene_id info from biomaRt, as the databases could not be reached (and '--no_biomart' was specified)")
     return(list(c(), FALSE))
 })
 
 sym = result[[1]]
-has_internet_con = result[[2]] 
+has_internet_con = result[[2]]
 
 #########
 
@@ -328,9 +336,11 @@ eMap = GRanges(exonMap$Chr, IRanges(exonMap$Start, exonMap$End))
 i = grepl('-', exonMap$Symbol)
 j = countOverlaps(eMap[i], eMap[!i], type = 'equal') > 0
 dropIndex = which(i)[j]
-exonCounts = exonCounts[-dropIndex,]
-exonMap = exonMap[-dropIndex,]
-eMap = eMap[-dropIndex,]
+if (length(dropIndex) > 0) {
+    exonCounts = exonCounts[-dropIndex,]
+    exonMap = exonMap[-dropIndex,]
+    eMap = eMap[-dropIndex,]
+}
 
 ## drop duplicated exons
 keepIndex = which(!duplicated(eMap))
@@ -439,37 +449,49 @@ anno$startExon = match(paste0(seqnames(anno),":",start(anno)-1),
                        paste0(seqnames(exonGR), ":", end(exonGR)))
 anno$endExon = match(paste0(seqnames(anno),":",end(anno)+1),
                      paste0(seqnames(exonGR), ":", start(exonGR)))
-g = data.frame(leftGene = exonMap$gencodeID[anno$startExon],
-               rightGene = exonMap$gencodeID[anno$endExon],
-               leftGeneSym = exonMap$Symbol[anno$startExon],
-               rightGeneSym = exonMap$Symbol[anno$endExon],
-               stringsAsFactors=FALSE)
+                     
+if (has_internet_con) {
+    g = data.frame(leftGene = exonMap$gencodeID[anno$startExon],
+                   rightGene = exonMap$gencodeID[anno$endExon],
+                   leftGeneSym = exonMap$Symbol[anno$startExon],
+                   rightGeneSym = exonMap$Symbol[anno$endExon],
+                   stringsAsFactors=FALSE)
+} else {
+    g = data.frame(leftGene = exonMap$gencodeID[anno$startExon],
+                   rightGene = exonMap$gencodeID[anno$endExon],
+                   stringsAsFactors=FALSE)
+}
+
 g$newGene = NA
-g$newGeneSym = NA
 g$newGene[which(g$leftGene==g$rightGene)] =
   g$leftGene[which(g$leftGene==g$rightGene)]
-g$newGeneSym[which(g$leftGene==g$rightGene)] =
-  g$leftGeneSym[which(g$leftGene==g$rightGene)]
 g$newGene[which(g$leftGene!=g$rightGene)] =
   paste0(g$leftGene,"-",g$rightGene)[which(g$leftGene!=g$rightGene)]
-g$newGeneSym[which(g$leftGene!=g$rightGene)] =
-  paste0(g$leftGeneSym,"-",g$rightGeneSym)[which(g$leftGene!=g$rightGene)]
 g$newGene[which(is.na(g$newGene) & is.na(g$leftGene))] =
   g$rightGene[which(is.na(g$newGene) & is.na(g$leftGene))]
 g$newGene[which(is.na(g$newGene) & is.na(g$rightGene))] =
   g$leftGene[which(is.na(g$newGene) & is.na(g$rightGene))]
-g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))] =
-  g$rightGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))]
-g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))] =
-  g$leftGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))]
-g$newGeneSym[g$newGeneSym==""] = NA
-g$newGeneSym[g$newGeneSym=="-"] = NA
-anno$newGeneID = g$newGene
-anno$newGeneSymbol = g$newGeneSym
-anno$isFusion = grepl("-", anno$newGeneID)
 
-anno$newGeneSymbol[anno$code =="InGen"] = anno$Symbol[anno$code =="InGen"]
+anno$newGeneID = g$newGene
+anno$isFusion = grepl("-", anno$newGeneID)
 anno$newGeneID[anno$code =="InGen"] = anno$gencodeGeneID[anno$code =="InGen"]
+
+if (has_internet_con) {
+    g$newGeneSym = NA
+    g$newGeneSym[which(g$leftGene==g$rightGene)] =
+        g$leftGeneSym[which(g$leftGene==g$rightGene)]
+    g$newGeneSym[which(g$leftGene!=g$rightGene)] =
+        paste0(g$leftGeneSym,"-",g$rightGeneSym)[which(g$leftGene!=g$rightGene)]
+    g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))] =
+        g$rightGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))]
+    g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))] =
+        g$leftGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))]
+    g$newGeneSym[g$newGeneSym==""] = NA
+    g$newGeneSym[g$newGeneSym=="-"] = NA
+
+    anno$newGeneSymbol = g$newGeneSym
+    anno$newGeneSymbol[anno$code =="InGen"] = anno$Symbol[anno$code =="InGen"]
+}
 
 ## extract out jMap
 jMap = anno

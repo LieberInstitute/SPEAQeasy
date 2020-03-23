@@ -1,29 +1,30 @@
 #!/bin/bash
+#$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=150G
+#$ -o ./SPEQeasy_output.log
+#$ -e ./SPEQeasy_output.log
+#$ -cwd
 
-## use 'qrsh -l mem_free=60G,h_vmem=60G,h_fsize=100G' for real runs
 module load nextflow
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
-# The annotation files were downloaded from https://github.com/LieberInstitute/RNAsp/
-# specifically from https://github.com/LieberInstitute/RNAsp/tree/438d25b44fef422f67865e4a16f941d50d173399
-# and then copied to their location:
-#
-# git clone git@github.com:LieberInstitute/RNAsp.git
-# cd RNAsp
-# mv Annotation /dcl01/lieber/ajaffe/lab/RNAsp_static/
-# mv Genotyping /dcl01/lieber/ajaffe/lab/RNAsp_static/
-
-nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \
-    --sample "single" \
-    --reference "hg19" \
+nextflow main.nf \
+    --sample "paired" \
+    --reference "hg38" \
     --strand "unstranded" \
-    --ercc \
     --small_test \
-    -with-report /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_reports/JHPCE_run.html \
-    -with-dag /dcl01/lieber/ajaffe/lab/RNAsp_work/execution_DAGs/JHPCE_run.html \
-    -profile jhpce  \
-    -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
+    --trim_mode "force" \
     --annotation "/dcl01/lieber/ajaffe/Nick/RNAsp/Annotation" \
-    --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results" \
-    $@
+    -with-report execution_reports/JHPCE_run.html \
+    -with-dag execution_DAGs/JHPCE_run.html \
+    -profile jhpce \
+    -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
+    --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results"
 
+#  Produces a report for each sample tracing the pipeline steps
+#  performed (can be helpful for debugging).
+#
+#  Note that the reports are generated from the output log produced in the above
+#  section, and so if you rename the log, you must also pass replace the filename
+#  in the bash call below.
+echo "Generating per-sample logs for debugging..."
+bash scripts/generate_logs.sh $PWD/SPEQeasy_output.log
