@@ -14,15 +14,16 @@ library('plyr')
 
 ## Specify parameters
 spec <- matrix(c(
-  'organism', 'o', 2, 'character', 'mm10',
-  'experiment', 'e', 1, 'character', 'Experiment',
-  'prefix', 'p', 1, 'character', 'Prefix',
-  'paired', 'l', 1, 'logical', 'Whether the reads are paired-end or not',
-  'ercc', 'c', 1, 'logical', 'Whether the reads include ERCC or not',
-  'cores', 't', 1, 'integer', 'Number of cores to use',
-  'stranded', 's', 1, 'character', "Strandedness of the data: Either 'FALSE', 'forward' or 'reverse'",
-  'salmon', 'n', 1, 'logical', 'Whether to use salmon quants rather than kallisto',
-  'help' , 'h', 0, 'logical', 'Display help'
+    'organism', 'o', 2, 'character', 'mm10',
+    'experiment', 'e', 1, 'character', 'Experiment',
+    'prefix', 'p', 1, 'character', 'Prefix',
+    'paired', 'l', 1, 'logical', 'Whether the reads are paired-end or not',
+    'ercc', 'c', 1, 'logical', 'Whether the reads include ERCC or not',
+    'cores', 't', 1, 'integer', 'Number of cores to use',
+    'stranded', 's', 1, 'character', "Strandedness of the data: Either 'FALSE', 'forward' or 'reverse'",
+    'no_biomart', 'b', 1, 'logical', 'Whether to continue without error if biomaRt cannot be reached',
+    'salmon', 'n', 1, 'logical', 'Whether to use salmon quants rather than kallisto',
+    'help' , 'h', 0, 'logical', 'Display help'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
 
@@ -84,7 +85,7 @@ if (opt$salmon) {
     #get names of transcripts
     txNames = read.table(file.path(".", paste0(sampIDs[1], "_quant.sf")),
                      header = TRUE)$Name
-txNames = as.character(txNames)
+    txNames = as.character(txNames)
 } else {
     #######################################################################
     #  Kallisto quantification 
@@ -226,7 +227,7 @@ names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_mm10'))]
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
 
-######### query biomart if there is an internet connection
+######### attempt to query biomaRt
 result = tryCatch({
     ensembl = useMart("ensembl")
     ensembl = useDataset("mmusculus_gene_ensembl",mart=ensembl)
@@ -234,7 +235,14 @@ result = tryCatch({
                 filters="ensembl_gene_id", values=rownames(geneMap), mart=ensembl)
     return(list(sym, TRUE))
 }, error = function(e) {
-    print("Warning: proceeding without ensembl_gene_id and entrezgene_id info from biomaRt, as the databases could not be reached (is there an internet connection?)")
+    #  By default biomaRt info is required (failure to reach biomaRt is a fatal
+    #  error)
+    if (!opt$no_biomart) {
+        print("Error: the biomaRt query to obtain gene symbols failed. BiomaRt servers are likely down.")
+        stop()
+    }
+    #  Otherwise proceed with a warning
+    print("Proceeding without ensembl_gene_id and entrezgene_id info from biomaRt, as the databases could not be reached (and '--no_biomart' was specified)")
     return(list(c(), FALSE))
 })
 

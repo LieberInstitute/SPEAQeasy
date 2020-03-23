@@ -23,6 +23,7 @@ spec <- matrix(c(
     'cores', 't', 1, 'integer', 'Number of cores to use',
     'stranded', 's', 1, 'character', "Strandedness of the data: Either 'FALSE', 'forward' or 'reverse'",
     'salmon', 'n', 1, 'logical', 'Whether to use salmon quants rather than kallisto',
+    'no_biomart', 'b', 1, 'logical', 'Whether to continue without error if biomaRt cannot be reached',
     'help' , 'h', 0, 'logical', 'Display help'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
@@ -168,7 +169,14 @@ result = tryCatch({
 
     return(list(sym, TRUE))
 }, error = function(e) {
-    print("Warning: proceeding without ensembl_gene_id and entrezgene_id info from biomaRt, as the databases could not be reached (is there an internet connection?)")
+    #  By default biomaRt info is required (failure to reach biomaRt is a fatal
+    #  error)
+    if (!opt$no_biomart) {
+        print("Error: the biomaRt query to obtain gene symbols failed. BiomaRt servers are likely down.")
+        stop()
+    }
+    #  Otherwise proceed with a warning
+    print("Proceeding without ensembl_gene_id, rgd_symbol, and entrezgene_id info from biomaRt, as the databases could not be reached (and '--no_biomart' was specified)")
     return(list(c(), FALSE))
 })
 

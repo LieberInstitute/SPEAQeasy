@@ -111,6 +111,7 @@ Note that the configuration files also include command-line options passed to ma
 + `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
 + `--custom_anno [label]` Include this flag to indicate that the directory specified with `--annotation [dir]` includes user-provided annotation files to use instead of the default files. See the "Using custom annotation" section for more details.
 + `--force_strand` Include this flag to continue pipeline execution with a warning, when user-provided strand contrasts with inferred strandness in any sample. Default: false (halt pipeline execution with an error message if any sample appears to be a different strandness than stated by the user)
++ `--no_biomart` Include this flag to suppress potential errors in retrieving additional annotation info, such as gene symbols, from biomaRt. BiomaRt will still be queried for this info, but the pipeline will proceed without it upon failure for any reason. This option is required for users without internet access during pipeline runs.
 
 ### Nextflow Options ###
 
@@ -170,7 +171,7 @@ A line of paired-end reads could look like this:
 ### Pipeline use with limited internet access ###
 
 + For users who do not have internet access when executing pipeline runs, you may first run `bash scripts/manual_annotation.sh`. This script must be run from the repository directory (from a machine with internet access). Modify the four lines in the "user configuration section" at the top of the script for you particular set-up. This sets up everything so that subsequent runs of the pipeline do not need an internet connection to complete.
-+ Towards the end of the pipeline run, when R objects are created containing gene/exon/junction counts, some additional data is pulled from biomaRt databases by default. However, if an internet connection is not available, this extra information is not pulled (and a warning is generated). This is the only difference between runs with and without internet access.
++ Towards the end of the pipeline run, when R objects are created containing gene/exon/junction counts, some additional data is pulled from biomaRt databases by default. However, if an internet connection is not available, this extra information is not pulled (and an error occurs). Users without access to the internet during pipeline execution should provide the `--no_biomart` command flag to suppress this error and continue without the additional biomaRt data. This is the only difference between runs with and without internet access.
 
 ### Version description ###
 

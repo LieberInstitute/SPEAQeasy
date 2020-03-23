@@ -118,6 +118,12 @@ def helpMessage() {
                        trimming paired-end samples, for use in alignment.
                        Default: false, as this can cause issues in downstream
                        tools like FeatureCounts.
+    --no_biomart    <- include this flag to suppress potential errors in
+                       retrieving additional annotation info, such as gene
+                       symbols, from biomaRt. BiomaRt will still be queried for
+                       this info, but the pipeline will proceed without it upon
+                       failure for any reason. This option is required for users
+                       without internet access during pipeline runs.
     --output [path] <- the directory to place pipeline outputs/results. Default:
                        "./results" (relative to the repository)
     --prefix [string] <- an additional identifier (name) for the experiment
@@ -180,6 +186,7 @@ params.keep_unpaired = false
 params.use_salmon = false
 params.custom_anno = ""
 params.force_strand = false
+params.no_biomart = false
 workflow.runName = "RNAsp_run"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1499,7 +1506,8 @@ process CountObjects {
             -c !{params.ercc} \
             -t !{task.cpus} \
             !{counts_strand} \
-            -n !{params.use_salmon}
+            -n !{params.use_salmon} \
+            -b !{params.no_biomart}
 
         cp .command.log counts.log
         '''
