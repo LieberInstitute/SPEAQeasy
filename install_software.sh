@@ -47,9 +47,15 @@ elif [ "$1" == "local" ]; then
 
     echo -e "User selected local install: all software dependencies will be installed on this machine.\n\n"
     
-    #  Verify java and python2.7 can be executed, since this is a pre-requisite
-    if [ -x "$(command -v java)" ] && [ -x "$(command -v python2.7)" ]; then
-        echo "Found Python 2.7 and a java runtime. Proceeding with the setup..."
+    #  Verify java and python can be executed, since this is a pre-requisite
+    if [ -x "$(command -v java)" ] && [ -x "$(command -v python)" ]; then
+        #  Ensure python version is python 3
+        if [ ! "$(python -V | cut -d " " -f 2 | cut -d "." -f 1)" == "3" ]; then
+            echo "Python is installed, but not python 3 in particular. Python 3 is a prerequisite for SPEQeasy."
+            exit 1
+        fi
+        
+        echo "Found Python 3 and a java runtime. Proceeding with the setup..."
   
         INSTALL_DIR=$(pwd)/Software
         mkdir $INSTALL_DIR
@@ -138,9 +144,9 @@ elif [ "$1" == "local" ]; then
             make
             cd $INSTALL_DIR
         
-        #  rseqc (2.6.4)  -------------------------------------------------------------
+        #  rseqc (3.0.1)  -------------------------------------------------------------
       
-        $(which python2.7) -m pip install --user RSeQC==2.6.4
+        python -m pip install --user RSeQC==3.0.1
         
         #  salmon (1.0.0)  -------------------------------------------------------------
     
@@ -214,18 +220,9 @@ elif [ "$1" == "local" ]; then
             echo "A java runtime could not be found or accessed. Is it installed and on the PATH? You can install it by running 'apt install default-jre', which requires sudo/ root privileges."
         fi
     
-        #  Python2.7?
-        if ! [ -x "$(command -v python2.7)" ]; then
-            echo "Python 2.7 could not be found or executed. Please install it (this requires root privileges)- ask an admin if needed. If you have root priveleges, you can execute this code to install from source (places a folder in the current directory):"
-            echo "----------------------------------------------"
-            echo "wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz"
-            echo "tar xzvf Python-2.7.9.tgz"
-            echo "chmod -R 755 Python-2.7.9"
-            echo "cd Python-2.7.9"
-            echo "sudo ./configure"
-            echo "sudo make"
-            echo "sudo make install"
-            echo "----------------------------------------------"
+        #  Python?
+        if ! [ -x "$(command -v python)" ]; then
+            echo "Python 3 could not be found or executed. Please install it (this requires root privileges)- ask an admin if needed."
         fi
     fi
   
