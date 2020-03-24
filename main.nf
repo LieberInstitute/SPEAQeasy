@@ -182,10 +182,7 @@ params.ercc = false
 params.fullCov = false
 params.small_test = false
 params.trim_mode = "adaptive"
-<<<<<<< HEAD
-=======
 params.keep_unpaired = false
->>>>>>> origin/master
 params.use_salmon = false
 params.custom_anno = ""
 params.force_strand = false
@@ -214,14 +211,11 @@ if (params.reference != "hg19" && params.reference != "hg38" && params.reference
 // Trim mode
 if (params.trim_mode != "skip" && params.trim_mode != "adaptive" && params.trim_mode != "force") {
     exit 1, "'--trim_mode' accepts one of three possible arguments: 'skip', 'adaptive', or 'force'."
-<<<<<<< HEAD
-=======
 }
 
 // Keeping unpaired reads that are not produced
 if (params.keep_unpaired && params.trim_mode == "skip") {
     exit 1, "You have opted to include unpaired outputs from trimming, but to skip trimming itself. Consider using a different 'trim_mode' or not using the '--keep_unpaired' option."
->>>>>>> origin/master
 }
 
 // Get species name from genome build name
@@ -368,10 +362,7 @@ summary['Annotation dir']		 = params.annotation
 summary['Input']			   = params.input
 summary['Experiment'] = params.experiment
 summary['Trim mode'] = params.trim_mode
-<<<<<<< HEAD
-=======
 summary['Keep unpaired'] = params.keep_unpaired
->>>>>>> origin/master
 if(params.unalign) summary['Align'] = "True"
 if(params.fullCov) summary['Full Coverage'] = "True"
 summary['Small test selected'] = params.small_test
@@ -1234,17 +1225,6 @@ process Coverage {
         strand=$(cat samples_complete.manifest | grep !{coverage_prefix} | awk -F ' ' '{print $NF}')
         if [ $strand == 'forward' ]; then
             if [ !{params.sample} == "paired" ]; then
-<<<<<<< HEAD
-                strand_flag='-d "1++,1--,2+-,2-+"'
-            else
-                strand_flag='-d "++,--"'
-            fi
-        elif [ $strand == 'reverse' ]; then
-            if [ !{params.sample} == "paired" ]; then
-                strand_flag='-d "1+-,1-+,2++,2--"'
-            else
-                strand_flag='-d "+-,-+"'
-=======
                 strand_flag='-d 1++,1--,2+-,2-+'
             else
                 strand_flag='-d ++,--'
@@ -1254,7 +1234,6 @@ process Coverage {
                 strand_flag='-d 1+-,1-+,2++,2--'
             else
                 strand_flag='-d +-,-+'
->>>>>>> origin/master
             fi
         else
             strand_flag=""
