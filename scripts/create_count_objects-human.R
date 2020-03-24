@@ -434,9 +434,15 @@ gencodeEXONS = gencodeEXONS[,-4]
 
 ###############
 ### gene counts
-geneFn <- list.files(pattern='.*_hg.*_Genes\\.counts$')
+geneFn <- list.files(pattern='.*_Genes\\.counts$')
+
+#  Name each file by the sample it corresponds to
 stopifnot(length(geneFn) == length(metrics$SAMPLE_ID))
-names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_hg'))]
+indices = rep(0, length(geneFn))
+for (i in 1:length(geneFn)) {
+    indices[i] = grep(metrics$SAMPLE_ID[i], geneFn)
+}
+names(geneFn) = metrics$SAMPLE_ID[indices]
 
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -535,9 +541,13 @@ write.csv(metrics, file = file.path(".",
 
 ###############
 ### exon counts
-exonFn <- list.files(pattern='.*_hg.*_Exons\\.counts$')
+exonFn <- list.files(pattern='.*_Exons\\.counts$')
 stopifnot(length(exonFn) == length(metrics$SAMPLE_ID))
-names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_hg'))]
+indices = rep(0, length(exonFn))
+for (i in 1:length(exonFn)) {
+    indices[i] = grep(metrics$SAMPLE_ID[i], exonFn)
+}
+names(exonFn) = metrics$SAMPLE_ID[indices]
 
 ### read in annotation ##
 exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -603,7 +613,7 @@ exonRpkm = exonCounts/(widE/1000)/(bgE/1e6)
 ############################
 ### add transcript maps ####
 
-load(list.files(pattern="feature_to_Tx_hg.*_gencode_v.*\\.rda"))
+load(list.files(pattern="feature_to_Tx.*\\.rda"))
 #  For gencode version 25 (the pipeline default), we have additional exon annotation
 if (file.exists("exonMaps_by_coord_hg38_gencode_v25.rda")) {
     load("exonMaps_by_coord_hg38_gencode_v25.rda")
@@ -678,7 +688,7 @@ save(rse_exon, file = paste0('rse_exon_', EXPNAME, '_n', N, '.Rdata'))
 ##### junctions
 
 ## import theJunctions annotation
-load(list.files(pattern="junction_annotation_hg.*_gencode_v.*\\.rda"))
+load(list.files(pattern="junction_annotation_.*\\.rda"))
 
 ## via primary alignments only
 junctionFiles <- file.path(".", paste0(metrics$SAMPLE_ID, '_junctions_primaryOnly_regtools.count'))

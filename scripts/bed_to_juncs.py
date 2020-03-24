@@ -4,7 +4,7 @@
 bed_to_juncs.py
 Created by Cole Trapnell on 2008-09-19.
 Copyright (c) 2008 Cole Trapnell. All rights reserved.
-Modified for use with Python 3.x within SPEQeasy
+Modified for use with Python 3.x within SPEAQeasy
 """
 
 import sys

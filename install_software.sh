@@ -54,7 +54,7 @@ elif [ "$1" == "local" ]; then
             echo "Python is installed, but not python 3 in particular. Python 3 is a prerequisite for SPEQeasy."
             exit 1
         fi
-        
+
         echo "Found Python 3 and a java runtime. Proceeding with the setup..."
   
         INSTALL_DIR=$(pwd)/Software
@@ -145,7 +145,7 @@ elif [ "$1" == "local" ]; then
             cd $INSTALL_DIR
         
         #  rseqc (3.0.1)  -------------------------------------------------------------
-      
+
         python -m pip install --user RSeQC==3.0.1
         
         #  salmon (1.0.0)  -------------------------------------------------------------

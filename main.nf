@@ -143,8 +143,8 @@ def helpMessage() {
                        with salmon instead of the default of kallisto. Default:
                        false
                        
-    The above was a comprehensive list of options specific to SPEQeasy. As a
-    pipeline based on nextflow, SPEQeasy also accepts any options the
+    The above was a comprehensive list of options specific to SPEAQeasy. As a
+    pipeline based on nextflow, SPEAQeasy also accepts any options the
     "nextflow run" command accepts. To print the list of these, type:
     
           nextflow run -h

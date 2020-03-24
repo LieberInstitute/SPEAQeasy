@@ -153,8 +153,14 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped +  metrics$totalMap
 ###############
 ### gene counts
 geneFn <- list.files(pattern='.*_Genes\\.counts$')
+
+#  Name each file by the sample it corresponds to
 stopifnot(length(geneFn) == length(metrics$SAMPLE_ID))
-names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_rn6'))]
+indices = rep(0, length(geneFn))
+for (i in 1:length(geneFn)) {
+    indices[i] = grep(metrics$SAMPLE_ID[i], geneFn)
+}
+names(geneFn) = metrics$SAMPLE_ID[indices]
 
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -231,8 +237,13 @@ write.csv(metrics, file = file.path(
 ###############
 ### exon counts
 exonFn <- list.files(pattern='.*_Exons\\.counts$')
+
 stopifnot(length(exonFn) == length(metrics$SAMPLE_ID))
-names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_rn6'))]
+indices = rep(0, length(exonFn))
+for (i in 1:length(exonFn)) {
+    indices[i] = grep(metrics$SAMPLE_ID[i], exonFn)
+}
+names(exonFn) = metrics$SAMPLE_ID[indices]
 
 ### read in annotation ##
 exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -335,7 +346,7 @@ jIndex = which(rowSums(as.data.frame(jCountsLogical)) >= n)
 juncCounts = lapply(juncCounts, function(x) x[jIndex,])
 	
 ## annotate junctions
-load(list.files(pattern="junction_annotation_.*_ensembl_.*\\.rda"))
+load(list.files(pattern="junction_annotation_.*\\.rda"))
 
 ############ anno/jMap	
 anno = juncCounts$anno
