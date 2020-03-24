@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --output=SPEQeasy_output.log
+#SBATCH --output=SPEAQeasy_output.log
 #SBATCH --mem=40G
 
 ## Script to run the pipeline on a SLURM cluster
@@ -23,4 +23,4 @@ Software/nextflow main.nf \
 #  section, and so if you rename the log, you must also pass replace the filename
 #  in the bash call below.
 echo "Generating per-sample logs for debugging..."
-bash scripts/generate_logs.sh $PWD/SPEQeasy_output.log
+bash scripts/generate_logs.sh $PWD/SPEAQeasy_output.log

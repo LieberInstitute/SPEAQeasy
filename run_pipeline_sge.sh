@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -l virtual_free=40G,h_fsize=150G
-#$ -o SPEQeasy_output.log
-#$ -e SPEQeasy_output.log
+#$ -o SPEAQeasy_output.log
+#$ -e SPEAQeasy_output.log
 #$ -cwd
 
 ## Script to run the pipeline in a Sun Grid Engines (SGE) environment
@@ -26,4 +26,4 @@ Software/nextflow main.nf \
 #  section, and so if you rename the log, you must also pass replace the filename
 #  in the bash call below.
 echo "Generating per-sample logs for debugging..."
-bash scripts/generate_logs.sh $PWD/SPEQeasy_output.log
+bash scripts/generate_logs.sh $PWD/SPEAQeasy_output.log
