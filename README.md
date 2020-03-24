@@ -17,10 +17,10 @@ This pipeline allows researchers to contribute data to the recount2 project even
 
 ## Software Requirements ##
 
-+ This pipeline runs [nextflow](https://www.nextflow.io/), which requires a Java runtime. If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer. Python 2.7 and pip (automatically installed with typical installations of python >= 2.7.9) are required as well.
++ This pipeline runs [nextflow](https://www.nextflow.io/), which requires a Java runtime. If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer. Python 3 and pip (automatically installed with typical installations of python) are required as well.
 + Additional software configuration depends on the options available on your system/ execution environment:
     + **Using docker** (Recommended for non-JHPCE users): If docker is installed in your environment, this option requires minimal setup/ installation. From within the repository, run `bash install_software.sh "docker"`. This installs nextflow and prepares some test files, which is a one-time setup.
-    + **Installing dependencies locally** (Alternative not requiring docker): The script `install_software.sh` is included in the repository, and automates the installation process. Make sure that you first just have Java (8 or later) and Python 2.7 installed globally (requiring root privileges). Then, from within the repository, run `bash install_software.sh "local"` for one-time setup of the pipeline.
+    + **Installing dependencies locally** (Alternative not requiring docker): The script `install_software.sh` is included in the repository, and automates the installation process. Make sure that you first just have Java (8 or later) and Python 3 installed globally (requiring root privileges). Then, from within the repository, run `bash install_software.sh "local"` for one-time setup of the pipeline.
 
 ### Advanced info regarding installation ###
 
@@ -40,7 +40,7 @@ Software | Version | Command used by the pipeline |
 |[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 20.01.0) | `nextflow` |
 |[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.6 | `Rscript` |
 |[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.1 | `regtools` |
-|[RSeQC](http://rseqc.sourceforge.net/#installation) | 2.6.4 | `bam2wig.py`|
+|[RSeQC](http://rseqc.sourceforge.net/#installation) | 3.0.1 | `bam2wig.py`|
 |[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 1.0.0 | `salmon` |
 |[samtools](http://www.htslib.org/download/) | 1.9 | `samtools` |
 |[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 2.0.0 | `featureCounts` |

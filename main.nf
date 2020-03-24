@@ -1197,7 +1197,7 @@ process Junctions {
         fi
         
         !{params.regtools} junctions extract -m !{params.min_intron_len} -s ${strand_integer} -o !{outjxn} !{alignment_bam}
-        python2.7 !{bed_to_juncs_script} < !{outjxn} > !{outcount}
+        python !{bed_to_juncs_script} < !{outjxn} > !{outcount}
         '''
 }
 
