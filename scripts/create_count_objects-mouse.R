@@ -221,8 +221,14 @@ names(gencodeEXONS) = c("Chr","Start","End","exon_gencodeID")
 ###############
 ### gene counts
 geneFn <- list.files(pattern='.*_Genes\\.counts$')
+
+#  Name each file by the sample it corresponds to
 stopifnot(length(geneFn) == length(metrics$SAMPLE_ID))
-names(geneFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(geneFn, '_mm10'))]
+indices = rep(0, length(geneFn))
+for (i in 1:length(geneFn)) {
+    indices[i] = grep(metrics$SAMPLE_ID[i], geneFn)
+}
+names(geneFn) = metrics$SAMPLE_ID[indices]
 
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -301,8 +307,13 @@ write.csv(metrics, file = paste0('read_and_alignment_metrics_', EXPNAME, '.csv')
 ###############
 ### exon counts
 exonFn <- list.files(pattern='.*_Exons\\.counts$')
+
 stopifnot(length(exonFn) == length(metrics$SAMPLE_ID))
-names(exonFn) = metrics$SAMPLE_ID[match(metrics$SAMPLE_ID, ss(exonFn, '_mm10'))]
+indices = rep(0, length(exonFn))
+for (i in 1:length(exonFn)) {
+    indices[i] = grep(metrics$SAMPLE_ID[i], exonFn)
+}
+names(exonFn) = metrics$SAMPLE_ID[indices]
 
 ### read in annotation ##
 exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -399,7 +410,7 @@ junctionFiles <- file.path(paste0(metrics$SAMPLE_ID, '_junctions_primaryOnly_reg
 stopifnot(all(file.exists(junctionFiles))) #  TRUE
 
 ## annotate junctions
-load(list.files(pattern="junction_annotation_.*_gencode_.*\\.rda"))
+load(list.files(pattern="junction_annotation_.*\\.rda"))
 
 #  Handle strand in a consistent way regardless of differences between samples-
 #  if any samples are determined to be unstranded, process all samples as if unstranded.
