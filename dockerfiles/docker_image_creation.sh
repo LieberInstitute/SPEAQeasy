@@ -101,3 +101,21 @@ mkdir -p $REPO/subread/2.0.0
 #  produce $REPO/subread/2.0.0/Dockerfile
 docker build -t libddocker/subread:2.0.0 $REPO/subread/2.0.0
 docker push libddocker/subread:2.0.0
+
+########################################################
+#  Kallisto (0.46.1)
+########################################################
+
+mkdir -p $REPO/kallisto/0.46.1
+#  produce $REPO/kallisto/0.46.1/Dockerfile
+docker build -t libddocker/kallisto:0.46.1 $REPO/kallisto/0.46.1
+docker push libddocker/kallisto:0.46.1
+
+########################################################
+#  RSeQC (3.0.1)
+########################################################
+
+mkdir -p $REPO/rseqc/3.0.1
+#  produce $REPO/rseqc/3.0.1/Dockerfile
+docker build -t libddocker/rseqc:3.0.1 $REPO/rseqc/3.0.1
+docker push libddocker/rseqc:3.0.1

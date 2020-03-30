@@ -286,7 +286,7 @@ The following container versions are used in this pipeline.
 | libddocker/fastqc | 0.11.8  | FastQC |
 | libddocker/trimmomatic | 0.39 | Trimmomatic |
 | libddocker/hisat2 | 2.1.0 | HISAT |
-| libddocker/rseqc-v2.6.4 | 1_v3 | RSeQC |
+| libddocker/rseqc | 3.0.1 | RSeQC |
 | libddocker/samtools | 1.9 | Samtools |
 | libddocker/salmon | 0.14.1 | Salmon |
 | libddocker/regtools | 0.5.1 | Regtools |
