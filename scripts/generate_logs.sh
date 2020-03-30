@@ -8,9 +8,13 @@ work_dir=$(grep "^Working dir" $LOG | head -n 1 | tr -d [:blank:] | cut -d ":" -
 man=$(grep "^Input" $LOG | head -n 1 | tr -d [:blank:] | cut -d ":" -f 2)/samples.manifest
 samp_names=$(awk '{print $NF}' $man | uniq)
 
+#  Place command logs in the output directory
+out_dir=$(grep "^Output dir" $LOG | head -n 1 | tr -d [:blank:] | cut -d ":" -f 2)
+mkdir -p $out_dir/logs
+
 for samp in $samp_names; do
     i=1
-    out_file="$(dirname $LOG)/logs/${samp}_process_trace.log"
+    out_file="$out_dir/logs/${samp}_process_trace.log"
     rm -f $out_file
     echo "#########################" >> $out_file
     echo "  Sample $samp" >> $out_file
