@@ -9,11 +9,10 @@ Software/nextflow main.nf \
     --sample "single" \
     --reference "hg38" \
     --strand "unstranded" \
-    --ercc \
     -with-report execution_reports/pipeline_report.html \
     -with-dag execution_DAGs/pipeline_DAG.html \
     -profile local \
-    > SPEAQeasy_output.log
+    2>&1 | tee -a SPEAQeasy_output.log
     
 #  Produces a report for each sample tracing the pipeline steps
 #  performed (can be helpful for debugging). Experimental, and may not work on
