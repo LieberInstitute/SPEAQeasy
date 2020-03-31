@@ -282,7 +282,7 @@ The following container versions are used in this pipeline.
 | libddocker/r_3.6.1_bioc | latest | R and Bioconductor 3.10 |
 | libddocker/ubuntu16.04_base | 1_v3 | Ubuntu Base |
 | libddocker/infer_strandness | latest | R, Bioconductor 3.10, Kallisto |
-| zlskidmore/kallisto | 0.46.0 | Kallisto |
+| libddocker/kallisto | 0.46.1 | Kallisto |
 | libddocker/fastqc | 0.11.8  | FastQC |
 | libddocker/trimmomatic | 0.39 | Trimmomatic |
 | libddocker/hisat2 | 2.1.0 | HISAT |
