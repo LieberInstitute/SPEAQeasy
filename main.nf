@@ -414,6 +414,8 @@ if (params.custom_anno != "") {
             out_fasta = "assembly_${params.anno_suffix}.fa"
             
             '''
+            ( set -o posix ; set ) > bash_vars.txt
+            
             #  Pull and unzip primary assembly fasta, if this hasn't been done. Otherwise
             #  symbolically link the fasta into the working directory
             if [ -f !{params.annotation}/reference/!{params.reference}/assembly/fa/!{primaryName} ]; then
@@ -443,6 +445,9 @@ if (params.custom_anno != "") {
             
             #  Make a new file out of all the lines up and not including that
             sed -n "1,$(($first_bad_line - 1))p;${first_bad_line}q" !{primaryName} > !{mainName}
+            
+            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+            echo "$temp" > bash_vars.txt
             '''
     }
 }
@@ -752,6 +757,8 @@ if (params.ercc) {
           kallisto_flags = ""
       }
       '''
+      ( set -o posix ; set ) > bash_vars.txt
+      
       #  Find this sample's strandness and determine kallisto flags to set
       strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
       if [ $strand == 'forward' ]; then
@@ -765,6 +772,9 @@ if (params.ercc) {
       !{params.kallisto} quant -i !{erccidx} -t !{task.cpus} !{kallisto_flags} -o . $kallisto_strand !{ercc_input}
       cp abundance.tsv !{prefix}_ercc_abundance.tsv
       cp .command.log ercc_!{prefix}.log
+      
+      temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep '>' | cut -d ' ' -f 2- || true)
+      echo "$temp" > bash_vars.txt
       '''
   }
 }
@@ -845,14 +855,16 @@ process Trimming {
             output_option = "${fq_prefix}_trimmed.fastq"
             trim_mode = "SE"
             adapter_fa_temp = params.adapter_fasta_single
-            trim_clip = params.trim_clip_single
+            trim_clip = params.trim_adapter_args_single
         } else {
             output_option = "${fq_prefix}_trimmed_paired_1.fastq ${fq_prefix}_unpaired_1.fastq ${fq_prefix}_trimmed_paired_2.fastq ${fq_prefix}_unpaired_2.fastq"
             trim_mode = "PE"
             adapter_fa_temp = params.adapter_fasta_paired
-            trim_clip = params.trim_clip_paired
+            trim_clip = params.trim_adapter_args_paired
         }
         '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
         #  Determine whether to trim the FASTQ file(s). This is ultimately
         #  controlled by the '--trim_mode' command flag.
         if [ "!{params.trim_mode}" == "force" ]; then
@@ -888,6 +900,15 @@ process Trimming {
                 trim_jar=$(which !{params.trimmomatic})
                 adapter_fa=$(which !{adapter_fa_temp})
             fi
+            
+            #  Now determine the arguments to pass to trimmomatic regarding
+            #  adapter trimming. The flexibility here allows the user to 
+            #  potentially not perform adapter trimming.
+            if [ "!{trim_clip}" == "" ]; then
+                adapter_trim_settings=""
+            else
+                adapter_trim_settings="ILLUMINACLIP:$adapter_fa:!{trim_clip}"
+            fi
 
             java -Xmx512M \
                 -jar $trim_jar \
@@ -896,11 +917,8 @@ process Trimming {
                 -phred33 \
                 *.f*q* \
                 !{output_option} \
-                ILLUMINACLIP:$adapter_fa:!{trim_clip} \
-                LEADING:!{params.trim_lead} \
-                TRAILING:!{params.trim_trail} \
-                SLIDINGWINDOW:!{params.trim_slide_window} \
-                MINLEN:!{params.trim_min_len}
+                $adapter_trim_settings \
+                !{params.trim_quality_args}
         else
             #  Otherwise rename files (signal to nextflow to output these files)
             if [ "!{params.sample}" == "single" ]; then
@@ -912,6 +930,9 @@ process Trimming {
         fi
         
         cp .command.log trimming_!{fq_prefix}.log
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
         '''
 }
 
@@ -963,11 +984,12 @@ if (params.sample == "single") {
 
         output:
             file "*_hisat_out.sam" into hisat_output
-            file "*"
             file "*_align_summary.txt" into alignment_summaries
 
         shell:
             '''
+            ( set -o posix ; set ) > bash_vars.txt
+            
             #  Find this sample's strandness and determine strand flag
             strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
             if [ ${strand} == "unstranded" ]; then
@@ -988,6 +1010,9 @@ if (params.sample == "single") {
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
                 2> !{prefix}_align_summary.txt
+                
+            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+            echo "$temp" > bash_vars.txt
             '''
     }
 } else { // sample is paired-end
@@ -1004,7 +1029,7 @@ if (params.sample == "single") {
 
         output:
             file "*_hisat_out.sam" into hisat_output
-            file "*"
+            file "*_unpaired*.fastq" optional true
             file "*_align_summary.txt" into alignment_summaries
 
         shell:
@@ -1014,6 +1039,8 @@ if (params.sample == "single") {
                 unaligned_opt = ""
             }
             '''
+            ( set -o posix ; set ) > bash_vars.txt
+            
             #  Find this sample's strandness and determine strand flag
             strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
             if [ ${strand} == "unstranded" ]; then
@@ -1044,6 +1071,9 @@ if (params.sample == "single") {
                 --min-intronlen !{params.min_intron_len} \
                 !{unaligned_opt} \
                 2> !{prefix}_align_summary.txt
+                
+            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+            echo "$temp" > bash_vars.txt
             '''
     }
 }
@@ -1109,6 +1139,8 @@ process FeatureCounts {
         feature_out = "${feature_prefix}_${params.anno_suffix}"
  
         """
+        ( set -o posix ; set ) > bash_vars.txt
+        
         #  Find this sample's strandness and determine strand flag
         strand=\$(cat samples_complete.manifest | grep ${feature_prefix} | awk -F ' ' '{print \$NF}')
         if [ \$strand == 'forward' ]; then
@@ -1139,6 +1171,9 @@ process FeatureCounts {
             $feature_bam
 
         cp .command.log feature_counts_${feature_prefix}.log
+        
+        temp=\$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "\$temp" > bash_vars.txt
         """
 }
 
@@ -1186,6 +1221,8 @@ process Junctions {
         outjxn = "${prefix}_junctions_primaryOnly_regtools.bed"
         outcount = "${prefix}_junctions_primaryOnly_regtools.count"
         '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
         #  Find this sample's strandness and determine strand flag
         strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
         if [ $strand == 'forward' ]; then
@@ -1198,6 +1235,9 @@ process Junctions {
         
         !{params.regtools} junctions extract -m !{params.min_intron_len} -s ${strand_integer} -o !{outjxn} !{alignment_bam}
         python !{bed_to_juncs_script} < !{outjxn} > !{outcount}
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
         '''
 }
 
@@ -1221,6 +1261,8 @@ process Coverage {
 
     shell:
         '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
         #  Find this sample's strandness and determine strand flag
         strand=$(cat samples_complete.manifest | grep !{coverage_prefix} | awk -F ' ' '{print $NF}')
         if [ $strand == 'forward' ]; then
@@ -1247,6 +1289,9 @@ process Coverage {
             $strand_flag
 
         cp .command.log bam2wig_!{coverage_prefix}.log
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2-|| true)
+        echo "$temp" > bash_vars.txt
         '''
 }
 
@@ -1301,6 +1346,8 @@ process MeanCoverage {
 
     shell:
         '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
         if [ !{read_type} == "unstranded" ] ; then
             outwig="mean"
         elif [ !{read_type} == "forward" ]; then
@@ -1347,6 +1394,9 @@ process MeanCoverage {
         fi
         
         !{params.wigToBigWig} $outwig.wig !{chr_sizes} $outwig.bw
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
         '''
 }
 
@@ -1373,6 +1423,8 @@ if (params.use_salmon) {
     
         shell:
             '''
+            ( set -o posix ; set ) > bash_vars.txt
+            
             #  Find this sample's strandness and determine strand flag
             strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
             if [ $strand == 'forward' ]; then
@@ -1399,6 +1451,9 @@ if (params.use_salmon) {
     
             cp !{prefix}/quant.sf !{prefix}_quant.sf
             cp .command.log tx_quant_!{prefix}.log
+            
+            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+            echo "$temp" > bash_vars.txt
             '''
     }
 } else {
@@ -1413,11 +1468,15 @@ if (params.use_salmon) {
             set val(prefix), file(fastqs) from tx_quant_inputs
     
         output:
-            file "*"
+            file "abundance.h5"
+            file "run_info.json"
+            file "tx_quant_${prefix}.log"
             file "${prefix}_abundance.tsv" into tx_quants
             
         shell:
             '''
+            ( set -o posix ; set ) > bash_vars.txt
+            
             #  Find this sample's strandness
             strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
             if [ $strand == 'forward' ]; then
@@ -1449,6 +1508,9 @@ if (params.use_salmon) {
             
             mv abundance.tsv !{prefix}_abundance.tsv
             cp .command.log tx_quant_!{prefix}.log
+            
+            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+            echo "$temp" > bash_vars.txt
             '''
     }
 }
@@ -1520,7 +1582,11 @@ process CountObjects {
         file complete_manifest_counts
 
     output:
-        file "*"
+        file "*.pdf"
+        file "*.csv"
+        file "*.Rdata"
+        file "*.rda"
+        file "counts.log"
 
     shell:
         if (params.sample == "paired") {
