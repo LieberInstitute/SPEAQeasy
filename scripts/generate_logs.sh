@@ -8,9 +8,13 @@ work_dir=$(grep "^Working dir" $LOG | head -n 1 | tr -d [:blank:] | cut -d ":" -
 man=$(grep "^Input" $LOG | head -n 1 | tr -d [:blank:] | cut -d ":" -f 2)/samples.manifest
 samp_names=$(awk '{print $NF}' $man | uniq)
 
+#  Place command logs in the output directory
+out_dir=$(grep "^Output dir" $LOG | head -n 1 | tr -d [:blank:] | cut -d ":" -f 2)
+mkdir -p $out_dir/logs
+
 for samp in $samp_names; do
     i=1
-    out_file="$(dirname $LOG)/logs/${samp}_process_trace.log"
+    out_file="$out_dir/logs/${samp}_process_trace.log"
     rm -f $out_file
     echo "#########################" >> $out_file
     echo "  Sample $samp" >> $out_file
@@ -39,12 +43,31 @@ for samp in $samp_names; do
             echo "  Process $i: ${proc_name}" >> $out_file
             echo -e "######################################################\n" >> $out_file
             echo "    Working directory: ${proc_dir}" >> $out_file
-            echo "    Exit code for process: ${exit_code}" >> $out_file
+            echo "    Exit code for process: ${exit_code}" >> $out_file         
             echo -e "    Command run:\n" >> $out_file
             echo "--------------------------------- BEGIN COMMANDS -------------" >> $out_file
             cd $proc_dir
             for j in `seq 1 $(cat .command.sh | wc -l)`; do
-                echo $(awk "NR == $j" .command.sh) >> $out_file
+                #  Grab one line of the commands
+                temp_line=$(awk "NR == $j" .command.sh)
+                
+                #  Loop through all defined bash variables, and substitute in the
+                #  value of each variable appearing in the form "$variable_name".
+                #  The second condition is a heuristic, intended to in practice
+                #  determine if the process completed (bash_vars.txt has unintended
+                #  content for incomplete processes, and the file tends to have
+                #  many lines)
+                if [ -f bash_vars.txt ] && [ 25 -gt $(cat bash_vars.txt | wc -l) ]; then
+                    for k in `seq 1 $(wc -l bash_vars.txt | cut -d " " -f 1)`; do
+                        var_name=$(awk "NR == $k" bash_vars.txt | cut -d '=' -f 1)
+                        var_val=$(awk "NR == $k" bash_vars.txt | cut -d '=' -f 2 | tr -d "'")
+                        
+                        temp_line=$(echo $temp_line | sed "s/\$${var_name}\b/${var_val}/g" | sed "s/\${$var_name}/$var_val/g")
+                    done
+                fi
+                
+                #  The result is what is printed for the user in the log
+                echo $temp_line >> $out_file
             done
             echo -e "--------------------------------- END COMMANDS ---------------\n" >> $out_file
             
