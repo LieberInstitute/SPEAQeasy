@@ -62,7 +62,7 @@ for samp in $samp_names; do
                         var_name=$(awk "NR == $k" bash_vars.txt | cut -d '=' -f 1)
                         var_val=$(awk "NR == $k" bash_vars.txt | cut -d '=' -f 2 | tr -d "'")
                         
-                        temp_line=$(echo $temp_line | sed "s/\$${var_name}\b/${var_val}/g" | sed "s/\${$var_name}/$var_val/g")
+                        temp_line=$(echo $temp_line | sed "s@\$${var_name}\b@${var_val}@g" | sed "s@\${$var_name}@$var_val@g")
                     done
                 fi
                 
