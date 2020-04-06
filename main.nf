@@ -845,14 +845,16 @@ process Trimming {
             output_option = "${fq_prefix}_trimmed.fastq"
             trim_mode = "SE"
             adapter_fa_temp = params.adapter_fasta_single
-            trim_clip = params.trim_clip_single
+            trim_clip = params.trim_adapter_args_single
         } else {
             output_option = "${fq_prefix}_trimmed_paired_1.fastq ${fq_prefix}_unpaired_1.fastq ${fq_prefix}_trimmed_paired_2.fastq ${fq_prefix}_unpaired_2.fastq"
             trim_mode = "PE"
             adapter_fa_temp = params.adapter_fasta_paired
-            trim_clip = params.trim_clip_paired
+            trim_clip = params.trim_adapter_args_paired
         }
         '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
         #  Determine whether to trim the FASTQ file(s). This is ultimately
         #  controlled by the '--trim_mode' command flag.
         if [ "!{params.trim_mode}" == "force" ]; then
@@ -888,6 +890,15 @@ process Trimming {
                 trim_jar=$(which !{params.trimmomatic})
                 adapter_fa=$(which !{adapter_fa_temp})
             fi
+            
+            #  Now determine the arguments to pass to trimmomatic regarding
+            #  adapter trimming. The flexibility here allows the user to 
+            #  potentially not perform adapter trimming.
+            if [ "!{trim_clip}" == "" ]; then
+                adapter_trim_settings=""
+            else
+                adapter_trim_settings="ILLUMINACLIP:$adapter_fa:!{trim_clip}"
+            fi
 
             java -Xmx512M \
                 -jar $trim_jar \
@@ -896,11 +907,8 @@ process Trimming {
                 -phred33 \
                 *.f*q* \
                 !{output_option} \
-                ILLUMINACLIP:$adapter_fa:!{trim_clip} \
-                LEADING:!{params.trim_lead} \
-                TRAILING:!{params.trim_trail} \
-                SLIDINGWINDOW:!{params.trim_slide_window} \
-                MINLEN:!{params.trim_min_len}
+                $adapter_trim_settings \
+                !{params.trim_quality_args}
         else
             #  Otherwise rename files (signal to nextflow to output these files)
             if [ "!{params.sample}" == "single" ]; then
