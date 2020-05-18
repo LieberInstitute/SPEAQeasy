@@ -1343,6 +1343,7 @@ process MeanCoverage {
 
     output:
         file "mean*.bw" into mean_bigwigs, expressed_regions_mean_bigwigs
+        file "mean_coverage_${read_type}.log"
 
     shell:
         '''
@@ -1358,42 +1359,52 @@ process MeanCoverage {
         
         batch_size=!{params.wiggletools_max_threads}
         precision=8
-        num_files=$(ls -1 *.bw | wc -l)
-        if [ $num_files -gt $batch_size ]; then
-            num_batches=$(($num_files / $batch_size))
-            echo "Found $num_files files; divided into $num_batches full batches."
-            
-            for i in `seq 1 $num_batches`; do
-                start_file=$((($i - 1) * $batch_size + 1))
-                end_file=$(($i * $batch_size))
+        
+        file_list=$(ls -1 | grep -E ".*\\.(bw|wig)$")
+        num_files=$(echo "$file_list" | wc -l)
+        num_batches=$(($num_files / $batch_size))
+        iter_num=0
+        
+        scale_factor=$(!{params.bc} <<< "scale=${precision};1/$num_files")
+        echo "Scale factor is $scale_factor."
+        
+        while [ $num_files -gt $batch_size ]; do
+            echo "Dividing existing files into batches of size ${batch_size}, which involves ${num_batches} batches..."
+            for i in $(seq 1 $num_batches); do
+                #  Form the batch of files
+                start_index=$((($i - 1) * $batch_size + 1))
+                end_index=$(($i * $batch_size))
+                temp_files=$(echo "$file_list" | sed -n "${start_index},${end_index}p")
                 
-                #  The list of files comprising this "batch"
-                echo "On batch $i; this comprises files $start_file through $end_file..."
-                temp_files=$(ls -1 *.bw | sed -n "${start_file},${end_file}p")
-                
-                #  Sum over the batch and write a temporary file
-                !{params.wiggletools} write temp_wig$i.wig sum $temp_files
+                #  Sum over the batch and replace it with a unique temporary file
+                !{params.wiggletools} write temp_wig${iter_num}_$i.wig sum $temp_files
+                rm $temp_files
             done
             
-            #  If there's a remainder from dividing up batches
-            if [ $num_files -gt $((($num_files / $batch_size) * $batch_size)) ]; then
+            #  If the remaining piece exists and involves more than one file
+            if [ $num_files -gt $(($num_batches * $batch_size + 1)) ]; then
                 echo "On remaining piece..."
-                start_file=$(($num_batches * $batch_size + 1))
+                start_index=$(($num_batches * $batch_size + 1))
+                temp_files=$(echo "$file_list" | sed -n "${start_index},${num_files}p")
                 
-                temp_files=$(ls -1 *.bw | sed -n "${start_file},${num_files}p")
-                !{params.wiggletools} write temp_wig$(($num_batches + 1)).wig sum $temp_files
+                #  Sum over the remaining piece and replace it with a unique temporary file
+                !{params.wiggletools} write temp_wig${iter_num}_$(($num_batches + 1)).wig sum $temp_files
+                rm $temp_files
             fi
             
-            echo "Computing the mean of original files via the batch temporary files..."
-            scale_factor=$(!{params.bc} <<< "scale=${precision};1/$num_files")
-            echo "Scale factor is $scale_factor."
-            !{params.wiggletools} write $outwig.wig scale $scale_factor sum temp_wig*.wig
-            echo "Done."
-        else
-            !{params.wiggletools} write $outwig.wig mean !{mean_coverage_bigwig}
-        fi
+            file_list=$(ls -1 | grep -E ".*\\.(bw|wig)$")
+            num_files=$(echo "$file_list" | wc -l)
+            num_batches=$(($num_files / $batch_size))
+            iter_num=$(($iter_num + 1))
+        done
+        
+        echo "Computing the mean..."
+        !{params.wiggletools} write $outwig.wig scale $scale_factor sum $file_list
+        echo "Done."
         
         !{params.wigToBigWig} $outwig.wig !{chr_sizes} $outwig.bw
+        
+        cp .command.log mean_coverage_!{read_type}.log
         
         temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
         echo "$temp" > bash_vars.txt
