@@ -1010,7 +1010,7 @@ if (params.sample == "single") {
                 --phred33 \
                 --min-intronlen !{params.min_intron_len} \
                 2> !{prefix}_align_summary.txt
-                
+            
             temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
             echo "$temp" > bash_vars.txt
             '''
@@ -1071,7 +1071,7 @@ if (params.sample == "single") {
                 --min-intronlen !{params.min_intron_len} \
                 !{unaligned_opt} \
                 2> !{prefix}_align_summary.txt
-                
+            
             temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
             echo "$temp" > bash_vars.txt
             '''
