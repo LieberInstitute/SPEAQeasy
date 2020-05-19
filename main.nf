@@ -270,11 +270,12 @@ if (params.custom_anno != "") {
     exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
 
 } else if (params.reference == "hg19") {
-    print("Warning: use of 'primary' annotation is not supported for hg19, as GENCODE does not provide a primary .gtf file. Continuing with annotation build 'main'.")
-    params.anno_build = "main"
+    if (params.anno_build == "primary") {
+        print("Warning: use of 'primary' annotation is not supported for hg19, as GENCODE does not provide a primary .gtf file. Continuing with annotation build 'main'.")
+    }
     
     params.anno_version = params.gencode_version_human
-    params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + 'lift37_' + params.anno_build
+    params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + 'lift37_main'
 
     // Reference assembly fasta, gtf, and transcript fasta
     params.fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/GRCh37_mapping/GRCh37.primary_assembly.genome.fa.gz"
