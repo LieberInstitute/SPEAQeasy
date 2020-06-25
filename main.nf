@@ -315,7 +315,7 @@ if (params.custom_anno != "") {
 
 def get_prefix(f) {
   //  Remove these regardless of position in the string
-  String blackListAny = "(_1|_2)*_summary|(_1|_2)*_fastqc_data|_trimmed|_untrimmed|_unpaired|_paired|_hisat_out"
+  blackListAny = ~/(|_[12])_(summary|fastqc_data)|_trimmed|_untrimmed|_unpaired|_paired|_hisat_out/
   
   f.name.toString()
    .replaceAll("_[12]\\.", ".")
@@ -626,7 +626,7 @@ process BuildKallistoIndex {
 
 process PreprocessInputs {
   
-  publishDir "${params.output}", mode:'copy', pattern:'*.log'
+  publishDir "${params.output}/preprocessing", mode:'copy', pattern:'*.log'
 
   input:
     file original_manifest from file("${params.input}/samples.manifest")
@@ -676,7 +676,7 @@ if (params.ercc) {
 process InferStrandness {
 
     tag "${prefix}"
-    publishDir "${params.output}/InferStrandness", mode:'copy'
+    publishDir "${params.output}/infer_strandness", mode:'copy'
     
     input:
         file infer_strand_R from file("${workflow.projectDir}/scripts/infer_strand.R")
@@ -710,7 +710,7 @@ process InferStrandness {
 // pipeline.
 process CompleteManifest {
 
-    publishDir "${params.output}", mode:'copy'
+    publishDir "${params.output}/infer_strandness", mode:'copy'
     
     input:
         file strandness_files from strandness_patterns.collect()
@@ -740,7 +740,7 @@ if (params.ercc) {
   process ERCC {
 		
     tag "$prefix"
-    publishDir "${params.output}/ercc/${prefix}",'mode':'copy'
+    publishDir "${params.output}/ERCC/${prefix}",'mode':'copy'
 
     input:
       file erccidx from file("${params.annotation}/ERCC/ERCC92.idx")
@@ -788,7 +788,7 @@ if (params.ercc) {
 process QualityUntrimmed {
 
 	tag "$untrimmed_prefix"
-	publishDir "${params.output}/FastQC/Untrimmed", mode:'copy', pattern:'*_fastqc'
+	publishDir "${params.output}/fastQC/untrimmed", mode:'copy', pattern:'*_fastqc'
 
 	input:
 	set val(untrimmed_prefix), file(fastqc_untrimmed_input) from fastqc_untrimmed_inputs 
@@ -841,7 +841,7 @@ if (params.sample == "single") {
 process Trimming {
 
     tag "$fq_prefix"
-    publishDir "${params.output}/Trimming",mode:'copy'
+    publishDir "${params.output}/trimming", mode:'copy', pattern:'*_trimmed*.fastq'
 
     input:
         set val(fq_prefix), file(fq_summary), file(fq_file) from trimming_inputs
@@ -945,7 +945,7 @@ process Trimming {
 process QualityTrimmed {
 
 	tag "$fastq_name"
-	publishDir "${params.output}/FastQC/Trimmed",'mode':'copy'
+	publishDir "${params.output}/fastQC/trimmed",'mode':'copy'
 
 	input:
 	file fastqc_trimmed_input from trimmed_fastqc_inputs
@@ -1121,14 +1121,14 @@ feature_bam_inputs
 process FeatureCounts {
 
     tag "$feature_prefix"
-    publishDir "${params.output}/Counts",'mode':'copy'
+    publishDir "${params.output}/counts",'mode':'copy'
 
     input:
         set val(feature_prefix), file(feature_bam), file(feature_index), file(gencode_gtf_feature) from feature_counts_inputs
         file complete_manifest_feature
 
     output:
-        file "*"
+        file "*.{log,summary}"
         file "*.counts*" into sample_counts
 
     script:
@@ -1185,7 +1185,7 @@ process FeatureCounts {
 process PrimaryAlignments {
 
 	tag "$alignment_prefix"
-	publishDir "${params.output}/Counts/junction/primary_aligments",'mode':'copy'
+	publishDir "${params.output}/counts/junction/primary_alignments",'mode':'copy'
 
 	input:
 	set val(alignment_prefix), file(alignment_bam), file(alignment_index) from alignment_bam_inputs
@@ -1207,7 +1207,7 @@ process PrimaryAlignments {
 process Junctions {
 
     tag "$prefix"
-    publishDir "${params.output}/Counts/junction",'mode':'copy'
+    publishDir "${params.output}/counts/junction",'mode':'copy'
 
     input:
         file bed_to_juncs_script from file("${workflow.projectDir}/scripts/bed_to_juncs.py")
@@ -1215,8 +1215,8 @@ process Junctions {
         file complete_manifest_junctions
 
     output:
-        file "*"
-        file("*.count") into regtools_outputs
+        file "*.bed"
+        file "*.count" into regtools_outputs
 
     shell:
         outjxn = "${prefix}_junctions_primaryOnly_regtools.bed"
@@ -1249,7 +1249,7 @@ process Junctions {
 process Coverage {
 
     tag "$coverage_prefix"
-    publishDir "${params.output}/Coverage/wigs",mode:'copy'
+    publishDir "${params.output}/coverage/wigs",mode:'copy'
 
     input:
         file complete_manifest_cov
@@ -1308,7 +1308,7 @@ wig_files_temp
 process WigToBigWig {
 
 	tag "$wig_prefix"
-	publishDir "${params.output}/Coverage/BigWigs",mode:'copy'
+	publishDir "${params.output}/coverage/bigWigs",mode:'copy'
 
 	input:
 	set val(wig_prefix), file(wig_file) from wig_files
@@ -1336,7 +1336,7 @@ coverage_bigwigs
 process MeanCoverage {
 
     tag "Strand: ${read_type}"
-    publishDir "${params.output}/Coverage/mean",'mode':'copy'
+    publishDir "${params.output}/coverage/mean",'mode':'copy'
 
     input:
         set val(read_type), file(mean_coverage_bigwig) from mean_coverage_bigwigs
@@ -1421,7 +1421,7 @@ if (params.use_salmon) {
     process TXQuantSalmon {
     
         tag "$prefix"
-        publishDir "${params.output}/Salmon_tx/${prefix}",mode:'copy'
+        publishDir "${params.output}/salmon_tx/${prefix}",mode:'copy'
     
         input:
             file salmon_index
@@ -1584,7 +1584,7 @@ if(params.reference == "hg19" || (params.reference == "hg38" && params.anno_vers
 
 process CountObjects {
 
-    publishDir "${params.output}/Count_Objects",'mode':'copy'
+    publishDir "${params.output}/count_objects",'mode':'copy'
 
     input:
         file counts_inputs
@@ -1642,7 +1642,7 @@ if (params.fullCov) {
 
     process CoverageObjects {
 
-        publishDir "${params.output}/Coverage_Objects",'mode':'copy'
+        publishDir "${params.output}/coverage_objects",'mode':'copy'
 
         input:
             file fullCov_script from file("${workflow.projectDir}/scripts/create_fullCov_object.R")
@@ -1690,7 +1690,7 @@ if (params.step8) {
 	process VariantCalls {
  
 		tag "$variant_bams_prefix"
-		publishDir "${params.output}/Variant_Calls",'mode':'copy'
+		publishDir "${params.output}/variant_calls",'mode':'copy'
 
 		input:
 		set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai), file(snv_bed), file(variant_assembly_file) from variant_calls
@@ -1715,7 +1715,7 @@ if (params.step8) {
 	process VariantsMerge {
 	
 		tag "Multi-sample vcf creation"
-		publishDir "${params.output}/Merged_Variants",'mode':'copy'
+		publishDir "${params.output}/merged_variants",'mode':'copy'
 
 		input:
 		file collected_variants from compressed_variant_calls.collect()
@@ -1738,7 +1738,7 @@ if (params.step8) {
 process ExpressedRegions {
  
   tag "$expressed_regions_mean_bigwigs"
-  publishDir "${params.output}/Expressed_Regions",mode:'copy'
+  publishDir "${params.output}/expressed_regions",mode:'copy'
 
   input:
     file expressed_regions_script from file("${workflow.projectDir}/scripts/step9-find_expressed_regions.R")

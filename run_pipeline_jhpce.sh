@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=150G
-#$ -o ./SPEQeasy_output.log
-#$ -e ./SPEQeasy_output.log
+#$ -o ./SPEAQeasy_output.log
+#$ -e ./SPEAQeasy_output.log
 #$ -cwd
 
 module load nextflow
@@ -10,7 +10,7 @@ export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 nextflow main.nf \
     --sample "paired" \
     --reference "hg38" \
-    --strand "unstranded" \
+    --strand "forward" \
     --small_test \
     --trim_mode "force" \
     --annotation "/dcl01/lieber/ajaffe/Nick/RNAsp/Annotation" \
@@ -27,4 +27,4 @@ nextflow main.nf \
 #  section, and so if you rename the log, you must also pass replace the filename
 #  in the bash call below.
 echo "Generating per-sample logs for debugging..."
-bash scripts/generate_logs.sh $PWD/SPEQeasy_output.log
+bash scripts/generate_logs.sh $PWD/SPEAQeasy_output.log
