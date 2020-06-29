@@ -86,13 +86,13 @@ elif [ "$1" == "local" ]; then
     
         wget https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.8.zip && \
             unzip fastqc_v0.11.8.zip && \
-            chmod -R 755 FastQC
+            chmod -R 775 FastQC
       
         #  hisat2 (2.1.0)  -------------------------------------------------------------
     
         wget ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-Linux_x86_64.zip && \
             unzip hisat2-2.1.0-Linux_x86_64.zip && \
-            chmod -R 755 hisat2-2.1.0
+            chmod -R 775 hisat2-2.1.0
       
         #  htslib (1.9)  -------------------------------------------------------------
     
@@ -109,7 +109,7 @@ elif [ "$1" == "local" ]; then
     
         wget https://github.com/pachterlab/kallisto/releases/download/v0.46.1/kallisto_linux-v0.46.1.tar.gz && \
             tar xzvf kallisto_linux-v0.46.1.tar.gz && \
-            chmod -R 755 kallisto
+            chmod -R 775 kallisto
     
         #  R (3.6.1) ---------------------------------------------------------------------
     
@@ -170,13 +170,13 @@ elif [ "$1" == "local" ]; then
         
         wget https://sourceforge.net/projects/subread/files/subread-2.0.0/subread-2.0.0-Linux-x86_64.tar.gz/download && \
             tar xzvf download && \
-            chmod -R 755 subread-2.0.0-Linux-x86_64
+            chmod -R 775 subread-2.0.0-Linux-x86_64
           
         #  trimmomatic (0.39)  -------------------------------------------------------------
         
         wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip && \
             unzip Trimmomatic-0.39.zip && \
-            chmod -R 755 Trimmomatic-0.39
+            chmod -R 775 Trimmomatic-0.39
           
         #  wiggletools (1.2.1)  -------------------------------------------------------------
         
@@ -206,7 +206,7 @@ elif [ "$1" == "local" ]; then
         #  wigToBigWig -----------------------------------------------------------
         
         wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v369/wigToBigWig && \
-            chmod 755 wigToBigWig
+            chmod 775 wigToBigWig
           
         #  Clean up compressed files
         rm $INSTALL_DIR/*.tar.gz
