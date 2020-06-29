@@ -61,9 +61,10 @@ docker build -t libddocker/trimmomatic:0.39 $REPO/trimmomatic/0.39
 docker push libddocker/trimmomatic:0.39
 
 ########################################################
-#  salmon (0.14.1)
+#  salmon
 ########################################################
 
+#  0.14.1
 mkdir -p $REPO/salmon/0.14.1
 #  produce $REPO/salmon/0.14.1/Dockerfile
 docker build -t libddocker/salmon:0.14.1 $REPO/salmon/0.14.1
@@ -74,6 +75,12 @@ cd dockerfiles
 docker build -f salmon-0.9.1.dockerfile -t libddocker/salmon-0.9.1:1_v4 .
 docker push libddocker/salmon-0.9.1:1_v4
 cd ..
+
+#  1.2.1
+mkdir -p $REPO/salmon/1.2.1
+#  produce $REPO/salmon/1.2.1/Dockerfile
+docker build -t libddocker/salmon:1.2.1 $REPO/salmon/1.2.1
+docker push libddocker/salmon:1.2.1
 
 ########################################################
 #  hisat2 (2.1.0)

@@ -148,12 +148,13 @@ elif [ "$1" == "local" ]; then
 
         python -m pip install --user RSeQC==3.0.1
         
-        #  salmon (1.0.0)  -------------------------------------------------------------
+        #  salmon (1.2.1)  -------------------------------------------------------------
     
-        wget https://github.com/COMBINE-lab/salmon/releases/download/v1.0.0/Salmon-1.0.0_linux_x86_64.tar.gz && \
-            tar xzvf Salmon-1.0.0_*.tar.gz && \
-            rm Salmon-1.0.0_*.tar.gz && \
-            chmod -R 755 salmon-*
+        wget https://github.com/COMBINE-lab/salmon/releases/download/v1.2.1/Salmon-1.2.1_linux_x86_64.tar.gz && \
+            tar xzvf Salmon-1.2.1_*.tar.gz && \
+            rm Salmon-1.2.1_*.tar.gz && \
+            mv salmon-* salmon-1.2.1 && \
+            chmod -R 775 salmon-1.2.1
       
         #  samtools (1.9)  -------------------------------------------------------------
     

@@ -574,14 +574,14 @@ if (params.use_salmon) {
     process buildSALMONindex {
     
         tag "Building Salmon Index: salmon_index_${params.anno_suffix}"
-        storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon"
+        storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon2/${params.anno_suffix}"
     
         input:
-          file transcript_fa
+            file transcript_fa
     
         output:
-          file("salmon_index_${params.anno_suffix}") into salmon_index
-          file("build_salmon_index_${params.anno_suffix}.log")
+            file("salmon_index_${params.anno_suffix}/*") into salmon_index
+            file("build_salmon_index_${params.anno_suffix}.log")
     
         script:
           if (params.reference == "rn6") {
@@ -1455,7 +1455,7 @@ if (params.use_salmon) {
             fi
             
             !{params.salmon} quant \
-                -i !{salmon_index} \
+                -i $PWD \
                 -p !{task.cpus} \
                 -l ${strand_flag} \
                 ${sample_flag} \
