@@ -24,12 +24,18 @@ docker build -t libddocker/infer_strandness $REPO/infer_strandness
 docker push libddocker/infer_strandness
 
 ########################################################
-#  regtools (0.5.1) and python 2.7.9
+#  regtools (0.5.1)
 ########################################################
 
+#  Originally support python 2.7.9
 mkdir -p $REPO/regtools/0.5.1
 cp $REPO/scripts/bed_to_juncs.py $REPO/regtools/0.5.1/
 # produce $REPO/regtools/0.5.1/Dockerfile
+docker build -t libddocker/regtools:0.5.1 $REPO/regtools/0.5.1
+docker push libddocker/regtools:0.5.1
+
+#  Update the existing image to only have python 3 and
+#  use an updated bed_to_juncs.py
 docker build -t libddocker/regtools:0.5.1 $REPO/regtools/0.5.1
 docker push libddocker/regtools:0.5.1
 

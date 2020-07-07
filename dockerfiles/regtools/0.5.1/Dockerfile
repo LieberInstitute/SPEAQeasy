@@ -12,13 +12,3 @@ RUN wget https://github.com/griffithlab/regtools/archive/0.5.1.tar.gz -O regtool
     cmake .. && \
     make && \
     mv regtools /usr/bin/
-    
-#  Install Python 2.7.9 (a bit more involved as package managers no longer
-#  support Python < 3)
-RUN wget https://www.python.org/ftp/python/2.7.9/Python-2.7.9.tgz && \
-    tar xzvf Python-2.7.9.tgz && \
-    chmod -R 755 Python-2.7.9 && \
-    cd Python-2.7.9 && \
-    ./configure && \
-    make && \
-    make install
