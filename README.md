@@ -41,7 +41,7 @@ Software | Version | Command used by the pipeline |
 |[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.6 | `Rscript` |
 |[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.1 | `regtools` |
 |[RSeQC](http://rseqc.sourceforge.net/#installation) | 3.0.1 | `bam2wig.py`|
-|[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 1.0.0 | `salmon` |
+|[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 1.2.1 | `salmon` |
 |[samtools](http://www.htslib.org/download/) | 1.9 | `samtools` |
 |[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 2.0.0 | `featureCounts` |
 |[trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) | 0.39 | `java -jar path/to/trimmomatic.jar` |
