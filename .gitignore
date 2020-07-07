@@ -2,10 +2,10 @@
 *nextflow.log*
 *.nextflow/
 *pipeline_log/
-work*
+work/
 *results/
-execution_*
-Software*
+execution_*/
+Software/
 test/*/*/*/samples.manifest
 logs/*_process_trace.log
 SPEAQeasy_output.log
