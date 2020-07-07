@@ -1235,7 +1235,7 @@ process Junctions {
         fi
         
         !{params.regtools} junctions extract -m !{params.min_intron_len} -s ${strand_integer} -o !{outjxn} !{alignment_bam}
-        python !{bed_to_juncs_script} < !{outjxn} > !{outcount}
+        python3 !{bed_to_juncs_script} < !{outjxn} > !{outcount}
         
         temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
         echo "$temp" > bash_vars.txt
@@ -1282,7 +1282,7 @@ process Coverage {
             strand_flag=""
         fi
 
-        python $(which !{params.bam2wig}) \
+        python3 $(which bam2wig.py) \
             -s !{chr_sizes} \
             -i !{sorted_coverage_bam} \
             -t !{params.bam2wig_depth_thres} \
