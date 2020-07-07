@@ -19,12 +19,14 @@ R_container="libddocker/r_3.6.1_bioc"
 #  Users should not need to alter code below this point
 #  --------------------------------------------------------
 
+set -e
+
 if [ "$1" == "docker" ]; then
 
     echo "User selected docker mode: nextflow will be installed, along with some test files."
     
     INSTALL_DIR=$(pwd)/Software
-    mkdir $INSTALL_DIR
+    mkdir -p $INSTALL_DIR
     cd $INSTALL_DIR
     
     #  Install nextflow (latest)
@@ -48,36 +50,39 @@ elif [ "$1" == "local" ]; then
     echo -e "User selected local install: all software dependencies will be installed on this machine.\n\n"
     
     #  Verify java and python can be executed, since this is a pre-requisite
-    if [ -x "$(command -v java)" ] && [ -x "$(command -v python)" ]; then
-        #  Ensure python version is python 3
-        if [ ! "$(python -V | cut -d " " -f 2 | cut -d "." -f 1)" == "3" ]; then
-            echo "Python is installed, but not python 3 in particular. Python 3 is a prerequisite for SPEQeasy."
-            exit 1
-        fi
-
+    if [ -x "$(command -v java)" ] && [ -x "$(command -v python3)" ]; then
         echo "Found Python 3 and a java runtime. Proceeding with the setup..."
   
         INSTALL_DIR=$(pwd)/Software
-        mkdir $INSTALL_DIR
+        mkdir -p $INSTALL_DIR
         cd $INSTALL_DIR
-  
+        
         #  Install nextflow (latest)
         wget -qO- https://get.nextflow.io | bash 
     
         #  bc (1.06.95)
         wget ftp://alpha.gnu.org/gnu/bc/bc-1.06.95.tar.bz2 && \
-            tar -xjvf bc-1.06.95.tar.bz2 && \
+            tar -xjf bc-1.06.95.tar.bz2 && \
             cd bc-1.06.95 && \
-            ./configure --prefix=$INSTALL_DIR
-            make
+            ./configure --prefix=$INSTALL_DIR && \
+            make && \
             make install
+            cd $INSTALL_DIR
         
         #  bcftools (1.9)  -------------------------------------------------------------
     
         wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar.bz2 -O bcftools.tar.bz2 && \
-            tar -xjvf bcftools.tar.bz2 && \
+            tar -xjf bcftools.tar.bz2 && \
             cd bcftools-1.9 && \
             ./configure prefix=$INSTALL_DIR && \
+            make && \
+            make install
+            cd $INSTALL_DIR
+            
+        #  cmake, which regtools and salmon need to build
+        git clone https://gitlab.kitware.com/cmake/cmake.git && \
+            cd cmake && \
+            ./bootstrap --prefix=$INSTALL_DIR && \
             make && \
             make install
             cd $INSTALL_DIR
@@ -90,32 +95,50 @@ elif [ "$1" == "local" ]; then
       
         #  hisat2 (2.1.0)  -------------------------------------------------------------
     
-        wget ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-Linux_x86_64.zip && \
-            unzip hisat2-2.1.0-Linux_x86_64.zip && \
-            chmod -R 775 hisat2-2.1.0
-      
+        wget https://github.com/DaehwanKimLab/hisat2/archive/v2.1.0.tar.gz && \
+            tar -xzf v2.1.0.tar.gz && \
+            cd hisat2-2.1.0 && \
+            make
+            cd $INSTALL_DIR
+        
         #  htslib (1.9)  -------------------------------------------------------------
     
         wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 -O htslib-1.9.tar.bz2 && \
-            tar -xjvf htslib-1.9.tar.bz2 && \
+            tar -xjf htslib-1.9.tar.bz2 && \
             cd htslib-1.9 && \
             ./configure prefix=$INSTALL_DIR && \
             make && \
             make install
             cd $INSTALL_DIR
             mv htslib-1.9 htslib # wiggletools expects a "plain" name from htslib
+            
+        #  HDF5 (1.10.5), needed for build of kallisto -------------------------------
+        
+        wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.5.tar.gz && \
+            tar -xzf hdf5-1.10.5.tar.gz && \
+            cd hdf5-1.10.5 && \
+            ./configure --disable-parallel --without-szlib --without-pthread --prefix=$INSTALL_DIR && \
+            make && \
+            make install
+            cd $INSTALL_DIR
     
         #  kallisto (0.46.1)  -------------------------------------------------------------
-    
-        wget https://github.com/pachterlab/kallisto/releases/download/v0.46.1/kallisto_linux-v0.46.1.tar.gz && \
-            tar xzvf kallisto_linux-v0.46.1.tar.gz && \
-            chmod -R 775 kallisto
+                
+        wget https://github.com/pachterlab/kallisto/archive/v0.46.1.tar.gz && \
+            tar -xzf v0.46.1.tar.gz && \
+            cd kallisto-0.46.1 && \
+            mkdir build && \
+            cd build && \
+            $INSTALL_DIR/bin/cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR .. && \
+            make && \
+            make prefix=$INSTALL_DIR install
+            cd $INSTALL_DIR
     
         #  R (3.6.1) ---------------------------------------------------------------------
-    
+        
         #  Install R
         wget http://cran.rstudio.com/src/base/R-3/R-3.6.1.tar.gz && \
-            tar xvf R-3.6.1.tar.gz && \
+            tar -xf R-3.6.1.tar.gz && \
             cd R-3.6.1 && \
             ./configure --prefix=$INSTALL_DIR && \
             make && \
@@ -130,36 +153,36 @@ elif [ "$1" == "local" ]; then
     
         #  regtools (0.5.1)  -------------------------------------------------------------
     
-        #  cmake, which regtools needs to build
-        wget https://github.com/Kitware/CMake/releases/download/v3.14.6/cmake-3.14.6-Linux-x86_64.tar.gz && \
-            tar xzvf cmake-3.14.6-Linux-x86_64.tar.gz
-    
-        #  regtools itself
         wget https://github.com/griffithlab/regtools/archive/0.5.1.tar.gz -O regtools-0.5.1.tar.gz && \
-            tar -xvf regtools-0.5.1.tar.gz &&\
+            tar -xf regtools-0.5.1.tar.gz &&\
             cd regtools-0.5.1 && \
             mkdir build && \
             cd build && \
-            ../../cmake-3.14.6-Linux-x86_64/bin/cmake .. && \
+            $INSTALL_DIR/bin/cmake .. && \
             make
             cd $INSTALL_DIR
         
         #  rseqc (3.0.1)  -------------------------------------------------------------
 
-        python -m pip install --user RSeQC==3.0.1
+        #  Install for the user, because we are not guaranteed system-wide
+        #  installation privileges
+        python3 -m pip install --user RSeQC==3.0.1
         
         #  salmon (1.2.1)  -------------------------------------------------------------
-    
-        wget https://github.com/COMBINE-lab/salmon/releases/download/v1.2.1/Salmon-1.2.1_linux_x86_64.tar.gz && \
-            tar xzvf Salmon-1.2.1_*.tar.gz && \
-            rm Salmon-1.2.1_*.tar.gz && \
-            mv salmon-* salmon-1.2.1 && \
-            chmod -R 775 salmon-1.2.1
+            
+        wget https://github.com/COMBINE-lab/salmon/archive/v1.2.1.tar.gz && \
+            tar -xzf v1.2.1.tar.gz && \
+            mkdir build && \
+            cd build && \
+            $INSTALL_DIR/bin/cmake -DFETCH_BOOST=TRUE .. && \
+            make && \
+            make install
+            cd $INSTALL_DIR
       
         #  samtools (1.9)  -------------------------------------------------------------
     
         wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2 -O samtools.tar.bz2 && \
-            tar -xjvf samtools.tar.bz2 && \
+            tar -xjf samtools.tar.bz2 && \
             cd samtools-1.9 && \
             ./configure prefix=$INSTALL_DIR && \
             make && \
@@ -167,10 +190,21 @@ elif [ "$1" == "local" ]; then
             cd $INSTALL_DIR
         
         #  subread/ featureCounts (2.0.0)  -------------------------------------------------------------
+            
+        #  This works on Linux systems but needs testing on MacOS, FreeBSD
+        if [ $(uname -s) == "Linux" ]; then
+            makefile_name="Makefile.Linux"
+        elif [ $(uname -s) == "Darwin" ]; then
+            makefile_name="Makefile.MacOS"
+        else
+            makefile_name="Makefile.FreeBSD"
+        fi
         
-        wget https://sourceforge.net/projects/subread/files/subread-2.0.0/subread-2.0.0-Linux-x86_64.tar.gz/download && \
-            tar xzvf download && \
-            chmod -R 775 subread-2.0.0-Linux-x86_64
+        wget https://sourceforge.net/projects/subread/files/subread-2.0.0/subread-2.0.0-source.tar.gz/download && \
+            tar -zxf download && \
+            cd subread-2.0.0-source/src && \
+            make -f $makefile_name
+            cd $INSTALL_DIR
           
         #  trimmomatic (0.39)  -------------------------------------------------------------
         
@@ -182,7 +216,7 @@ elif [ "$1" == "local" ]; then
         
         ## Install gsl
         wget ftp://www.mirrorservice.org/sites/ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz && \
-            tar xvf gsl-latest.tar.gz && \
+            tar -xf gsl-latest.tar.gz && \
             cd gsl-2.6 && \
             ./configure --prefix=$INSTALL_DIR && \
             make && \
@@ -204,15 +238,23 @@ elif [ "$1" == "local" ]; then
             cd $INSTALL_DIR
     
         #  wigToBigWig -----------------------------------------------------------
-        
-        wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v369/wigToBigWig && \
-            chmod 775 wigToBigWig
+            
+        wget http://hgdownload.cse.ucsc.edu/admin/exe/userApps.src.tgz && \
+            tar -xzf userApps.src.tgz && \
+            cd userApps && \
+            make
+            cd $INSTALL_DIR
           
         #  Clean up compressed files
         rm $INSTALL_DIR/*.tar.gz
+        rm $INSTALL_DIR/*.tgz
         rm $INSTALL_DIR/*.bz2
         rm $INSTALL_DIR/*.zip
         rm download
+        
+        #  Fix any strict permissions which would not allow sharing software
+        #  (and therefore the pipeline as a whole) with those in a group
+        chmod 775 -R $INSTALL_DIR
     
     else #  Java or Python could not be found on the system
     
@@ -222,12 +264,12 @@ elif [ "$1" == "local" ]; then
         fi
     
         #  Python?
-        if ! [ -x "$(command -v python)" ]; then
+        if ! [ -x "$(command -v python3)" ]; then
             echo "Python 3 could not be found or executed. Please install it (this requires root privileges)- ask an admin if needed."
         fi
+        
+        echo -e "\nAfter installing the required software, rerun this script to finish the installation procedure."
     fi
-  
-    echo -e "\nAfter installing the required software, rerun this script to finish the installation procedure."
     
 else # neither "docker" nor "local" was chosen
     
