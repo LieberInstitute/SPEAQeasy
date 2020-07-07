@@ -11,7 +11,7 @@ This pipeline allows researchers to contribute data to the recount2 project even
 
 ### Workflow overview ###
 
-![General Workflow](https://github.com/LieberInstitute/SPEAQeasy/tree/master/notes/workflow.png)
+![General Workflow](https://github.com/LieberInstitute/SPEAQeasy/blob/master/notes/workflow.png)
 
 # Getting started #
 
