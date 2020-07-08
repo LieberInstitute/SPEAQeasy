@@ -89,13 +89,20 @@ docker build -t libddocker/salmon:1.2.1 $REPO/salmon/1.2.1
 docker push libddocker/salmon:1.2.1
 
 ########################################################
-#  hisat2 (2.1.0)
+#  hisat2
 ########################################################
 
+#  2.1.0
 mkdir -p $REPO/hisat2/2.1.0
 #  produce $REPO/hisat2/2.1.0/Dockerfile
 docker build -t libddocker/hisat2:2.1.0 $REPO/hisat2/2.1.0
 docker push libddocker/hisat2:2.1.0
+
+#  2.2.0
+mkdir -p $REPO/hisat2/2.2.0
+#  produce $REPO/hisat2/2.2.0/Dockerfile
+docker build -t libddocker/hisat2:2.2.0 $REPO/hisat2/2.2.0
+docker push libddocker/hisat2:2.2.0
 
 ########################################################
 #  fastQC (0.11.8)

@@ -93,11 +93,11 @@ elif [ "$1" == "local" ]; then
             unzip fastqc_v0.11.8.zip && \
             chmod -R 775 FastQC
       
-        #  hisat2 (2.1.0)  -------------------------------------------------------------
+        #  hisat2 (2.2.0)  -------------------------------------------------------------
     
-        wget https://github.com/DaehwanKimLab/hisat2/archive/v2.1.0.tar.gz && \
-            tar -xzf v2.1.0.tar.gz && \
-            cd hisat2-2.1.0 && \
+        wget https://github.com/DaehwanKimLab/hisat2/archive/v2.2.0.tar.gz && \
+            tar -xzf v2.2.0.tar.gz && \
+            cd hisat2-2.2.0 && \
             make
             cd $INSTALL_DIR
         
