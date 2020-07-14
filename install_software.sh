@@ -69,11 +69,11 @@ elif [ "$1" == "local" ]; then
             make install
             cd $INSTALL_DIR
         
-        #  bcftools (1.9)  -------------------------------------------------------------
+        #  bcftools (1.10.2)  -------------------------------------------------------------
     
-        wget https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar.bz2 -O bcftools.tar.bz2 && \
+        wget https://github.com/samtools/bcftools/releases/download/1.10.2/bcftools-1.10.2.tar.bz2 -O bcftools.tar.bz2 && \
             tar -xjf bcftools.tar.bz2 && \
-            cd bcftools-1.9 && \
+            cd bcftools-1.10.2 && \
             ./configure prefix=$INSTALL_DIR && \
             make && \
             make install
@@ -93,24 +93,24 @@ elif [ "$1" == "local" ]; then
             unzip fastqc_v0.11.8.zip && \
             chmod -R 775 FastQC
       
-        #  hisat2 (2.2.0)  -------------------------------------------------------------
+        #  hisat2 (2.1.0)  -------------------------------------------------------------
     
-        wget https://github.com/DaehwanKimLab/hisat2/archive/v2.2.0.tar.gz && \
-            tar -xzf v2.2.0.tar.gz && \
-            cd hisat2-2.2.0 && \
-            make
+        wget https://github.com/DaehwanKimLab/hisat2/archive/v2.1.0.tar.gz && \
+            tar -xzf v2.1.0.tar.gz && \
+            cd hisat2-2.1.0 && \
+            make && \
             cd $INSTALL_DIR
         
-        #  htslib (1.9)  -------------------------------------------------------------
+        #  htslib (1.10.2)  -------------------------------------------------------------
     
-        wget https://github.com/samtools/htslib/releases/download/1.9/htslib-1.9.tar.bz2 -O htslib-1.9.tar.bz2 && \
-            tar -xjf htslib-1.9.tar.bz2 && \
-            cd htslib-1.9 && \
+        wget https://github.com/samtools/htslib/releases/download/1.10.2/htslib-1.10.2.tar.bz2 -O htslib.tar.bz2 && \
+            tar -xjf htslib.tar.bz2 && \
+            cd htslib-1.10.2 && \
             ./configure prefix=$INSTALL_DIR && \
             make && \
             make install
             cd $INSTALL_DIR
-            mv htslib-1.9 htslib # wiggletools expects a "plain" name from htslib
+            mv htslib-1.10.2 htslib # wiggletools expects a "plain" name from htslib
             
         #  HDF5 (1.10.5), needed for build of kallisto -------------------------------
         
@@ -179,11 +179,11 @@ elif [ "$1" == "local" ]; then
             make install
             cd $INSTALL_DIR
       
-        #  samtools (1.9)  -------------------------------------------------------------
+        #  samtools (1.10)  -------------------------------------------------------------
     
-        wget https://github.com/samtools/samtools/releases/download/1.9/samtools-1.9.tar.bz2 -O samtools.tar.bz2 && \
+        wget https://github.com/samtools/samtools/releases/download/1.10/samtools-1.10.tar.bz2 -O samtools.tar.bz2 && \
             tar -xjf samtools.tar.bz2 && \
-            cd samtools-1.9 && \
+            cd samtools-1.10 && \
             ./configure prefix=$INSTALL_DIR && \
             make && \
             make install

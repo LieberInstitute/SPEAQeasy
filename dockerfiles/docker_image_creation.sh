@@ -40,22 +40,36 @@ docker build -t libddocker/regtools:0.5.1 $REPO/regtools/0.5.1
 docker push libddocker/regtools:0.5.1
 
 ########################################################
-#  samtools (1.9)
+#  samtools
 ########################################################
 
+#  1.9
 mkdir -p $REPO/samtools/1.9
 #  produce $REPO/samtools/1.9/Dockerfile
 docker build -t libddocker/samtools:1.9 $REPO/samtools/1.9
+docker push libddocker/samtools:1.9
+
+#  1.10
+mkdir -p $REPO/samtools/1.10
+#  produce $REPO/samtools/1.10/Dockerfile
+docker build -t libddocker/samtools:1.10 $REPO/samtools/1.10
 docker push libddocker/samtools:1.9
 
 ########################################################
 #  samtools + bcftools for variant calling
 ########################################################
 
+#  1.9
 mkdir -p $REPO/variant_calling/1.9
 #  produce $REPO/variant_calling/1.9/Dockerfile
 docker build -t libddocker/variant_calling:1.9 $REPO/variant_calling/1.9
 docker push libddocker/variant_calling:1.9
+
+#  1.10.2
+mkdir -p $REPO/variant_calling/1.10.2
+#  produce $REPO/variant_calling/1.10.2/Dockerfile
+docker build -t libddocker/variant_calling:1.10.2 $REPO/variant_calling/1.10.2
+docker push libddocker/variant_calling:1.10.2
 
 ########################################################
 #  trimmomatic (0.39)
