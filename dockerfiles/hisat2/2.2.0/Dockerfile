@@ -1,24 +1,24 @@
-FROM ubuntu:16.04
+FROM brcloudproject/ubuntu18.04-mpich
 
 #  Install some tools/libraries
 RUN apt-get update
-RUN apt-get install -y wget unzip gcc g++ make zlib1g-dev libssl-dev libffi-dev liblzma-dev
+RUN apt-get install -y wget unzip gcc g++ make zlib1g-dev libssl-dev libffi-dev liblzma-dev libbz2-dev liblzo2-dev zip
+    
+#  Install python 3
+RUN apt-get install -y python3 2to3 python3-pip
 
-#  Install python 3.7.7
-RUN wget https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz && \
-    tar -xzf Python-3.7.7.tgz && \
-    cd Python-3.7.7 && \
-    ./configure && \
-    make && \
-    make install && \
-    cp python /usr/bin/ && \
-    cd ..
+RUN cd /usr/bin && \
+    ln -s python3 python
     
 RUN wget https://github.com/DaehwanKimLab/hisat2/archive/v2.2.0.tar.gz && \
     tar -xzf v2.2.0.tar.gz && \
     cd hisat2-2.2.0 && \
     make && \
+    2to3 -w *.py && \
+    2to3 -w */*.py && \
+    sed -i "s/gzip.open(\(.*\), 'r')/gzip.open(\1, 'rt')/" hisat2_read_statistics.py && \
     cp hisat2 /usr/local/bin/ && \
     cp hisat2-align* /usr/local/bin/ && \
     cp hisat2-build* /usr/local/bin/ && \
-    cp hisat2-inspect* /usr/local/bin/
+    cp hisat2-inspect* /usr/local/bin/ && \
+    cp *.py /usr/local/bin/
