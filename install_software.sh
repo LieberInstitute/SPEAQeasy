@@ -98,7 +98,7 @@ elif [ "$1" == "local" ]; then
         wget https://github.com/DaehwanKimLab/hisat2/archive/v2.1.0.tar.gz && \
             tar -xzf v2.1.0.tar.gz && \
             cd hisat2-2.1.0 && \
-            make && \
+            make
             cd $INSTALL_DIR
         
         #  htslib (1.10.2)  -------------------------------------------------------------
