@@ -12,6 +12,8 @@ checkpoint::checkpoint("2019-08-05",
                        project='/opt/RNAsp/scripts/',
                        checkpointLocation = paste0(getwd(), '/R-3.6.1/'))
 
+library('BiocManager')
+
 #  These are Bioconductor packages to install
 packages <- c('Biostrings', 'GenomicRanges', 'GenomicFeatures', 'org.Hs.eg.db',
               'biomaRt', 'BSgenome.Hsapiens.UCSC.hg19', 'BSgenome.Hsapiens.UCSC.hg38',
