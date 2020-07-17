@@ -6,9 +6,13 @@
 
 ## Script to run the pipeline in a Sun Grid Engines (SGE) environment
 
+#  After running 'install_software.sh', this should point to the directory
+#  where SPEAQeasy was installed, and not say "$PWD"
+ORIG_DIR=$PWD
+
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
-Software/nextflow main.nf \
+$ORIG_DIR/Software/nextflow main.nf \
     --small_test \
     --sample "single" \
     --reference "hg38" \
@@ -26,4 +30,4 @@ Software/nextflow main.nf \
 #  section, and so if you rename the log, you must also pass replace the filename
 #  in the bash call below.
 echo "Generating per-sample logs for debugging..."
-bash scripts/generate_logs.sh $PWD/SPEAQeasy_output.log
+bash $ORIG_DIR/scripts/generate_logs.sh $PWD/SPEAQeasy_output.log

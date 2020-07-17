@@ -82,7 +82,7 @@ Note that the configuration files also include command-line options passed to ma
 
 ## Sharing the pipeline among many users ##
   
-+ A common use-case may involve wanting to set up this pipeline once, and have potentially many users running this pipeline without additional work from the users. This can be achieved by following the above procedure to first set up the pipeline; any user wishing to execute the pipeline from a different location may copy the "main" script (`run_pipeline_[executor].sh`). Then, in this copy of the "main" script, simply change `nextflow main.nf` to `[path to nextflow executable] [path to main.nf in the original repository]` to complete the setup.
++ A common use-case may involve wanting to set up this pipeline once, and have potentially many users running this pipeline without additional work from the users. This can be achieved by following the above procedure to first set up the pipeline; any user wishing to execute the pipeline from a different location may simply copy the "main" script (`run_pipeline_[executor].sh`), modify as needed, and run.
 
 ## Full list of command-line options ##
 

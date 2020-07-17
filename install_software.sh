@@ -44,6 +44,12 @@ if [ "$1" == "docker" ]; then
         -v $(pwd)/scripts:/scripts/ \
         $R_container \
         Rscript scripts/make_test_manifests.R
+    
+    #  Point to the original repository so that the "main" scripts can be
+    #  trivially copied to share the pipeline
+    sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(dirname $(pwd))|" ../run_pipeline_sge.sh
+    sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(dirname $(pwd))|" ../run_pipeline_local.sh
+    sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(dirname $(pwd))|" ../run_pipeline_slurm.sh
         
 elif [ "$1" == "local" ]; then
 
@@ -255,6 +261,12 @@ elif [ "$1" == "local" ]; then
         #  Fix any strict permissions which would not allow sharing software
         #  (and therefore the pipeline as a whole) with those in a group
         chmod 775 -R $INSTALL_DIR
+        
+        #  Point to the original repository so that the "main" scripts can be
+        #  trivially copied to share the pipeline
+        sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(dirname $(pwd))|" ../run_pipeline_sge.sh
+        sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(dirname $(pwd))|" ../run_pipeline_local.sh
+        sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(dirname $(pwd))|" ../run_pipeline_slurm.sh
     
     else #  Java or Python could not be found on the system
     
