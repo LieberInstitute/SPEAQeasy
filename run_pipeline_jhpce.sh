@@ -7,7 +7,7 @@
 module load nextflow
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
-nextflow main.nf \
+nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \
     --sample "paired" \
     --reference "hg38" \
     --strand "forward" \
@@ -27,4 +27,4 @@ nextflow main.nf \
 #  section, and so if you rename the log, you must also pass replace the filename
 #  in the bash call below.
 echo "Generating per-sample logs for debugging..."
-bash scripts/generate_logs.sh $PWD/SPEAQeasy_output.log
+bash /dcl01/lieber/ajaffe/Nick/RNAsp/scripts/generate_logs.sh $PWD/SPEAQeasy_output.log
