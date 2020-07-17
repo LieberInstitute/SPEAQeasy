@@ -17,7 +17,7 @@ $ORIG_DIR/Software/nextflow main.nf \
     --sample "single" \
     --reference "hg38" \
     --strand "unstranded" \
-    --ercc \
+    --annotation "$ORIG_DIR/Annotation" \
     -with-report execution_reports/pipeline_report.html \
     -with-dag execution_DAGs/pipeline_DAG.html \
     -profile sge
