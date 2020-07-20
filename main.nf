@@ -315,7 +315,7 @@ if (params.custom_anno != "") {
 
 def get_prefix(f) {
   //  Remove these regardless of position in the string
-  blackListAny = ~/(|_[12])_(summary|fastqc_data)|_trimmed|_untrimmed|_unpaired|_paired|_hisat_out/
+  blackListAny = ~/(|_[12])_(un|)trimmed_(summary|fastqc_data)|_trimmed|_untrimmed|_unpaired|_paired|_hisat_out/
   
   f.name.toString()
    .replaceAll("_[12]\\.", ".")
@@ -787,30 +787,30 @@ if (params.ercc) {
 
 process QualityUntrimmed {
 
-	tag "$untrimmed_prefix"
-	publishDir "${params.output}/fastQC/untrimmed", mode:'copy', pattern:'*_fastqc'
+    tag "$prefix"
+    publishDir "${params.output}/fastQC/untrimmed", mode:'copy', pattern:'*_fastqc'
 
-	input:
-	set val(untrimmed_prefix), file(fastqc_untrimmed_input) from fastqc_untrimmed_inputs 
+    input:
+        set val(prefix), file(fastqc_untrimmed_input) from fastqc_untrimmed_inputs 
 
-	output:
-	file "${untrimmed_prefix}*_fastqc"
-	file "*_summary.txt" into quality_reports, count_objects_quality_reports
-	file "*_fastqc_data.txt" into count_objects_quality_metrics
+    output:
+        file "${prefix}*_fastqc"
+        file "*_summary.txt" into quality_reports, count_objects_quality_reports_untrimmed
+        file "*_fastqc_data.txt" into count_objects_quality_metrics_untrimmed
 
-	script:
-	if (params.sample == "single") {
-		copy_command = "cp ${untrimmed_prefix}_fastqc/summary.txt ${untrimmed_prefix}_summary.txt"
-		data_command = "cp ${untrimmed_prefix}_fastqc/fastqc_data.txt ${untrimmed_prefix}_fastqc_data.txt"
-	} else {
-		copy_command = "cp ${untrimmed_prefix}_1_fastqc/summary.txt ${untrimmed_prefix}_1_summary.txt && cp ${untrimmed_prefix}_2_fastqc/summary.txt ${untrimmed_prefix}_2_summary.txt"
-		data_command = "cp ${untrimmed_prefix}_1_fastqc/fastqc_data.txt ${untrimmed_prefix}_1_fastqc_data.txt && cp ${untrimmed_prefix}_2_fastqc/fastqc_data.txt ${untrimmed_prefix}_2_fastqc_data.txt"
-	}
-	"""
-	${params.fastqc} -t $task.cpus $fastqc_untrimmed_input --extract
-	$copy_command
-	$data_command
-	"""
+    shell:
+        if (params.sample == "single") {
+            copy_command = "cp ${prefix}_fastqc/summary.txt ${prefix}_untrimmed_summary.txt"
+            data_command = "cp ${prefix}_fastqc/fastqc_data.txt ${prefix}_untrimmed_fastqc_data.txt"
+        } else {
+            copy_command = "cp ${prefix}_1_fastqc/summary.txt ${prefix}_1_untrimmed_summary.txt && cp ${prefix}_2_fastqc/summary.txt ${prefix}_2_untrimmed_summary.txt"
+            data_command = "cp ${prefix}_1_fastqc/fastqc_data.txt ${prefix}_1_untrimmed_fastqc_data.txt && cp ${prefix}_2_fastqc/fastqc_data.txt ${prefix}_2_untrimmed_fastqc_data.txt"
+        }
+        '''
+        !{params.fastqc} -t !{task.cpus} --extract !{fastqc_untrimmed_input}
+        !{copy_command}
+        !{data_command}
+        '''
 }
 
 //  Combine FASTQ files and FastQC result summaries for each sample, to form the input channel for Trimming
@@ -944,20 +944,31 @@ process Trimming {
 
 process QualityTrimmed {
 
-	tag "$fastq_name"
-	publishDir "${params.output}/fastQC/trimmed",'mode':'copy'
+    tag "$prefix"
+    publishDir "${params.output}/fastQC/trimmed",'mode':'copy', pattern:'*_fastqc'
 
-	input:
-	file fastqc_trimmed_input from trimmed_fastqc_inputs
+    input:
+        file fastqc_trimmed_input from trimmed_fastqc_inputs
 
-	output:
-	file "*"
+    output:
+        file "${prefix}*_fastqc"
+        file "${prefix}*_trimmed_summary.txt" into count_objects_quality_reports_trimmed
+        file "${prefix}*_trimmed_fastqc_data.txt" into count_objects_quality_metrics_trimmed
 
-	script:
-    fastq_name = get_prefix(fastqc_trimmed_input[0])
-	"""
-	$params.fastqc -t $task.cpus $fastqc_trimmed_input --extract
-	"""
+    shell:
+        prefix = get_prefix(fastqc_trimmed_input[0])
+        if (params.sample == "single") {
+            copy_command = "cp ${prefix}_trimmed_fastqc/summary.txt ${prefix}_trimmed_summary.txt"
+            data_command = "cp ${prefix}_trimmed_fastqc/fastqc_data.txt ${prefix}_trimmed_fastqc_data.txt"
+        } else {
+            copy_command = "cp ${prefix}_trimmed_paired_1_fastqc/summary.txt ${prefix}_1_trimmed_summary.txt && cp ${prefix}_trimmed_paired_2_fastqc/summary.txt ${prefix}_2_trimmed_summary.txt"
+            data_command = "cp ${prefix}_trimmed_paired_1_fastqc/fastqc_data.txt ${prefix}_1_trimmed_fastqc_data.txt && cp ${prefix}_trimmed_paired_2_fastqc/fastqc_data.txt ${prefix}_2_trimmed_fastqc_data.txt"
+        }
+        '''
+        !{params.fastqc} -t !{task.cpus} --extract !{fastqc_trimmed_input}
+        !{copy_command}
+        !{data_command}
+        '''
 }
 
 /*
@@ -1533,8 +1544,10 @@ if (params.use_salmon) {
 
 count_objects_bam_files // this puts sorted.bams and bais into the channel
   .flatten()
-  .mix(count_objects_quality_reports) // this puts sample_XX_summary.txt files into the channel
-  .mix(count_objects_quality_metrics) // this puts sample_XX_fastqc_data.txt into the channel
+  .mix(count_objects_quality_reports_untrimmed) // this puts sample_XX_summary.txt files into the channel
+  .mix(count_objects_quality_metrics_untrimmed) // this puts sample_XX_fastqc_data.txt into the channel
+  .mix(count_objects_quality_reports_trimmed)
+  .mix(count_objects_quality_metrics_trimmed)
   .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
   .mix(create_counts_gtf) // this puts the transcript .gtf file into the channel
   .mix(sample_counts) // this puts sample_XX_*_Exons.counts and sample_XX_*_Genes.counts into the channel

@@ -68,10 +68,6 @@ if (nchar(opt$prefix) > 0) {
     EXPNAME = opt$experiment
 }
 
-## print dirctory files to screen
-#list.dirs(path = ".", full.names = TRUE, recursive = TRUE)
-
-
 ## read in pheno
 manifest <- read.table('samples_complete.manifest', sep = ' ',
     header = FALSE, stringsAsFactors = FALSE)
@@ -102,13 +98,20 @@ flagRows = c("Basic Statistics",
 			"Adapter Content",
 			"Kmer Content")
 
-if (opt$paired==TRUE) {
-	fileNames = data.frame('read1' = basename(manifest[,1]), 
-					'read2' = basename(manifest[,3]), stringsAsFactors = FALSE)
-	fileNames = as.data.frame(sapply(fileNames[,1:2], function(x) gsub(".fq.gz|.fq|.fastq.gz|.fastq", "", x) ) )
+#  For choosing the post-trimming FastQC files for any samples that
+#  were trimmed
+get_file = function(id, suffix, read) {
+    if (file.exists(paste0(id, read, '_trimmed', suffix))) {
+        return(paste0(id, read, '_trimmed', suffix))
+    } else {
+        return(paste0(id, read, '_untrimmed', suffix))
+    }
+}
+
+if (opt$paired==TRUE) { 
 	#### Summary flags (PASS/WARN/FAIL) ####
-	qcFlagsR1 = file.path(".", paste0(fileNames$read1,"_summary.txt"))
-	qcFlagsR2 = file.path(".", paste0(fileNames$read2,"_summary.txt"))
+  qcFlagsR1 = sapply(metrics$SAMPLE_ID, get_file, suffix='_summary.txt', read='_1')
+  qcFlagsR2 = sapply(metrics$SAMPLE_ID, get_file, suffix='_summary.txt', read='_2')
 				
 	R1 = lapply(qcFlagsR1, function(x) scan(x, what="character", sep="\n", quiet=TRUE, strip=TRUE) )		
 	R1 = lapply(R1, function(x) {data.frame(a = ss(x, "\t"), row.names=ss(x,"\t",2)) } )
@@ -134,14 +137,14 @@ if (opt$paired==TRUE) {
 	
 	#### FastQC metrics/data ####
 	for (i in c(1:2)) {
-		qcData = file.path(".", paste0(fileNames[,i],"_fastqc_data.txt"))
+    qcData = sapply(metrics$SAMPLE_ID, get_file, suffix='_fastqc_data.txt', read=paste0('_', i))
 				
 		R = lapply(qcData, function(x) scan(x, what="character", sep="\n", quiet=TRUE, strip=TRUE) )
     names(R) = metrics$SAMPLE_ID
 		
 		## Split list into sublists of metric categories
 		zz = lapply(R, function(x) splitAt(x, which(x==">>END_MODULE")+1))
-		#print (zz)
+
 		# sequence length
 		seqlen = lapply(zz, function(x) x[[1]][9])
 		seqlen = sapply(seqlen, function(x) ss(x, "\t", 2))
@@ -197,9 +200,7 @@ if (opt$paired==TRUE) {
 
 ## single-end:	
 } else {
-	fileNames = gsub(".fq.gz|.fq|.fastq.gz|.fastq", "", basename(manifest[,1]))
-
-	qcFlags = file.path(".", paste0(fileNames, "_summary.txt"))
+  qcFlags = sapply(metrics$SAMPLE_ID, get_file, suffix='_summary.txt', read='')
 
 	print(qcFlags)
 
@@ -212,7 +213,7 @@ if (opt$paired==TRUE) {
 	metrics = cbind(metrics,y)
 	
 	### Phred scores / GC & adapter content fastqcdata 
-	qcData = file.path(".", paste0(fileNames, "_fastqc_data.txt"))			
+  qcData = sapply(metrics$SAMPLE_ID, get_file, suffix='_fastqc_data.txt', read='')		
 	R = lapply(qcData, function(x) scan(x, what = "character", sep= "\n", 
 		quiet = TRUE, strip=TRUE) )	
 	names(R) = metrics$SAMPLE_ID
