@@ -34,20 +34,6 @@ if (!is.null(opt$help)) {
   q(status=1)
 }
 
-
-## For testing
-if(FALSE){
-  opt <- list('organism' = 'mm10',
-              'maindir' = '/dcl01/lieber/ajaffe/Keri/SoLo_032217',
-              'experiment' = 'SoLo_032217',
-              'prefix' = 'MiSeq',
-              'paired' = FALSE,
-              'stranded' = FALSE,
-              'ercc' = FALSE,
-              'cores' = 1
-  )
-}
-
 stopifnot(opt$stranded %in% c('FALSE', 'forward', 'reverse'))
 
 #  The default "prefix" is empty (i.e. "")
@@ -191,8 +177,6 @@ if (opt$paired==TRUE) {
 ## single-end:	
 } else {
   qcFlags = sapply(metrics$SAMPLE_ID, get_file, suffix='_summary.txt', read='')
-
-	print(qcFlags)
 
 	y = lapply(qcFlags, function(x) scan(x, what="character", sep="\n", quiet=TRUE, strip=TRUE) )		
 	y = lapply(y, function(x) {data.frame(a = ss(x, "\t"), row.names=ss(x,"\t",2)) } )

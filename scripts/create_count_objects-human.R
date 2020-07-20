@@ -40,19 +40,6 @@ if (!is.null(opt$help)) {
 	q(status=1)
 }
 
-## For testing
-if(FALSE){
-    opt <- list('organism' = 'hg38',
-        'maindir' = '/dcl01/lieber/ajaffe/Emily/RNAseq-pipeline/Projects/Mae_RNAseq',
-        'experiment' = 'Mae',
-        'prefix' = 'may17',
-        'paired' = TRUE,
-		'stranded' = 'reverse',
-        'ercc' = TRUE,
-		'cores' = 1
-    )
-}
-
 stopifnot(opt$stranded %in% c('FALSE', 'forward', 'reverse'))
 
 if (opt$organism == "hg19") { 
@@ -201,8 +188,6 @@ if (opt$paired==TRUE) {
 ## single-end:	
 } else {
   qcFlags = sapply(metrics$SAMPLE_ID, get_file, suffix='_summary.txt', read='')
-
-	print(qcFlags)
 
 	y = lapply(qcFlags, function(x) scan(x, what="character", sep="\n", quiet=TRUE, strip=TRUE) )		
 	y = lapply(y, function(x) {data.frame(a = ss(x, "\t"), row.names=ss(x,"\t",2)) } )

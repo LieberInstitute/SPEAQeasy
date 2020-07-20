@@ -178,8 +178,6 @@ if (opt$paired==TRUE) {
 } else {
   qcFlags = sapply(metrics$SAMPLE_ID, get_file, suffix='_summary.txt', read='')
 
-	print(qcFlags)
-
 	y = lapply(qcFlags, function(x) scan(x, what="character", sep="\n", quiet=TRUE, strip=TRUE) )		
 	y = lapply(y, function(x) {data.frame(a = ss(x, "\t"), row.names=ss(x,"\t",2)) } )
 	y = lapply(y, function(x) {x[flagRows,]} )
