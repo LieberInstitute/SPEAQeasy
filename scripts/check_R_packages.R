@@ -1,3 +1,6 @@
+#  This script is not intended to be run except from 'install_software.sh',
+#  where the working directory is [SPEAQeasy path]/Software
+
 print("Checking R packages...")
 
 lib_path = paste0(getwd(), '/R-3.6.1/library')
@@ -9,7 +12,7 @@ if (!requireNamespace("checkpoint", quietly=TRUE))
 #  released
 dir.create(paste0(getwd(), '/R-3.6.1/.checkpoint'))
 checkpoint::checkpoint("2019-08-05",
-                       project='/opt/RNAsp/scripts/',
+                       project=paste0(dirname(getwd()), '/scripts/'),
                        checkpointLocation = paste0(getwd(), '/R-3.6.1/'))
 
 library('BiocManager')
