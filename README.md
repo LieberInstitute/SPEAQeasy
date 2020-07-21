@@ -94,6 +94,7 @@ Note that the configuration files also include command-line options passed to ma
 
 ### Optional Parameters ###
 
++ `--coverage` Include this flag to produce coverage bigWigs and compute expressed genomic regions. These steps are a useful precursor for analyses involving finding differentially expressed regions (DERs). Default: false
 + `--experiment`	Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
 + `--prefix`	Defines the prefix of the input files (not used to detect files)
 + `--input`		The path to the directory with the "samples.manifest" file. Defaults to "./input" (relative to the repository)
@@ -101,7 +102,7 @@ Note that the configuration files also include command-line options passed to ma
 + `--unalign`		Include this flag to save discordant reads after the alignment step (false/ not included by default)
 + `--annotation`	The path to the directory containing pipeline annotations. Defaults to "./Annotations" (relative to the repository). If annotations are not found here, the pipeline includes a step to build them.
 + `--ercc`			Include this flag to enable ERCC quantification with Kallisto
-+ `--fullCov`		Flag to perform full coverage analysis
++ `--fullCov`		Flag to perform full coverage analysis. Implies the '--coverage' flag. Default: false.
 + `--small_test`	Uses sample files located in the test folder as input. Overrides the "--input" option.
 + `--trim_mode`  Determines the conditions under which trimming occurs:
                     "skip": do not perform trimming on samples

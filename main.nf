@@ -92,6 +92,10 @@ def helpMessage() {
     --annotation [path] <- the directory to store and check for annotation-
                        related files. Default: "./Annotations" (relative to the
                        repository)
+    --coverage      <- Include this flag to produce coverage bigWigs and
+                       compute expressed genomic regions. These steps are a
+                       useful precursor for analyses involving finding
+                       differentially expressed regions (DERs). Default: false
     --custom_anno [string] <- Include this flag to state that the directory
                        specified by "--annotation [path]" has user-provided
                        annotation files to use, and objects built from these
@@ -109,7 +113,8 @@ def helpMessage() {
                        pipeline execution with an error message if any sample
                        appears to be a different strandness than stated by the
                        user).
-    --fullCov       <- flag to perform full coverage analysis (default: false)
+    --fullCov       <- flag to perform full coverage analysis (default: false).
+                       Implies the '--coverage' option.
     --help          <- shows this message
     --input [path]  <- the directory containing samples.manifest, the file
                        describing the input FASTQ files. Default: "./input"
@@ -170,23 +175,24 @@ if (params.help){
 // Define default values for params
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-params.experiment = "Jlab_experiment"
-params.prefix = ""
-params.sample = ""
-params.strand = ""
-params.unalign = false
-params.reference = ""
 params.annotation = "${workflow.projectDir}/Annotation"
-params.output = "${workflow.projectDir}/results"
-params.ercc = false
-params.fullCov = false
-params.small_test = false
-params.trim_mode = "adaptive"
-params.keep_unpaired = false
-params.use_salmon = false
+params.coverage = false
 params.custom_anno = ""
+params.ercc = false
+params.experiment = "Jlab_experiment"
 params.force_strand = false
+params.fullCov = false
+params.keep_unpaired = false
 params.no_biomart = false
+params.output = "${workflow.projectDir}/results"
+params.prefix = ""
+params.reference = ""
+params.sample = ""
+params.small_test = false
+params.strand = ""
+params.trim_mode = "adaptive"
+params.unalign = false
+params.use_salmon = false
 workflow.runName = "RNAsp_run"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -217,6 +223,10 @@ if (params.trim_mode != "skip" && params.trim_mode != "adaptive" && params.trim_
 if (params.keep_unpaired && params.trim_mode == "skip") {
     exit 1, "You have opted to include unpaired outputs from trimming, but to skip trimming itself. Consider using a different 'trim_mode' or not using the '--keep_unpaired' option."
 }
+
+// Create a global variable to handle the situation where params.fullCov is
+// included but maybe not params.coverage
+do_coverage = params.coverage || params.fullCov
 
 // Get species name from genome build name
 if (params.reference == "hg19" || params.reference == "hg38") {
@@ -1253,176 +1263,6 @@ process Junctions {
         '''
 }
 
-/*
- * Step 5a: Coverage
- */
-
-process Coverage {
-
-    tag "$coverage_prefix"
-    publishDir "${params.output}/coverage/wigs",mode:'copy'
-
-    input:
-        file complete_manifest_cov
-        set val(coverage_prefix), file(sorted_coverage_bam), file(sorted_bam_index) from coverage_bam_inputs
-        file chr_sizes
-
-    output:
-        file "${coverage_prefix}*.wig" into wig_files_temp
-        file "bam2wig_${coverage_prefix}.log"
-
-    shell:
-        '''
-        ( set -o posix ; set ) > bash_vars.txt
-        
-        #  Find this sample's strandness and determine strand flag
-        strand=$(cat samples_complete.manifest | grep !{coverage_prefix} | awk -F ' ' '{print $NF}')
-        if [ $strand == 'forward' ]; then
-            if [ !{params.sample} == "paired" ]; then
-                strand_flag='-d 1++,1--,2+-,2-+'
-            else
-                strand_flag='-d ++,--'
-            fi
-        elif [ $strand == 'reverse' ]; then
-            if [ !{params.sample} == "paired" ]; then
-                strand_flag='-d 1+-,1-+,2++,2--'
-            else
-                strand_flag='-d +-,-+'
-            fi
-        else
-            strand_flag=""
-        fi
-
-        python3 $(which bam2wig.py) \
-            -s !{chr_sizes} \
-            -i !{sorted_coverage_bam} \
-            -t !{params.bam2wig_depth_thres} \
-            -o !{coverage_prefix} \
-            $strand_flag
-
-        cp .command.log bam2wig_!{coverage_prefix}.log
-        
-        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2-|| true)
-        echo "$temp" > bash_vars.txt
-        '''
-}
-
-/*
- * Step 5b: Wig to BigWig
- */
-
-wig_files_temp
-  .flatten()
-  .map{ file -> tuple(get_prefix(file), file) }
-  .set{ wig_files }
-
-process WigToBigWig {
-
-	tag "$wig_prefix"
-	publishDir "${params.output}/coverage/bigWigs",mode:'copy'
-
-	input:
-	set val(wig_prefix), file(wig_file) from wig_files
-	file chr_sizes
-
-	output:
-	file "*.bw" into coverage_bigwigs
-
-	shell:
-	'''
-	!{params.wigToBigWig} -clip !{wig_file} !{chr_sizes} !{wig_prefix}.bw
-	'''
-
-}
-
-coverage_bigwigs
-    .map { f -> tuple(get_read_type(f), f) }
-    .groupTuple()
-	.into{ mean_coverage_bigwigs;full_coverage_bigwigs }
-
-/*
- * Step 5c: Mean Coverage
- */
-
-process MeanCoverage {
-
-    tag "Strand: ${read_type}"
-    publishDir "${params.output}/coverage/mean",'mode':'copy'
-
-    input:
-        set val(read_type), file(mean_coverage_bigwig) from mean_coverage_bigwigs
-        file chr_sizes from chr_sizes
-
-    output:
-        file "mean*.bw" into mean_bigwigs, expressed_regions_mean_bigwigs
-        file "mean_coverage_${read_type}.log"
-
-    shell:
-        '''
-        ( set -o posix ; set ) > bash_vars.txt
-        
-        if [ !{read_type} == "unstranded" ] ; then
-            outwig="mean"
-        elif [ !{read_type} == "forward" ]; then
-            outwig="mean.forward"
-        else
-            outwig="mean.reverse"
-        fi
-        
-        batch_size=!{params.wiggletools_max_threads}
-        precision=8
-        
-        file_list=$(ls -1 | grep -E ".*\\.(bw|wig)$")
-        num_files=$(echo "$file_list" | wc -l)
-        num_batches=$(($num_files / $batch_size))
-        iter_num=0
-        
-        scale_factor=$(!{params.bc} <<< "scale=${precision};1/$num_files")
-        echo "Scale factor is $scale_factor."
-        
-        while [ $num_files -gt $batch_size ]; do
-            echo "Dividing existing files into batches of size ${batch_size}, which involves ${num_batches} batches..."
-            for i in $(seq 1 $num_batches); do
-                #  Form the batch of files
-                start_index=$((($i - 1) * $batch_size + 1))
-                end_index=$(($i * $batch_size))
-                temp_files=$(echo "$file_list" | sed -n "${start_index},${end_index}p")
-                
-                #  Sum over the batch and replace it with a unique temporary file
-                !{params.wiggletools} write temp_wig${iter_num}_$i.wig sum $temp_files
-                rm $temp_files
-            done
-            
-            #  If the remaining piece exists and involves more than one file
-            if [ $num_files -gt $(($num_batches * $batch_size + 1)) ]; then
-                echo "On remaining piece..."
-                start_index=$(($num_batches * $batch_size + 1))
-                temp_files=$(echo "$file_list" | sed -n "${start_index},${num_files}p")
-                
-                #  Sum over the remaining piece and replace it with a unique temporary file
-                !{params.wiggletools} write temp_wig${iter_num}_$(($num_batches + 1)).wig sum $temp_files
-                rm $temp_files
-            fi
-            
-            file_list=$(ls -1 | grep -E ".*\\.(bw|wig)$")
-            num_files=$(echo "$file_list" | wc -l)
-            num_batches=$(($num_files / $batch_size))
-            iter_num=$(($iter_num + 1))
-        done
-        
-        echo "Computing the mean..."
-        !{params.wiggletools} write $outwig.wig scale $scale_factor sum $file_list
-        echo "Done."
-        
-        !{params.wigToBigWig} $outwig.wig !{chr_sizes} $outwig.bw
-        
-        cp .command.log mean_coverage_!{read_type}.log
-        
-        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-        echo "$temp" > bash_vars.txt
-        '''
-}
-
 
 /*
  * Step 6: Transcript quantification
@@ -1640,48 +1480,6 @@ process CountObjects {
         '''
 }
 
-if (params.fullCov) {
-
-	full_coverage_bams
-	  .flatten()
-	  .mix(full_coverage_bigwigs)
-	  .flatten()
-	  .collect()
-	  .set{ full_coverage_inputs }
-  
-	/*
-	 * Step 7b: Create Full Coverage Objects
-	 */
-
-    process CoverageObjects {
-
-        publishDir "${params.output}/coverage_objects",'mode':'copy'
-
-        input:
-            file fullCov_script from file("${workflow.projectDir}/scripts/create_fullCov_object.R")
-            file complete_manifest_fullcov
-            file full_coverage_inputs
-
-        output:
-            file "*"
-    
-        shell:
-            if (params.sample == "paired") {
-              coverage_pe = "TRUE"
-            } else {
-              coverage_pe = "FALSE"
-            }
-            '''
-            !{params.Rscript} !{fullCov_script} \
-                -o !{params.reference} \
-                -e !{params.experiment} \
-                -l !{coverage_pe} \
-                -c !{task.cpus}
-            
-            cp .command.log coverage_objects.log
-            '''
-    }
-}
 
 if (params.step8) {
 
@@ -1744,39 +1542,247 @@ if (params.step8) {
 	}
 }
 
-/*
- * Step 9: Expressed Regions
- */
 
-process ExpressedRegions {
- 
-  tag "$expressed_regions_mean_bigwigs"
-  publishDir "${params.output}/expressed_regions",mode:'copy'
-
-  input:
-    file expressed_regions_script from file("${workflow.projectDir}/scripts/step9-find_expressed_regions.R")
-    file chr_sizes
-    file expressed_regions_mean_bigwigs
-
-  output:
-    file "*" 
-
-  shell:
-    // "strand" is used for naming the log file for this execution of the process
-    strand = expressed_regions_mean_bigwigs.toString().replaceAll("mean.|.bw|bw", "")
-    if (strand.length() > 0) {
-        strand = '_' + strand
-    }
-    '''
-    for meanfile in ./mean*.bw
-    do
-      !{params.Rscript} !{expressed_regions_script} \
-      -m ${meanfile} \
-      -o . \
-      -i !{chr_sizes} \
-      -c !{task.cpus}
-    done
+if (do_coverage) {
+    process Coverage {
     
-    cp .command.log expressed_regions!{strand}.log
-    '''
+        tag "$coverage_prefix"
+        publishDir "${params.output}/coverage/wigs",mode:'copy'
+    
+        input:
+            file complete_manifest_cov
+            set val(coverage_prefix), file(sorted_coverage_bam), file(sorted_bam_index) from coverage_bam_inputs
+            file chr_sizes
+    
+        output:
+            file "${coverage_prefix}*.wig" into wig_files_temp
+            file "bam2wig_${coverage_prefix}.log"
+    
+        shell:
+            '''
+            ( set -o posix ; set ) > bash_vars.txt
+            
+            #  Find this sample's strandness and determine strand flag
+            strand=$(cat samples_complete.manifest | grep !{coverage_prefix} | awk -F ' ' '{print $NF}')
+            if [ $strand == 'forward' ]; then
+                if [ !{params.sample} == "paired" ]; then
+                    strand_flag='-d 1++,1--,2+-,2-+'
+                else
+                    strand_flag='-d ++,--'
+                fi
+            elif [ $strand == 'reverse' ]; then
+                if [ !{params.sample} == "paired" ]; then
+                    strand_flag='-d 1+-,1-+,2++,2--'
+                else
+                    strand_flag='-d +-,-+'
+                fi
+            else
+                strand_flag=""
+            fi
+    
+            python3 $(which bam2wig.py) \
+                -s !{chr_sizes} \
+                -i !{sorted_coverage_bam} \
+                -t !{params.bam2wig_depth_thres} \
+                -o !{coverage_prefix} \
+                $strand_flag
+    
+            cp .command.log bam2wig_!{coverage_prefix}.log
+            
+            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2-|| true)
+            echo "$temp" > bash_vars.txt
+            '''
+    }
+    
+    // Convert wig files to bigWig format
+    
+    wig_files_temp
+        .flatten()
+        .map{ file -> tuple(get_prefix(file), file) }
+        .set{ wig_files }
+    
+    process WigToBigWig {
+    
+        tag "$wig_prefix"
+        publishDir "${params.output}/coverage/bigWigs",mode:'copy'
+        
+        input:
+            set val(wig_prefix), file(wig_file) from wig_files
+            file chr_sizes
+        
+        output:
+            file "*.bw" into coverage_bigwigs
+        
+        shell:
+            '''
+            !{params.wigToBigWig} -clip !{wig_file} !{chr_sizes} !{wig_prefix}.bw
+            '''
+    }
+    
+    coverage_bigwigs
+        .map { f -> tuple(get_read_type(f), f) }
+        .groupTuple()
+        .into{ mean_coverage_bigwigs; full_coverage_bigwigs }
+    
+    // Compute mean coverage across samples by strand
+    
+    process MeanCoverage {
+    
+        tag "Strand: ${read_type}"
+        publishDir "${params.output}/coverage/mean",'mode':'copy'
+    
+        input:
+            set val(read_type), file(mean_coverage_bigwig) from mean_coverage_bigwigs
+            file chr_sizes from chr_sizes
+    
+        output:
+            file "mean*.bw" into mean_bigwigs, expressed_regions_mean_bigwigs
+            file "mean_coverage_${read_type}.log"
+    
+        shell:
+            '''
+            ( set -o posix ; set ) > bash_vars.txt
+            
+            if [ !{read_type} == "unstranded" ] ; then
+                outwig="mean"
+            elif [ !{read_type} == "forward" ]; then
+                outwig="mean.forward"
+            else
+                outwig="mean.reverse"
+            fi
+            
+            batch_size=!{params.wiggletools_max_threads}
+            precision=8
+            
+            file_list=$(ls -1 | grep -E ".*\\.(bw|wig)$")
+            num_files=$(echo "$file_list" | wc -l)
+            num_batches=$(($num_files / $batch_size))
+            iter_num=0
+            
+            scale_factor=$(!{params.bc} <<< "scale=${precision};1/$num_files")
+            echo "Scale factor is $scale_factor."
+            
+            while [ $num_files -gt $batch_size ]; do
+                echo "Dividing existing files into batches of size ${batch_size}, which involves ${num_batches} batches..."
+                for i in $(seq 1 $num_batches); do
+                    #  Form the batch of files
+                    start_index=$((($i - 1) * $batch_size + 1))
+                    end_index=$(($i * $batch_size))
+                    temp_files=$(echo "$file_list" | sed -n "${start_index},${end_index}p")
+                    
+                    #  Sum over the batch and replace it with a unique temporary file
+                    !{params.wiggletools} write temp_wig${iter_num}_$i.wig sum $temp_files
+                    rm $temp_files
+                done
+                
+                #  If the remaining piece exists and involves more than one file
+                if [ $num_files -gt $(($num_batches * $batch_size + 1)) ]; then
+                    echo "On remaining piece..."
+                    start_index=$(($num_batches * $batch_size + 1))
+                    temp_files=$(echo "$file_list" | sed -n "${start_index},${num_files}p")
+                    
+                    #  Sum over the remaining piece and replace it with a unique temporary file
+                    !{params.wiggletools} write temp_wig${iter_num}_$(($num_batches + 1)).wig sum $temp_files
+                    rm $temp_files
+                fi
+                
+                file_list=$(ls -1 | grep -E ".*\\.(bw|wig)$")
+                num_files=$(echo "$file_list" | wc -l)
+                num_batches=$(($num_files / $batch_size))
+                iter_num=$(($iter_num + 1))
+            done
+            
+            echo "Computing the mean..."
+            !{params.wiggletools} write $outwig.wig scale $scale_factor sum $file_list
+            echo "Done."
+            
+            !{params.wigToBigWig} $outwig.wig !{chr_sizes} $outwig.bw
+            
+            cp .command.log mean_coverage_!{read_type}.log
+            
+            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+            echo "$temp" > bash_vars.txt
+            '''
+    }
+    
+    
+    if (params.fullCov) {
+        
+        full_coverage_bams
+            .flatten()
+            .mix(full_coverage_bigwigs)
+            .flatten()
+            .collect()
+            .set{ full_coverage_inputs }
+      
+    	/*
+    	 * Step 7b: Create Full Coverage Objects
+    	 */
+    
+        process CoverageObjects {
+    
+            publishDir "${params.output}/coverage_objects",'mode':'copy'
+    
+            input:
+                file fullCov_script from file("${workflow.projectDir}/scripts/create_fullCov_object.R")
+                file complete_manifest_fullcov
+                file full_coverage_inputs
+    
+            output:
+                file "*"
+        
+            shell:
+                if (params.sample == "paired") {
+                  coverage_pe = "TRUE"
+                } else {
+                  coverage_pe = "FALSE"
+                }
+                '''
+                !{params.Rscript} !{fullCov_script} \
+                    -o !{params.reference} \
+                    -e !{params.experiment} \
+                    -l !{coverage_pe} \
+                    -c !{task.cpus}
+                
+                cp .command.log coverage_objects.log
+                '''
+        }
+    }
+
+
+    /*
+     * Step 9: Expressed Regions
+     */
+    
+    process ExpressedRegions {
+        
+        tag "$expressed_regions_mean_bigwigs"
+        publishDir "${params.output}/expressed_regions", mode:'copy'
+        
+        input:
+            file expressed_regions_script from file("${workflow.projectDir}/scripts/step9-find_expressed_regions.R")
+            file chr_sizes
+            file expressed_regions_mean_bigwigs
+        
+        output:
+            file "*"
+        
+        shell:
+            // "strand" is used for naming the log file for this execution of the process
+            strand = expressed_regions_mean_bigwigs.toString().replaceAll("mean.|.bw|bw", "")
+            if (strand.length() > 0) {
+                strand = '_' + strand
+            }
+            '''
+            for meanfile in ./mean*.bw; do
+                !{params.Rscript} !{expressed_regions_script} \
+                    -m ${meanfile} \
+                    -o . \
+                    -i !{chr_sizes} \
+                    -c !{task.cpus}
+            done
+            
+            cp .command.log expressed_regions!{strand}.log
+            '''
+    }
 }
