@@ -193,7 +193,6 @@ params.strand = ""
 params.trim_mode = "adaptive"
 params.unalign = false
 params.use_salmon = false
-workflow.runName = "RNAsp_run"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validate Inputs
@@ -363,26 +362,32 @@ log.info "============================================================="
 log.info " LIBD-RNAseq : Multi-Input RNA-Seq Best Practice v${version}"
 log.info "============================================================="
 def summary = [:]
-summary['Run Name']			= workflow.runName
-summary['Sample']			  = params.sample
-summary['Strand']			  = params.strand
-summary['Reference']		   = params.reference
-summary['Annotation release'] = params.anno_version
-summary['Annotation build'] = params.anno_build
-summary['Annotation dir']		 = params.annotation
-summary['Input']			   = params.input
-summary['Experiment'] = params.experiment
-summary['Trim mode'] = params.trim_mode
-summary['Keep unpaired'] = params.keep_unpaired
-if(params.unalign) summary['Align'] = "True"
-if(params.fullCov) summary['Full Coverage'] = "True"
-summary['Small test selected'] = params.small_test
-summary['Output dir']		  = params.output
 summary['Working dir']		 = workflow.workDir
 summary['Current home']		= "$HOME"
 summary['Current user']		= "$USER"
 summary['Current path']		= "$PWD"
-log.info summary.collect { k,v -> "${k.padRight(15)}: $v" }.join("\n")
+summary['Annotation build'] = params.anno_build
+summary['Annotation dir']		 = params.annotation
+summary['Annotation release'] = params.anno_version
+summary['Compute coverage'] = do_coverage
+summary['Custom anno label'] = params.custom_anno
+summary['ERCC spike-in'] = params.ercc
+summary['Experiment name'] = params.experiment
+summary['Force strand'] = params.force_strand
+summary['Full coverage'] = params.fullCov
+summary['Input dir']			   = params.input
+summary['Keep unpaired'] = params.keep_unpaired
+summary['Skip biomaRt'] = params.no_biomart
+summary['Output dir']		  = params.output
+summary['Prefix'] = params.prefix
+summary['Reference']		   = params.reference
+summary['Sample']			  = params.sample
+summary['Small test']	= params.small_test
+summary['Strand']			  = params.strand
+summary['Trim mode'] = params.trim_mode
+summary['Keep discordant'] = params.unalign
+summary['Use salmon'] = params.use_salmon
+log.info summary.collect { k,v -> "${k.padRight(18)}: $v" }.join("\n")
 log.info "==========================================="
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
