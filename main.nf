@@ -1452,7 +1452,7 @@ process CountObjects {
         file complete_manifest_counts
 
     output:
-        file "*.pdf"
+        file "*.pdf" optional true
         file "*.csv"
         file "*.Rdata"
         file "*.rda"

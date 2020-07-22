@@ -364,27 +364,30 @@ geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
 
 ######### query biomart if there is an internet connection
 # VERSION Rnor_6.0
-result = tryCatch({
-    ensembl = useMart("ensembl")
-    ensembl = useDataset("rnorvegicus_gene_ensembl",mart=ensembl)
-    sym = getBM(attributes = c("ensembl_gene_id","rgd_symbol","entrezgene_id"), 
-        filters="ensembl_gene_id", values=rownames(geneMap), mart=ensembl)
+get_result = function() {
+    tryCatch({
+        ensembl = useMart("ensembl")
+        ensembl = useDataset("rnorvegicus_gene_ensembl",mart=ensembl)
+        sym = getBM(attributes = c("ensembl_gene_id","rgd_symbol","entrezgene_id"), 
+            filters="ensembl_gene_id", values=rownames(geneMap), mart=ensembl)
+    
+        return(list(sym, TRUE))
+    }, error = function(e) {
+        #  By default biomaRt info is required (failure to reach biomaRt is a fatal
+        #  error)
+        if (!opt$no_biomart) {
+            print("Error: the biomaRt query to obtain gene symbols failed. BiomaRt servers are likely down.")
+            stop()
+        }
+        #  Otherwise proceed with a warning
+        print("Proceeding without ensembl_gene_id, rgd_symbol, and entrezgene_id info from biomaRt, as the databases could not be reached (and '--no_biomart' was specified)")
+        return(list(c(), FALSE))
+    })
+}
 
-    return(list(sym, TRUE))
-}, error = function(e) {
-    #  By default biomaRt info is required (failure to reach biomaRt is a fatal
-    #  error)
-    if (!opt$no_biomart) {
-        print("Error: the biomaRt query to obtain gene symbols failed. BiomaRt servers are likely down.")
-        stop()
-    }
-    #  Otherwise proceed with a warning
-    print("Proceeding without ensembl_gene_id, rgd_symbol, and entrezgene_id info from biomaRt, as the databases could not be reached (and '--no_biomart' was specified)")
-    return(list(c(), FALSE))
-})
-
-sym = result[[1]]
-has_internet_con = result[[2]]
+temp = get_result()
+sym = temp[[1]]
+has_internet_con = temp[[2]]
 
 #########
 

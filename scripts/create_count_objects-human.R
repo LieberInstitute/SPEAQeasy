@@ -447,40 +447,43 @@ geneMap$gene_type = gencodeGENES[geneMap$gencodeID,"gene_type"]
 geneMap$Symbol = gencodeGENES[geneMap$gencodeID,"gene_name"]
 
 ######### attempt to query biomaRt
-result = tryCatch({
-    if (opt$organism=="hg19") {
-        # VERSION 75, GRCh37.p13
-        ensembl = useMart("ENSEMBL_MART_ENSEMBL", 
-            dataset="hsapiens_gene_ensembl", host="feb2014.archive.ensembl.org")
-        sym = getBM(attributes = c("ensembl_gene_id", "entrezgene"), 
-            filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
+get_result = function() {
+    tryCatch({
+        if (opt$organism=="hg19") {
+            # VERSION 75, GRCh37.p13
+            ensembl = useMart("ENSEMBL_MART_ENSEMBL", 
+                dataset="hsapiens_gene_ensembl", host="feb2014.archive.ensembl.org")
+            sym = getBM(attributes = c("ensembl_gene_id", "entrezgene"), 
+                filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
+    
+            #  Rename for compatibility with hg38 data 
+            sym$entrezgene_id = sym$entrezgene
+            sym$entrezgene = NULL
+    
+        } else if (opt$organism=="hg38") {
+            # Latest GRCh38 biomaRt data
+            ensembl = useMart("ENSEMBL_MART_ENSEMBL",  
+                dataset="hsapiens_gene_ensembl")
+            sym = getBM(attributes = c("ensembl_gene_id", "entrezgene_id"), 
+                filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
+        }
+        return(list(sym, TRUE))
+    }, error = function(e) {
+        #  By default biomaRt info is required (failure to reach biomaRt is a fatal
+        #  error)
+        if (!opt$no_biomart) {
+            print("Error: the biomaRt query to obtain gene symbols failed. BiomaRt servers are likely down.")
+            stop()
+        }
+        #  Otherwise proceed with a warning
+        print("Proceeding without ensembl_gene_id and entrezgene_id info from biomaRt, as the databases could not be reached (and '--no_biomart' was specified)")
+        return(list(c(), FALSE))
+    })
+}
 
-        #  Rename for compatibility with hg38 data 
-        sym$entrezgene_id = sym$entrezgene
-        sym$entrezgene = NULL
-
-    } else if (opt$organism=="hg38") {
-        # Latest GRCh38 biomaRt data
-        ensembl = useMart("ENSEMBL_MART_ENSEMBL",  
-            dataset="hsapiens_gene_ensembl")
-        sym = getBM(attributes = c("ensembl_gene_id", "entrezgene_id"), 
-            filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
-    }
-    return(list(sym, TRUE))
-}, error = function(e) {
-    #  By default biomaRt info is required (failure to reach biomaRt is a fatal
-    #  error)
-    if (!opt$no_biomart) {
-        print("Error: the biomaRt query to obtain gene symbols failed. BiomaRt servers are likely down.")
-        stop()
-    }
-    #  Otherwise proceed with a warning
-    print("Proceeding without ensembl_gene_id and entrezgene_id info from biomaRt, as the databases could not be reached (and '--no_biomart' was specified)")
-    return(list(c(), FALSE))
-})
-
-sym = result[[1]]
-has_internet_con = result[[2]]
+temp = get_result()
+sym = temp[[1]]
+has_internet_con = temp[[2]]
 
 #########
 
