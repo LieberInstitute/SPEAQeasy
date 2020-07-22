@@ -896,8 +896,8 @@ process Trimming {
             fi
         else
             #  Then '--trim_mode "adaptive"' was selected, and data is paired-end
-            result1=$(grep "Adapter Content" !{fq_prefix}_1_summary.txt | cut -c1-4)
-            result2=$(grep "Adapter Content" !{fq_prefix}_2_summary.txt | cut -c1-4)
+            result1=$(grep "Adapter Content" !{fq_prefix}_1_untrimmed_summary.txt | cut -c1-4)
+            result2=$(grep "Adapter Content" !{fq_prefix}_2_untrimmed_summary.txt | cut -c1-4)
             if [ $result1 == "FAIL" ] || [ $result2 == "FAIL" ]; then
                 do_trim=true
             else
