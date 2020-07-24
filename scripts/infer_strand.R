@@ -1,3 +1,12 @@
+#  If R was installed locally, use packages associated with that installation
+if (grepl("SPEAQeasy/Software/R-3.6.1/library", .libPaths()[1])) {
+    repo_dir = dirname(dirname(dirname(.libPaths()[1])))
+    library('checkpoint')
+    checkpoint::checkpoint("2019-08-05",
+                           project=paste0(repo_dir, '/scripts/'),
+                           checkpointLocation = paste0(repo_dir, '/Software/R-3.6.1/'))
+}
+
 library('getopt')
 
 #  These must sum to <= 0.5

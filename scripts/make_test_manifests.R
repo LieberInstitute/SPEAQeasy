@@ -1,6 +1,16 @@
+#  If R was installed locally, use packages associated with that installation
+if (grepl("SPEAQeasy/Software/R-3.6.1/library", .libPaths()[1])) {
+    repo_dir = dirname(dirname(dirname(.libPaths()[1])))
+    library('checkpoint')
+    checkpoint::checkpoint("2019-08-05",
+                           project=paste0(repo_dir, '/scripts/'),
+                           checkpointLocation = paste0(repo_dir, '/Software/R-3.6.1/'))
+}
+
 library('jaffelab')
 
 setwd('..') # since this script will be called from [Repo]/Software and not [Repo]
+
 
 for (species in c("human", "mouse", "rat")) {
     for (pairing in c("single", "paired")) {
