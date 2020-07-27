@@ -244,12 +244,23 @@ elif [ "$1" == "local" ]; then
             cd $INSTALL_DIR
     
         #  wigToBigWig -----------------------------------------------------------
-            
-        wget http://hgdownload.cse.ucsc.edu/admin/exe/userApps.src.tgz && \
-            tar -xzf userApps.src.tgz && \
-            cd userApps && \
-            make
-            cd $INSTALL_DIR
+        
+        if [ $(uname -s) == "Linux" ]; then
+            wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/wigToBigWig && \
+                mv wigToBigWig bin/
+        elif [ $(uname -s) == "Darwin" ]; then
+            wget http://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/wigToBigWig && \
+                mv wigToBigWig bin/
+        else
+            #  Attempt to build from source without assuming the OS
+            wget http://hgdownload.cse.ucsc.edu/admin/exe/userApps.src.tgz && \
+                tar -xzf userApps.src.tgz && \
+                cd userApps && \
+                make && \
+                mv bin/wigToBigWig ../bin/wigToBigWig
+                cd $INSTALL_DIR
+        fi
+        
           
         #  Clean up compressed files
         rm $INSTALL_DIR/*.tar.gz
