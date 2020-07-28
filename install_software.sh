@@ -264,7 +264,7 @@ elif [ "$1" == "local" ]; then
           
         #  Clean up compressed files
         rm $INSTALL_DIR/*.tar.gz
-        rm $INSTALL_DIR/*.tgz
+        rm -f $INSTALL_DIR/*.tgz
         rm $INSTALL_DIR/*.bz2
         rm $INSTALL_DIR/*.zip
         rm download
