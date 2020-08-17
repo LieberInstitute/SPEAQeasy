@@ -193,7 +193,7 @@ jobs:
 
       - name: Build website
         run: |
-          bookdown::render_book("documentation")
+          setwd("documentation"); bookdown::render_book("index.Rmd")
         shell: Rscript ${0}
 
       - name: Install deploy dependencies
