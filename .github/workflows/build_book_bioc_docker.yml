@@ -193,9 +193,6 @@ jobs:
 
       - name: Build website
         run: |
-          getwd()
-          dir()
-          dir("documentation")
           setwd("documentation")
           bookdown::render_book("index.Rmd")
         shell: Rscript {0}
