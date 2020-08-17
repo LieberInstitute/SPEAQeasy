@@ -198,7 +198,7 @@ jobs:
           dir("documentation")
           setwd("documentation")
           bookdown::render_book("index.Rmd")
-        shell: Rscript ${0}
+        shell: Rscript {0}
 
       - name: Install deploy dependencies
         run: |
