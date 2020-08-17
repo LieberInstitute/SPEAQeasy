@@ -1,0 +1,59 @@
+# Configuration {#configuration}
+
+SPEAQeasy is designed to be highly customizable, yet need no configuration from a user wishing to rely on sensible default settings. All configuration, including software settings, hardware resources such as memory and CPU use, and more, can be done in a single file determined [here](#setup-details).
+
+## Specifying Options for your Cluster
+
+In many cases, a user has access to a computing cluster which they intend to run SPEAQeasy on. If your cluster is SLURM or SGE-based, the pipeline is pre-configured with options you may be used to specifying (such as disk usage, time for a job to run, etc). However, these are straightforward to modify, should there be a need/desire. Common settings are described in detail below; however, a more comprehensive list of settings from nextflow can be found [here](https://www.nextflow.io/docs/latest/process.html#directives)
+
+### Time
+
+The maximum allowed run time for a process, or step in the pipeline, can be specified. For SGE users, this may be unimportant; however, SLURM users may be charged based on run time for their jobs.
+
+#### Default for all processes
+
+The simplest change you may wish to make is to relax time constraints for all processes. The setting for this is here:
+
+![Relaxing time limit for all jobs](images/8.1_time.png)
+
+While the syntax is not strict, some examples for properly specifying the option are `time = '5m'`, `time = '2h'`, and `time = '1d'` (minutes, hours, and days, respectively).
+
+#### Specify per-process
+
+SLURM users especially may want to modify the time setting by process. This can be done with the same syntax- suppose you wish to request 30 minutes for a given sample to be trimmed (note process names [here](#pipeline-overview)). In the "process" section of your config, find the section labelled "withName: Trimming" as in the example here:
+
+![Relaxing time limit for one process](images/8.1_trim.png)
+
+### Cluster-specific options
+
+In some cases, you may find it simpler to directly specify options accepted by your cluster. For example, SGE users with a default limit on the maximum file size they may write might specify the following:
+
+![Adding cluster-specific options](images/8.1_cluster.png)
+
+As with the time option, this can be specified per-process or for all processes. Any option recognized by your cluster may be used.
+
+## SPEAQeasy Parameters
+
+A number of variables in your [config file](#quick-start) exist to control choices about annotation to use, options passed to software tools, and more. These need not necessarily be changed, but allow more precise control over the pipeline if desired. Values for these variables may be changed in the "params" section of your config (near the top). A full descriptive list is provided below.
+
+### Annotation settings
+
+* *gencode_version_human*: the GENCODE release to use for default (non-custom) annotation, when "hg38" or "hg19" references are used. A string, such as "32".
+* *gencode_version_mouse*: the GENCODE release to use for default (non-custom) annotation, when "mm10" reference is used. A string, such as "M23".
+* *ensembl_version_rat*: the Ensembl version to use for default (non-custom) annotation, when "rn6" reference is used. A string, such as "98".
+* *anno_build*: controls which sequences are used in analysis with default (non-custom) annotation. "main" indicates only canonical reference sequences; "primary" includes additional scaffolds.
+
+### Software settings
+
+* *salmon_min_read_len*: this is passed directly to the `-d` argument to `salmon index`, when building a transcriptome index with [Salmon](https://salmon.readthedocs.io/en/latest/salmon.html). Note that Kallisto is used instead of Salmon, by default (see the `--use_salmon` [option](#command-opts)).
+* *min_intron_len*: this is passed to the `--min-intronlen` argument to `hisat2` during alignment ([hisat2 manual](https://ccb.jhu.edu/software/hisat2/manual.shtml))
+* *bam2wig_depth_thres*: this is passed to the `-t` argument to `bam2wig.py` from [RSeQC](http://rseqc.sourceforge.net/)
+* *samtools_min_map_q*, *samtools_min_base_q*, *samtools_max_depth*: these are passed to the `-q`, `-Q`, and `-d` arguments to `samtools mpileup`, respectively, when calling variants (see the [manual](http://www.htslib.org/doc/))
+* *kallisto_len_mean*, *kallisto_len_sd*: these are passed to the `-l` and `-s` arguments to `kallisto quant` when quantifying transcripts (and ERCC spike-ins, if applicable) (see the [manual](https://pachterlab.github.io/kallisto/manual))
+* *trim_adapter_args_single*, *trim_adapter_args_paired*: these are passed to the `ILLUMINACLIP` settings for [trimmomatic](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf) (after the adapter) for analysis with single and paired-end reads, respectively. Leave empty (i.e. "") to not perform adapter trimming.
+* *trim_quality_args*: literal string arguments used for quality trimming- leave empty (i.e. "") to not perform quality trimming. An example value could be `"LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:75"`.
+* *feat_counts_gene_opts*, *feat_counts_exon_opts*: strings passed to [FeatureCounts](http://bioinf.wehi.edu.au/featureCounts/), containing any (additional) literal command-line arguments for this program, when counting genes and exons, respectively. Note that the `-s`, `-T`, `-a`, and `-o` arguments are already specified in both cases, and the `-f` option is also specified for exons.
+
+### Miscellaneous settings
+
+* *num_reads_infer_strand*: see InferStrandness described [here](#pipeline-overview). This is the number of reads pseudoaligned via kallisto in order to make a determination regarding the strandness of a particular sample (an integer).
