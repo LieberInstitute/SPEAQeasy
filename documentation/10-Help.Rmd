@@ -38,9 +38,9 @@ At the end of each pipeline run (whether complete or after halting due to an err
 
 3. *Locate the process from step 1 in the log from step 2*: because the processes are in order of reported submission, the failed process will typically be near the bottom of the log. The most immediately informative portion to look for is usually the logged output from executing that process. This is at the bottom between the dashed lines labelled *BEGIN LOG* and *END LOG*. 
 
-![Locating the appropriate process in your log](10.2_process_name.png)
+![Locating the appropriate process in your log](images/10.2_process_name.png)
 
-![Locating the output for the process](10.2_log.png)
+![Locating the output for the process](images/10.2_log.png)
 
 If the log output does not make it clear what wrong, explore the following:
 
