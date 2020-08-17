@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>10 Software Versions | SPEAQeasy</title>
+  <meta name="description" content="10 Software Versions | SPEAQeasy" />
+  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="10 Software Versions | SPEAQeasy" />
+  <meta property="og:type" content="book" />
+  
+  
+  
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="10 Software Versions | SPEAQeasy" />
+  
+  
+  
+
+<meta name="author" content="Nicholas J. Eagles" />
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="configuration.html"/>
+<link rel="next" href="help.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+
+
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Overview</a></li>
+<li class="chapter" data-level="2" data-path="quick-start.html"><a href="quick-start.html"><i class="fa fa-check"></i><b>2</b> Quick Start</a><ul>
+<li class="chapter" data-level="2.1" data-path="quick-start.html"><a href="quick-start.html#setup"><i class="fa fa-check"></i><b>2.1</b> Setup</a></li>
+<li class="chapter" data-level="2.2" data-path="quick-start.html"><a href="quick-start.html#configuration"><i class="fa fa-check"></i><b>2.2</b> Configuration</a><ul>
+<li class="chapter" data-level="2.2.1" data-path="quick-start.html"><a href="quick-start.html#your-main-script"><i class="fa fa-check"></i><b>2.2.1</b> Your “main” script</a></li>
+<li class="chapter" data-level="2.2.2" data-path="quick-start.html"><a href="quick-start.html#your-config-file"><i class="fa fa-check"></i><b>2.2.2</b> Your config file</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="setup-details.html"><a href="setup-details.html"><i class="fa fa-check"></i><b>3</b> Setup Details</a><ul>
+<li class="chapter" data-level="3.1" data-path="setup-details.html"><a href="setup-details.html#requirements"><i class="fa fa-check"></i><b>3.1</b> Requirements</a></li>
+<li class="chapter" data-level="3.2" data-path="setup-details.html"><a href="setup-details.html#installation"><i class="fa fa-check"></i><b>3.2</b> Installation</a></li>
+<li class="chapter" data-level="3.3" data-path="setup-details.html"><a href="setup-details.html#run-the-pipeline"><i class="fa fa-check"></i><b>3.3</b> Run the Pipeline</a><ul>
+<li class="chapter" data-level="3.3.1" data-path="setup-details.html"><a href="setup-details.html#run-in-a-slurm-environment-cluster"><i class="fa fa-check"></i><b>3.3.1</b> Run in a SLURM environment/ cluster</a></li>
+<li class="chapter" data-level="3.3.2" data-path="setup-details.html"><a href="setup-details.html#run-on-a-sun-grid-engines-sge-cluster"><i class="fa fa-check"></i><b>3.3.2</b> Run on a Sun Grid Engines (SGE) cluster</a></li>
+<li class="chapter" data-level="3.3.3" data-path="setup-details.html"><a href="setup-details.html#run-locally"><i class="fa fa-check"></i><b>3.3.3</b> Run locally</a></li>
+<li class="chapter" data-level="3.3.4" data-path="setup-details.html"><a href="setup-details.html#run-on-the-jhpce-cluster"><i class="fa fa-check"></i><b>3.3.4</b> Run on the <span>JHPCE</span> cluster</a></li>
+<li class="chapter" data-level="3.3.5" data-path="setup-details.html"><a href="setup-details.html#example-main-script"><i class="fa fa-check"></i><b>3.3.5</b> Example main script</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="command-opts.html"><a href="command-opts.html"><i class="fa fa-check"></i><b>4</b> All Command Options</a><ul>
+<li class="chapter" data-level="4.1" data-path="command-opts.html"><a href="command-opts.html#speaqeasy-options"><i class="fa fa-check"></i><b>4.1</b> SPEAQeasy Options</a><ul>
+<li class="chapter" data-level="4.1.1" data-path="command-opts.html"><a href="command-opts.html#mandatory-parameters"><i class="fa fa-check"></i><b>4.1.1</b> Mandatory Parameters</a></li>
+<li class="chapter" data-level="4.1.2" data-path="command-opts.html"><a href="command-opts.html#optional-parameters"><i class="fa fa-check"></i><b>4.1.2</b> Optional Parameters</a></li>
+</ul></li>
+<li class="chapter" data-level="4.2" data-path="command-opts.html"><a href="command-opts.html#nextflow-options"><i class="fa fa-check"></i><b>4.2</b> Nextflow Options</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="pipeline-overview.html"><a href="pipeline-overview.html"><i class="fa fa-check"></i><b>5</b> Pipeline Overview</a><ul>
+<li class="chapter" data-level="5.1" data-path="pipeline-overview.html"><a href="pipeline-overview.html#preparation-steps"><i class="fa fa-check"></i><b>5.1</b> Preparation Steps</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="pipeline-overview.html"><a href="pipeline-overview.html#downloading-required-annotation-files"><i class="fa fa-check"></i><b>5.1.1</b> Downloading required annotation files</a></li>
+<li class="chapter" data-level="5.1.2" data-path="pipeline-overview.html"><a href="pipeline-overview.html#preparing-annotation-files-for-direct-use"><i class="fa fa-check"></i><b>5.1.2</b> Preparing annotation files for direct use</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="pipeline-overview.html"><a href="pipeline-overview.html#main-workflow-steps"><i class="fa fa-check"></i><b>5.2</b> Main Workflow Steps</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="annotation.html"><a href="annotation.html"><i class="fa fa-check"></i><b>6</b> Annotation</a><ul>
+<li class="chapter" data-level="6.1" data-path="annotation.html"><a href="annotation.html#default-annotation"><i class="fa fa-check"></i><b>6.1</b> Default Annotation</a><ul>
+<li class="chapter" data-level="6.1.1" data-path="annotation.html"><a href="annotation.html#choosing-a-release"><i class="fa fa-check"></i><b>6.1.1</b> Choosing a release</a></li>
+<li class="chapter" data-level="6.1.2" data-path="annotation.html"><a href="annotation.html#choosing-a-build"><i class="fa fa-check"></i><b>6.1.2</b> Choosing a “build”</a></li>
+<li class="chapter" data-level="6.1.3" data-path="annotation.html"><a href="annotation.html#additional-annotation-files"><i class="fa fa-check"></i><b>6.1.3</b> Additional Annotation files</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="annotation.html"><a href="annotation.html#custom-annotation"><i class="fa fa-check"></i><b>6.2</b> Custom Annotation</a><ul>
+<li class="chapter" data-level="6.2.1" data-path="annotation.html"><a href="annotation.html#optional-files-to-include-depending-on-your-use-case"><i class="fa fa-check"></i><b>6.2.1</b> Optional files to include depending on your use-case</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="manifest.html"><a href="manifest.html"><i class="fa fa-check"></i><b>7</b> Manifest and Inputs</a><ul>
+<li class="chapter" data-level="7.1" data-path="manifest.html"><a href="manifest.html#what-the-manifest-should-look-like"><i class="fa fa-check"></i><b>7.1</b> What the Manifest Should Look Like</a><ul>
+<li class="chapter" data-level="7.1.1" data-path="manifest.html"><a href="manifest.html#more-details-regarding-inputs"><i class="fa fa-check"></i><b>7.1.1</b> More details regarding inputs</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="outputs.html"><a href="outputs.html"><i class="fa fa-check"></i><b>8</b> Pipeline Outputs</a></li>
+<li class="chapter" data-level="9" data-path="quick-start.html"><a href="quick-start.html#configuration"><i class="fa fa-check"></i><b>9</b> Configuration</a><ul>
+<li class="chapter" data-level="9.1" data-path="configuration.html"><a href="configuration.html"><i class="fa fa-check"></i><b>9.1</b> Specifying Options for your Cluster</a><ul>
+<li class="chapter" data-level="9.1.1" data-path="configuration.html"><a href="configuration.html#time"><i class="fa fa-check"></i><b>9.1.1</b> Time</a></li>
+<li class="chapter" data-level="9.1.2" data-path="configuration.html"><a href="configuration.html#cluster-specific-options"><i class="fa fa-check"></i><b>9.1.2</b> Cluster-specific options</a></li>
+</ul></li>
+<li class="chapter" data-level="9.2" data-path="configuration.html"><a href="configuration.html#speaqeasy-parameters"><i class="fa fa-check"></i><b>9.2</b> SPEAQeasy Parameters</a><ul>
+<li class="chapter" data-level="9.2.1" data-path="configuration.html"><a href="configuration.html#annotation-settings"><i class="fa fa-check"></i><b>9.2.1</b> Annotation settings</a></li>
+<li class="chapter" data-level="9.2.2" data-path="configuration.html"><a href="configuration.html#software-settings"><i class="fa fa-check"></i><b>9.2.2</b> Software settings</a></li>
+<li class="chapter" data-level="9.2.3" data-path="configuration.html"><a href="configuration.html#miscellaneous-settings"><i class="fa fa-check"></i><b>9.2.3</b> Miscellaneous settings</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="software.html"><a href="software.html"><i class="fa fa-check"></i><b>10</b> Software Versions</a><ul>
+<li class="chapter" data-level="10.1" data-path="software.html"><a href="software.html#docker-images"><i class="fa fa-check"></i><b>10.1</b> Docker Images</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="help.html"><a href="help.html"><i class="fa fa-check"></i><b>11</b> Help</a><ul>
+<li class="chapter" data-level="11.1" data-path="help.html"><a href="help.html#common-errors"><i class="fa fa-check"></i><b>11.1</b> Common Errors</a></li>
+<li class="chapter" data-level="11.2" data-path="help.html"><a href="help.html#deeper-investigation"><i class="fa fa-check"></i><b>11.2</b> Deeper Investigation</a><ul>
+<li class="chapter" data-level="11.2.1" data-path="help.html"><a href="help.html#checking-per-sample-logs"><i class="fa fa-check"></i><b>11.2.1</b> Checking Per-Sample Logs</a></li>
+</ul></li>
+<li class="chapter" data-level="11.3" data-path="help.html"><a href="help.html#resuming"><i class="fa fa-check"></i><b>11.3</b> Resuming</a><ul>
+<li class="chapter" data-level="11.3.1" data-path="help.html"><a href="help.html#trouble-resuming"><i class="fa fa-check"></i><b>11.3.1</b> Trouble resuming?</a></li>
+</ul></li>
+<li class="chapter" data-level="11.4" data-path="help.html"><a href="help.html#no-internet-access"><i class="fa fa-check"></i><b>11.4</b> No Internet Access?</a></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="glossary.html"><a href="glossary.html"><i class="fa fa-check"></i><b>12</b> Glossary</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">SPEAQeasy</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="software" class="section level1">
+<h1><span class="header-section-number">10</span> Software Versions</h1>
+<p>SPEAQeasy makes use of several external bioinformatics software tools. The pipeline additionally supports the use of these tools via docker containers- this section also documents the docker images used in this mode.</p>
+<p>Here is the full list of software used by this pipeline:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Software</th>
+<th align="right">Version</th>
+<th align="right">Command used by the pipeline</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><a href="http://www.htslib.org/download/">bcftools</a></td>
+<td align="right">1.9</td>
+<td align="right"><code>bcftools</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc">fastQC</a></td>
+<td align="right">0.11.8</td>
+<td align="right"><code>fastqc</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2">hisat2</a></td>
+<td align="right">2.1.0</td>
+<td align="right"><code>hisat2</code>, <code>hisat2-build</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://www.htslib.org/download/">htslib</a></td>
+<td align="right">1.9</td>
+<td align="right"><code>tabix</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">java</a></td>
+<td align="right">8</td>
+<td align="right"><code>java</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://pachterlab.github.io/kallisto/source">kallisto</a></td>
+<td align="right">0.46.1</td>
+<td align="right"><code>kallisto</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://www.nextflow.io/docs/latest/getstarted.html">nextflow</a></td>
+<td align="right">&gt;=0.27.0 (tested with 20.01.0)</td>
+<td align="right"><code>nextflow</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://cran.r-project.org/bin/linux/ubuntu/README.html#installation">R</a></td>
+<td align="right">3.6</td>
+<td align="right"><code>Rscript</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://github.com/griffithlab/regtools#installation">regtools</a></td>
+<td align="right">0.5.1</td>
+<td align="right"><code>regtools</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://rseqc.sourceforge.net/#installation">RSeQC</a></td>
+<td align="right">3.0.1</td>
+<td align="right"><code>bam2wig.py</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="http://salmon.readthedocs.io/en/latest/building.html">salmon</a></td>
+<td align="right">1.0.0</td>
+<td align="right"><code>salmon</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://www.htslib.org/download/">samtools</a></td>
+<td align="right">1.9</td>
+<td align="right"><code>samtools</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="http://bioinf.wehi.edu.au/subread-package/">SubRead</a></td>
+<td align="right">2.0.0</td>
+<td align="right"><code>featureCounts</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://www.usadellab.org/cms/?page=trimmomatic">trimmomatic</a></td>
+<td align="right">0.39</td>
+<td align="right"><code>java -jar path/to/trimmomatic.jar</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://github.com/Ensembl/WiggleTools">wiggletools</a></td>
+<td align="right">1.2.1</td>
+<td align="right"><code>wiggletools</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/">wigToBigWig</a></td>
+<td align="right">4</td>
+<td align="right"><code>wigToBigWig</code></td>
+</tr>
+</tbody>
+</table>
+<div id="docker-images" class="section level2">
+<h2><span class="header-section-number">10.1</span> Docker Images</h2>
+<p>The following container versions are used in this pipeline. These are automatically managed by SPEAQeasy.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Image</th>
+<th align="right">Tag</th>
+<th align="right">Software</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">libddocker/r_3.6.1_bioc</td>
+<td align="right">latest</td>
+<td align="right">R and Bioconductor 3.10</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/ubuntu16.04_base</td>
+<td align="right">1_v3</td>
+<td align="right">Ubuntu Base</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/infer_strandness</td>
+<td align="right">latest</td>
+<td align="right">R, Bioconductor 3.10, Kallisto</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/kallisto</td>
+<td align="right">0.46.1</td>
+<td align="right">Kallisto</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/fastqc</td>
+<td align="right">0.11.8</td>
+<td align="right">FastQC</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/trimmomatic</td>
+<td align="right">0.39</td>
+<td align="right">Trimmomatic</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/hisat2</td>
+<td align="right">2.1.0</td>
+<td align="right">HISAT</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/rseqc</td>
+<td align="right">3.0.1</td>
+<td align="right">RSeQC</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/samtools</td>
+<td align="right">1.9</td>
+<td align="right">Samtools</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/salmon</td>
+<td align="right">0.14.1</td>
+<td align="right">Salmon</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/regtools</td>
+<td align="right">0.5.1</td>
+<td align="right">Regtools</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/subread</td>
+<td align="right">2.0.0</td>
+<td align="right">SubRead/FeatureCounts</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/wiggletools-1.2</td>
+<td align="right">1_v3</td>
+<td align="right">Wiggletools</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/variant_calling</td>
+<td align="right">1.9</td>
+<td align="right">Samtools, BCFTools</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="configuration.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="help.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+</body>
+
+</html>

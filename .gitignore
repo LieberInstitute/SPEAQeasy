@@ -1,0 +1,19 @@
+## ignore local files from local executions
+*nextflow.log*
+*.nextflow/
+*pipeline_log/
+work/
+*results/
+execution_*/
+Software/
+test/*/*/*/samples.manifest
+logs/*_process_trace.log
+SPEAQeasy_output.log
+
+## ignore big reference files/ files pulled with 1st execution
+Annotation/reference/*
+Annotation/RSeQC/*
+
+## backup stuff
+*.bkp
+.Rproj.user
