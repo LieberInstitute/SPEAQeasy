@@ -11,3 +11,5 @@ output:
 # Overview
 
 SPEAQeasy is a [Nextflow](https://www.nextflow.io/)-based **S**calable RNA-seq **P**ipeline for **E**xpression **A**nd **Q**uantification.
+
+This book was last updated on `r Sys.time()`.
