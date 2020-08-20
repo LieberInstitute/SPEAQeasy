@@ -26,12 +26,12 @@ See the variable `annotation_build` in your [configuration](#configuration) file
 
 ### Additional Annotation files ###
 
-A .bed file containing common SNV (single nucleotide variation) sites, at which variant calling is performed (for human and mouse). Variant calling is not currently supported for rat (rn6).
+A .bed file containing common SNV (single nucleotide variation) sites, at which variant calling is performed (for human and mouse). Variant calling is not currently supported for rat or mouse (rn6 or mm10, respectively).
 An ERCC index [EXPLAIN MORE HERE]
 
 ## Custom Annotation
 
-You may wish to provide specific reference files in place of the automatically managed files described in the above section. In this case, you must supply the following files in the directory specified in the command-line option `--annotation [dir]` [LINK COMMAND OPTIONS HERE]:
+You may wish to provide specific reference files in place of the automatically managed files described in the above section. In this case, you must supply the following files in the directory specified in the [command-line option](#command-opts) `--annotation [dir]`:
 
 * A genome assembly fasta (the reference genome to align reads to), such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/GRCh38.primary_assembly.genome.fa.gz). Make sure the file has the string "assembly" in the filename, to specify to the pipeline that it is the genome reference fasta.
 * Gene annotation gtf, such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.annotation.gtf.gz)- but not gzipped. This file can have any name, so long as it ends in ".gtf".

@@ -4,7 +4,7 @@ SPEAQeasy is designed to be highly customizable, yet need no configuration from 
 
 ## Specifying Options for your Cluster
 
-In many cases, a user has access to a computing cluster which they intend to run SPEAQeasy on. If your cluster is SLURM or SGE-based, the pipeline is pre-configured with options you may be used to specifying (such as disk usage, time for a job to run, etc). However, these are straightforward to modify, should there be a need/desire. Common settings are described in detail below; however, a more comprehensive list of settings from nextflow can be found [here](https://www.nextflow.io/docs/latest/process.html#directives)
+In many cases, a user has access to a computing cluster which they intend to run SPEAQeasy on. If your cluster is SLURM or SGE-based, the pipeline is pre-configured with options you may be used to specifying (such as disk usage, time for a job to run, etc). However, these are straightforward to modify, should there be a need/desire. Common settings are described in detail below; however, a more comprehensive list of settings from nextflow can be found [here](https://www.nextflow.io/docs/latest/process.html#directives).
 
 ### Time
 
