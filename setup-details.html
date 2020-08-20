@@ -220,16 +220,18 @@
 <h3><span class="header-section-number">3.3.5</span> Example main script</h3>
 <p>Below is a full example of a typical main script, modified from the <code>run_pipeline_jhpce.sh</code> script. At the top are some cluster-specific options, recognized by SGE, the grid scheduler at the JHPCE cluster. These are optional, and you may consider adding appropriate options similarly, if you plan to use SPEAQeasy on a computing cluster.</p>
 <p>After the main call, <code>nextflow main.nf</code>, each command option can be described line by line:</p>
-<p><code>--sample "paired"</code>: input samples are paired-end
-<code>--reference "mm10"</code>: these are mouse samples, to be aligned to the mm10 genome
-<code>--strand "reverse"</code>: the user expects the samples to be reverse-stranded, which SPEAQeasy will verify
-<code>--ercc</code>: the samples have ERCC spike-ins, which the pipeline should quantify as a QC measure.
-<code>--trim_mode "skip"</code>: trimming is not to be performed on any samples
-<code>--experiment "mouse_brain"</code>: the main pipeline outputs should be labelled with the experiment name “mouse_brain”
-<code>--input "/users/neagles/RNA_input"</code>: <code>/users/neagles/RNA_input</code> is a directory that contains the <code>samples.manifest</code> file, describing the samples.
-<code>-profile jhpce</code>: configuration of hardware resource usage, and more detailed pipeline settings, is described at <code>conf/jhpce.config</code>, since this is a run using the JHPCE cluster
-<code>-w "/scratch/nextflow_runs"</code>: this is a nextflow-specific command option (note the single dash), telling SPEAQeasy that temporary files for the pipeline run can be placed under <code>/scratch/nextflow_runs</code>
-<code>--output "/users/neagles/RNA_output"</code>: SPEAQeasy output files should be placed under <code>/users/neagles/RNA_output</code></p>
+<ul>
+<li><code>--sample "paired"</code>: input samples are paired-end</li>
+<li><code>--reference "mm10"</code>: these are mouse samples, to be aligned to the mm10 genome</li>
+<li><code>--strand "reverse"</code>: the user expects the samples to be reverse-stranded, which SPEAQeasy will verify</li>
+<li><code>--ercc</code>: the samples have ERCC spike-ins, which the pipeline should quantify as a QC measure.</li>
+<li><code>--trim_mode "skip"</code>: trimming is not to be performed on any samples</li>
+<li><code>--experiment "mouse_brain"</code>: the main pipeline outputs should be labelled with the experiment name “mouse_brain”</li>
+<li><code>--input "/users/neagles/RNA_input"</code>: <code>/users/neagles/RNA_input</code> is a directory that contains the <code>samples.manifest</code> file, describing the samples.</li>
+<li><code>-profile jhpce</code>: configuration of hardware resource usage, and more detailed pipeline settings, is described at <code>conf/jhpce.config</code>, since this is a run using the JHPCE cluster</li>
+<li><code>-w "/scratch/nextflow_runs"</code>: this is a nextflow-specific command option (note the single dash), telling SPEAQeasy that temporary files for the pipeline run can be placed under <code>/scratch/nextflow_runs</code></li>
+<li><code>--output "/users/neagles/RNA_output"</code>: SPEAQeasy output files should be placed under <code>/users/neagles/RNA_output</code></li>
+</ul>
 <div class="figure">
 <img src="images/2.3_example_main.png" alt="" />
 <p class="caption">Example script for JHPCE cluster</p>
