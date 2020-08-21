@@ -358,15 +358,14 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped +  metrics$totalMap
 
 ###############
 ### gene counts
-geneFn <- list.files(pattern='.*_Genes\\.counts$')
 
-#  Name each file by the sample it corresponds to
-stopifnot(length(geneFn) == length(metrics$SAMPLE_ID))
-indices = rep(0, length(geneFn))
-for (i in 1:length(geneFn)) {
-    indices[i] = grep(metrics$SAMPLE_ID[i], geneFn)
+#  Get filenames for gene counts in sample order present in manifest
+geneFn = rep('', length(metrics$SAMPLE_ID))
+for (i in 1:length(metrics$SAMPLE_ID)) {
+    geneFn[i] = list.files(pattern=paste0(metrics$SAMPLE_ID[i], '_',
+                                          opt$organism, '_.*_Genes\\.counts$'))
 }
-names(geneFn) = metrics$SAMPLE_ID[indices]
+names(geneFn) = metrics$SAMPLE_ID
 
 ### read in annotation ##
 geneMap = read.delim(geneFn[1], skip=1, as.is=TRUE)[,1:6]
@@ -445,14 +444,14 @@ write.csv(metrics, file = file.path(
 
 ###############
 ### exon counts
-exonFn <- list.files(pattern='.*_Exons\\.counts$')
 
-stopifnot(length(exonFn) == length(metrics$SAMPLE_ID))
-indices = rep(0, length(exonFn))
-for (i in 1:length(exonFn)) {
-    indices[i] = grep(metrics$SAMPLE_ID[i], exonFn)
+#  Get filenames for exon counts in sample order present in manifest
+exonFn = rep('', length(metrics$SAMPLE_ID))
+for (i in 1:length(metrics$SAMPLE_ID)) {
+    exonFn[i] = list.files(pattern=paste0(metrics$SAMPLE_ID[i], '_',
+                                          opt$organism, '_.*_Exons\\.counts$'))
 }
-names(exonFn) = metrics$SAMPLE_ID[indices]
+names(exonFn) = metrics$SAMPLE_ID
 
 ### read in annotation ##
 exonMap = read.delim(exonFn[1], skip=1, as.is=TRUE)[,1:6]
