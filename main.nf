@@ -714,7 +714,8 @@ process InferStrandness {
             !{params.kallisto_len_sd} \
             !{params.strand} \
             !{params.Rscript} \
-            !{params.force_strand}
+            !{params.force_strand} \
+            !{prefix}
         
         cp .command.log !{prefix}_infer_strand.log
         '''
