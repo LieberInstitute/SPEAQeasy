@@ -4,13 +4,14 @@
 
 ### Mandatory Parameters
 
-* `--reference`        "hg38", "hg19", "mm10", or "rn6": the reference genome to which reads are aligned
 * `--sample`        "single" or "paired": the orientation of your reads
 * `--strand`        "unstranded", "forward", or "reverse": the strandness of your reads. Since strandness is inferred by sample in the pipeline, this option informs the pipeline to generate appropriate warnings if unexpected strandness is inferred.
+* `--reference`        "hg38", "hg19", "mm10", or "rn6": the reference genome to which reads are aligned
 
 ### Optional Parameters
 
 * `--annotation`    The path to the directory containing pipeline annotations. Defaults to "./Annotation" (relative to the repository). If annotations are not found here, the pipeline includes a step to build them.
+* `--coverage` Include this flag to produce coverage bigWigs and compute expressed genomic regions. These steps are a useful precursor for analyses involving finding differentially expressed regions (DERs). Default: false
 * `--custom_anno [label]` Include this flag to indicate that the directory specified with `--annotation [dir]` includes user-provided annotation files to use instead of the default files. See the "Using custom annotation" section for more details.
 * `--ercc`            Include this flag to enable ERCC quantification with Kallisto (or Salmon, if `--use_salmon` is provided). This is appropriate for experiments where samples have ERCC spike-ins.
 * `--experiment`    Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
