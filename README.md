@@ -2,7 +2,7 @@
 
 ## Summary ##
 
-SPEAQeasy is a __S__calable RNA-seq __P__ipeline for __E__xpression and __Q__uantification based on the [RNAseq-pipeline](https://github.com/LieberInstitute/RNAseq-pipeline). Built on nextflow, and capable of using Docker containers and utilizing common resource managers (e.g. SLURM), this port of the RNAseq-pipeline can be used in different computer environments.
+SPEAQeasy is a **S**calable RNA-seq **P**ipeline for **E**xpression and **Q**uantification based on the [RNAseq-pipeline](https://github.com/LieberInstitute/RNAseq-pipeline). Built on [nextflow](https://www.nextflow.io/), and capable of using Docker containers and utilizing common resource managers (e.g. SLURM), this port of the RNAseq-pipeline can be used in different computer environments.
 
 The main function of this pipeline is to produce comparable files to those used in [recount2](https://jhubiostatistics.shinyapps.io/recount/), a tool that provides gene, exon, exon-exon junction and base-pair level data.
 
@@ -13,95 +13,24 @@ This pipeline allows researchers to contribute data to the recount2 project even
 
 ![General Workflow](https://github.com/LieberInstitute/SPEAQeasy/blob/master/notes/workflow.png)
 
+SPEAQeasy takes raw RNA-seq reads and produces analysis-ready R objects, providing a "bridge to the Bioconductor universe", where researchers can utilize the powerful existing set of tools to quickly perform desired analyses.
+
+Beginning with a set of FASTQ files (optionally gzipped), SPEAQeasy ultimately produces [`RangedSummarizedExperiment`](https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html) objects to store gene, exon, and exon-exon junction counts for an experiment. Optionally, expressed regions data is generated, enabling easy computation of differentially expressed regions (DERs).
+
+[Our vignette](NEEDS A LINK!) demonstrates how genotype calls by SPEAQeasy can be coupled with user-provided genotype and phenotype data to easily resolve identity issues that arise during sequencing. We then walk through an example differential expression analysis and explore data visualization options.
+
+
 ## Getting started ##
 
-### Software Requirements ###
+The [SPEAQeasy documentation website](http://research.libd.org/SPEAQeasy/index.html) describes the pipeline in full detail. For briefly getting started, check out the [quick start guide](http://research.libd.org/SPEAQeasy/quick-start.html).
 
-+ This pipeline runs [nextflow](https://www.nextflow.io/), which requires a Java runtime. If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer. Python 3 and pip (automatically installed with typical installations of python) are required as well.
-+ Additional software configuration depends on the options available on your system/ execution environment:
-    + **Using docker** (Recommended for non-JHPCE users): If docker is installed in your environment, this option requires minimal setup/ installation. From within the repository, run `bash install_software.sh "docker"`. This installs nextflow and prepares some test files, which is a one-time setup.
-    + **Installing dependencies locally** (Alternative not requiring docker): The script `install_software.sh` is included in the repository, and automates the installation process. Make sure that you first just have Java (8 or later) and Python 3 installed globally (requiring root privileges). Then, from within the repository, run `bash install_software.sh "local"` for one-time setup of the pipeline.
+Because SPEAQeasy is based on the [nextflow](https://www.nextflow.io/) workflow manager, it supports execution on computing clusters managed by [SLURM](https://slurm.schedmd.com/overview.html) or [SGE](https://docs.oracle.com/cd/E19279-01/820-3257-12/n1ge.html) without any configuration (local execution is also possible). Those with access to [docker](https://www.docker.com/) can very simply use docker containers to manage SPEAQeasy software dependencies, though we provide a script for installing dependencies for users without docker or even root privileges.
 
-### Advanced info regarding installation ###
-
-+ The script `install_software.sh` need only be run once. If you are installing software to run the pipeline locally, all dependencies are installed into `[repo directory]/Software/`, and `[repo directory]/conf/command_paths_long.config` is configured to show nextflow the default installation locations of each software tool. Thus, this config file can be tweaked to manually point to different paths, if need be (though this shouldn't be necessary).
-+ Nextflow supports the use of Lmod modules to conveniently point the pipeline to the bioinformatics software it needs. If you neither wish to use docker nor wish to install the many dependencies locally-- and already have Lmod modules on your cluster-- this is another option. In the appropriate config file (as determined in step 3 in the section you choose below), you can include a module specification line in the associated process (such as `module = 'hisat2/2.1.0'` for buildHISATindex) as configured in *conf/jhpce.config*. In most cases this will be more work to fully configure, and so running the pipeline with docker or locally installing software is generally recommended instead. See [nextflow modules](https://www.nextflow.io/docs/latest/process.html#module) for some more information.
-
-
-### Run on the JHPCE cluster ###
-
-1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
-2. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/jhpce.config*
-3. **Modify the main script and run**: this is *run_pipeline_jhpce.sh*. The pipeline run is submitted to the cluster by executing `qsub run_pipeline_jhpce.sh`. See "Full list of command-line options" for details about modifying the script you choose.
-
-
-### Run on a Sun Grid Engines (SGE) cluster ###
-
-1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
-2. **Choose how to manage software dependencies**: see "Software requirements" section.
-3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/sge.config*, if you have installed software dependencies locally, or *conf/docker_sge.config* if you will use docker.
-4. **Modify the main script and run**: the main script is *run_pipeline_sge.sh*. Submit the script as a job to your cluster with `qsub run_pipeline_sge.sh`. If you are using docker, make sure to change the line `-profile sge` to `profile docker_sge`. See "Full list of command-line options" for other details about modifying the script for your use-case.
-
-See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional information on nextflow for SGE environments.
-
-### Run in a SLURM environment ###
-
-1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
-2. **Choose how to manage software dependencies**: see "Software requirements" section.
-3. (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/slurm.config*, if you have installed software dependencies locally, or *conf/docker_slurm.config* if you will use docker.
-4. **Modify the main script and run**: the main script is *run_pipeline_slurm.sh*. Submit the script as a job to your cluster with `sbatch run_pipeline_slurm.sh`. If you are using docker, make sure to change the line `-profile slurm` to `profile docker_slurm`. See "Full list of command-line options" for other details about modifying the script for your use-case.
-
-### Run locally ###
-
-1. **Clone the repository in the current directory**: *git clone git@github.com:LieberInstitute/RNAsp.git*
-2. **Choose how to manage software dependencies**: see "Software requirements" section.
-3. (Optional) **Adjust configuration**: hardware resource usage and other configurables are located in *conf/local.config*, if you have installed software dependencies locally, or *conf/docker_local.config* if you will use docker. Note that defaults assume access to 8 CPUs and 16GB of RAM.
-4. **Modify the main script and run**: the main script is *run_pipeline_local.sh*. If you are using docker, make sure to change the line `-profile local` to `profile docker_local`. After configuring options for your use-case (See "Full list of command-line options"), simply run on the command-line with `bash run_pipeline_local.sh`.
-  
-Note that the configuration files also include command-line options passed to many of the software tools (such as minimum mapping quality used in samtools for filtering). This gives control over many of the parameters in the pipeline that we deemed to involve preference, or to involve variability among use-cases.
 
 ## Sharing the pipeline among many users ##
   
 + A common use-case may involve wanting to set up this pipeline once, and have potentially many users running this pipeline without additional work from the users. This can be achieved by following the above procedure to first set up the pipeline; any user wishing to execute the pipeline from a different location may simply copy the "main" script (`run_pipeline_[executor].sh`), modify as needed, and run.
 
-## Full list of command-line options ##
-
-### Mandatory Parameters ###
-
-+ `--sample`		"single" or "paired": the orientation of your reads
-+ `--strand`		"unstranded", "forward, or "reverse": the strandness of your reads. Since strandness is inferred by sample in the pipeline, this option informs the pipeline to generate appropriate warnings if unexpected strandness is inferred.
-+ `--reference`		"hg38", "hg19", "mm10", or "rn6": the reference genome to which reads are aligned
-
-### Optional Parameters ###
-
-+ `--coverage` Include this flag to produce coverage bigWigs and compute expressed genomic regions. These steps are a useful precursor for analyses involving finding differentially expressed regions (DERs). Default: false
-+ `--experiment`	Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
-+ `--prefix`	Defines the prefix of the input files (not used to detect files)
-+ `--input`		The path to the directory with the "samples.manifest" file. Defaults to "./input" (relative to the repository)
-+ `--output`  The path to the directory to store pipeline output files/ objects. Defaults to "./results" (relative to the repository)
-+ `--unalign`		Include this flag to save discordant reads after the alignment step (false/ not included by default)
-+ `--annotation`	The path to the directory containing pipeline annotations. Defaults to "./Annotations" (relative to the repository). If annotations are not found here, the pipeline includes a step to build them.
-+ `--ercc`			Include this flag to enable ERCC quantification with Kallisto
-+ `--fullCov`		Flag to perform full coverage analysis. Implies the '--coverage' flag. Default: false.
-+ `--small_test`	Uses sample files located in the test folder as input. Overrides the "--input" option.
-+ `--trim_mode`  Determines the conditions under which trimming occurs:
-                    "skip": do not perform trimming on samples
-                    "adaptive": [default] perform trimming on samples that have failed the FastQC "Adapter content" metric
-                    "force": perform trimming on all samples
-+ `--keep_unpaired` include this flag to keep unpaired reads output from trimming paired-end samples, for use in alignment. Default: false, as this can cause issues in downstream tools like FeatureCounts.
-+ `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
-+ `--custom_anno [label]` Include this flag to indicate that the directory specified with `--annotation [dir]` includes user-provided annotation files to use instead of the default files. See the "Using custom annotation" section for more details.
-+ `--force_strand` Include this flag to continue pipeline execution with a warning, when user-provided strand contrasts with inferred strandness in any sample. Default: false (halt pipeline execution with an error message if any sample appears to be a different strandness than stated by the user)
-+ `--no_biomart` Include this flag to suppress potential errors in retrieving additional annotation info, such as gene symbols, from biomaRt. BiomaRt will still be queried for this info, but the pipeline will proceed without it upon failure for any reason. This option is required for users without internet access during pipeline runs.
-
-### Nextflow Options ###
-
-The nextflow command itself provides many additional options you may add to your "main" script. A few of the most commonly applicable ones are documented below. For a full list, type `[path to nextflow] run -h`- the full list does not appear to be documented at [nextflow's website](https://www.nextflow.io/).
-
-+ `-w [path]` Path to the directory where nextflow will place temporary files. This directory can fill up very quickly, especially for large experiments, and so it can be useful to set this to a scratch directory or filesystem with plenty of storage capacity.
-+ `-resume` Include this flag if pipeline execution halts with an error for any reason, and you wish to continue where you left off from last run. Otherwise, BY DEFAULT, NEXTFLOW WILL RESTART EXECUTION FROM THE BEGINNING.
-+ `-with-report [filename]` Include this to produce an html report with execution details (such as memory usage, completion details, and much more)
-+ `N [email address]` Sends email to the specified address to notify the user regarding pipeline completion. Note that nextflow relies on the `sendmail` tool for this functionality- therefore `sendmail` must be available for this option to work.
 
 ## Annotation ##
 
