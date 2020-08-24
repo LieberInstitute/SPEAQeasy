@@ -16,3 +16,4 @@ Annotation/RSeQC/*
 
 ## backup stuff
 *.bkp
+.Rproj.user

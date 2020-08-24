@@ -1,0 +1,27 @@
+# Glossary {#glossary}
+
+**Cluster**: shorthand for "performance computing cluster"- a network of many machines, which a member may utilize to interactively run or submit computational jobs. Most data analysis for genomics data is performed on a cluster, which collectively has far more memory and computing power than say, an individual's laptop or desktop machine.
+
+**Docker**: [Docker](https://www.docker.com/) is a tool for creating, [sharing](https://hub.docker.com/), and running [containers](https://www.docker.com/resources/what-container). Containers package up software and dependencies, so that a piece of software runs identically on any machine (capable of running docker containers). The idea is to avoid difficult-to-predict differences in software and operating system versions between machines, which often affect how a single program behaves.
+
+**Docker image**: An image describes the exact environment (operating system, installed programs, etc) needed to run a piece of software. [Containers](https://www.docker.com/resources/what-container) are the processes which run from a specified Docker image. For example, the `libddocker/rseqc:3.0.1` docker image exists to run [RSeQC](http://rseqc.sourceforge.net/) 3.0.1- thus the image contains a particular version of Python and associated libraries, ensuring consistent execution on a different machine.
+
+**ERCC**:
+
+**FASTA**: a file [format](https://zhanglab.ccmb.med.umich.edu/FASTA/) for storing nucleotide sequences in plain-text
+
+**Features (i.e. genes, exons, junctions, transcripts)**:
+
+**GTF**: a file [format](https://useast.ensembl.org/info/website/upload/gff.html) for storing sequence ranges and associated annotation/information
+
+**MD5 sum**: a number (often displayed as a hexadecimal string) commonly used as a checksum to verify the integrity of files (such as after transferring a large file to a new filesystem). The `samples.manifest` [file](#manifest) optionally can include MD5 sums for each FASTQ file, though SPEAQeasy does not verify file integrity.
+
+**Module**: in the context of SPEAQeasy and its documentation, a `module` refers to an [Lmod environment module](https://lmod.readthedocs.io/en/latest/). Nextflow can be very simply configured to use modules to manage software, but this typically involves significantly more work unless the modules already exist on the system where SPEAQeasy will be run. Modules are "units of software" which can be loaded with a simple command, and potentially shared by many users.
+
+**Nextflow**:
+
+**Bookdown**:
+
+**RNA-seq**:
+
+**Stranded/strandedness**:

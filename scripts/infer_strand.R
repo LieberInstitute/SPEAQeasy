@@ -18,7 +18,8 @@ spec <- matrix(c(
     'reverse', 'r', 1, 'numeric', 'forward count of psuedo-aligned reads',
     'paired', 'p', 1, 'character', '"paired" or "single"',
     'supposedStrand', 's', 1, 'character', 'user-provided strandness',
-    'forceStrand', 'x', 1, 'logical', 'bypass errors from strand disagreement'
+    'forceStrand', 'x', 1, 'logical', 'bypass errors from strand disagreement',
+    'id', 'i', 1, 'character', 'sample ID'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
 
@@ -62,13 +63,7 @@ if (1 - f_frac < thres_strand) {
 #  user-provided strandness
 #######################################################################
 
-if (opt$paired == "paired") {
-    id = strsplit(list.files(pattern=".+_1\\.f.*q.*"), "_1\\.f")[[1]][1]
-} else {
-    id = strsplit(list.files(pattern=".+\\.f.*q.*"), "\\.f")[[1]][1]
-}
-
-writeLines(strandness, con=paste0(id, "_strandness_pattern.txt"))
+writeLines(strandness, con=paste0(opt$id, "_strandness_pattern.txt"))
 
 if (strandness != opt$supposedStrand) {
     default_message = paste0("You have specified that reads should be ", opt$supposedStrand, 

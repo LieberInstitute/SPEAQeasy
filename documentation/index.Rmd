@@ -1,0 +1,15 @@
+---
+title: "SPEAQeasy"
+author: "Nicholas J. Eagles"
+site: bookdown::bookdown_site
+documentclass: book
+output:
+  bookdown::gitbook: default
+  #bookdown::pdf_book: default
+---
+
+# Overview
+
+SPEAQeasy is a [Nextflow](https://www.nextflow.io/)-based **S**calable RNA-seq **P**ipeline for **E**xpression **A**nd **Q**uantification.
+
+This book was last updated on `r Sys.time()`.

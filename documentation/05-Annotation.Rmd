@@ -1,0 +1,45 @@
+# Annotation {#annotation}
+
+SPEAQeasy can be run with hg38, hg19, mm10, or rn6 references. The pipeline has a default and automated process for pulling and building annotation-related files, but the user can opt to provide their own annotation as an alternative. Both of these options are documented below. In general, the pipeline uses three types of files. Example files below are the ones used with default [configuration](#configuration) when hg38 reference is selected.
+
+* *A genome assembly fasta*: the reference genome to align reads to, like the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/GRCh38.primary_assembly.genome.fa.gz) (but unzipped)
+* *Gene annotation gtf*: containing transcript data, like the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.annotation.gtf.gz) (but unzipped)
+* *A transcripts fasta*: with the actual transcript sequences, such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.transcripts.fa.gz) (but unzipped)
+
+## Default Annotation
+
+SPEAQeasy uses annotation files provided by [GENCODE](ftp://ftp.ebi.ac.uk/pub/databases/gencode/) where possible- which is for references hg38, hg19, and mm10. For rn6, files are pulled directly from [Ensembl](ftp://ftp.ensembl.org/pub/).
+
+### Choosing a release ###
+
+With genome and transcript annotation constantly being updated, the user may want to use a particular GENCODE release or Ensembl version. For each species, there is a corresponding [configuration](#configuration) variable you may set to control the versions used. The variables `gencode_version_human` and `gencode_version_mouse` refer to the GENCODE release number. Similarly, the variable `ensembl_version_rat` specifies the Ensembl version for "rn6" reference.
+
+![Configuration of default annotation](images/5.2_anno_config.png)
+
+### Choosing a "build" ###
+
+Depending on the analysis you are doing, you may wish to only consider the reference chromosomes (for humans, the 25 sequences chr1 through chrM) for alignment and transcript quantification. SPEAQeasy provides the option to choose from two annotation "builds" for a given release and reference, called "main" and "primary" (following the naming convention from GENCODE databases).
+
+* The "main" build consists of only the canonical "reference" sequences for each species
+* The "primary" build consists of the canonical "reference" sequences and additional scaffolds, as a genome primary assembly fasta from GENCODE would contain. [THIS PROBABLY NEEDS A LINK TO GENCODE W/ DESCRIPTION OF WHAT "PRIMARY" MEANS].
+See the variable `annotation_build` in your [configuration](#configuration) file for making this selection for your pipeline run.
+
+### Additional Annotation files ###
+
+A .bed file containing common SNV (single nucleotide variation) sites, at which variant calling is performed (for human and mouse). Variant calling is not currently supported for rat or mouse (rn6 or mm10, respectively).
+An ERCC index [EXPLAIN MORE HERE]
+
+## Custom Annotation
+
+You may wish to provide specific reference files in place of the automatically managed files described in the above section. In this case, you must supply the following files in the directory specified in the [command-line option](#command-opts) `--annotation [dir]`:
+
+* A genome assembly fasta (the reference genome to align reads to), such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/GRCh38.primary_assembly.genome.fa.gz). Make sure the file has the string "assembly" in the filename, to specify to the pipeline that it is the genome reference fasta.
+* Gene annotation gtf, such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.annotation.gtf.gz)- but not gzipped. This file can have any name, so long as it ends in ".gtf".
+* A transcripts fasta, such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.transcripts.fa.gz)- but not gzipped. Make sure to include "transcripts" anywhere in the filename (provided the file ends in ".fa") to differentiate this file from the reference genome.
+
+### Optional files to include depending on your use-case ###
+
+* An ERCC index (this is a file specific to Kallisto needed for ERCC quantification, which is an optional component of the pipeline). You can find the index used by default at `[repository directory]/Annotation/ERCC/ERCC92.idx`. This file must end in ".idx".
+* A list of SNV sites at which to call variants (in .bed format). Variant calling is by default only enabled for human reference. You can find the .bed files used by default for "hg38" and "hg19" at `[repository directory]/Annotation/Genotyping/common_missense_SNVs_hg*.bed`. This file can have any name provided it has the ".bed" extension.
+
+You must also add the `--custom_anno [label]` argument to your `run_pipeline_X.sh` script, to specify you are using custom annotation files. The "label" is a string you want to include in filenames generated from the annotation files you provided. This is intended to allow the use of potentially many different custom annotations, assigned a unique and informative name you choose each time. This can be anything except an empty string (which internally signifies not to use custom annotation).
