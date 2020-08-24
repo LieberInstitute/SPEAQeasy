@@ -82,6 +82,7 @@
 <li class="chapter" data-level="3.3.3" data-path="setup-details.html"><a href="setup-details.html#run-locally"><i class="fa fa-check"></i><b>3.3.3</b> Run locally</a></li>
 <li class="chapter" data-level="3.3.4" data-path="setup-details.html"><a href="setup-details.html#run-on-the-jhpce-cluster"><i class="fa fa-check"></i><b>3.3.4</b> Run on the <span>JHPCE</span> cluster</a></li>
 <li class="chapter" data-level="3.3.5" data-path="setup-details.html"><a href="setup-details.html#example-main-script"><i class="fa fa-check"></i><b>3.3.5</b> Example main script</a></li>
+<li class="chapter" data-level="3.3.6" data-path="setup-details.html"><a href="setup-details.html#advanced-info-regarding-installation"><i class="fa fa-check"></i><b>3.3.6</b> Advanced info regarding installation</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="command-opts.html"><a href="command-opts.html"><i class="fa fa-check"></i><b>4</b> All Command Options</a><ul>
@@ -113,7 +114,10 @@
 <li class="chapter" data-level="7.1.1" data-path="manifest.html"><a href="manifest.html#more-details-regarding-inputs"><i class="fa fa-check"></i><b>7.1.1</b> More details regarding inputs</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="outputs.html"><a href="outputs.html"><i class="fa fa-check"></i><b>8</b> Pipeline Outputs</a></li>
+<li class="chapter" data-level="8" data-path="outputs.html"><a href="outputs.html"><i class="fa fa-check"></i><b>8</b> Pipeline Outputs</a><ul>
+<li class="chapter" data-level="8.1" data-path="outputs.html"><a href="outputs.html#main-outputs"><i class="fa fa-check"></i><b>8.1</b> Main Outputs</a></li>
+<li class="chapter" data-level="8.2" data-path="outputs.html"><a href="outputs.html#intermediary-outputs"><i class="fa fa-check"></i><b>8.2</b> Intermediary Outputs</a></li>
+</ul></li>
 <li class="chapter" data-level="9" data-path="quick-start.html"><a href="quick-start.html#configuration"><i class="fa fa-check"></i><b>9</b> Configuration</a><ul>
 <li class="chapter" data-level="9.1" data-path="configuration.html"><a href="configuration.html"><i class="fa fa-check"></i><b>9.1</b> Specifying Options for your Cluster</a><ul>
 <li class="chapter" data-level="9.1.1" data-path="configuration.html"><a href="configuration.html#time"><i class="fa fa-check"></i><b>9.1.1</b> Time</a></li>
@@ -158,7 +162,22 @@
             <section class="normal" id="section-">
 <div id="outputs" class="section level1">
 <h1><span class="header-section-number">8</span> Pipeline Outputs</h1>
+<div id="main-outputs" class="section level2">
+<h2><span class="header-section-number">8.1</span> Main Outputs</h2>
+<div class="figure">
+<img src="images/7_main_outputs.png" alt="" />
+<p class="caption">Main Outputs</p>
+</div>
+<p>Most importantly, SPEAQeasy generates <a href="https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html"><code>RangedSummarizedExperiment</code></a> objects storing counts at several features (genes, exons, and exon-exon junctions). A number of <a href="https://bioconductor.org/">Bioconductor</a> packages can be trivially utilized to perform desired differential expression analyses from counts in the widespread <code>SummarizedExperiment</code> format, and we provide a <a href="NEEDS%20A%20LINK!">vignette</a> demonstrating an example analysis.</p>
+<p>For human samples, variants are called at a list of common missense single nucleotide variants (SNVs), and SPEAQeasy ultimately a single VCF file to store genotype calls at these sites for all samples in the experiment. We provide a <a href="NEEDS%20A%20LINK!">guide</a> walking through how this genotype data can be used to resolve identity issues that arise during sequencing, salvaging samples which otherwise might be dropped from further analysis.</p>
+<p>Finally, expressed regions data is optionally generated (with the <code>--coverage</code> <a href="command-opts.html#command-opts">option</a>). The <code>RData</code> files provide a starting point for finding differentially expressed regions (DERs), for analyses involving this end goal.</p>
+</div>
+<div id="intermediary-outputs" class="section level2">
+<h2><span class="header-section-number">8.2</span> Intermediary Outputs</h2>
+<p>SPEAQeasy generates a number of files along the process before producing the main outputs of interest.</p>
+<p>[TODO: add table using markdown, similar to supplementary table in manuscript]</p>
 
+</div>
 </div>
             </section>
 

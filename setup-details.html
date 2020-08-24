@@ -82,6 +82,7 @@
 <li class="chapter" data-level="3.3.3" data-path="setup-details.html"><a href="setup-details.html#run-locally"><i class="fa fa-check"></i><b>3.3.3</b> Run locally</a></li>
 <li class="chapter" data-level="3.3.4" data-path="setup-details.html"><a href="setup-details.html#run-on-the-jhpce-cluster"><i class="fa fa-check"></i><b>3.3.4</b> Run on the <span>JHPCE</span> cluster</a></li>
 <li class="chapter" data-level="3.3.5" data-path="setup-details.html"><a href="setup-details.html#example-main-script"><i class="fa fa-check"></i><b>3.3.5</b> Example main script</a></li>
+<li class="chapter" data-level="3.3.6" data-path="setup-details.html"><a href="setup-details.html#advanced-info-regarding-installation"><i class="fa fa-check"></i><b>3.3.6</b> Advanced info regarding installation</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="command-opts.html"><a href="command-opts.html"><i class="fa fa-check"></i><b>4</b> All Command Options</a><ul>
@@ -113,7 +114,10 @@
 <li class="chapter" data-level="7.1.1" data-path="manifest.html"><a href="manifest.html#more-details-regarding-inputs"><i class="fa fa-check"></i><b>7.1.1</b> More details regarding inputs</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="outputs.html"><a href="outputs.html"><i class="fa fa-check"></i><b>8</b> Pipeline Outputs</a></li>
+<li class="chapter" data-level="8" data-path="outputs.html"><a href="outputs.html"><i class="fa fa-check"></i><b>8</b> Pipeline Outputs</a><ul>
+<li class="chapter" data-level="8.1" data-path="outputs.html"><a href="outputs.html#main-outputs"><i class="fa fa-check"></i><b>8.1</b> Main Outputs</a></li>
+<li class="chapter" data-level="8.2" data-path="outputs.html"><a href="outputs.html#intermediary-outputs"><i class="fa fa-check"></i><b>8.2</b> Intermediary Outputs</a></li>
+</ul></li>
 <li class="chapter" data-level="9" data-path="quick-start.html"><a href="quick-start.html#configuration"><i class="fa fa-check"></i><b>9</b> Configuration</a><ul>
 <li class="chapter" data-level="9.1" data-path="configuration.html"><a href="configuration.html"><i class="fa fa-check"></i><b>9.1</b> Specifying Options for your Cluster</a><ul>
 <li class="chapter" data-level="9.1.1" data-path="configuration.html"><a href="configuration.html#time"><i class="fa fa-check"></i><b>9.1.1</b> Time</a></li>
@@ -236,6 +240,13 @@
 <img src="images/2.3_example_main.png" alt="" />
 <p class="caption">Example script for JHPCE cluster</p>
 </div>
+</div>
+<div id="advanced-info-regarding-installation" class="section level3">
+<h3><span class="header-section-number">3.3.6</span> Advanced info regarding installation</h3>
+<ul>
+<li>If you are installing software to run the pipeline locally, all dependencies are installed into <code>[repo directory]/Software/</code>, and <code>[repo directory]/conf/command_paths_long.config</code> is configured to show nextflow the default installation locations of each software tool. Thus, this config file can be tweaked to manually point to different paths, if need be (though this shouldn’t be necessary).</li>
+<li>Nextflow supports the use of Lmod modules to conveniently point the pipeline to the bioinformatics software it needs. If you neither wish to use docker nor wish to install the many dependencies locally– and already have Lmod modules on your cluster– this is another option. In the appropriate config file (as determined in step 3 in the section you choose below), you can include a module specification line in the associated process (such as <code>module = 'hisat2/2.2.1'</code> for buildHISATindex) as configured in <em>conf/jhpce.config</em>. In most cases this will be more work to fully configure, and so running the pipeline with docker or locally installing software is generally recommended instead. See <a href="https://www.nextflow.io/docs/latest/process.html#module">nextflow modules</a> for some more information.</li>
+</ul>
 
 </div>
 </div>
