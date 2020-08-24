@@ -118,6 +118,12 @@ mkdir -p $REPO/hisat2/2.2.0
 docker build -t libddocker/hisat2:2.2.0 $REPO/hisat2/2.2.0
 docker push libddocker/hisat2:2.2.0
 
+#  2.2.1
+mkdir -p $REPO/hisat2/2.2.1
+#  produce $REPO/hisat2/2.2.1/Dockerfile
+docker build -t libddocker/hisat2:2.2.1 $REPO/hisat2/2.2.1
+docker push libddocker/hisat2:2.2.1
+
 ########################################################
 #  fastQC (0.11.8)
 ########################################################
