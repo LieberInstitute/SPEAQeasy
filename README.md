@@ -2,7 +2,7 @@
 
 ## Summary ##
 
-SPEAQeasy is a **S**calable RNA-seq **P**ipeline for **E**xpression and **Q**uantification based on the [RNAseq-pipeline](https://github.com/LieberInstitute/RNAseq-pipeline). Built on [nextflow](https://www.nextflow.io/), and capable of using Docker containers and utilizing common resource managers (e.g. SLURM), this port of the RNAseq-pipeline can be used in different computer environments.
+SPEAQeasy is a **S**calable RNA-seq **P**ipeline for **E**xpression **A**nd **Q**uantification based on the [RNAseq-pipeline](https://github.com/LieberInstitute/RNAseq-pipeline). Built on [nextflow](https://www.nextflow.io/), and capable of using Docker containers and utilizing common resource managers (e.g. SLURM), this port of the RNAseq-pipeline can be used in different computer environments.
 
 The main function of this pipeline is to produce comparable files to those used in [recount2](https://jhubiostatistics.shinyapps.io/recount/), a tool that provides gene, exon, exon-exon junction and base-pair level data.
 

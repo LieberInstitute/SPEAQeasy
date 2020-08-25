@@ -13,6 +13,34 @@ Finally, expressed regions data is optionally generated (with the `--coverage` [
 
 ## Intermediary Outputs
 
-SPEAQeasy generates a number of files along the process before producing the main outputs of interest.
+SPEAQeasy generates a number of files along the process before producing the main outputs of interest. Each of these "intermediary" files is described below.
 
-[TODO: add table using markdown, similar to supplementary table in manuscript]
+| Filename | Directory | Description |
+|-------------|--------------|----------------------------------------|
+| ercc_spikein_check_mix1.pdf | count_objects/ | ? |
+| rawCounts_[experiment_name]_n[num_samples].rda | count_objects/ | An R data file containing a number of matrices/ data frames containing raw gene, exon, exon-exon junction, and transcript counts. A data frame of quality metrics is also included. |
+| read_and_alignment_metrics_[experiment_name].csv | count_objects/ | A comma-separated values file of quality metrics. |
+| rpkm_counts_[experiment_name]_n[num_samples].rda | count_objects/ | The same data as in rawCounts_[experiment_name]_n[num_samples].rda, but normalized as reads-per-kilobase-million (RPKM). |
+| [sample_name]_[annotation_version]_Exons.counts | counts/ | Exon counts for each sample individually, as reported by [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) |
+| [sample_name]_[annotation_version]_Exons.counts.summary | counts/ | A summary of key information generated from quantifying exons on a particular sample with [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) |
+| [sample_name]_[annotation_version]_Gene.counts | counts/ | Gene counts for each sample individually, as reported by [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) |
+| [sample_name]_[annotation_version]_Gene.counts.summary | counts/ | A summary of key information generated from quantifying genes on a particular sample with [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) |
+| [sample_name]_junctions_primaryOnly_regtools.bed | counts/junction/ | A file in BED format describing junctions determined by [regtools](https://regtools.readthedocs.io/en/latest/) run on primary alignments for a given sample |
+| [sample_name]_junctions_primaryOnly_regtools.count | counts/junction/ | A text file describing the junction ranges and providing raw counts of hits for each junction, as output by [regtools](https://regtools.readthedocs.io/en/latest/) |
+| [sample_name].bam and [sample_name].bam.bai | counts/junction/primary_alignments/ | The subset of primary alignments for a given sample, in BAM format, along with an index for each BAM. |
+| mean.forward.bw and mean.reverse.bw | coverage/mean/ | BigWig files containing coverage information averaged across all samples in the experiment, and split by strand. |
+| [sample_name].[strand].wig | coverage/wigs/ | Wiggle files containing coverage information for a given sample and strand. |
+| abundance.tsv | ERCC/[sample_name]/ | [TODO] |
+| region_cuts_[strand].Rdata | expressed_regions/ | [TODO] |
+| region_cuts_raw_[strand].Rdata | expressed_regions/ | [TODO] |
+| region_info_[strand].Rdata | expressed_regions/ | [TODO] |
+| region_info_[strand].pdf | expressed_regions/ | [TODO] |
+| [trim_status]/[file_name]/* | fastQC/ | Outputs from [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/). Here trim_status indicates when FastQC was performed: Untrimmed is before trimming, and Trimmed is after. file_name contains the sample name, and if applicable, the mate number. |
+| [sample_name]_hisat_out.sam | HISAT2_out/ | The main alignment output from [Hisat2](http://daehwankimlab.github.io/hisat2/) in SAM format |
+| [sample_name]_align_summary.txt | HISAT2_out/ | The text-based alignment summary from [Hisat2](http://daehwankimlab.github.io/hisat2/). Note that metrics from these files are aggregated for the experiment, and so users likely will not need to check or process the original files manually (metrics). |
+| [sample_name]_accepted_hits.sorted.bam and [sample_name]_accepted_hits.sorted.bam.bai | HISAT2_out/sam_to_bam/ | Alignments from [Hisat2](http://daehwankimlab.github.io/hisat2/) where unmapped reads are filtered out, and the resulting BAM file is coordinate-sorted and indexed. |
+| [sample_name]_strandness_pattern.txt | infer_strandness/ | A text file containing the inferred strandness pattern for each sample. These files are primarily for internal use by the pipeline, and it is recommended to check the output file `samples_complete.manifest` to quickly view strandness patterns for all samples. |
+| samples_complete.manifest | infer_strandness/ | A version of the input samples.manifest, with an additional column listing the inferred strandness pattern for each sample |
+| * | kallisto_tx/[sample_name]/ | [TODO] |
+| [sample_name]_process_trace.log | logs/ | A SPEAQeasy-generated log tracing the processes and associated commands run for each sample. This is intended to help users quickly determine the source of any errors during pipeline execution (text). |
+| [sample_name]_trimmed*.fastq | trimming/ | Trimmed FASTQ files, if applicable, from [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) |
