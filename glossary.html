@@ -167,14 +167,14 @@
 <p><strong>Docker image</strong>: An image describes the exact environment (operating system, installed programs, etc) needed to run a piece of software. <a href="https://www.docker.com/resources/what-container">Containers</a> are the processes which run from a specified Docker image. For example, the <code>libddocker/rseqc:3.0.1</code> docker image exists to run <a href="http://rseqc.sourceforge.net/">RSeQC</a> 3.0.1- thus the image contains a particular version of Python and associated libraries, ensuring consistent execution on a different machine.</p>
 <p><strong>ERCC</strong>:</p>
 <p><strong>FASTA</strong>: a file <a href="https://zhanglab.ccmb.med.umich.edu/FASTA/">format</a> for storing nucleotide sequences in plain-text</p>
-<p><strong>Features (i.e. genes, exons, junctions, transcripts)</strong>:</p>
+<p><strong>Features</strong>: genomic sites of interest- in the case of SPEAQeasy, features include genes, exons, exon-exon junctions, and transcripts. These features are described using <a href="https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html"><code>GenomicRanges</code></a> objects as part of the main <a href="https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html"><code>RangedSummarizedExperiment</code></a> outputs from SPEAQeasy.</p>
 <p><strong>GTF</strong>: a file <a href="https://useast.ensembl.org/info/website/upload/gff.html">format</a> for storing sequence ranges and associated annotation/information</p>
 <p><strong>MD5 sum</strong>: a number (often displayed as a hexadecimal string) commonly used as a checksum to verify the integrity of files (such as after transferring a large file to a new filesystem). The <code>samples.manifest</code> <a href="manifest.html#manifest">file</a> optionally can include MD5 sums for each FASTQ file, though SPEAQeasy does not verify file integrity.</p>
 <p><strong>Module</strong>: in the context of SPEAQeasy and its documentation, a <code>module</code> refers to an <a href="https://lmod.readthedocs.io/en/latest/">Lmod environment module</a>. Nextflow can be very simply configured to use modules to manage software, but this typically involves significantly more work unless the modules already exist on the system where SPEAQeasy will be run. Modules are “units of software” which can be loaded with a simple command, and potentially shared by many users.</p>
-<p><strong>Nextflow</strong>:</p>
-<p><strong>Bookdown</strong>:</p>
+<p><strong><a href="https://www.nextflow.io/"><code>Nextflow</code></a></strong>: the workflow management language SPEAQeasy runs on, which organizes pieces of the pipeline into one coherent workflow that runs largely the same way for users of many different computer systems.</p>
+<p><strong><a href="https://bookdown.org/">`Bookdown’</a></strong>: an open-source R package we use to help generate and organize this documentation website, written in R markdown.</p>
 <p><strong>RNA-seq</strong>:</p>
-<p><strong>Stranded/strandedness</strong>:</p>
+<p><strong>Stranded/strandness</strong>: the orientation of RNA reads during sequencing. Depending on the sequencing protocol, some reads may be oriented in the direction of the ‘sense’ strand of corresponding cDNA, or potentially some in the ‘antisense’ direction. Strand-specific protocols are described as either “forward” or “reverse”; protocols which do not have a specific read orientation are called “unstranded” within SPEAQeasy.</p>
 
 </div>
             </section>
