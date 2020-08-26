@@ -109,11 +109,11 @@ if (paired) {
     
     #  Rewrite a manifest to reflect the file name changes and any merging
     print("Constructing a new manifest to reflect these changes...")
-    first_reads = basename(system('ls *_1.f*q*', intern=TRUE))
+    first_reads = list.files(pattern='.*_1\\.f.*q.*$')
     ids = ss(first_reads, '_1.', fixed=TRUE)
     new_man = paste(first_reads,
                     0,
-                    basename(system('ls *_2.f*q*', intern=TRUE)),
+                    list.files(pattern='.*_2\\.f.*q.*$'),
                     0,
                     ids)
     writeLines(new_man, con="samples_processed.manifest")
@@ -144,7 +144,7 @@ if (paired) {
     
     #  Rewrite a manifest to reflect the file name changes and any merging
     print("Constructing a new manifest to reflect these changes...")
-    reads = basename(system('ls *.f*q*', intern=TRUE))
+    reads = list.files(pattern='.*\\.f.*q.*$')
     ids = ss(reads, '.', fixed=TRUE)
     new_man = paste(reads, 0, ids)
     writeLines(new_man, con="samples_processed.manifest")
