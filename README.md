@@ -19,6 +19,15 @@ Beginning with a set of FASTQ files (optionally gzipped), SPEAQeasy ultimately p
 
 [Our vignette](http://research.libd.org/SPEAQeasy-example) demonstrates how genotype calls by SPEAQeasy can be coupled with user-provided genotype and phenotype data to easily resolve identity issues that arise during sequencing. We then walk through an example differential expression analysis and explore data visualization options.
 
+## Pipeline features ##
+
+- Automatically merge samples split across multiple FASTQ files, using the `samples.manifest` [input](http://research.libd.org/SPEAQeasy/manifest.html)
+- Trivially [select any GENCODE annotation release](http://research.libd.org/SPEAQeasy/annotation.html#choosing-a-release) for "hg38", "hg19", or "mm10" references (Ensembl for "rn6" reference) and [adjust other annotation settings](http://research.libd.org/SPEAQeasy/annotation.html#choosing-a-build) with simple configuration
+- Generates a single VCF file for experiments on human reference, which can be used to [resolve sample identity issues](http://research.libd.org/SPEAQeasy-example) and salvage problematic samples
+- Supports [docker to manage software dependencies and is preconfigured for execution locally or on SLURM or SGE clusters](http://research.libd.org/SPEAQeasy/setup-details.html#installation)
+- Multiple users can [share a single SPEAQeasy installation](http://research.libd.org/SPEAQeasy/setup-details.html#sharing-the-pipeline-with-many-users) with minimal work
+- Detailed, [user-friendly logging](http://research.libd.org/SPEAQeasy/help.html#deeper-investigation) for transparency and identifying potential issues
+
 
 ## Getting started ##
 
