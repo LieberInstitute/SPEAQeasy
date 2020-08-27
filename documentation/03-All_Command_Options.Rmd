@@ -30,7 +30,7 @@
 * `--unalign`        Include this flag to save discordant reads after the alignment step (false/ not included by default)
 * `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
 
-## Nextflow Options
+## Nextflow Options {#next-opts}
 
 The nextflow command itself provides many additional options you may add to your "main" script. A few of the most commonly applicable ones are documented below. For a full list, type `[path to nextflow] run -h`- the full list does not appear to be documented at [nextflow's website](https://www.nextflow.io/).
 

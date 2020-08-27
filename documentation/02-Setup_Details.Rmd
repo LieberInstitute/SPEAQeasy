@@ -75,3 +75,83 @@ After the main call, `nextflow main.nf`, each command option can be described li
 
 - If you are installing software to run the pipeline locally, all dependencies are installed into `[repo directory]/Software/`, and `[repo directory]/conf/command_paths_long.config` is configured to show nextflow the default installation locations of each software tool. Thus, this config file can be tweaked to manually point to different paths, if need be (though this shouldn't be necessary).
 - Nextflow supports the use of Lmod modules to conveniently point the pipeline to the bioinformatics software it needs. If you neither wish to use docker nor wish to install the many dependencies locally-- and already have Lmod modules on your cluster-- this is another option. In the appropriate config file (as determined in step 3 in the section you choose below), you can include a module specification line in the associated process (such as `module = 'hisat2/2.2.1'` for buildHISATindex) as configured in *conf/jhpce.config*. In most cases this will be more work to fully configure, and so running the pipeline with docker or locally installing software is generally recommended instead. See [nextflow modules](https://www.nextflow.io/docs/latest/process.html#module) for some more information.
+
+## Sharing the pipeline with many users
+
+A single installation of SPEAQeasy can be shared among potentially many users. New users can simply copy the appropriate "main" script (determined above) to a different desired directory, and modify the contents as appropriate for the particular experiment.
+
+**Note** It is recommended to use a unique working directory with the `-w` [option](#next-opts) for each experiment. This ensures:
+- SPEAQeasy resumes from the correct point, if ever stopped while multiple users are running the pipeline
+- Deleting the work directory (which can take a large amount of disk space) does not affect SPEAQeasy execution for other users
+
+New users who wish to include the `--coverage` [option](#command-opts) must also install RSeQC personally:
+
+```{bash}
+python3 -m pip install --user RSeQC==3.0.1
+```
+
+### Customizing execution for each user
+
+By default, all users will share the same [configuration](#configuration). This likely suffices for many use cases, but alternatively new configuration files can be created. Below we will walk through an example where a new user of a SLURM-based cluster wishes to use an existing SPEAQeasy installation, but wants a personal configuration file to specify different annotation settings.
+
+1. **Copy the existing configuration to a new file**
+
+```{bash}
+#  Verify we are in the SPEAQeasy repository
+pwd
+
+#  Create the new configuration file
+cp conf/slurm.config conf/my_new.config
+```
+
+2. **Modify the new file as desired**
+
+Below we will change the GENCODE release to the older release 25, for human, via the `gencode_version_human` variable.
+```{groovy}
+executor = 'slurm'
+
+params {
+  gencode_version_human = "25" // originally was "32"!
+  gencode_version_mouse = "M25"
+  ensembl_version_rat = "98"
+  anno_build = "main" // main or primary (main is canonical seqs only)
+```
+
+See [configuration](#configuration) for details on customizing SPEAQeasy settings.
+
+3. **Add the new file as a "profile"**
+
+This involves adding some code to `nextflow.config`, as shown below.
+
+```{groovy}
+profiles {
+  // Here we've named the new profile "my_new_config", and pointed it to the
+  // file "conf/my_new.config". Note that docker users should have the 2nd line
+  // "includeConfig 'conf/command_paths_short.config'" instead!
+  my_new_config {
+    includeConfig 'conf/my_new.config'
+    includeConfig 'conf/command_paths_long.config'
+  }
+  
+  // This configuration had already existed
+  local {
+    includeConfig 'conf/local.config'
+    includeConfig 'conf/command_paths_long.config'
+  }
+```
+
+4. **Reference the new profile in the "main" script**
+
+Recall that new users should copy the "main" script and modify the copy as appropriate. In this case, we open a copy of the original `run_pipeline_slurm.sh`:
+```{groovy}
+#  At the nextflow command, we change the '-profile' argument at the bottom
+$ORIG_DIR/Software/nextflow main.nf \
+    --sample "single" \
+    --reference "hg19" \
+    --strand "unstranded" \
+    --small_test \
+    --annotation "$ORIG_DIR/Annotation" \
+    -with-report execution_reports/pipeline_report.html \
+    -with-dag execution_DAGs/pipeline_DAG.html \
+    -profile my_new_config # this was changed from "-profile slurm"!
+```

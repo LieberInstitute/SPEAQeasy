@@ -6,7 +6,7 @@
 
 **Docker image**: An image describes the exact environment (operating system, installed programs, etc) needed to run a piece of software. [Containers](https://www.docker.com/resources/what-container) are the processes which run from a specified Docker image. For example, the `libddocker/rseqc:3.0.1` docker image exists to run [RSeQC](http://rseqc.sourceforge.net/) 3.0.1- thus the image contains a particular version of Python and associated libraries, ensuring consistent execution on a different machine.
 
-**ERCC**:
+**ERCC**: [External RNA Controls Consortium](https://www.nist.gov/programs-projects/external-rna-controls-consortium), a group who developed a set of controls for sources of variability in RNA-seq expression data attributed to platform, starting material quality, and other experimental covariates. ERCC spike-ins are polyadenylated transcripts which can be added at known concentration to each sample. Quantifying these spike-ins during analysis can help calibrate RNA-seq results and adjust for technical confounders. SPEAQeasy provides the `--ercc` [option](#command-opts) for experiments using ERCC spike-ins.
 
 **FASTA**: a file [format](https://zhanglab.ccmb.med.umich.edu/FASTA/) for storing nucleotide sequences in plain-text
 

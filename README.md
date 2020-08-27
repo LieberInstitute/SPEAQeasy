@@ -17,7 +17,7 @@ SPEAQeasy takes raw RNA-seq reads and produces analysis-ready R objects, providi
 
 Beginning with a set of FASTQ files (optionally gzipped), SPEAQeasy ultimately produces [`RangedSummarizedExperiment`](https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html) objects to store gene, exon, and exon-exon junction counts for an experiment. Optionally, expressed regions data is generated, enabling easy computation of differentially expressed regions (DERs).
 
-[Our vignette](NEEDS A LINK!) demonstrates how genotype calls by SPEAQeasy can be coupled with user-provided genotype and phenotype data to easily resolve identity issues that arise during sequencing. We then walk through an example differential expression analysis and explore data visualization options.
+[Our vignette](http://research.libd.org/SPEAQeasy-example) demonstrates how genotype calls by SPEAQeasy can be coupled with user-provided genotype and phenotype data to easily resolve identity issues that arise during sequencing. We then walk through an example differential expression analysis and explore data visualization options.
 
 
 ## Getting started ##
@@ -25,11 +25,6 @@ Beginning with a set of FASTQ files (optionally gzipped), SPEAQeasy ultimately p
 The [SPEAQeasy documentation website](http://research.libd.org/SPEAQeasy/index.html) describes the pipeline in full detail. For briefly getting started, check out the [quick start guide](http://research.libd.org/SPEAQeasy/quick-start.html).
 
 Because SPEAQeasy is based on the [nextflow](https://www.nextflow.io/) workflow manager, it supports execution on computing clusters managed by [SLURM](https://slurm.schedmd.com/overview.html) or [SGE](https://docs.oracle.com/cd/E19279-01/820-3257-12/n1ge.html) without any configuration (local execution is also possible). Those with access to [docker](https://www.docker.com/) can very simply use docker containers to manage SPEAQeasy software dependencies, though we provide a script for installing dependencies for users without docker or even root privileges.
-
-
-## Sharing the pipeline among many users ##
-  
-+ A common use-case may involve wanting to set up this pipeline once, and have potentially many users running this pipeline without additional work from the users. This can be achieved by following the above procedure to first set up the pipeline; any user wishing to execute the pipeline from a different location may simply copy the "main" script (`run_pipeline_[executor].sh`), modify as needed, and run.
 
 
 ## Annotation ##
