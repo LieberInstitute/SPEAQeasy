@@ -208,6 +208,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.3.1" data-path="help.html"><a href="help.html#trouble-resuming"><i class="fa fa-check"></i><b>11.3.1</b> Trouble resuming?</a></li>
 </ul></li>
 <li class="chapter" data-level="11.4" data-path="help.html"><a href="help.html#no-internet-access"><i class="fa fa-check"></i><b>11.4</b> No Internet Access?</a></li>
+<li class="chapter" data-level="11.5" data-path="help.html"><a href="help.html#docker-help"><i class="fa fa-check"></i><b>11.5</b> Docker help</a></li>
 </ul></li>
 <li class="chapter" data-level="12" data-path="glossary.html"><a href="glossary.html"><i class="fa fa-check"></i><b>12</b> Glossary</a></li>
 </ul>
@@ -319,9 +320,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="sharing-the-pipeline-with-many-users" class="section level2">
 <h2><span class="header-section-number">3.4</span> Sharing the pipeline with many users</h2>
 <p>A single installation of SPEAQeasy can be shared among potentially many users. New users can simply copy the appropriate “main” script (determined above) to a different desired directory, and modify the contents as appropriate for the particular experiment.</p>
-<p><strong>Note</strong> It is recommended to use a unique working directory with the <code>-w</code> <a href="command-opts.html#next-opts">option</a> for each experiment. This ensures:
-- SPEAQeasy resumes from the correct point, if ever stopped while multiple users are running the pipeline
-- Deleting the work directory (which can take a large amount of disk space) does not affect SPEAQeasy execution for other users</p>
+<p><strong>Note</strong> It is recommended to use a unique working directory with the <code>-w</code> <a href="command-opts.html#next-opts">option</a> for each experiment. This ensures:</p>
+<ul>
+<li>SPEAQeasy resumes from the correct point, if ever stopped while multiple users are running the pipeline</li>
+<li>Deleting the work directory (which can take a large amount of disk space) does not affect SPEAQeasy execution for other users</li>
+</ul>
 <p>New users who wish to include the <code>--coverage</code> <a href="command-opts.html#command-opts">option</a> must also install RSeQC personally:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="setup-details.html#cb1-1"></a><span class="ex">python3</span> -m pip install --user RSeQC==3.0.1</span></code></pre></div>
 <div id="customizing-execution-for-each-user" class="section level3">
