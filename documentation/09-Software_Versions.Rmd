@@ -23,7 +23,7 @@ Software | Version | Command used by the pipeline |
 |[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2.1 | `wiggletools` |
 |[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
 
-## Docker Images
+## Docker Images {#docker-images}
 
 The following container versions are used in this pipeline. These are automatically managed by SPEAQeasy.
 

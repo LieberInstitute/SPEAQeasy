@@ -18,9 +18,9 @@
 
 **Module**: in the context of SPEAQeasy and its documentation, a `module` refers to an [Lmod environment module](https://lmod.readthedocs.io/en/latest/). Nextflow can be very simply configured to use modules to manage software, but this typically involves significantly more work unless the modules already exist on the system where SPEAQeasy will be run. Modules are "units of software" which can be loaded with a simple command, and potentially shared by many users.
 
-**[`Nextflow`](https://www.nextflow.io/)**: the workflow management language SPEAQeasy runs on, which organizes pieces of the pipeline into one coherent workflow that runs largely the same way for users of many different computer systems. 
+**[Nextflow](https://www.nextflow.io/)**: the workflow management language SPEAQeasy runs on, which organizes pieces of the pipeline into one coherent workflow that runs largely the same way for users of many different computer systems. 
 
-**[`Bookdown'](https://bookdown.org/)**: an open-source R package we use to help generate and organize this documentation website, written in R markdown.
+**[Bookdown](https://bookdown.org/)**: an open-source R package we use to help generate and organize this documentation website, written in R markdown.
 
 **RNA-seq**:
 
