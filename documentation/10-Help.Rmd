@@ -64,3 +64,33 @@ This is the default in `jhpce.config`, `sge.config`, and `docker_sge.config`, bu
 
 * For users who do not have internet access when executing pipeline runs, you may first run `bash scripts/manual_annotation.sh`. This script must be run from the repository directory (from a machine with internet access). Modify the four lines in the "user configuration section" at the top of the script for your particular set-up. This sets up everything so that subsequent runs of the pipeline do not need an internet connection to complete.
 * Towards the end of the pipeline run, when R objects are created containing gene/exon/junction counts, some additional data is [pulled from biomaRt](https://bioconductor.org/packages/release/bioc/html/biomaRt.html) databases by default. However, if an internet connection is not available, this extra information is not pulled (and an error occurs). Users without access to the internet during pipeline execution should provide the `--no_biomart` [command flag](#command-opts) to suppress this error and continue without the additional biomaRt data. This is the only difference between runs with and without internet access.
+
+## Docker help
+
+For those who wish to use [docker](https://www.docker.com/) to manage SPEAQeasy software dependencies, we provide a brief set-up guide.
+
+1. **Install docker**
+
+A set of instructions for different operating systems are available on the [Docker site](https://docs.docker.com/installation/).
+
+2. **Create a docker group**
+
+```{bash, eval=FALSE}
+sudo addgroup docker
+```
+
+3. **Add user to docker group**
+
+```{bash, eval=FALSE}
+sudo usermod -aG docker <your_user>
+```
+
+4. **Checking installation**
+
+Log out and log back in to ensure your user is running with the correct permissions.
+
+[Test Docker installation](https://docs.docker.com/get-started/#test-docker-installation) by running:
+
+```{bash, eval=FALSE}
+docker run hello-world
+```
