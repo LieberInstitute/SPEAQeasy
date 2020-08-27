@@ -24,7 +24,7 @@ Note that disk space may also be the limitation (particularly for SGE users). Se
 
 ## Deeper Investigation
 
-If pipeline execution halts with an error, and the cause/solution does not appear to be described in the common issues [LINK TO 10.1], what can be done? This section provides information about next steps for debugging a potential problem.
+If pipeline execution halts with an error, and the cause/solution does not appear to be described in the [common issues](#docker-images), what can be done? This section provides information about next steps for debugging a potential problem.
 
 ### Checking Per-Sample Logs
 
