@@ -245,9 +245,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>SPEAQeasy generates a number of files along the process before producing the main outputs of interest. Each of these “intermediary” files is described below.</p>
 <table>
 <colgroup>
-<col width="17%" />
-<col width="21%" />
-<col width="61%" />
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -258,138 +258,138 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </thead>
 <tbody>
 <tr class="odd">
-<td>ercc_spikein_check_mix1.pdf</td>
-<td>count_objects/</td>
-<td>?</td>
-</tr>
-<tr class="even">
-<td>rawCounts_[experiment_name]_n[num_samples].rda</td>
-<td>count_objects/</td>
+<td><code>rawCounts_[experiment_name]_n[num_samples].rda</code></td>
+<td><code>count_objects/</code></td>
 <td>An R data file containing a number of matrices/ data frames containing raw gene, exon, exon-exon junction, and transcript counts. A data frame of quality metrics is also included.</td>
 </tr>
-<tr class="odd">
-<td>read_and_alignment_metrics_[experiment_name].csv</td>
-<td>count_objects/</td>
+<tr class="even">
+<td><code>read_and_alignment_metrics_[experiment_name].csv</code></td>
+<td><code>count_objects/</code></td>
 <td>A comma-separated values file of quality metrics.</td>
 </tr>
-<tr class="even">
-<td>rpkm_counts_[experiment_name]_n[num_samples].rda</td>
-<td>count_objects/</td>
+<tr class="odd">
+<td><code>rpkm_counts_[experiment_name]_n[num_samples].rda</code></td>
+<td><code>count_objects/</code></td>
 <td>The same data as in rawCounts_[experiment_name]_n[num_samples].rda, but normalized as reads-per-kilobase-million (RPKM).</td>
 </tr>
+<tr class="even">
+<td><code>[sample_name]_[annotation_version]_Exons.counts</code></td>
+<td><code>counts/</code></td>
+<td>Exon counts for each sample individually, as reported by <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</td>
+</tr>
 <tr class="odd">
-<td>[sample_name]_[annotation_version]_Exons.counts</td>
-<td>counts/</td>
-<td>Exon counts for each sample individually, as reported by <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a></td>
+<td><code>[sample_name]_[annotation_version]_Exons.counts.summary</code></td>
+<td><code>counts/</code></td>
+<td>A summary of key information generated from quantifying exons on a particular sample with <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</td>
 </tr>
 <tr class="even">
-<td>[sample_name]_[annotation_version]_Exons.counts.summary</td>
-<td>counts/</td>
-<td>A summary of key information generated from quantifying exons on a particular sample with <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a></td>
+<td><code>[sample_name]_[annotation_version]_Gene.counts</code></td>
+<td><code>counts/</code></td>
+<td>Gene counts for each sample individually, as reported by <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</td>
 </tr>
 <tr class="odd">
-<td>[sample_name]_[annotation_version]_Gene.counts</td>
-<td>counts/</td>
-<td>Gene counts for each sample individually, as reported by <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a></td>
+<td><code>[sample_name]_[annotation_version]_Gene.counts.summary</code></td>
+<td><code>counts/</code></td>
+<td>A summary of key information generated from quantifying genes on a particular sample with <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</td>
 </tr>
 <tr class="even">
-<td>[sample_name]_[annotation_version]_Gene.counts.summary</td>
-<td>counts/</td>
-<td>A summary of key information generated from quantifying genes on a particular sample with <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a></td>
+<td><code>[sample_name]_junctions_primaryOnly_regtools.bed</code></td>
+<td><code>counts/junction/</code></td>
+<td>A file in BED format describing junctions determined by <a href="https://regtools.readthedocs.io/en/latest/">regtools</a> run on primary alignments for a given sample.</td>
 </tr>
 <tr class="odd">
-<td>[sample_name]_junctions_primaryOnly_regtools.bed</td>
-<td>counts/junction/</td>
-<td>A file in BED format describing junctions determined by <a href="https://regtools.readthedocs.io/en/latest/">regtools</a> run on primary alignments for a given sample</td>
+<td><code>[sample_name]_junctions_primaryOnly_regtools.count</code></td>
+<td><code>counts/junction/</code></td>
+<td>A text file describing the junction ranges and providing raw counts of hits for each junction, as output by <a href="https://regtools.readthedocs.io/en/latest/">regtools</a>.</td>
 </tr>
 <tr class="even">
-<td>[sample_name]_junctions_primaryOnly_regtools.count</td>
-<td>counts/junction/</td>
-<td>A text file describing the junction ranges and providing raw counts of hits for each junction, as output by <a href="https://regtools.readthedocs.io/en/latest/">regtools</a></td>
-</tr>
-<tr class="odd">
-<td>[sample_name].bam and [sample_name].bam.bai</td>
-<td>counts/junction/primary_alignments/</td>
+<td><code>[sample_name].bam</code> and <code>[sample_name].bam.bai</code></td>
+<td><code>counts/junction/primary_alignments/</code></td>
 <td>The subset of primary alignments for a given sample, in BAM format, along with an index for each BAM.</td>
 </tr>
+<tr class="odd">
+<td><code>abundance.tsv</code></td>
+<td><code>ERCC/[sample_name]/</code></td>
+<td>The output from running <a href="https://pachterlab.github.io/kallisto/">Kallisto</a> against the 92 <a href="https://www.thermofisher.com/order/catalog/product/4456740">ERCC RNA Spike Mix</a> sequences for each sample.</td>
+</tr>
 <tr class="even">
-<td>mean.forward.bw and mean.reverse.bw</td>
-<td>coverage/mean/</td>
-<td>BigWig files containing coverage information averaged across all samples in the experiment, and split by strand.</td>
+<td><code>ercc_spikein_check_mix1.pdf</code></td>
+<td><code>count_objects/</code></td>
+<td>A plot comparing the Mix1 <a href="https://tools.thermofisher.com/content/sfs/manuals/cms_095046.txt">expected concentration</a> against the observed counts from <a href="https://pachterlab.github.io/kallisto/">Kallisto</a>.</td>
 </tr>
 <tr class="odd">
-<td>[sample_name].[strand].wig</td>
-<td>coverage/wigs/</td>
+<td><code>[sample_name].[strand].wig</code></td>
+<td><code>coverage/wigs/</code></td>
 <td>Wiggle files containing coverage information for a given sample and strand.</td>
 </tr>
 <tr class="even">
-<td>abundance.tsv</td>
-<td>ERCC/[sample_name]/</td>
-<td>[TODO]</td>
+<td><code>mean.forward.bw</code> and <code>mean.reverse.bw</code></td>
+<td><code>coverage/mean/</code></td>
+<td>BigWig files containing coverage information averaged across all samples in the experiment, and split by strand.</td>
 </tr>
 <tr class="odd">
-<td>region_cuts_[strand].Rdata</td>
-<td>expressed_regions/</td>
-<td>[TODO]</td>
+<td><code>region_cuts_raw_[strand].Rdata</code></td>
+<td><code>expressed_regions/</code></td>
+<td>An R object called <code>region_cuts_raw</code> that is a list with one element per chromosome, then a nested element per cutoff used for identifying expressed regions using <a href="https://bioconductor.org/packages/derfinder"><code>derfinder::findRegions()</code></a>.</td>
 </tr>
 <tr class="even">
-<td>region_cuts_raw_[strand].Rdata</td>
-<td>expressed_regions/</td>
-<td>[TODO]</td>
+<td><code>region_cuts_[strand].Rdata</code></td>
+<td><code>expressed_regions/</code></td>
+<td>An R object called <code>region_cuts</code> that is a list with one element per cutoff that contains a <code>GenomicRanges::GRanges()</code> object with the expressed regions across all chromosomes.</td>
 </tr>
 <tr class="odd">
-<td>region_info_[strand].Rdata</td>
-<td>expressed_regions/</td>
-<td>[TODO]</td>
+<td><code>region_info_[strand].Rdata</code></td>
+<td><code>expressed_regions/</code></td>
+<td>An R object called <code>regInfo</code> that is a <code>data.frame</code> with the columns: <code>cutoff</code>, <code>n</code>, <code>mean</code>, and <code>sd</code>. This table summarizes the number, mean width, sd of the width for the expressed regions identified at each cutoff.</td>
 </tr>
 <tr class="even">
-<td>region_info_[strand].pdf</td>
-<td>expressed_regions/</td>
-<td>[TODO]</td>
+<td><code>region_info_[strand].pdf</code></td>
+<td><code>expressed_regions/</code></td>
+<td>A PDF with a few exploratory plots made using <code>regInfo</code> that evaluate how the cutoff for identifying the expressed regions affects the number of ERs, their mean width, the sd of their width. These are the visualization plots recommended for choosing a cutoff as described on the <code>derfinder</code> <a href="https://doi.org/10.1093/nar/gkw852">manuscript</a> at Figure S4 <a href="https://github.com/leekgroup/derSupplement/blob/gh-pages/derfinder_supplement.pdf">available here</a>.</td>
 </tr>
 <tr class="odd">
-<td>[trim_status]/[file_name]/*</td>
-<td>fastQC/</td>
+<td><code>[trim_status]/[file_name]/*</code></td>
+<td><code>fastQC/</code></td>
 <td>Outputs from <a href="https://www.bioinformatics.babraham.ac.uk/projects/fastqc/">FastQC</a>. Here trim_status indicates when FastQC was performed: Untrimmed is before trimming, and Trimmed is after. file_name contains the sample name, and if applicable, the mate number.</td>
 </tr>
 <tr class="even">
-<td>[sample_name]_hisat_out.sam</td>
-<td>HISAT2_out/</td>
-<td>The main alignment output from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a> in SAM format</td>
+<td><code>[sample_name]_hisat_out.sam</code></td>
+<td><code>HISAT2_out/</code></td>
+<td>The main alignment output from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a> in SAM format.</td>
 </tr>
 <tr class="odd">
-<td>[sample_name]_align_summary.txt</td>
-<td>HISAT2_out/</td>
+<td><code>[sample_name]_align_summary.txt</code></td>
+<td><code>HISAT2_out/</code></td>
 <td>The text-based alignment summary from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a>. Note that metrics from these files are aggregated for the experiment, and so users likely will not need to check or process the original files manually (metrics).</td>
 </tr>
 <tr class="even">
-<td>[sample_name]_accepted_hits.sorted.bam and [sample_name]_accepted_hits.sorted.bam.bai</td>
-<td>HISAT2_out/sam_to_bam/</td>
+<td><code>[sample_name]_accepted_hits.sorted.bam</code> and <code>[sample_name]_accepted_hits.sorted.bam.bai</code></td>
+<td><code>HISAT2_out/sam_to_bam/</code></td>
 <td>Alignments from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a> where unmapped reads are filtered out, and the resulting BAM file is coordinate-sorted and indexed.</td>
 </tr>
 <tr class="odd">
-<td>[sample_name]_strandness_pattern.txt</td>
-<td>infer_strandness/</td>
+<td><code>[sample_name]_strandness_pattern.txt</code></td>
+<td><code>infer_strandness/</code></td>
 <td>A text file containing the inferred strandness pattern for each sample. These files are primarily for internal use by the pipeline, and it is recommended to check the output file <code>samples_complete.manifest</code> to quickly view strandness patterns for all samples.</td>
 </tr>
 <tr class="even">
-<td>samples_complete.manifest</td>
-<td>infer_strandness/</td>
+<td><code>samples_complete.manifest</code></td>
+<td><code>infer_strandness/</code></td>
 <td>A version of the input samples.manifest, with an additional column listing the inferred strandness pattern for each sample</td>
 </tr>
 <tr class="odd">
-<td>*</td>
-<td>kallisto_tx/[sample_name]/</td>
+<td>[TODO]</td>
+<td><code>kallisto_tx/[sample_name]/</code></td>
 <td>[TODO]</td>
 </tr>
 <tr class="even">
-<td>[sample_name]_process_trace.log</td>
-<td>logs/</td>
+<td><code>[sample_name]_process_trace.log</code></td>
+<td><code>logs/</code></td>
 <td>A SPEAQeasy-generated log tracing the processes and associated commands run for each sample. This is intended to help users quickly determine the source of any errors during pipeline execution (text).</td>
 </tr>
 <tr class="odd">
-<td>[sample_name]_trimmed*.fastq</td>
-<td>trimming/</td>
+<td><code>[sample_name]_trimmed*.fastq</code></td>
+<td><code>trimming/</code></td>
 <td>Trimmed FASTQ files, if applicable, from <a href="http://www.usadellab.org/cms/?page=trimmomatic">Trimmomatic</a></td>
 </tr>
 </tbody>
