@@ -55,18 +55,6 @@ This pipeline has been successfully run in the following Operative System(s):
 * [Ubuntu 16.04.4 LTS](https://www.ubuntu.com/download/alternative-downloads)
 
 
-## Genomes ##
-
-This pipeline works for the following genomes and versions:
-
-| Genome Build | Organism |
-|--------|------|
-|hg19| human |
-|hg38| human |
-|mm10| mouse |
-|rna6| rat |
-
-
 ## Authors ##
 
 Original Pipeline
@@ -81,7 +69,7 @@ Nextflow Port
  [Jacob Leonard](mailto:leonard.jacob09@gmail.com),
  [Israel Aguilar](mailto:iaguilaror@gmail.com),
  [Violeta Larios](mailto:siedracko@gmail.com),
- [Everardo Gutierrez](mailto:ever.gmillan@gmail.com)
+ [Everardo Gutierrez](mailto:ever.gmillan@gmail.com),
  [Nick Eagles](mailto:nick.eagles@libd.org)
 
 ## Contact ##
