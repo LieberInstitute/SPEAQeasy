@@ -17,7 +17,7 @@ SPEAQeasy generates a number of files along the process before producing the mai
 
 
 | Filename | Description |
-| --- | ----- |
+| - | ----- |
 | `count_objects/ercc_spikein_check_mix1.pdf` | A plot comparing the Mix1 [expected concentration](https://tools.thermofisher.com/content/sfs/manuals/cms_095046.txt) against the observed counts from [Kallisto](https://pachterlab.github.io/kallisto/). |
 | `count_objects/rawCounts_[experiment_name]_n[num_samples].rda` | An R data file containing a number of matrices/ data frames containing raw gene, exon, exon-exon junction, and transcript counts. A data frame of quality metrics is also included. |
 | `count_objects/read_and_alignment_metrics_[experiment_name].csv`  | A comma-separated values file of quality metrics. |
