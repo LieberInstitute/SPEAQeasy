@@ -15,7 +15,6 @@ $ORIG_DIR/Software/nextflow main.nf \
     --strand "unstranded" \
     --annotation "$ORIG_DIR/Annotation" \
     -with-report execution_reports/pipeline_report.html \
-    -with-dag execution_DAGs/pipeline_DAG.html \
     -profile local \
     2>&1 | tee -a SPEAQeasy_output.log
     

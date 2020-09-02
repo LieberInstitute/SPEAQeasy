@@ -15,7 +15,6 @@ nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \
     --trim_mode "force" \
     --annotation "/dcl01/lieber/ajaffe/Nick/RNAsp/Annotation" \
     -with-report execution_reports/JHPCE_run.html \
-    -with-dag execution_DAGs/JHPCE_run.html \
     -profile jhpce \
     -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
     --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results"

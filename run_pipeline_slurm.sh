@@ -17,7 +17,6 @@ $ORIG_DIR/Software/nextflow main.nf \
     --small_test \
     --annotation "$ORIG_DIR/Annotation" \
     -with-report execution_reports/pipeline_report.html \
-    -with-dag execution_DAGs/pipeline_DAG.html \
     -profile slurm
     
 #  Produces a report for each sample tracing the pipeline steps
