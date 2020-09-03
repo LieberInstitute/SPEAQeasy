@@ -230,10 +230,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="pipeline-overview" class="section level1">
 <h1><span class="header-section-number">5</span> Pipeline Overview</h1>
-<div class="figure">
-<img src="images/4_workflow.png" alt="" />
-<p class="caption">Functional workflow</p>
-</div>
+<p><img src="images/4_workflow.png" />
+<em>Diagram representing the “conceptual” workflow traversed by SPEAQeasy. Here some nextflow <a href="https://www.nextflow.io/docs/latest/process.html"><code>processes</code></a> are grouped together for simplicity; the exact processes traversed are enumerated below. The red box indicates the FASTQ files are inputs to the pipeline; green coloring denotes major output files from the pipeline; the remaining boxes represent computational steps. Yellow-colored steps are optional or not always performed; for example, preparing a particular set of annotation files occurs once and uses a cache for further runs. Finally, blue-colored steps are ordinary processes which occur on every pipeline execution.</em></p>
 <div id="preparation-steps" class="section level2">
 <h2><span class="header-section-number">5.1</span> Preparation Steps</h2>
 <p>The following processes in the pipeline are done only once for a given configuration, and are skipped on all subsequent runs:</p>
