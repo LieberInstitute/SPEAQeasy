@@ -56,7 +56,7 @@ See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional
 
 Below is a full example of a typical main script, modified from the `run_pipeline_jhpce.sh` script. At the top are some cluster-specific options, recognized by SGE, the grid scheduler at the JHPCE cluster. These are optional, and you may consider adding appropriate options similarly, if you plan to use SPEAQeasy on a computing cluster.
 
-After the main call, `nextflow main.nf`, each command option can be described line by line:
+After the main call, `nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf`, each command option can be described line by line:
 
 - `--sample "paired"`: input samples are paired-end
 - `--reference "mm10"`: these are mouse samples, to be aligned to the mm10 genome
@@ -69,7 +69,37 @@ After the main call, `nextflow main.nf`, each command option can be described li
 - `-w "/scratch/nextflow_runs"`: this is a nextflow-specific command option (note the single dash), telling SPEAQeasy that temporary files for the pipeline run can be placed under `/scratch/nextflow_runs`
 - `--output "/users/neagles/RNA_output"`: SPEAQeasy output files should be placed under `/users/neagles/RNA_output`
 
-![Example script for JHPCE cluster](images/2.3_example_main.png)
+```{bash, eval=FALSE}
+#!/bin/bash
+#$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=150G
+#$ -o ./run_brain_subset.log
+#$ -e ./run_brain_subset.log
+#$ -cwd
+
+module load nextflow
+export _JAVA_OPTIONS="-Xms8g -Xmx10g"
+
+nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \
+    --sample "paired" \
+    --reference "mm10" \
+    --strand "reverse" \
+    --ercc \
+    --trim_mode "skip" \
+    --experiment "mouse_brain" \
+    --input "/users/neagles/RNA_input" \
+    -profile jhpce \
+    -w "/scratch/nextflow_runs" \
+    --output "/users/neagles/RNA_output"
+    
+#  Produces a report for each sample tracing the pipeline steps
+#  performed (can be helpful for debugging).
+#
+#  Note that the reports are generated from the output log produced in the above
+#  section, and so if you rename the log, you must also pass replace the filename
+#  in the bash call below.
+echo "Generating per-sample logs for debugging..."
+bash /dcl01/lieber/ajaffe/Nick/RNAsp/scripts/generate_logs.sh $PWD/run_brain_subset.log
+```
 
 ### Advanced info regarding installation
 

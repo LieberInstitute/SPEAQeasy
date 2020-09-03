@@ -20,7 +20,12 @@ A line of paired-end reads could look like this:
 
 This is an example of a `samples.manifest` file for some paired-end samples. Note how the first sample "dm3" is split across more than one pair of files, and is to be merged:
 
-![An example manifest for paired-end data](images/6.1_manifest.png)
+```{bash, eval=FALSE}
+/scratch/dm3_file1_1.fastq	0	/scratch/dm3_file1_2.fastq	0	dm3
+/scratch/dm3_file2_1.fastq	0	/scratch/dm3_file2_2.fastq	0	dm3
+/scratch/sample_01_1.fastq.gz	0	/scratch/sample_01_2.fastq.gz	0	sample_01
+/scratch/sample_02_1.fastq.gz	0	/scratch/sample_02_2.fastq.gz	0	sample_02
+```
 
 ### More details regarding inputs ###
 

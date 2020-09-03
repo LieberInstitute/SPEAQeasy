@@ -14,7 +14,21 @@ SPEAQeasy uses annotation files provided by [GENCODE](ftp://ftp.ebi.ac.uk/pub/da
 
 With genome and transcript annotation constantly being updated, the user may want to use a particular GENCODE release or Ensembl version. For each species, there is a corresponding [configuration](#configuration) variable you may set to control the versions used. The variables `gencode_version_human` and `gencode_version_mouse` refer to the GENCODE release number. Similarly, the variable `ensembl_version_rat` specifies the Ensembl version for "rn6" reference.
 
-![Configuration of default annotation](images/5.2_anno_config.png)
+```{groovy, eval=FALSE}
+/*
+ *
+ *  A config file for execution in a SLURM environment
+ * 
+ */
+
+executor = 'slurm'
+
+params {
+    gencode_version_human = "32"
+    gencode_version_mouse = "M25"
+    ensembl_version_rat = "98"
+    anno_build = "main" // main or primary (main is canonical seqs only)
+```
 
 ### Choosing a "build" ###
 

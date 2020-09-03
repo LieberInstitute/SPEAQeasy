@@ -8,9 +8,15 @@ SPEAQeasy should be configured so that fundamental issues related to pipeline fu
 
 ![How Nextflow may report memory-related errors](images/10.1_error.png)
 
-Attempt to provide the process more memory in your config. In this case the configuration for PairedEndHISAT looks like this:
+Attempt to provide the process more memory in your config. In this case the configuration for PairedEndHISAT looks like this (for SGE users):
 
-![Memory Configuration](images/10.1_memory.png)
+```{groovy, eval=FALSE}
+withName: PairedEndHISAT {
+    cpus = 4
+    memory = '20.GB'
+    clusterOptions = '-l h_fsize=500G -R y'
+}
+```
 
 Note that disk space may also be the limitation (particularly for SGE users). See the [configuration](#configuration) section for more info.
 
@@ -20,7 +26,14 @@ Note that disk space may also be the limitation (particularly for SGE users). Se
 
 * *Nextflow has trouble communicating with your cluster*: a less common issue can occur on slower clusters, related to nextflow failing to poll your grid scheduler (like SGE or SLURM) for information it needs about the jobs that are running. This can show up in an error message like: `Process `PairedEndHISAT (Prefix: Sample_FE2P1_blood)` terminated for an unknown reason -- Likely it has been terminated by the external system`. We have found that raising the `exitReadTimeout` to a large value (such as 30 minutes) solves this issue, but consider raising it further if needed.
 
-![Communication error with slow clusters](images/10.1_communication.png)
+```{groovy, eval=FALSE}
+executor {
+    name = 'sge'
+    queueSize = 40
+    submitRateLimit = '1 sec'
+    exitReadTimeout = '30 min'
+}
+```
 
 ## Deeper Investigation
 
@@ -56,7 +69,22 @@ An important feature of SPEAQeasy (because it is based on nextflow) is the abili
 
 In some cases, nextflow will improperly determine which processes have finished, when a pipeline run halts with an error. This can be related to how your filesystem communicates with nextflow. We have found that specifying `cache = 'lenient'` in the process section of the config fixes issues with resuming (such as re-running a process which had actually completed). See [nextflow's documentation on this](https://www.nextflow.io/docs/latest/process.html#cache). In your config, this could look like:
 
-![Relaxing settings involving resuming a partially-complete pipeline run](images/10.2_cache.png)
+```{groovy, eval=FALSE}
+process {
+
+  time = { 10.hour * task.attempt }
+  errorStrategy = { task.exitStatus == 140 ? 'retry' : 'terminate' }
+  maxRetries = 1
+
+  // this can be placed here or anywhere inside the 'process' brackets starting
+  // at the top of this code chunk
+  cache = 'lenient'
+
+  withName: PullAssemblyFasta {
+    cpus = 1
+    clusterOptions = '-l mf=2G,h_vmem=2G'
+  }
+```
 
 This is the default in `jhpce.config`, `sge.config`, and `docker_sge.config`, but may be needed on other cluster types as well.
 
