@@ -243,128 +243,66 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="intermediary-outputs" class="section level2">
 <h2><span class="header-section-number">8.2</span> Intermediary Outputs</h2>
 <p>SPEAQeasy generates a number of files along the process before producing the main outputs of interest. Each of these “intermediary” files is described below.</p>
-<table>
-<colgroup>
-<col width="16%" />
-<col width="83%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Filename</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><code>count_objects/ercc_spikein_check_mix1.pdf</code></td>
-<td>A plot comparing the Mix1 <a href="https://tools.thermofisher.com/content/sfs/manuals/cms_095046.txt">expected concentration</a> against the observed counts from <a href="https://pachterlab.github.io/kallisto/">Kallisto</a>.</td>
-</tr>
-<tr class="even">
-<td><code>count_objects/rawCounts_[experiment_name]_n[num_samples].rda</code></td>
-<td>An R data file containing a number of matrices/ data frames containing raw gene, exon, exon-exon junction, and transcript counts. A data frame of quality metrics is also included.</td>
-</tr>
-<tr class="odd">
-<td><code>count_objects/read_and_alignment_metrics_[experiment_name].csv</code></td>
-<td>A comma-separated values file of quality metrics.</td>
-</tr>
-<tr class="even">
-<td><code>count_objects/rpkm_counts_[experiment_name]_n[num_samples].rda</code></td>
-<td>The same data as in rawCounts_[experiment_name]_n[num_samples].rda, but normalized as reads-per-kilobase-million (RPKM).</td>
-</tr>
-<tr class="odd">
-<td><code>counts/[sample_name]_[annotation_version]_Exons.counts</code></td>
-<td>Exon counts for each sample individually, as reported by <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</td>
-</tr>
-<tr class="even">
-<td><code>counts/[sample_name]_[annotation_version]_Exons.counts.summary</code></td>
-<td>A summary of key information generated from quantifying exons on a particular sample with <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</td>
-</tr>
-<tr class="odd">
-<td><code>counts/[sample_name]_[annotation_version]_Gene.counts</code></td>
-<td>Gene counts for each sample individually, as reported by <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</td>
-</tr>
-<tr class="even">
-<td><code>counts/[sample_name]_[annotation_version]_Gene.counts.summary</code></td>
-<td>A summary of key information generated from quantifying genes on a particular sample with <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</td>
-</tr>
-<tr class="odd">
-<td><code>counts/junction/[sample_name]_junctions_primaryOnly_regtools.bed</code></td>
-<td>A file in BED format describing junctions determined by <a href="https://regtools.readthedocs.io/en/latest/">regtools</a> run on primary alignments for a given sample.</td>
-</tr>
-<tr class="even">
-<td><code>counts/junction/[sample_name]_junctions_primaryOnly_regtools.count</code></td>
-<td>A text file describing the junction ranges and providing raw counts of hits for each junction, as output by <a href="https://regtools.readthedocs.io/en/latest/">regtools</a>.</td>
-</tr>
-<tr class="odd">
-<td><code>counts/junction/primary_alignments/[sample_name].bam</code> and <code>[sample_name].bam.bai</code></td>
-<td>The subset of primary alignments for a given sample, in BAM format, along with an index for each BAM.</td>
-</tr>
-<tr class="even">
-<td><code>ERCC/[sample_name]/abundance.tsv</code></td>
-<td>The output from running <a href="https://pachterlab.github.io/kallisto/">Kallisto</a> against the 92 <a href="https://www.thermofisher.com/order/catalog/product/4456740">ERCC RNA Spike Mix</a> sequences for each sample.</td>
-</tr>
-<tr class="odd">
-<td><code>[sample_name].[strand].wig</code></td>
-<td><code>coverage/wigs/</code></td>
-</tr>
-<tr class="even">
-<td><code>coverage/mean/mean.forward.bw</code> and <code>coverage/mean/mean.reverse.bw</code></td>
-<td>BigWig files containing coverage information averaged across all samples in the experiment, and split by strand.</td>
-</tr>
-<tr class="odd">
-<td><code>expressed_regions/region_cuts_raw_[strand].Rdata</code></td>
-<td>An R object called <code>region_cuts_raw</code> that is a list with one element per chromosome, then a nested element per cutoff used for identifying expressed regions using <a href="https://bioconductor.org/packages/derfinder"><code>derfinder::findRegions()</code></a>.</td>
-</tr>
-<tr class="even">
-<td><code>expressed_regions/region_cuts_[strand].Rdata</code></td>
-<td>An R object called <code>region_cuts</code> that is a list with one element per cutoff that contains a <code>GenomicRanges::GRanges()</code> object with the expressed regions across all chromosomes.</td>
-</tr>
-<tr class="odd">
-<td><code>expressed_regions/region_info_[strand].Rdata</code></td>
-<td>An R object called <code>regInfo</code> that is a <code>data.frame</code> with the columns: <code>cutoff</code>, <code>n</code>, <code>mean</code>, and <code>sd</code>. This table summarizes the number, mean width, sd of the width for the expressed regions identified at each cutoff.</td>
-</tr>
-<tr class="even">
-<td><code>expressed_regions/region_info_[strand].pdf</code></td>
-<td>A PDF with a few exploratory plots made using <code>regInfo</code> that evaluate how the cutoff for identifying the expressed regions affects the number of ERs, their mean width, the sd of their width. These are the visualization plots recommended for choosing a cutoff as described on the <code>derfinder</code> <a href="https://doi.org/10.1093/nar/gkw852">manuscript</a> at Figure S4 <a href="https://github.com/leekgroup/derSupplement/blob/gh-pages/derfinder_supplement.pdf">available here</a>.</td>
-</tr>
-<tr class="odd">
-<td><code>fastQC/[trim_status]/[file_name]/*</code></td>
-<td>Outputs from <a href="https://www.bioinformatics.babraham.ac.uk/projects/fastqc/">FastQC</a>. Here trim_status indicates when FastQC was performed: Untrimmed is before trimming, and Trimmed is after. file_name contains the sample name, and if applicable, the mate number.</td>
-</tr>
-<tr class="even">
-<td><code>HISAT2_out/[sample_name]_hisat_out.sam</code></td>
-<td>The main alignment output from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a> in SAM format.</td>
-</tr>
-<tr class="odd">
-<td><code>HISAT2_out/[sample_name]_align_summary.txt</code></td>
-<td>The text-based alignment summary from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a>. Note that metrics from these files are aggregated for the experiment, and so users likely will not need to check or process the original files manually (metrics).</td>
-</tr>
-<tr class="even">
-<td><code>HISAT2_out/sam_to_bam/[sample_name]_accepted_hits.sorted.bam</code> and <code>HISAT2_out/sam_to_bam/[sample_name]_accepted_hits.sorted.bam.bai</code></td>
-<td>Alignments from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a> where unmapped reads are filtered out, and the resulting BAM file is coordinate-sorted and indexed.</td>
-</tr>
-<tr class="odd">
-<td><code>infer_strandness/[sample_name]_strandness_pattern.txt</code></td>
-<td>A text file containing the inferred strandness pattern for each sample. These files are primarily for internal use by the pipeline, and it is recommended to check the output file <code>samples_complete.manifest</code> to quickly view strandness patterns for all samples.</td>
-</tr>
-<tr class="even">
-<td><code>infer_strandness/samples_complete.manifest</code></td>
-<td>A version of the input samples.manifest, with an additional column listing the inferred strandness pattern for each sample</td>
-</tr>
-<tr class="odd">
-<td>kallisto_tx/[sample_name]/*</td>
-<td>[TODO]</td>
-</tr>
-<tr class="even">
-<td><code>logs/[sample_name]_process_trace.log</code></td>
-<td>A SPEAQeasy-generated log tracing the processes and associated commands run for each sample. This is intended to help users quickly determine the source of any errors during pipeline execution (text).</td>
-</tr>
-<tr class="odd">
-<td><code>trimming/[sample_name]_trimmed*.fastq</code></td>
-<td>Trimmed FASTQ files, if applicable, from <a href="http://www.usadellab.org/cms/?page=trimmomatic">Trimmomatic</a></td>
-</tr>
-</tbody>
-</table>
+<p><strong>Count Objects</strong> <code>count_objects/</code></p>
+<ul>
+<li><code>ercc_spikein_check_mix1.pdf</code>: A plot comparing the Mix1 <a href="https://tools.thermofisher.com/content/sfs/manuals/cms_095046.txt">expected concentration</a> against the observed counts from <a href="https://pachterlab.github.io/kallisto/">Kallisto</a>.</li>
+<li><code>rawCounts_[experiment_name]_n[num_samples].rda</code>: An R data file containing a number of matrices/ data frames containing raw gene, exon, exon-exon junction, and transcript counts. A data frame of quality metrics is also included.</li>
+<li><code>read_and_alignment_metrics_[experiment_name].csv</code>: A comma-separated values file of quality metrics.</li>
+<li><code>rpkm_counts_[experiment_name]_n[num_samples].rda</code>: The same data as in rawCounts_[experiment_name]_n[num_samples].rda, but normalized as reads-per-kilobase-million (RPKM).</li>
+</ul>
+<p><strong>Raw Counts</strong> <code>counts/</code></p>
+<ul>
+<li>[sample_name]_[annotation_version]_Exons.counts`: Exon counts for each sample individually, as reported by <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</li>
+<li><code>[sample_name]_[annotation_version]_Exons.counts.summary</code>: A summary of key information generated from quantifying exons on a particular sample with <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</li>
+<li><code>[sample_name]_[annotation_version]_Gene.counts</code>: Gene counts for each sample individually, as reported by <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</li>
+<li><code>[sample_name]_[annotation_version]_Gene.counts.summary</code>: A summary of key information generated from quantifying genes on a particular sample with <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</li>
+<li><code>junction/[sample_name]_junctions_primaryOnly_regtools.bed</code>: A file in BED format describing junctions determined by <a href="https://regtools.readthedocs.io/en/latest/">regtools</a> run on primary alignments for a given sample.</li>
+<li><code>junction/[sample_name]_junctions_primaryOnly_regtools.count</code>: A text file describing the junction ranges and providing raw counts of hits for each junction, as output by <a href="https://regtools.readthedocs.io/en/latest/">regtools</a>.</li>
+<li><code>junction/primary_alignments/[sample_name].bam</code> and <code>junction/primary_alignments/[sample_name].bam.bai</code>: The subset of primary alignments for a given sample, in BAM format, along with an index for each BAM.</li>
+</ul>
+<p><strong>ERCC Raw Quantification</strong> <code>ERCC/</code></p>
+<ul>
+<li><code>ERCC/[sample_name]/abundance.tsv</code>: The output from running <a href="https://pachterlab.github.io/kallisto/">Kallisto</a> against the 92 <a href="https://www.thermofisher.com/order/catalog/product/4456740">ERCC RNA Spike Mix</a> sequences for each sample.</li>
+</ul>
+<p><strong>Coverage wigs and bigWigs</strong> <code>coverage/</code></p>
+<ul>
+<li><code>[sample_name].[strand].wig</code>: Wiggle files containing coverage information for a given sample and strand.</li>
+<li><code>mean/mean.forward.bw</code> and <code>mean/mean.reverse.bw</code>: BigWig files containing coverage information averaged across all samples in the experiment, and split by strand.</li>
+</ul>
+<p><strong>Expressed Regions Data</strong> <code>expressed_regions/</code></p>
+<ul>
+<li><code>region_cuts_raw_[strand].Rdata</code>: An R object called <code>region_cuts_raw</code> that is a list with one element per chromosome, then a nested element per cutoff used for identifying expressed regions using <a href="https://bioconductor.org/packages/derfinder"><code>derfinder::findRegions()</code></a>.</li>
+<li><code>region_cuts_[strand].Rdata</code>: An R object called <code>region_cuts</code> that is a list with one element per cutoff that contains a <code>GenomicRanges::GRanges()</code> object with the expressed regions across all chromosomes.</li>
+<li><code>region_info_[strand].Rdata</code>: An R object called <code>regInfo</code> that is a <code>data.frame</code> with the columns: <code>cutoff</code>, <code>n</code>, <code>mean</code>, and <code>sd</code>. This table summarizes the number, mean width, sd of the width for the expressed regions identified at each cutoff.</li>
+<li><code>region_info_[strand].pdf</code>: A PDF with a few exploratory plots made using <code>regInfo</code> that evaluate how the cutoff for identifying the expressed regions affects the number of ERs, their mean width, the sd of their width. These are the visualization plots recommended for choosing a cutoff as described on the <code>derfinder</code> <a href="https://doi.org/10.1093/nar/gkw852">manuscript</a> at Figure S4 <a href="https://github.com/leekgroup/derSupplement/blob/gh-pages/derfinder_supplement.pdf">available here</a>.</li>
+</ul>
+<p><strong>FastQC Outputs</strong> <code>fastQC</code></p>
+<ul>
+<li>[trim_status]/[file_name]/*`: Outputs from <a href="https://www.bioinformatics.babraham.ac.uk/projects/fastqc/">FastQC</a>. Here trim_status indicates when FastQC was performed: Untrimmed is before trimming, and Trimmed is after. file_name contains the sample name, and if applicable, the mate number.</li>
+</ul>
+<p><strong>Alignment SAMs and Summaries</strong> <code>HISAT2_out/</code></p>
+<ul>
+<li><code>[sample_name]_hisat_out.sam</code>: The main alignment output from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a> in SAM format.</li>
+<li><code>[sample_name]_align_summary.txt</code>: The text-based alignment summary from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a>. Note that metrics from these files are aggregated for the experiment, and so users likely will not need to check or process the original files manually.</li>
+<li>sam_to_bam/[sample_name]_accepted_hits.sorted.bam<code>and</code>sam_to_bam/[sample_name]_accepted_hits.sorted.bam.bai`: Alignments from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a> where unmapped reads are filtered out, and the resulting BAM file is coordinate-sorted and indexed.</li>
+</ul>
+<p><strong>Outputs from Strand Inference</strong> <code>infer_strandness/</code></p>
+<ul>
+<li><code>[sample_name]_strandness_pattern.txt</code>: A text file containing the inferred strandness pattern for each sample. These files are primarily for internal use by the pipeline, and it is recommended to check the output file <code>samples_complete.manifest</code> to quickly view strandness patterns for all samples.</li>
+<li><code>samples_complete.manifest</code>: A version of the input samples.manifest, with an additional column listing the inferred strandness pattern for each sample</li>
+</ul>
+<p><strong>Transcript Quantification by Sample</strong> <code>kallisto_tx/</code></p>
+<ul>
+<li><code>[sample_name]/*</code>: [TODO]</li>
+</ul>
+<p><strong>SPEAQeasy Logs by Sample</strong> <code>logs/</code></p>
+<ul>
+<li><code>[sample_name]_process_trace.log</code>: A SPEAQeasy-generated log tracing the processes and associated commands run for each sample. This is intended to help users quickly determine the source of any errors during pipeline execution (text).</li>
+</ul>
+<p><strong>Trimmed FASTQ Files</strong> <code>trimming/</code></p>
+<ul>
+<li><code>[sample_name]_trimmed*.fastq</code>: Trimmed FASTQ files, if applicable, from <a href="http://www.usadellab.org/cms/?page=trimmomatic">Trimmomatic</a></li>
+</ul>
 
 </div>
 </div>

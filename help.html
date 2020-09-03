@@ -240,21 +240,24 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <img src="images/10.1_error.png" alt="" />
 <p class="caption">How Nextflow may report memory-related errors</p>
 </div>
-<p>Attempt to provide the process more memory in your config. In this case the configuration for PairedEndHISAT looks like this:</p>
-<div class="figure">
-<img src="images/10.1_memory.png" alt="" />
-<p class="caption">Memory Configuration</p>
-</div>
+<p>Attempt to provide the process more memory in your config. In this case the configuration for PairedEndHISAT looks like this (for SGE users):</p>
+<pre class="groovy"><code>withName: PairedEndHISAT {
+    cpus = 4
+    memory = &#39;20.GB&#39;
+    clusterOptions = &#39;-l h_fsize=500G -R y&#39;
+}</code></pre>
 <p>Note that disk space may also be the limitation (particularly for SGE users). See the <a href="quick-start.html#configuration">configuration</a> section for more info.</p>
 <ul>
 <li><p><em>Strandness for at least one sample disagrees with the asserted value</em>: all samples for a particular pipeline run are expected to have the same “strandness”, specified by the <code>--strand</code> <a href="command-opts.html#command-opts">command option</a> in your <a href="quick-start.html#quick-start">main script</a>. SPEAQeasy infers the strandness for each sample to verify your data has its expected structure- by default, when any sample is determined to have a strandness different than what is specified, the pipeline halts with an error. This is designed to catch faulty data quickly before analysis, but also consider the <code>--force_strand</code> <a href="command-opts.html#command-opts">command option</a> to suppress errors of this kind.</p></li>
 <li><p><em>biomaRt databases cannot be reached</em>: when aggregating gene/exon/junction counts in the <code>CountObjects</code> <a href="pipeline-overview.html#pipeline-overview">process</a>, biomaRt databases are queried for some additional annotation (namely gene IDs). Since this information is sometimes desired for downstream analysis, the pipeline will halt if unable to reach the databases (a fairly common event). The user can choose to either <a href="help.html#resuming">resume</a> as-is: to re-attempt the CountObjects process with the biomaRt query, or resume without requiring this information (see the <code>--no_biomart</code> <a href="command-opts.html#command-opts">command option</a>).</p></li>
 <li><p><em>Nextflow has trouble communicating with your cluster</em>: a less common issue can occur on slower clusters, related to nextflow failing to poll your grid scheduler (like SGE or SLURM) for information it needs about the jobs that are running. This can show up in an error message like: <code>Process</code>PairedEndHISAT (Prefix: Sample_FE2P1_blood)<code>terminated for an unknown reason -- Likely it has been terminated by the external system</code>. We have found that raising the <code>exitReadTimeout</code> to a large value (such as 30 minutes) solves this issue, but consider raising it further if needed.</p></li>
 </ul>
-<div class="figure">
-<img src="images/10.1_communication.png" alt="" />
-<p class="caption">Communication error with slow clusters</p>
-</div>
+<pre class="groovy"><code>executor {
+    name = &#39;sge&#39;
+    queueSize = 40
+    submitRateLimit = &#39;1 sec&#39;
+    exitReadTimeout = &#39;30 min&#39;
+}</code></pre>
 </div>
 <div id="deeper-investigation" class="section level2">
 <h2><span class="header-section-number">11.2</span> Deeper Investigation</h2>
@@ -294,10 +297,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="trouble-resuming" class="section level3">
 <h3><span class="header-section-number">11.3.1</span> Trouble resuming?</h3>
 <p>In some cases, nextflow will improperly determine which processes have finished, when a pipeline run halts with an error. This can be related to how your filesystem communicates with nextflow. We have found that specifying <code>cache = 'lenient'</code> in the process section of the config fixes issues with resuming (such as re-running a process which had actually completed). See <a href="https://www.nextflow.io/docs/latest/process.html#cache">nextflow’s documentation on this</a>. In your config, this could look like:</p>
-<div class="figure">
-<img src="images/10.2_cache.png" alt="" />
-<p class="caption">Relaxing settings involving resuming a partially-complete pipeline run</p>
-</div>
+<pre class="groovy"><code>process {
+
+  time = { 10.hour * task.attempt }
+  errorStrategy = { task.exitStatus == 140 ? &#39;retry&#39; : &#39;terminate&#39; }
+  maxRetries = 1
+
+  // this can be placed here or anywhere inside the &#39;process&#39; brackets starting
+  // at the top of this code chunk
+  cache = &#39;lenient&#39;
+
+  withName: PullAssemblyFasta {
+    cpus = 1
+    clusterOptions = &#39;-l mf=2G,h_vmem=2G&#39;
+  }</code></pre>
 <p>This is the default in <code>jhpce.config</code>, <code>sge.config</code>, and <code>docker_sge.config</code>, but may be needed on other cluster types as well.</p>
 </div>
 </div>
@@ -318,17 +331,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ol start="2" style="list-style-type: decimal">
 <li><strong>Create a docker group</strong></li>
 </ol>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="help.html#cb6-1"></a><span class="fu">sudo</span> addgroup docker</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="help.html#cb16-1"></a><span class="fu">sudo</span> addgroup docker</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li><strong>Add user to docker group</strong></li>
 </ol>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="help.html#cb7-1"></a><span class="fu">sudo</span> usermod -aG docker <span class="op">&lt;</span>your_user<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="help.html#cb17-1"></a><span class="fu">sudo</span> usermod -aG docker <span class="op">&lt;</span>your_user<span class="op">&gt;</span></span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li><strong>Checking installation</strong></li>
 </ol>
 <p>Log out and log back in to ensure your user is running with the correct permissions.</p>
 <p><a href="https://docs.docker.com/get-started/#test-docker-installation">Test Docker installation</a> by running:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="help.html#cb8-1"></a><span class="ex">docker</span> run hello-world</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="help.html#cb18-1"></a><span class="ex">docker</span> run hello-world</span></code></pre></div>
 
 </div>
 </div>

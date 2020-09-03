@@ -242,10 +242,19 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="choosing-a-release" class="section level3">
 <h3><span class="header-section-number">6.1.1</span> Choosing a release</h3>
 <p>With genome and transcript annotation constantly being updated, the user may want to use a particular GENCODE release or Ensembl version. For each species, there is a corresponding <a href="quick-start.html#configuration">configuration</a> variable you may set to control the versions used. The variables <code>gencode_version_human</code> and <code>gencode_version_mouse</code> refer to the GENCODE release number. Similarly, the variable <code>ensembl_version_rat</code> specifies the Ensembl version for “rn6” reference.</p>
-<div class="figure">
-<img src="images/5.2_anno_config.png" alt="" />
-<p class="caption">Configuration of default annotation</p>
-</div>
+<pre class="groovy"><code>/*
+ *
+ *  A config file for execution in a SLURM environment
+ * 
+ */
+
+executor = &#39;slurm&#39;
+
+params {
+    gencode_version_human = &quot;32&quot;
+    gencode_version_mouse = &quot;M25&quot;
+    ensembl_version_rat = &quot;98&quot;
+    anno_build = &quot;main&quot; // main or primary (main is canonical seqs only)</code></pre>
 </div>
 <div id="choosing-a-build" class="section level3">
 <h3><span class="header-section-number">6.1.2</span> Choosing a “build”</h3>

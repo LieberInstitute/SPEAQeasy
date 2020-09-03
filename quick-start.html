@@ -245,10 +245,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3><span class="header-section-number">2.2.1</span> Your “main” script</h3>
 <p>The script you will use to run the pipeline depends on the system you wish to run the pipeline on. To execute SPEAQeasy on a SLURM cluster, simply run <code>bash run_pipeline_slurm.sh</code>. On an SGE cluster, the script is called <code>run_pipeline_sge.sh</code>. For local runs (no cluster), use <code>run_pipeline_local.sh</code>.</p>
 <p><em>Note</em>: Docker users must make one additional edit to their main script: prepend “docker_” to the profile flag. For example, for SLURM users, change this line to <code>-profile docker_slurm</code> as seen here:</p>
-<div class="figure">
-<img src="images/1.2_config.png" alt="" />
-<p class="caption">Changing ‘profiles’ in your main script</p>
-</div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="quick-start.html#cb1-1"></a><span class="va">$ORIG_DIR</span><span class="ex">/Software/nextflow</span> main.nf \</span>
+<span id="cb1-2"><a href="quick-start.html#cb1-2"></a>    --sample <span class="st">&quot;single&quot;</span> \</span>
+<span id="cb1-3"><a href="quick-start.html#cb1-3"></a>    --reference <span class="st">&quot;hg19&quot;</span> \</span>
+<span id="cb1-4"><a href="quick-start.html#cb1-4"></a>    --strand <span class="st">&quot;unstranded&quot;</span> \</span>
+<span id="cb1-5"><a href="quick-start.html#cb1-5"></a>    --small_test \</span>
+<span id="cb1-6"><a href="quick-start.html#cb1-6"></a>    --annotation <span class="st">&quot;</span><span class="va">$ORIG_DIR</span><span class="st">/Annotation&quot;</span> \</span>
+<span id="cb1-7"><a href="quick-start.html#cb1-7"></a>    -with-report execution_reports/pipeline_report.html \</span>
+<span id="cb1-8"><a href="quick-start.html#cb1-8"></a>    -profile docker_slurm <span class="co"># was &quot;-profile slurm&quot;!</span></span></code></pre></div>
 </div>
 <div id="your-config-file" class="section level3">
 <h3><span class="header-section-number">2.2.2</span> Your config file</h3>

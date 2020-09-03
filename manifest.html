@@ -247,10 +247,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>A <code>samples.manifest</code> file cannot include both single-end and paired-end reads; separate pipeline runs should be performed for each of these read types.</li>
 </ul>
 <p>This is an example of a <code>samples.manifest</code> file for some paired-end samples. Note how the first sample “dm3” is split across more than one pair of files, and is to be merged:</p>
-<div class="figure">
-<img src="images/6.1_manifest.png" alt="" />
-<p class="caption">An example manifest for paired-end data</p>
-</div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="manifest.html#cb9-1"></a><span class="ex">/scratch/dm3_file1_1.fastq</span>	0	/scratch/dm3_file1_2.fastq	0	dm3</span>
+<span id="cb9-2"><a href="manifest.html#cb9-2"></a><span class="ex">/scratch/dm3_file2_1.fastq</span>	0	/scratch/dm3_file2_2.fastq	0	dm3</span>
+<span id="cb9-3"><a href="manifest.html#cb9-3"></a><span class="ex">/scratch/sample_01_1.fastq.gz</span>	0	/scratch/sample_01_2.fastq.gz	0	sample_01</span>
+<span id="cb9-4"><a href="manifest.html#cb9-4"></a><span class="ex">/scratch/sample_02_1.fastq.gz</span>	0	/scratch/sample_02_2.fastq.gz	0	sample_02</span></code></pre></div>
 <div id="more-details-regarding-inputs" class="section level3">
 <h3><span class="header-section-number">7.1.1</span> More details regarding inputs</h3>
 <ul>
