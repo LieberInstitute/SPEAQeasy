@@ -357,11 +357,18 @@ def get_file_ext(f) {
 // Summary of Defined Variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// This gets the SHA commit ID of the repository where SPEAQeasy is installed.
+// This associates the pipeline run with a precise "version" of SPEAQeasy. Note
+// that nextflow provides the "workflow.commitId" variable with this intended
+// function- during testing this variable appears to be null.
+params.commitId = "git --git-dir=${workflow.projectDir}/.git rev-parse HEAD".execute().text.trim()
+
 // Header log info
 log.info "============================================================="
 log.info " LIBD-RNAseq : Multi-Input RNA-Seq Best Practice v${version}"
 log.info "============================================================="
 def summary = [:]
+summary['SPEAQeasy version'] = params.commitId
 summary['Working dir']		 = workflow.workDir
 summary['Current home']		= "$HOME"
 summary['Current user']		= "$USER"
