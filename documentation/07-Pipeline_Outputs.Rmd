@@ -66,7 +66,9 @@ SPEAQeasy generates a number of files along the process before producing the mai
 
 **Transcript Quantification by Sample** `kallisto_tx/`
 
-- `[sample_name]/*`: [TODO]
+- `[sample_name]/abundance.h5`: Abundance estimates, bootstrap estimates, run metadata, and transcript length from [Kallisto](https://pachterlab.github.io/kallisto/), saved into an HDF5 binary file.
+- `[sample_name]/[sample_name]_abundance.tsv`: Plain-text abundance estimates from [Kallisto](https://pachterlab.github.io/kallisto/) across the reference transcriptome.
+- `[sample_name]/run_info.json`: [Kallisto](https://pachterlab.github.io/kallisto/) run metadata in javascript object notation.
 
 **SPEAQeasy Logs by Sample** `logs/`
 
