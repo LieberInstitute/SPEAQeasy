@@ -36,25 +36,6 @@ The [SPEAQeasy documentation website](http://research.libd.org/SPEAQeasy/index.h
 Because SPEAQeasy is based on the [nextflow](https://www.nextflow.io/) workflow manager, it supports execution on computing clusters managed by [SLURM](https://slurm.schedmd.com/overview.html) or [SGE](https://docs.oracle.com/cd/E19279-01/820-3257-12/n1ge.html) without any configuration (local execution is also possible). Those with access to [docker](https://www.docker.com/) can very simply use docker containers to manage SPEAQeasy software dependencies, though we provide a script for installing dependencies for users without docker or even root privileges.
 
 
-## Version description ##
-
-* Version 0.8.0 (current)
-
-    + Docker and SGE mode fully working.
-
-    + Complete functionality for single-end type of data for human (hg19, hg38), and mouse (mm10).
-
-        + Variant Calling 
-        + Expressed Regions detection
-        + Full Coverage Rdata generation
-        + Transcript Counts Rdata generation
-
-
-This pipeline has been successfully run in the following Operative System(s):
-
-* [Ubuntu 16.04.4 LTS](https://www.ubuntu.com/download/alternative-downloads)
-
-
 ## Authors ##
 
 Original Pipeline
