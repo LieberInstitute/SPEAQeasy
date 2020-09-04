@@ -293,7 +293,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 <p><strong>Transcript Quantification by Sample</strong> <code>kallisto_tx/</code></p>
 <ul>
-<li><code>[sample_name]/*</code>: [TODO]</li>
+<li><code>[sample_name]/abundance.h5</code>: Abundance estimates, bootstrap estimates, run metadata, and transcript length from <a href="https://pachterlab.github.io/kallisto/">Kallisto</a>, saved into an HDF5 binary file.</li>
+<li><code>[sample_name]/[sample_name]_abundance.tsv</code>: Plain-text abundance estimates from <a href="https://pachterlab.github.io/kallisto/">Kallisto</a> across the reference transcriptome.</li>
+<li><code>[sample_name]/run_info.json</code>: <a href="https://pachterlab.github.io/kallisto/">Kallisto</a> run metadata in javascript object notation.</li>
 </ul>
 <p><strong>SPEAQeasy Logs by Sample</strong> <code>logs/</code></p>
 <ul>
