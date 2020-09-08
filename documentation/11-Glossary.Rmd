@@ -22,6 +22,6 @@
 
 **[Bookdown](https://bookdown.org/)**: an open-source R package we use to help generate and organize this documentation website, written in R markdown.
 
-**RNA-seq**:
+**RNA-seq**: short for RNA sequencing- a high-throughput method for quantifying transcripts present in a sample or samples. Samples of mRNA are converted into cDNA libraries, at which point alignment to a reference genome and other analysis steps can proceed. RNA-seq is commonly used to quantify gene expression, though other information about the transciptome can be captured with RNA-seq (such as alternative splicing events).
 
 **Stranded/strandness**: the orientation of RNA reads during sequencing. Depending on the sequencing protocol, some reads may be oriented in the direction of the 'sense' strand of corresponding cDNA, or potentially some in the 'antisense' direction. Strand-specific protocols are described as either "forward" or "reverse"; protocols which do not have a specific read orientation are called "unstranded" within SPEAQeasy.
