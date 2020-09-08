@@ -23,7 +23,7 @@ manifest <- read.table("samples.manifest", header = FALSE, stringsAsFactors = FA
 paired <- ncol(manifest) > 3
 
 ############################################################
-#  Verify the files in the manifest have known extensions
+#  Verify file existence and extensions
 ############################################################
 
 print("Verifying file extensions from the manifest are valid...")
@@ -51,6 +51,12 @@ if (!all(actual_exts %in% valid_exts)) {
 if (paired && any(actual_exts[1:nrow(manifest)] != actual_exts[(nrow(manifest)+1):length(actual_exts)])) {
     stop("A given pair of reads must have the same file extensions.")
 }
+
+print("Verifying all files exist...")
+
+stopifnot(all(file.exists(manifest[,1])))
+
+if (paired) stopifnot(all(file.exists(manifest[,3])))
 
 ####################################################################
 #  Perform merging and renaming of files for use in the
