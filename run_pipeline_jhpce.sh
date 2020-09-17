@@ -4,6 +4,7 @@
 #$ -e ./SPEAQeasy_output.log
 #$ -cwd
 
+module use /jhpce/shared/jhpce/modulefiles/libd
 module load nextflow
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
