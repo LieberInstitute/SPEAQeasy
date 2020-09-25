@@ -1,6 +1,14 @@
 ---
 title: "SPEAQeasy"
-author: "Nicholas J. Eagles"
+author:
+  - name: Nicholas J. Eagles
+    affiliation:
+    - &libd Lieber Institute for Brain Development, Johns Hopkins Medical Campus
+  - name: Leonardo Collado-Torres
+    affiliation:
+    - *libd
+    - &ccb Center for Computational Biology, Johns Hopkins University
+    email: lcolladotor@gmail.com
 site: bookdown::bookdown_site
 documentclass: book
 output:
@@ -8,11 +16,48 @@ output:
   #bookdown::pdf_book: default
 ---
 
-# Overview
+# Overview {-}
 
 SPEAQeasy is a [Nextflow](https://www.nextflow.io/)-based **S**calable RNA-seq **P**ipeline for **E**xpression **A**nd **Q**uantification.
 
 ![](images/4_workflow.png)
 *Diagram representing the "conceptual" workflow traversed by SPEAQeasy. Here some nextflow [`processes`](https://www.nextflow.io/docs/latest/process.html) are grouped together for simplicity; the exact processes traversed are enumerated [here](#pipeline-overview). The red box indicates the FASTQ files are inputs to the pipeline; green coloring denotes major output files from the pipeline; the remaining boxes represent computational steps. Yellow-colored steps are optional or not always performed; for example, preparing a particular set of annotation files occurs once and uses a cache for further runs. Finally, blue-colored steps are ordinary processes which occur on every pipeline execution.*
 
+## Cite `SPEAQeasy` {-}
+
+We hope that [`SPEAQeasy`](http://research.libd.org/SPEAQeasy/) will be useful for your research. Please use the following information to cite the package and the overall approach. Thank you!
+
+```
+ADD CITATION INFO
+```
+
+
+This is a project by the [R/Bioconductor-powered Team Data Science](https://lcolladotor.github.io/bioc_team_ds) at the [Lieber Institute for Brain Development](https://www.libd.org/).
+
+
+|     |     |
+|-----|-----|
+| <a href="https://lcolladotor.github.io/bioc_team_ds"><img src="http://lcolladotor.github.io/img/Leo_transparente.png" width="250px"></a> | <a href="https://www.libd.org/"><img src="http://lcolladotor.github.io/img/LIBD_logo.jpg" width="250px"></a> |
+
+## R session information {-}
+
+Details on the R version used for making this book. The source code is available at [`LieberInstitute/SPEAQeasy`](https://github.com/LieberInstitute/SPEAQeasy).
+
+```{r session_info_chunk, eval = FALSE}
+## Load the package at the top of your script
+library("sessioninfo")
+
+## Reproducibility information
+print('Reproducibility information:')
+Sys.time()
+proc.time()
+options(width = 120)
+session_info()
+```
+
+```{r session_info, echo = FALSE}
+<<session_info_chunk>>
+```
+
 This book was last updated on `r Sys.time()`.
+
