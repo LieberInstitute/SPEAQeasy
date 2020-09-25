@@ -433,7 +433,7 @@ gencodeEXONS = gencodeEXONS[,-4]
 #  Get filenames for gene counts in sample order present in manifest
 geneFn = rep('', length(metrics$SAMPLE_ID))
 for (i in 1:length(metrics$SAMPLE_ID)) {
-    geneFn[i] = list.files(pattern=paste0(metrics$SAMPLE_ID[i], '_',
+    geneFn[i] = list.files(pattern=paste0('^',metrics$SAMPLE_ID[i], '_',
                                           opt$organism, '_.*_Genes\\.counts$'))
 }
 names(geneFn) = metrics$SAMPLE_ID
@@ -542,7 +542,7 @@ write.csv(metrics, file = file.path(".",
 #  Get filenames for exon counts in sample order present in manifest
 exonFn = rep('', length(metrics$SAMPLE_ID))
 for (i in 1:length(metrics$SAMPLE_ID)) {
-    exonFn[i] = list.files(pattern=paste0(metrics$SAMPLE_ID[i], '_',
+    exonFn[i] = list.files(pattern=paste0('^',metrics$SAMPLE_ID[i], '_',
                                           opt$organism, '_.*_Exons\\.counts$'))
 }
 names(exonFn) = metrics$SAMPLE_ID
@@ -791,6 +791,7 @@ rm(anno)
 
 ############ jCounts
 jCounts = as.matrix(as.data.frame(juncCounts$countDF))
+colnames(jCounts)=colnames(juncCounts$countDF)
 jCounts = jCounts[names(jMap),gsub("-",".",metrics$SAMPLE_ID)] # ensure lines up
 colnames(jCounts) = metrics$SAMPLE_ID  # change from '.' to hyphens if needed
 
