@@ -8,23 +8,25 @@ if (grepl("SPEAQeasy/Software/R-3.6.1/library", .libPaths()[1])) {
 }
 
 library('jaffelab')
+library('getopt')
 
-setwd('..') # since this script will be called from [Repo]/Software and not [Repo]
-
+spec = matrix(c('repo_dir', 'd', 1, 'character', 'path to SPEAQeasy repo'), 
+              byrow=TRUE, ncol=5)
+opt = getopt(spec)
 
 for (species in c("human", "mouse", "rat")) {
     for (pairing in c("single", "paired")) {
         for (strand in c("stranded", "unstranded")) {
-            man_dir = file.path(getwd(), "test", species, pairing, strand)
+            man_dir = file.path("test", species, pairing, strand)
             
             if (pairing == "single") {
-                fq_files = file.path(man_dir, list.files(man_dir, ".*\\.fastq($|\\.gz$)"))
+                fq_files = file.path(opt$repo_dir, man_dir, list.files(man_dir, ".*\\.fastq($|\\.gz$)"))
                 sample_names = basename(ss(gsub("_file[12]", "", fq_files), "\\.fastq"))
                 
                 man_lines = paste(fq_files, 0, sample_names, sep="\t")
             } else {
-                fq_files1 = file.path(man_dir, list.files(man_dir, ".*_1\\.fastq($|\\.gz$)"))
-                fq_files2 = file.path(man_dir, list.files(man_dir, ".*_2\\.fastq($|\\.gz$)"))
+                fq_files1 = file.path(opt$repo_dir, man_dir, list.files(man_dir, ".*_1\\.fastq($|\\.gz$)"))
+                fq_files2 = file.path(opt$repo_dir, man_dir, list.files(man_dir, ".*_2\\.fastq($|\\.gz$)"))
                 sample_names = basename(ss(gsub("(_file[12])*_1", "", fq_files1), "\\.fastq"))
                 
                 man_lines = paste(fq_files1, 0, fq_files2, 0, sample_names, sep="\t")

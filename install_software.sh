@@ -42,14 +42,15 @@ if [ "$1" == "docker" ]; then
     
     docker run \
         -v $(pwd)/scripts:/scripts/ \
+        -v $(pwd)/test:/test \
         $R_container \
-        Rscript scripts/make_test_manifests.R
+        Rscript scripts/make_test_manifests.R -d $(pwd)
     
     #  Point to the original repository so that the "main" scripts can be
     #  trivially copied to share the pipeline
-    sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(dirname $(pwd))|" ../run_pipeline_sge.sh
-    sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(dirname $(pwd))|" ../run_pipeline_local.sh
-    sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(dirname $(pwd))|" ../run_pipeline_slurm.sh
+    sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(pwd)|" run_pipeline_sge.sh
+    sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(pwd)|" run_pipeline_local.sh
+    sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(pwd)|" run_pipeline_slurm.sh
         
 elif [ "$1" == "local" ]; then
 
@@ -155,7 +156,9 @@ elif [ "$1" == "local" ]; then
         ./R-3.6.1/bin/Rscript ../scripts/check_R_packages.R
     
         #  Create the test samples.manifest files
-        ./R-3.6.1/bin/Rscript ../scripts/make_test_manifests.R
+        cd ..
+        Software/R-3.6.1/bin/Rscript scripts/make_test_manifests.R -d $(pwd)
+        cd $INSTALL_DIR
     
         #  regtools (0.5.1)  -------------------------------------------------------------
     
