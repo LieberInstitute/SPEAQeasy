@@ -256,6 +256,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>The <code>unzip</code> utility</li>
 </ul></li>
 </ul>
+<p><strong>Note:</strong> users at the JHPCE cluster can use the existing installation at <code>/dcl01/lieber/ajaffe/Nick/SPEAQeasy/</code>, skipping the above process. Instead, simply make sure you have the required R packages installed before running the pipeline:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="setup-details.html#cb8-1"></a><span class="co">#  Load the current stable R module</span></span>
+<span id="cb8-2"><a href="setup-details.html#cb8-2"></a><span class="ex">module</span> load conda_R</span>
+<span id="cb8-3"><a href="setup-details.html#cb8-3"></a></span>
+<span id="cb8-4"><a href="setup-details.html#cb8-4"></a><span class="co">#  Install required R packages</span></span>
+<span id="cb8-5"><a href="setup-details.html#cb8-5"></a><span class="ex">Rscript</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/check_R_packages_JHPCE.R</span></code></pre></div>
 </div>
 <div id="run-the-pipeline" class="section level2">
 <h2><span class="header-section-number">2.3</span> Run the Pipeline</h2>
@@ -293,7 +299,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="example-main-script" class="section level3">
 <h3><span class="header-section-number">2.3.5</span> Example main script</h3>
 <p>Below is a full example of a typical main script, modified from the <code>run_pipeline_jhpce.sh</code> script. At the top are some cluster-specific options, recognized by SGE, the grid scheduler at the JHPCE cluster. These are optional, and you may consider adding appropriate options similarly, if you plan to use SPEAQeasy on a computing cluster.</p>
-<p>After the main call, <code>nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf</code>, each command option can be described line by line:</p>
+<p>After the main call, <code>nextflow /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf</code>, each command option can be described line by line:</p>
 <ul>
 <li><code>--sample "paired"</code>: input samples are paired-end</li>
 <li><code>--reference "mm10"</code>: these are mouse samples, to be aligned to the mm10 genome</li>
@@ -306,35 +312,36 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><code>-w "/scratch/nextflow_runs"</code>: this is a nextflow-specific command option (note the single dash), telling SPEAQeasy that temporary files for the pipeline run can be placed under <code>/scratch/nextflow_runs</code></li>
 <li><code>--output "/users/neagles/RNA_output"</code>: SPEAQeasy output files should be placed under <code>/users/neagles/RNA_output</code></li>
 </ul>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="setup-details.html#cb8-1"></a><span class="co">#!/bin/bash</span></span>
-<span id="cb8-2"><a href="setup-details.html#cb8-2"></a><span class="co">#$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=150G</span></span>
-<span id="cb8-3"><a href="setup-details.html#cb8-3"></a><span class="co">#$ -o ./run_brain_subset.log</span></span>
-<span id="cb8-4"><a href="setup-details.html#cb8-4"></a><span class="co">#$ -e ./run_brain_subset.log</span></span>
-<span id="cb8-5"><a href="setup-details.html#cb8-5"></a><span class="co">#$ -cwd</span></span>
-<span id="cb8-6"><a href="setup-details.html#cb8-6"></a></span>
-<span id="cb8-7"><a href="setup-details.html#cb8-7"></a><span class="ex">module</span> load nextflow</span>
-<span id="cb8-8"><a href="setup-details.html#cb8-8"></a><span class="bu">export</span> <span class="va">_JAVA_OPTIONS=</span><span class="st">&quot;-Xms8g -Xmx10g&quot;</span></span>
-<span id="cb8-9"><a href="setup-details.html#cb8-9"></a></span>
-<span id="cb8-10"><a href="setup-details.html#cb8-10"></a><span class="ex">nextflow</span> /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \</span>
-<span id="cb8-11"><a href="setup-details.html#cb8-11"></a>    --sample <span class="st">&quot;paired&quot;</span> \</span>
-<span id="cb8-12"><a href="setup-details.html#cb8-12"></a>    --reference <span class="st">&quot;mm10&quot;</span> \</span>
-<span id="cb8-13"><a href="setup-details.html#cb8-13"></a>    --strand <span class="st">&quot;reverse&quot;</span> \</span>
-<span id="cb8-14"><a href="setup-details.html#cb8-14"></a>    --ercc \</span>
-<span id="cb8-15"><a href="setup-details.html#cb8-15"></a>    --trim_mode <span class="st">&quot;skip&quot;</span> \</span>
-<span id="cb8-16"><a href="setup-details.html#cb8-16"></a>    --experiment <span class="st">&quot;mouse_brain&quot;</span> \</span>
-<span id="cb8-17"><a href="setup-details.html#cb8-17"></a>    --input <span class="st">&quot;/users/neagles/RNA_input&quot;</span> \</span>
-<span id="cb8-18"><a href="setup-details.html#cb8-18"></a>    -profile jhpce \</span>
-<span id="cb8-19"><a href="setup-details.html#cb8-19"></a>    -w <span class="st">&quot;/scratch/nextflow_runs&quot;</span> \</span>
-<span id="cb8-20"><a href="setup-details.html#cb8-20"></a>    --output <span class="st">&quot;/users/neagles/RNA_output&quot;</span></span>
-<span id="cb8-21"><a href="setup-details.html#cb8-21"></a>    </span>
-<span id="cb8-22"><a href="setup-details.html#cb8-22"></a><span class="co">#  Produces a report for each sample tracing the pipeline steps</span></span>
-<span id="cb8-23"><a href="setup-details.html#cb8-23"></a><span class="co">#  performed (can be helpful for debugging).</span></span>
-<span id="cb8-24"><a href="setup-details.html#cb8-24"></a><span class="co">#</span></span>
-<span id="cb8-25"><a href="setup-details.html#cb8-25"></a><span class="co">#  Note that the reports are generated from the output log produced in the above</span></span>
-<span id="cb8-26"><a href="setup-details.html#cb8-26"></a><span class="co">#  section, and so if you rename the log, you must also pass replace the filename</span></span>
-<span id="cb8-27"><a href="setup-details.html#cb8-27"></a><span class="co">#  in the bash call below.</span></span>
-<span id="cb8-28"><a href="setup-details.html#cb8-28"></a><span class="bu">echo</span> <span class="st">&quot;Generating per-sample logs for debugging...&quot;</span></span>
-<span id="cb8-29"><a href="setup-details.html#cb8-29"></a><span class="fu">bash</span> /dcl01/lieber/ajaffe/Nick/RNAsp/scripts/generate_logs.sh <span class="va">$PWD</span>/run_brain_subset.log</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="setup-details.html#cb9-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb9-2"><a href="setup-details.html#cb9-2"></a><span class="co">#$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=150G</span></span>
+<span id="cb9-3"><a href="setup-details.html#cb9-3"></a><span class="co">#$ -o ./run_brain_subset.log</span></span>
+<span id="cb9-4"><a href="setup-details.html#cb9-4"></a><span class="co">#$ -e ./run_brain_subset.log</span></span>
+<span id="cb9-5"><a href="setup-details.html#cb9-5"></a><span class="co">#$ -cwd</span></span>
+<span id="cb9-6"><a href="setup-details.html#cb9-6"></a></span>
+<span id="cb9-7"><a href="setup-details.html#cb9-7"></a><span class="ex">module</span> use /jhpce/shared/jhpce/modulefiles/libd</span>
+<span id="cb9-8"><a href="setup-details.html#cb9-8"></a><span class="ex">module</span> load nextflow</span>
+<span id="cb9-9"><a href="setup-details.html#cb9-9"></a><span class="bu">export</span> <span class="va">_JAVA_OPTIONS=</span><span class="st">&quot;-Xms8g -Xmx10g&quot;</span></span>
+<span id="cb9-10"><a href="setup-details.html#cb9-10"></a></span>
+<span id="cb9-11"><a href="setup-details.html#cb9-11"></a><span class="ex">nextflow</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf \</span>
+<span id="cb9-12"><a href="setup-details.html#cb9-12"></a>    --sample <span class="st">&quot;paired&quot;</span> \</span>
+<span id="cb9-13"><a href="setup-details.html#cb9-13"></a>    --reference <span class="st">&quot;mm10&quot;</span> \</span>
+<span id="cb9-14"><a href="setup-details.html#cb9-14"></a>    --strand <span class="st">&quot;reverse&quot;</span> \</span>
+<span id="cb9-15"><a href="setup-details.html#cb9-15"></a>    --ercc \</span>
+<span id="cb9-16"><a href="setup-details.html#cb9-16"></a>    --trim_mode <span class="st">&quot;skip&quot;</span> \</span>
+<span id="cb9-17"><a href="setup-details.html#cb9-17"></a>    --experiment <span class="st">&quot;mouse_brain&quot;</span> \</span>
+<span id="cb9-18"><a href="setup-details.html#cb9-18"></a>    --input <span class="st">&quot;/users/neagles/RNA_input&quot;</span> \</span>
+<span id="cb9-19"><a href="setup-details.html#cb9-19"></a>    -profile jhpce \</span>
+<span id="cb9-20"><a href="setup-details.html#cb9-20"></a>    -w <span class="st">&quot;/scratch/nextflow_runs&quot;</span> \</span>
+<span id="cb9-21"><a href="setup-details.html#cb9-21"></a>    --output <span class="st">&quot;/users/neagles/RNA_output&quot;</span></span>
+<span id="cb9-22"><a href="setup-details.html#cb9-22"></a>    </span>
+<span id="cb9-23"><a href="setup-details.html#cb9-23"></a><span class="co">#  Produces a report for each sample tracing the pipeline steps</span></span>
+<span id="cb9-24"><a href="setup-details.html#cb9-24"></a><span class="co">#  performed (can be helpful for debugging).</span></span>
+<span id="cb9-25"><a href="setup-details.html#cb9-25"></a><span class="co">#</span></span>
+<span id="cb9-26"><a href="setup-details.html#cb9-26"></a><span class="co">#  Note that the reports are generated from the output log produced in the above</span></span>
+<span id="cb9-27"><a href="setup-details.html#cb9-27"></a><span class="co">#  section, and so if you rename the log, you must also pass replace the filename</span></span>
+<span id="cb9-28"><a href="setup-details.html#cb9-28"></a><span class="co">#  in the bash call below.</span></span>
+<span id="cb9-29"><a href="setup-details.html#cb9-29"></a><span class="bu">echo</span> <span class="st">&quot;Generating per-sample logs for debugging...&quot;</span></span>
+<span id="cb9-30"><a href="setup-details.html#cb9-30"></a><span class="fu">bash</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/generate_logs.sh <span class="va">$PWD</span>/run_brain_subset.log</span></code></pre></div>
 </div>
 <div id="advanced-info-regarding-installation" class="section level3">
 <h3><span class="header-section-number">2.3.6</span> Advanced info regarding installation</h3>
@@ -353,18 +360,18 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>Deleting the work directory (which can take a large amount of disk space) does not affect SPEAQeasy execution for other users</li>
 </ul>
 <p>New users who wish to include the <code>--coverage</code> <a href="command-opts.html#command-opts">option</a> must also install RSeQC personally:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="setup-details.html#cb9-1"></a><span class="ex">python3</span> -m pip install --user RSeQC==3.0.1</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="setup-details.html#cb10-1"></a><span class="ex">python3</span> -m pip install --user RSeQC==3.0.1</span></code></pre></div>
 <div id="customizing-execution-for-each-user" class="section level3">
 <h3><span class="header-section-number">2.4.1</span> Customizing execution for each user</h3>
 <p>By default, all users will share the same <a href="quick-start.html#configuration">configuration</a>. This likely suffices for many use cases, but alternatively new configuration files can be created. Below we will walk through an example where a new user of a SLURM-based cluster wishes to use an existing SPEAQeasy installation, but wants a personal configuration file to specify different annotation settings.</p>
 <ol style="list-style-type: decimal">
 <li><strong>Copy the existing configuration to a new file</strong></li>
 </ol>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="setup-details.html#cb10-1"></a><span class="co">#  Verify we are in the SPEAQeasy repository</span></span>
-<span id="cb10-2"><a href="setup-details.html#cb10-2"></a><span class="bu">pwd</span></span>
-<span id="cb10-3"><a href="setup-details.html#cb10-3"></a></span>
-<span id="cb10-4"><a href="setup-details.html#cb10-4"></a><span class="co">#  Create the new configuration file</span></span>
-<span id="cb10-5"><a href="setup-details.html#cb10-5"></a><span class="fu">cp</span> conf/slurm.config conf/my_new.config</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="setup-details.html#cb11-1"></a><span class="co">#  Verify we are in the SPEAQeasy repository</span></span>
+<span id="cb11-2"><a href="setup-details.html#cb11-2"></a><span class="bu">pwd</span></span>
+<span id="cb11-3"><a href="setup-details.html#cb11-3"></a></span>
+<span id="cb11-4"><a href="setup-details.html#cb11-4"></a><span class="co">#  Create the new configuration file</span></span>
+<span id="cb11-5"><a href="setup-details.html#cb11-5"></a><span class="fu">cp</span> conf/slurm.config conf/my_new.config</span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li><strong>Modify the new file as desired</strong></li>
 </ol>
