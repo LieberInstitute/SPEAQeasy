@@ -66,7 +66,7 @@ See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional
 
 Below is a full example of a typical main script, modified from the `run_pipeline_jhpce.sh` script. At the top are some cluster-specific options, recognized by SGE, the grid scheduler at the JHPCE cluster. These are optional, and you may consider adding appropriate options similarly, if you plan to use SPEAQeasy on a computing cluster.
 
-After the main call, `nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf`, each command option can be described line by line:
+After the main call, `nextflow /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf`, each command option can be described line by line:
 
 - `--sample "paired"`: input samples are paired-end
 - `--reference "mm10"`: these are mouse samples, to be aligned to the mm10 genome
@@ -86,10 +86,11 @@ After the main call, `nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf`, each co
 #$ -e ./run_brain_subset.log
 #$ -cwd
 
+module use /jhpce/shared/jhpce/modulefiles/libd
 module load nextflow
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
-nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \
+nextflow /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf \
     --sample "paired" \
     --reference "mm10" \
     --strand "reverse" \
@@ -108,7 +109,7 @@ nextflow /dcl01/lieber/ajaffe/Nick/RNAsp/main.nf \
 #  section, and so if you rename the log, you must also pass replace the filename
 #  in the bash call below.
 echo "Generating per-sample logs for debugging..."
-bash /dcl01/lieber/ajaffe/Nick/RNAsp/scripts/generate_logs.sh $PWD/run_brain_subset.log
+bash /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/generate_logs.sh $PWD/run_brain_subset.log
 ```
 
 ### Advanced info regarding installation
