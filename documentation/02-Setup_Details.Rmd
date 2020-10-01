@@ -23,6 +23,16 @@ SPEAQeasy makes use of a number of different additional software tools. The user
     * The `makeinfo` utility
     * [git](https://git-scm.com/), for downloading some software from their GitHub repositories
     * The `unzip` utility
+    
+**Note:** users at the JHPCE cluster can use the existing installation at `/dcl01/lieber/ajaffe/Nick/SPEAQeasy/`, skipping the above process. Instead, simply make sure you have the required R packages installed before running the pipeline:
+
+```{bash, eval=FALSE}
+#  Load the current stable R module
+module load conda_R
+
+#  Install required R packages
+Rscript /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/check_R_packages_JHPCE.R
+```
 
 ## Run the Pipeline
 
