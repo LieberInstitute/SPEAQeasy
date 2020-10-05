@@ -29,7 +29,7 @@ One of the major pipeline outputs is a comma-separated values (CSV) file where f
 | mitoMapped | The number of reads which successfully mapped to the mitochondrial chromosome |
 | mitoRate | The decimal fraction of reads which mapped to the mitochondrial chromosome, of those which map at all (i.e. mitoMapped / (totalMapped + mitoMapped)) |
 | totalAssignedGene | The decimal fraction of reads assigned unambiguously to a gene, with featureCounts (Liao et al. 2014), of those in total |
-| rRNA_rate | The decimal fraction of reads assigned to a gene whose type is ‘rRNA’, of those assigned to any gene |
+| rRNA_rate | The decimal fraction of reads assigned to a gene whose type is 'rRNA', of those assigned to any gene |
 
 
 ## Intermediary Outputs
