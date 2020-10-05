@@ -11,6 +11,26 @@ For human samples, variants are called at a list of common missense single nucle
 
 Finally, expressed regions data is optionally generated (with the `--coverage` [option](#command-opts)). The `RData` files provide a starting point for finding differentially expressed regions (DERs), for analyses involving this end goal.
 
+### Quality Metrics
+
+One of the major pipeline outputs is a comma-separated values (CSV) file where fields (columns) are different quality metrics, and each line (row) is associated with one sample. A list of the exact field names and their descriptions is given below.
+
+| Metric name | Description |
+| SAMPLE_ID | The name of the sample, as specified in the last column of samples.manifest |
+| ERCCsumLogErr | If applicable, the |
+| trimmed | A boolean value ("TRUE" or "FALSE"), indicating whether the given sample underwent trimming |
+| numReads | The number of reads present in any FASTQ files associated with the sample (after any trimming) |
+| numMapped | The number of reads which successfully mapped to the reference genome during alignment |
+| numUnmapped | The number of reads which did not successfully map to the reference genome during alignment |
+| overallMapRate | The decimal fraction of reads which successfully mapped to the reference genome (i.e. numMapped / numReads) |
+| concordMapRate | The decimal fraction of reads which aligned concordantly to the reference genome |
+| totalMapped | The number of reads which successfully mapped to the canonical sequences in the reference genome (excluding mitochondrial chromosomes) |
+| mitoMapped | The number of reads which successfully mapped to the mitochondrial chromosome |
+| mitoRate | The decimal fraction of reads which mapped to the mitochondrial chromosome, of those which map at all (i.e. mitoMapped / (totalMapped + mitoMapped)) |
+| totalAssignedGene | The decimal fraction of reads assigned unambiguously to a gene, with featureCounts (Liao et al. 2014), of those in total |
+| rRNA_rate | The decimal fraction of reads assigned to a gene whose type is ‘rRNA’, of those assigned to any gene |
+
+
 ## Intermediary Outputs
 
 SPEAQeasy generates a number of files along the process before producing the main outputs of interest. Each of these "intermediary" files is described below.
