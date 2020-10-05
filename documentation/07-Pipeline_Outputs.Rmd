@@ -16,6 +16,7 @@ Finally, expressed regions data is optionally generated (with the `--coverage` [
 One of the major pipeline outputs is a comma-separated values (CSV) file where fields (columns) are different quality metrics, and each line (row) is associated with one sample. A list of the exact field names and their descriptions is given below.
 
 | Metric name | Description |
+| ----- | ----------- |
 | SAMPLE_ID | The name of the sample, as specified in the last column of samples.manifest |
 | ERCCsumLogErr | If applicable, the |
 | trimmed | A boolean value ("TRUE" or "FALSE"), indicating whether the given sample underwent trimming |
