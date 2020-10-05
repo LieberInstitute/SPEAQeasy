@@ -18,7 +18,7 @@ One of the major pipeline outputs is a comma-separated values (CSV) file where f
 | Metric name | Description |
 | ----- | ----------- |
 | SAMPLE_ID | The name of the sample, as specified in the last column of samples.manifest |
-| ERCCsumLogErr | If applicable, a summary statistic quantifying difference of expected and actual ERCC concentrations across all samples |
+| ERCCsumLogErr | If applicable, a summary statistic quantifying overall difference of expected and actual ERCC concentrations for one sample |
 | trimmed | A boolean value ("TRUE" or "FALSE"), indicating whether the given sample underwent trimming |
 | numReads | The number of reads present in any FASTQ files associated with the sample (after any trimming) |
 | numMapped | The number of reads which successfully mapped to the reference genome during alignment |
