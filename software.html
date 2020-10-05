@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>6 Manifest and Inputs | SPEAQeasy</title>
-  <meta name="description" content="6 Manifest and Inputs | SPEAQeasy" />
+  <title>9 Software Versions | SPEAQeasy</title>
+  <meta name="description" content="9 Software Versions | SPEAQeasy" />
   <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="6 Manifest and Inputs | SPEAQeasy" />
+  <meta property="og:title" content="9 Software Versions | SPEAQeasy" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="6 Manifest and Inputs | SPEAQeasy" />
+  <meta name="twitter:title" content="9 Software Versions | SPEAQeasy" />
   
   
   
@@ -29,8 +29,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="annotation.html"/>
-<link rel="next" href="outputs.html"/>
+<link rel="prev" href="configuration.html"/>
+<link rel="next" href="help.html"/>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -232,37 +232,186 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="manifest" class="section level1">
-<h1><span class="header-section-number">6</span> Manifest and Inputs</h1>
-<p>Inputs to SPEAQeasy are specified by a single file named <code>samples.manifest</code>. The <code>samples.manifest</code> file associates each FASTQ file with a path and ID, and allows the pipeline to automatically merge files if necessary.</p>
-<div id="what-the-manifest-should-look-like" class="section level2">
-<h2><span class="header-section-number">6.1</span> What the Manifest Should Look Like</h2>
-<p>Each line in <code>samples.manifest</code> should have the following format:</p>
-<ul>
-<li><em>For a set of unpaired reads</em> <code>&lt;PATH TO FASTQ FILE&gt;(tab)&lt;optional MD5&gt;(tab)&lt;sample label/id&gt;</code></li>
-<li><em>For paired-end sets of reads</em> <code>&lt;PATH TO FASTQ 1&gt;(tab)&lt;optional MD5 1&gt;(tab)&lt;PATH TO FASTQ 2&gt;(tab)&lt;optional MD5 2&gt;(tab)&lt;sample label/id&gt;</code></li>
-</ul>
-<p>A line of paired-end reads could look like this:</p>
-<p><code>RNA_sample1_read1.fastq    0    RNA_sample1_read2.fastq    0    sample1</code></p>
-<ul>
-<li>The MD5(s) on each line are for compatibility with a conventional samples.manifest structure, and are not explicitly checked in the pipeline (you may simply use 0s as in the above example).</li>
-<li>Paths must be long/full.</li>
-<li>If you have a single sample split across multiple files, you can signal for the pipeline to merge these files by repeating the sample label/id on each line of files to merge.</li>
-<li>A <code>samples.manifest</code> file cannot include both single-end and paired-end reads; separate pipeline runs should be performed for each of these read types.</li>
-</ul>
-<p>This is an example of a <code>samples.manifest</code> file for some paired-end samples. Note how the first sample “dm3” is split across more than one pair of files, and is to be merged:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="manifest.html#cb16-1"></a><span class="ex">/scratch/dm3_file1_1.fastq</span>	0	/scratch/dm3_file1_2.fastq	0	dm3</span>
-<span id="cb16-2"><a href="manifest.html#cb16-2"></a><span class="ex">/scratch/dm3_file2_1.fastq</span>	0	/scratch/dm3_file2_2.fastq	0	dm3</span>
-<span id="cb16-3"><a href="manifest.html#cb16-3"></a><span class="ex">/scratch/sample_01_1.fastq.gz</span>	0	/scratch/sample_01_2.fastq.gz	0	sample_01</span>
-<span id="cb16-4"><a href="manifest.html#cb16-4"></a><span class="ex">/scratch/sample_02_1.fastq.gz</span>	0	/scratch/sample_02_2.fastq.gz	0	sample_02</span></code></pre></div>
-<div id="more-details-regarding-inputs" class="section level3">
-<h3><span class="header-section-number">6.1.1</span> More details regarding inputs</h3>
-<ul>
-<li>Input FASTQ files can have the following file extensions: <code>.fastq</code>, <code>.fq</code>, <code>.fastq.gz</code>, <code>.fq.gz</code></li>
-<li>FASTQ files must not contain “.” characters before the typical extension (e.g. sample.1.fastq), since some internal functions rely on splitting file names by “.”.</li>
-</ul>
+<div id="software" class="section level1">
+<h1><span class="header-section-number">9</span> Software Versions</h1>
+<p>SPEAQeasy makes use of several external bioinformatics software tools. The pipeline additionally supports the use of these tools via docker containers- this section also documents the docker images used in this mode.</p>
+<p>Here is the full list of software used by this pipeline:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Software</th>
+<th align="right">Version</th>
+<th align="right">Command used by the pipeline</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center"><a href="http://www.htslib.org/download/">bcftools</a></td>
+<td align="right">1.10.2</td>
+<td align="right"><code>bcftools</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc">fastQC</a></td>
+<td align="right">0.11.8</td>
+<td align="right"><code>fastqc</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2">hisat2</a></td>
+<td align="right">2.2.1</td>
+<td align="right"><code>hisat2</code>, <code>hisat2-build</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://www.htslib.org/download/">htslib</a></td>
+<td align="right">1.10.2</td>
+<td align="right"><code>tabix</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">java</a></td>
+<td align="right">8+</td>
+<td align="right"><code>java</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://pachterlab.github.io/kallisto/source">kallisto</a></td>
+<td align="right">0.46.1</td>
+<td align="right"><code>kallisto</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://www.nextflow.io/docs/latest/getstarted.html">nextflow</a></td>
+<td align="right">&gt;=0.27.0 (tested with 20.01.0)</td>
+<td align="right"><code>nextflow</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="https://cran.r-project.org/bin/linux/ubuntu/README.html#installation">R</a></td>
+<td align="right">3.6</td>
+<td align="right"><code>Rscript</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://github.com/griffithlab/regtools#installation">regtools</a></td>
+<td align="right">0.5.1</td>
+<td align="right"><code>regtools</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://rseqc.sourceforge.net/#installation">RSeQC</a></td>
+<td align="right">3.0.1</td>
+<td align="right"><code>bam2wig.py</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="http://salmon.readthedocs.io/en/latest/building.html">salmon</a></td>
+<td align="right">1.2.1</td>
+<td align="right"><code>salmon</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://www.htslib.org/download/">samtools</a></td>
+<td align="right">1.10</td>
+<td align="right"><code>samtools</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="http://bioinf.wehi.edu.au/subread-package/">SubRead</a></td>
+<td align="right">2.0.0</td>
+<td align="right"><code>featureCounts</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://www.usadellab.org/cms/?page=trimmomatic">trimmomatic</a></td>
+<td align="right">0.39</td>
+<td align="right"><code>java -jar path/to/trimmomatic.jar</code></td>
+</tr>
+<tr class="odd">
+<td align="center"><a href="https://github.com/Ensembl/WiggleTools">wiggletools</a></td>
+<td align="right">1.2.1</td>
+<td align="right"><code>wiggletools</code></td>
+</tr>
+<tr class="even">
+<td align="center"><a href="http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/">wigToBigWig</a></td>
+<td align="right">4</td>
+<td align="right"><code>wigToBigWig</code></td>
+</tr>
+</tbody>
+</table>
+<div id="docker-images" class="section level2">
+<h2><span class="header-section-number">9.1</span> Docker Images</h2>
+<p>The following container versions are used in this pipeline. These are automatically managed by SPEAQeasy.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Image</th>
+<th align="right">Tag</th>
+<th align="right">Software</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">libddocker/r_3.6.1_bioc</td>
+<td align="right">latest</td>
+<td align="right">R and Bioconductor 3.10</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/ubuntu16.04_base</td>
+<td align="right">1_v3</td>
+<td align="right">Ubuntu Base</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/infer_strandness</td>
+<td align="right">latest</td>
+<td align="right">R, Bioconductor 3.10, Kallisto</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/kallisto</td>
+<td align="right">0.46.1</td>
+<td align="right">Kallisto</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/fastqc</td>
+<td align="right">0.11.8</td>
+<td align="right">FastQC</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/trimmomatic</td>
+<td align="right">0.39</td>
+<td align="right">Trimmomatic</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/hisat2</td>
+<td align="right">2.2.1</td>
+<td align="right">HISAT2</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/rseqc</td>
+<td align="right">3.0.1</td>
+<td align="right">RSeQC</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/samtools</td>
+<td align="right">1.10</td>
+<td align="right">Samtools</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/salmon</td>
+<td align="right">1.2.1</td>
+<td align="right">Salmon</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/regtools</td>
+<td align="right">0.5.1</td>
+<td align="right">Regtools</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/subread</td>
+<td align="right">2.0.0</td>
+<td align="right">SubRead/FeatureCounts</td>
+</tr>
+<tr class="odd">
+<td align="center">libddocker/wiggletools-1.2</td>
+<td align="right">1_v3</td>
+<td align="right">Wiggletools</td>
+</tr>
+<tr class="even">
+<td align="center">libddocker/variant_calling</td>
+<td align="right">1.10.2</td>
+<td align="right">Samtools, BCFTools</td>
+</tr>
+</tbody>
+</table>
 
-</div>
 </div>
 </div>
             </section>
@@ -270,8 +419,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           </div>
         </div>
       </div>
-<a href="annotation.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="outputs.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="configuration.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="help.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

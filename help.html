@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>6 Manifest and Inputs | SPEAQeasy</title>
-  <meta name="description" content="6 Manifest and Inputs | SPEAQeasy" />
+  <title>10 Help | SPEAQeasy</title>
+  <meta name="description" content="10 Help | SPEAQeasy" />
   <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="6 Manifest and Inputs | SPEAQeasy" />
+  <meta property="og:title" content="10 Help | SPEAQeasy" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="6 Manifest and Inputs | SPEAQeasy" />
+  <meta name="twitter:title" content="10 Help | SPEAQeasy" />
   
   
   
@@ -29,8 +29,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="annotation.html"/>
-<link rel="next" href="outputs.html"/>
+<link rel="prev" href="software.html"/>
+<link rel="next" href="glossary.html"/>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -232,37 +232,121 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="manifest" class="section level1">
-<h1><span class="header-section-number">6</span> Manifest and Inputs</h1>
-<p>Inputs to SPEAQeasy are specified by a single file named <code>samples.manifest</code>. The <code>samples.manifest</code> file associates each FASTQ file with a path and ID, and allows the pipeline to automatically merge files if necessary.</p>
-<div id="what-the-manifest-should-look-like" class="section level2">
-<h2><span class="header-section-number">6.1</span> What the Manifest Should Look Like</h2>
-<p>Each line in <code>samples.manifest</code> should have the following format:</p>
+<div id="help" class="section level1">
+<h1><span class="header-section-number">10</span> Help</h1>
+<div id="common-errors" class="section level2">
+<h2><span class="header-section-number">10.1</span> Common Errors</h2>
+<p>SPEAQeasy should be configured so that fundamental issues related to pipeline function do not arise. If you encounter an error and believe it to be a design flaw in SPEAQeasy, you can always <a href="https://github.com/LieberInstitute/SPEAQeasy/issues">submit a github issue</a>. However, please take a look at the following common issues:</p>
 <ul>
-<li><em>For a set of unpaired reads</em> <code>&lt;PATH TO FASTQ FILE&gt;(tab)&lt;optional MD5&gt;(tab)&lt;sample label/id&gt;</code></li>
-<li><em>For paired-end sets of reads</em> <code>&lt;PATH TO FASTQ 1&gt;(tab)&lt;optional MD5 1&gt;(tab)&lt;PATH TO FASTQ 2&gt;(tab)&lt;optional MD5 2&gt;(tab)&lt;sample label/id&gt;</code></li>
+<li><em>A job/ process is not given enough memory or time</em>: pipeline runs on large samples or datasets may require more memory or a higher time limit. When reported correctly, the pipeline will indicate an error status of 140 (for SGE or SLURM environments); however, memory issues can take many forms, and related error messages are not always clear. In this example case, the process PairedEndHISAT failed due to insufficient memory, but indicated a general error status (1):</li>
 </ul>
-<p>A line of paired-end reads could look like this:</p>
-<p><code>RNA_sample1_read1.fastq    0    RNA_sample1_read2.fastq    0    sample1</code></p>
-<ul>
-<li>The MD5(s) on each line are for compatibility with a conventional samples.manifest structure, and are not explicitly checked in the pipeline (you may simply use 0s as in the above example).</li>
-<li>Paths must be long/full.</li>
-<li>If you have a single sample split across multiple files, you can signal for the pipeline to merge these files by repeating the sample label/id on each line of files to merge.</li>
-<li>A <code>samples.manifest</code> file cannot include both single-end and paired-end reads; separate pipeline runs should be performed for each of these read types.</li>
-</ul>
-<p>This is an example of a <code>samples.manifest</code> file for some paired-end samples. Note how the first sample “dm3” is split across more than one pair of files, and is to be merged:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="manifest.html#cb16-1"></a><span class="ex">/scratch/dm3_file1_1.fastq</span>	0	/scratch/dm3_file1_2.fastq	0	dm3</span>
-<span id="cb16-2"><a href="manifest.html#cb16-2"></a><span class="ex">/scratch/dm3_file2_1.fastq</span>	0	/scratch/dm3_file2_2.fastq	0	dm3</span>
-<span id="cb16-3"><a href="manifest.html#cb16-3"></a><span class="ex">/scratch/sample_01_1.fastq.gz</span>	0	/scratch/sample_01_2.fastq.gz	0	sample_01</span>
-<span id="cb16-4"><a href="manifest.html#cb16-4"></a><span class="ex">/scratch/sample_02_1.fastq.gz</span>	0	/scratch/sample_02_2.fastq.gz	0	sample_02</span></code></pre></div>
-<div id="more-details-regarding-inputs" class="section level3">
-<h3><span class="header-section-number">6.1.1</span> More details regarding inputs</h3>
-<ul>
-<li>Input FASTQ files can have the following file extensions: <code>.fastq</code>, <code>.fq</code>, <code>.fastq.gz</code>, <code>.fq.gz</code></li>
-<li>FASTQ files must not contain “.” characters before the typical extension (e.g. sample.1.fastq), since some internal functions rely on splitting file names by “.”.</li>
-</ul>
-
+<div class="figure">
+<img src="images/10.1_error.png" alt="" />
+<p class="caption">How Nextflow may report memory-related errors</p>
 </div>
+<p>Attempt to provide the process more memory in your config. In this case the configuration for PairedEndHISAT looks like this (for SGE users):</p>
+<pre class="groovy"><code>withName: PairedEndHISAT {
+    cpus = 4
+    memory = &#39;20.GB&#39;
+    clusterOptions = &#39;-l h_fsize=500G -R y&#39;
+}</code></pre>
+<p>Note that disk space may also be the limitation (particularly for SGE users). See the <a href="quick-start.html#configuration">configuration</a> section for more info.</p>
+<ul>
+<li><p><em>Strandness for at least one sample disagrees with the asserted value</em>: all samples for a particular pipeline run are expected to have the same “strandness”, specified by the <code>--strand</code> <a href="command-opts.html#command-opts">command option</a> in your <a href="quick-start.html#quick-start">main script</a>. SPEAQeasy infers the strandness for each sample to verify your data has its expected structure- by default, when any sample is determined to have a strandness different than what is specified, the pipeline halts with an error. This is designed to catch faulty data quickly before analysis, but also consider the <code>--force_strand</code> <a href="command-opts.html#command-opts">command option</a> to suppress errors of this kind.</p></li>
+<li><p><em>biomaRt databases cannot be reached</em>: when aggregating gene/exon/junction counts in the <code>CountObjects</code> <a href="pipeline-overview.html#pipeline-overview">process</a>, biomaRt databases are queried for some additional annotation (namely gene IDs). Since this information is sometimes desired for downstream analysis, the pipeline will halt if unable to reach the databases (a fairly common event). The user can choose to either <a href="help.html#resuming">resume</a> as-is: to re-attempt the CountObjects process with the biomaRt query, or resume without requiring this information (see the <code>--no_biomart</code> <a href="command-opts.html#command-opts">command option</a>).</p></li>
+<li><p><em>Nextflow has trouble communicating with your cluster</em>: a less common issue can occur on slower clusters, related to nextflow failing to poll your grid scheduler (like SGE or SLURM) for information it needs about the jobs that are running. This can show up in an error message like: <code>Process</code>PairedEndHISAT (Prefix: Sample_FE2P1_blood)<code>terminated for an unknown reason -- Likely it has been terminated by the external system</code>. We have found that raising the <code>exitReadTimeout</code> to a large value (such as 30 minutes) solves this issue, but consider raising it further if needed.</p></li>
+</ul>
+<pre class="groovy"><code>executor {
+    name = &#39;sge&#39;
+    queueSize = 40
+    submitRateLimit = &#39;1 sec&#39;
+    exitReadTimeout = &#39;30 min&#39;
+}</code></pre>
+</div>
+<div id="deeper-investigation" class="section level2">
+<h2><span class="header-section-number">10.2</span> Deeper Investigation</h2>
+<p>If pipeline execution halts with an error, and the cause/solution does not appear to be described in the <a href="software.html#docker-images">common issues</a>, what can be done? This section provides information about next steps for debugging a potential problem.</p>
+<div id="checking-per-sample-logs" class="section level3">
+<h3><span class="header-section-number">10.2.1</span> Checking Per-Sample Logs</h3>
+<p>At the end of each pipeline run (whether complete or after halting due to an error), SPEAQeasy generates logs to trace the exact series of steps each sample underwent. These are designed primarily as a debugging tool, especially to catch issues that may be sample-specific. Identifying the source of an error generally involves the following steps:</p>
+<ol style="list-style-type: decimal">
+<li><em>Identify the failing process and sample name</em>: the main output log from nextflow will be called “SPEAQeasy_output.log” by default (it is generally a very long text file). SPEAQeasy automatically compiles the most typically relevant information in this log; however, the error message (if applicable) at the bottom of the log is typically helpful for pinpointing the process and sample where the error occurred. <em>Note</em>: if a sample name is not given with the process name, the process involves all samples. Look for a message similar to the following:</li>
+</ol>
+<div class="figure">
+<img src="images/10.2_error_mess.png" alt="" />
+<p class="caption">Main error message in SPEAQeasy_output.log</p>
+</div>
+<ol start="2" style="list-style-type: decimal">
+<li><p><em>Find the SPEAQeasy-generated log for the failing sample</em>: logs are located under the output folder specified by the <code>--output</code> <a href="command-opts.html#command-opts">command flag</a>- by default, this will be <code>SPEAQeasy/results/logs/</code>. Simply find the sample name given by step 1 (or pick any sample if no name was provided).</p></li>
+<li><p><em>Locate the process from step 1 in the log from step 2</em>: because the processes are in order of reported submission, the failed process will typically be near the bottom of the log. The most immediately informative portion to look for is usually the logged output from executing that process. This is at the bottom between the dashed lines labelled <em>BEGIN LOG</em> and <em>END LOG</em>.</p></li>
+</ol>
+<div class="figure">
+<img src="images/10.2_process_name.png" alt="" />
+<p class="caption">Locating the appropriate process in your log</p>
+</div>
+<div class="figure">
+<img src="images/10.2_log.png" alt="" />
+<p class="caption">Locating the output for the process</p>
+</div>
+<p>If the log output does not make it clear what wrong, explore the following:</p>
+<ul>
+<li><p><em>Check the exit code</em>: this is near the top for a given process. An exit code of 1 is often not very informative by itself (a generic error status), but other values can sometimes inform you of the exact issue. For example, the common exit status of 140 indicates that a process failed due to exceeding memory, disk, CPU, or time constraints (for SGE or SLURM clusters). Most frequently, memory is the limiting factor; consider raising the memory allocated for the process in the relevant <a href="quick-start.html#configuration">configuration file</a>.</p></li>
+<li><p><em>Check the content of the working directory</em>: the path to the relevant working directory is given on the first line of the log for a given process. One immediate “red flag” could be a core dump (a file named something like <code>core.[numbers]</code>). These files are produced when a process unexpectedly terminates, which often can indicate the process needs more memory or disk space (see <a href="quick-start.html#configuration">configuration</a>). It is also worth checking for other log files (certain processes, like <em>SingleEndHISAT</em> and <em>PairedEndHISAT</em>, have output which is not printed between the <em>BEGIN LOG</em> and <em>END LOG</em> per-sample log sections).</p></li>
+</ul>
+</div>
+</div>
+<div id="resuming" class="section level2">
+<h2><span class="header-section-number">10.3</span> Resuming</h2>
+<p>An important feature of SPEAQeasy (because it is based on nextflow) is the ability to resume pipeline execution if an error occurs for any reason. To resume, you must add the <code>-resume</code> flag to your “main” script, determined <a href="quick-start.html#quick-start">here</a>, and rerun. Otherwise, the default is to restart the entire pipeline, regardless of how much progress was made!</p>
+<div id="trouble-resuming" class="section level3">
+<h3><span class="header-section-number">10.3.1</span> Trouble resuming?</h3>
+<p>In some cases, nextflow will improperly determine which processes have finished, when a pipeline run halts with an error. This can be related to how your filesystem communicates with nextflow. We have found that specifying <code>cache = 'lenient'</code> in the process section of the config fixes issues with resuming (such as re-running a process which had actually completed). See <a href="https://www.nextflow.io/docs/latest/process.html#cache">nextflow’s documentation on this</a>. In your config, this could look like:</p>
+<pre class="groovy"><code>process {
+
+  time = { 10.hour * task.attempt }
+  errorStrategy = { task.exitStatus == 140 ? &#39;retry&#39; : &#39;terminate&#39; }
+  maxRetries = 1
+
+  // this can be placed here or anywhere inside the &#39;process&#39; brackets starting
+  // at the top of this code chunk
+  cache = &#39;lenient&#39;
+
+  withName: PullAssemblyFasta {
+    cpus = 1
+    clusterOptions = &#39;-l mf=2G,h_vmem=2G&#39;
+  }</code></pre>
+<p>This is the default in <code>jhpce.config</code>, <code>sge.config</code>, and <code>docker_sge.config</code>, but may be needed on other cluster types as well.</p>
+</div>
+</div>
+<div id="no-internet-access" class="section level2">
+<h2><span class="header-section-number">10.4</span> No Internet Access?</h2>
+<ul>
+<li>For users who do not have internet access when executing pipeline runs, you may first run <code>bash scripts/manual_annotation.sh</code>. This script must be run from the repository directory (from a machine with internet access). Modify the four lines in the “user configuration section” at the top of the script for your particular set-up. This sets up everything so that subsequent runs of the pipeline do not need an internet connection to complete.</li>
+<li>Towards the end of the pipeline run, when R objects are created containing gene/exon/junction counts, some additional data is <a href="https://bioconductor.org/packages/release/bioc/html/biomaRt.html">pulled from biomaRt</a> databases by default. However, if an internet connection is not available, this extra information is not pulled (and an error occurs). Users without access to the internet during pipeline execution should provide the <code>--no_biomart</code> <a href="command-opts.html#command-opts">command flag</a> to suppress this error and continue without the additional biomaRt data. This is the only difference between runs with and without internet access.</li>
+</ul>
+</div>
+<div id="docker-help" class="section level2">
+<h2><span class="header-section-number">10.5</span> Docker help</h2>
+<p>For those who wish to use <a href="https://www.docker.com/">docker</a> to manage SPEAQeasy software dependencies, we provide a brief set-up guide.</p>
+<ol style="list-style-type: decimal">
+<li><strong>Install docker</strong></li>
+</ol>
+<p>A set of instructions for different operating systems are available on the <a href="https://docs.docker.com/installation/">Docker site</a>.</p>
+<ol start="2" style="list-style-type: decimal">
+<li><strong>Create a docker group</strong></li>
+</ol>
+<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="help.html#cb23-1"></a><span class="fu">sudo</span> addgroup docker</span></code></pre></div>
+<ol start="3" style="list-style-type: decimal">
+<li><strong>Add user to docker group</strong></li>
+</ol>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="help.html#cb24-1"></a><span class="fu">sudo</span> usermod -aG docker <span class="op">&lt;</span>your_user<span class="op">&gt;</span></span></code></pre></div>
+<ol start="4" style="list-style-type: decimal">
+<li><strong>Checking installation</strong></li>
+</ol>
+<p>Log out and log back in to ensure your user is running with the correct permissions.</p>
+<p><a href="https://docs.docker.com/get-started/#test-docker-installation">Test Docker installation</a> by running:</p>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="help.html#cb25-1"></a><span class="ex">docker</span> run hello-world</span></code></pre></div>
+
 </div>
 </div>
             </section>
@@ -270,8 +354,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           </div>
         </div>
       </div>
-<a href="annotation.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="outputs.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="software.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="glossary.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
