@@ -16,7 +16,7 @@ opt = getopt(spec)
 
 for (species in c("human", "mouse", "rat")) {
     for (pairing in c("single", "paired")) {
-        for (strand in c("stranded", "unstranded")) {
+        for (strand in c("unstranded", "forward", "reverse")) {
             man_dir = file.path("test", species, pairing, strand)
             
             if (pairing == "single") {
