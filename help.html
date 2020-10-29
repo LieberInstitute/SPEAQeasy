@@ -134,7 +134,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="1" data-path="quick-start.html"><a href="quick-start.html"><i class="fa fa-check"></i><b>1</b> Quick Start</a><ul>
 <li class="chapter" data-level="1.1" data-path="quick-start.html"><a href="quick-start.html#setup"><i class="fa fa-check"></i><b>1.1</b> Setup</a></li>
-<li class="chapter" data-level="1.2" data-path="quick-start.html"><a href="quick-start.html#configuration"><i class="fa fa-check"></i><b>1.2</b> Configuration</a><ul>
+<li class="chapter" data-level="1.2" data-path="quick-start.html"><a href="quick-start.html#quick-config"><i class="fa fa-check"></i><b>1.2</b> Configuration</a><ul>
 <li class="chapter" data-level="1.2.1" data-path="quick-start.html"><a href="quick-start.html#your-main-script"><i class="fa fa-check"></i><b>1.2.1</b> Your “main” script</a></li>
 <li class="chapter" data-level="1.2.2" data-path="quick-start.html"><a href="quick-start.html#your-config-file"><i class="fa fa-check"></i><b>1.2.2</b> Your config file</a></li>
 </ul></li>
@@ -189,8 +189,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="7.2" data-path="outputs.html"><a href="outputs.html#intermediary-outputs"><i class="fa fa-check"></i><b>7.2</b> Intermediary Outputs</a></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="quick-start.html"><a href="quick-start.html#configuration"><i class="fa fa-check"></i><b>8</b> Configuration</a><ul>
-<li class="chapter" data-level="8.1" data-path="configuration.html"><a href="configuration.html"><i class="fa fa-check"></i><b>8.1</b> Specifying Options for your Cluster</a><ul>
+<li class="chapter" data-level="8" data-path="configuration.html"><a href="configuration.html"><i class="fa fa-check"></i><b>8</b> Configuration</a><ul>
+<li class="chapter" data-level="8.1" data-path="configuration.html"><a href="configuration.html#specifying-options-for-your-cluster"><i class="fa fa-check"></i><b>8.1</b> Specifying Options for your Cluster</a><ul>
 <li class="chapter" data-level="8.1.1" data-path="configuration.html"><a href="configuration.html#time"><i class="fa fa-check"></i><b>8.1.1</b> Time</a></li>
 <li class="chapter" data-level="8.1.2" data-path="configuration.html"><a href="configuration.html#cluster-specific-options"><i class="fa fa-check"></i><b>8.1.2</b> Cluster-specific options</a></li>
 </ul></li>
@@ -250,7 +250,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     memory = &#39;20.GB&#39;
     clusterOptions = &#39;-l h_fsize=500G -R y&#39;
 }</code></pre>
-<p>Note that disk space may also be the limitation (particularly for SGE users). See the <a href="quick-start.html#configuration">configuration</a> section for more info.</p>
+<p>Note that disk space may also be the limitation (particularly for SGE users). See the <a href="configuration.html#configuration">configuration</a> section for more info.</p>
 <ul>
 <li><p><em>Strandness for at least one sample disagrees with the asserted value</em>: all samples for a particular pipeline run are expected to have the same “strandness”, specified by the <code>--strand</code> <a href="command-opts.html#command-opts">command option</a> in your <a href="quick-start.html#quick-start">main script</a>. SPEAQeasy infers the strandness for each sample to verify your data has its expected structure- by default, when any sample is determined to have a strandness different than what is specified, the pipeline halts with an error. This is designed to catch faulty data quickly before analysis, but also consider the <code>--force_strand</code> <a href="command-opts.html#command-opts">command option</a> to suppress errors of this kind.</p></li>
 <li><p><em>biomaRt databases cannot be reached</em>: when aggregating gene/exon/junction counts in the <code>CountObjects</code> <a href="pipeline-overview.html#pipeline-overview">process</a>, biomaRt databases are queried for some additional annotation (namely gene IDs). Since this information is sometimes desired for downstream analysis, the pipeline will halt if unable to reach the databases (a fairly common event). The user can choose to either <a href="help.html#resuming">resume</a> as-is: to re-attempt the CountObjects process with the biomaRt query, or resume without requiring this information (see the <code>--no_biomart</code> <a href="command-opts.html#command-opts">command option</a>).</p></li>
@@ -290,8 +290,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <p>If the log output does not make it clear what wrong, explore the following:</p>
 <ul>
-<li><p><em>Check the exit code</em>: this is near the top for a given process. An exit code of 1 is often not very informative by itself (a generic error status), but other values can sometimes inform you of the exact issue. For example, the common exit status of 140 indicates that a process failed due to exceeding memory, disk, CPU, or time constraints (for SGE or SLURM clusters). Most frequently, memory is the limiting factor; consider raising the memory allocated for the process in the relevant <a href="quick-start.html#configuration">configuration file</a>.</p></li>
-<li><p><em>Check the content of the working directory</em>: the path to the relevant working directory is given on the first line of the log for a given process. One immediate “red flag” could be a core dump (a file named something like <code>core.[numbers]</code>). These files are produced when a process unexpectedly terminates, which often can indicate the process needs more memory or disk space (see <a href="quick-start.html#configuration">configuration</a>). It is also worth checking for other log files (certain processes, like <em>SingleEndHISAT</em> and <em>PairedEndHISAT</em>, have output which is not printed between the <em>BEGIN LOG</em> and <em>END LOG</em> per-sample log sections).</p></li>
+<li><p><em>Check the exit code</em>: this is near the top for a given process. An exit code of 1 is often not very informative by itself (a generic error status), but other values can sometimes inform you of the exact issue. For example, the common exit status of 140 indicates that a process failed due to exceeding memory, disk, CPU, or time constraints (for SGE or SLURM clusters). Most frequently, memory is the limiting factor; consider raising the memory allocated for the process in the relevant <a href="configuration.html#configuration">configuration file</a>.</p></li>
+<li><p><em>Check the content of the working directory</em>: the path to the relevant working directory is given on the first line of the log for a given process. One immediate “red flag” could be a core dump (a file named something like <code>core.[numbers]</code>). These files are produced when a process unexpectedly terminates, which often can indicate the process needs more memory or disk space (see <a href="configuration.html#configuration">configuration</a>). It is also worth checking for other log files (certain processes, like <em>SingleEndHISAT</em> and <em>PairedEndHISAT</em>, have output which is not printed between the <em>BEGIN LOG</em> and <em>END LOG</em> per-sample log sections).</p></li>
 </ul>
 </div>
 </div>

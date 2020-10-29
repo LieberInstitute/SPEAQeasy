@@ -134,7 +134,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="1" data-path="quick-start.html"><a href="quick-start.html"><i class="fa fa-check"></i><b>1</b> Quick Start</a><ul>
 <li class="chapter" data-level="1.1" data-path="quick-start.html"><a href="quick-start.html#setup"><i class="fa fa-check"></i><b>1.1</b> Setup</a></li>
-<li class="chapter" data-level="1.2" data-path="quick-start.html"><a href="quick-start.html#configuration"><i class="fa fa-check"></i><b>1.2</b> Configuration</a><ul>
+<li class="chapter" data-level="1.2" data-path="quick-start.html"><a href="quick-start.html#quick-config"><i class="fa fa-check"></i><b>1.2</b> Configuration</a><ul>
 <li class="chapter" data-level="1.2.1" data-path="quick-start.html"><a href="quick-start.html#your-main-script"><i class="fa fa-check"></i><b>1.2.1</b> Your “main” script</a></li>
 <li class="chapter" data-level="1.2.2" data-path="quick-start.html"><a href="quick-start.html#your-config-file"><i class="fa fa-check"></i><b>1.2.2</b> Your config file</a></li>
 </ul></li>
@@ -189,8 +189,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="7.2" data-path="outputs.html"><a href="outputs.html#intermediary-outputs"><i class="fa fa-check"></i><b>7.2</b> Intermediary Outputs</a></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="quick-start.html"><a href="quick-start.html#configuration"><i class="fa fa-check"></i><b>8</b> Configuration</a><ul>
-<li class="chapter" data-level="8.1" data-path="configuration.html"><a href="configuration.html"><i class="fa fa-check"></i><b>8.1</b> Specifying Options for your Cluster</a><ul>
+<li class="chapter" data-level="8" data-path="configuration.html"><a href="configuration.html"><i class="fa fa-check"></i><b>8</b> Configuration</a><ul>
+<li class="chapter" data-level="8.1" data-path="configuration.html"><a href="configuration.html#specifying-options-for-your-cluster"><i class="fa fa-check"></i><b>8.1</b> Specifying Options for your Cluster</a><ul>
 <li class="chapter" data-level="8.1.1" data-path="configuration.html"><a href="configuration.html#time"><i class="fa fa-check"></i><b>8.1.1</b> Time</a></li>
 <li class="chapter" data-level="8.1.2" data-path="configuration.html"><a href="configuration.html#cluster-specific-options"><i class="fa fa-check"></i><b>8.1.2</b> Cluster-specific options</a></li>
 </ul></li>
@@ -234,7 +234,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="annotation" class="section level1">
 <h1><span class="header-section-number">5</span> Annotation</h1>
-<p>SPEAQeasy can be run with hg38, hg19, mm10, or rn6 references. The pipeline has a default and automated process for pulling and building annotation-related files, but the user can opt to provide their own annotation as an alternative. Both of these options are documented below. In general, the pipeline uses three types of files. Example files below are the ones used with default <a href="quick-start.html#configuration">configuration</a> when hg38 reference is selected.</p>
+<p>SPEAQeasy can be run with hg38, hg19, mm10, or rn6 references. The pipeline has a default and automated process for pulling and building annotation-related files, but the user can opt to provide their own annotation as an alternative. Both of these options are documented below. In general, the pipeline uses three types of files. Example files below are the ones used with default <a href="configuration.html#configuration">configuration</a> when hg38 reference is selected.</p>
 <ul>
 <li><em>A genome assembly fasta</em>: the reference genome to align reads to, like the file <a href="ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/GRCh38.primary_assembly.genome.fa.gz">here</a> (but unzipped)</li>
 <li><em>Gene annotation gtf</em>: containing transcript data, like the file <a href="ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.annotation.gtf.gz">here</a> (but unzipped)</li>
@@ -245,7 +245,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>SPEAQeasy uses annotation files provided by <a href="ftp://ftp.ebi.ac.uk/pub/databases/gencode/">GENCODE</a> where possible- which is for references hg38, hg19, and mm10. For rn6, files are pulled directly from <a href="ftp://ftp.ensembl.org/pub/">Ensembl</a>.</p>
 <div id="choosing-a-release" class="section level3">
 <h3><span class="header-section-number">5.1.1</span> Choosing a release</h3>
-<p>With genome and transcript annotation constantly being updated, the user may want to use a particular GENCODE release or Ensembl version. For each species, there is a corresponding <a href="quick-start.html#configuration">configuration</a> variable you may set to control the versions used. The variables <code>gencode_version_human</code> and <code>gencode_version_mouse</code> refer to the GENCODE release number. Similarly, the variable <code>ensembl_version_rat</code> specifies the Ensembl version for “rn6” reference.</p>
+<p>With genome and transcript annotation constantly being updated, the user may want to use a particular GENCODE release or Ensembl version. For each species, there is a corresponding <a href="configuration.html#configuration">configuration</a> variable you may set to control the versions used. The variables <code>gencode_version_human</code> and <code>gencode_version_mouse</code> refer to the GENCODE release number. Similarly, the variable <code>ensembl_version_rat</code> specifies the Ensembl version for “rn6” reference.</p>
 <pre class="groovy"><code>/*
  *
  *  A config file for execution in a SLURM environment
@@ -267,7 +267,7 @@ params {
 <li>The “main” build consists of only the canonical “reference” sequences for each species</li>
 <li>The “primary” build consists of the canonical “reference” sequences and additional scaffolds, as a genome <a href="ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_35/GRCh38.primary_assembly.genome.fa.gz">primary assembly fasta from GENCODE</a> would contain.</li>
 </ul>
-<p>See the variable <code>annotation_build</code> in your <a href="quick-start.html#configuration">configuration</a> file for making this selection for your pipeline run.</p>
+<p>See the variable <code>annotation_build</code> in your <a href="configuration.html#configuration">configuration</a> file for making this selection for your pipeline run.</p>
 </div>
 <div id="additional-annotation-files" class="section level3">
 <h3><span class="header-section-number">5.1.3</span> Additional Annotation files</h3>

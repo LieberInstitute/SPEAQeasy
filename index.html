@@ -134,7 +134,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="1" data-path="quick-start.html"><a href="quick-start.html"><i class="fa fa-check"></i><b>1</b> Quick Start</a><ul>
 <li class="chapter" data-level="1.1" data-path="quick-start.html"><a href="quick-start.html#setup"><i class="fa fa-check"></i><b>1.1</b> Setup</a></li>
-<li class="chapter" data-level="1.2" data-path="quick-start.html"><a href="quick-start.html#configuration"><i class="fa fa-check"></i><b>1.2</b> Configuration</a><ul>
+<li class="chapter" data-level="1.2" data-path="quick-start.html"><a href="quick-start.html#quick-config"><i class="fa fa-check"></i><b>1.2</b> Configuration</a><ul>
 <li class="chapter" data-level="1.2.1" data-path="quick-start.html"><a href="quick-start.html#your-main-script"><i class="fa fa-check"></i><b>1.2.1</b> Your “main” script</a></li>
 <li class="chapter" data-level="1.2.2" data-path="quick-start.html"><a href="quick-start.html#your-config-file"><i class="fa fa-check"></i><b>1.2.2</b> Your config file</a></li>
 </ul></li>
@@ -189,8 +189,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="7.2" data-path="outputs.html"><a href="outputs.html#intermediary-outputs"><i class="fa fa-check"></i><b>7.2</b> Intermediary Outputs</a></li>
 </ul></li>
-<li class="chapter" data-level="8" data-path="quick-start.html"><a href="quick-start.html#configuration"><i class="fa fa-check"></i><b>8</b> Configuration</a><ul>
-<li class="chapter" data-level="8.1" data-path="configuration.html"><a href="configuration.html"><i class="fa fa-check"></i><b>8.1</b> Specifying Options for your Cluster</a><ul>
+<li class="chapter" data-level="8" data-path="configuration.html"><a href="configuration.html"><i class="fa fa-check"></i><b>8</b> Configuration</a><ul>
+<li class="chapter" data-level="8.1" data-path="configuration.html"><a href="configuration.html#specifying-options-for-your-cluster"><i class="fa fa-check"></i><b>8.1</b> Specifying Options for your Cluster</a><ul>
 <li class="chapter" data-level="8.1.1" data-path="configuration.html"><a href="configuration.html#time"><i class="fa fa-check"></i><b>8.1.1</b> Time</a></li>
 <li class="chapter" data-level="8.1.2" data-path="configuration.html"><a href="configuration.html#cluster-specific-options"><i class="fa fa-check"></i><b>8.1.2</b> Cluster-specific options</a></li>
 </ul></li>
@@ -273,27 +273,27 @@ Lieber Institute for Brain Development, Johns Hopkins Medical Campus<br><a class
 <span id="cb2-8"><a href="index.html#cb2-8"></a><span class="kw">options</span>(<span class="dt">width =</span> <span class="dv">120</span>)</span>
 <span id="cb2-9"><a href="index.html#cb2-9"></a><span class="kw">session_info</span>()</span></code></pre></div>
 <pre><code>## [1] &quot;Reproducibility information:&quot;</code></pre>
-<pre><code>## [1] &quot;2020-10-13 21:37:25 UTC&quot;</code></pre>
+<pre><code>## [1] &quot;2020-10-29 17:59:41 UTC&quot;</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.510   0.144   0.753</code></pre>
+##   0.595   0.163   0.796</code></pre>
 <pre><code>## ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
-##  setting  value                       
-##  version  R version 4.0.2 (2020-06-22)
-##  os       Ubuntu 20.04.1 LTS          
-##  system   x86_64, linux-gnu           
-##  ui       X11                         
-##  language (EN)                        
-##  collate  en_US.UTF-8                 
-##  ctype    en_US.UTF-8                 
-##  tz       Etc/UTC                     
-##  date     2020-10-13                  
+##  setting  value                                      
+##  version  R version 4.0.3 Patched (2020-10-21 r79360)
+##  os       Ubuntu 20.04.1 LTS                         
+##  system   x86_64, linux-gnu                          
+##  ui       X11                                        
+##  language (EN)                                       
+##  collate  en_US.UTF-8                                
+##  ctype    en_US.UTF-8                                
+##  tz       Etc/UTC                                    
+##  date     2020-10-29                                 
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##  package     * version date       lib source        
 ##  assertthat    0.2.1   2019-03-21 [2] RSPM (R 4.0.0)
-##  BiocManager * 1.30.10 2019-11-16 [2] CRAN (R 4.0.2)
+##  BiocManager * 1.30.10 2019-11-16 [2] CRAN (R 4.0.3)
 ##  bookdown      0.20    2020-06-23 [1] RSPM (R 4.0.2)
-##  cli           2.0.2   2020-02-28 [2] RSPM (R 4.0.0)
+##  cli           2.1.0   2020-10-12 [2] RSPM (R 4.0.2)
 ##  crayon        1.3.4   2017-09-16 [2] RSPM (R 4.0.0)
 ##  digest        0.6.25  2020-02-23 [2] RSPM (R 4.0.0)
 ##  evaluate      0.14    2019-05-28 [2] RSPM (R 4.0.0)
@@ -315,7 +315,7 @@ Lieber Institute for Brain Development, Johns Hopkins Medical Campus<br><a class
 ## [1] /usr/local/lib/R/host-site-library
 ## [2] /usr/local/lib/R/site-library
 ## [3] /usr/local/lib/R/library</code></pre>
-<p>This book was last updated on 2020-10-13 21:37:25.</p>
+<p>This book was last updated on 2020-10-29 17:59:41.</p>
 
 </div>
 </div>
