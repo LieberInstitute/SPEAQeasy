@@ -8,7 +8,7 @@ A brief guide to setting up SPEAQeasy. A more detailed and thorough guide is [he
 2. Change directory into the repository with `cd SPEAQeasy`
 3. For users with access to docker, run `bash install_software.sh "docker"`. This will install nextflow and set up some test files. Otherwise, you can install everything required locally with `bash install_software.sh "local"`.
 
-## Configuration
+## Configuration {#quick-config}
 
 ### Your "main" script ###
 
