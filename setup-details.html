@@ -150,7 +150,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.3.5" data-path="setup-details.html"><a href="setup-details.html#example-main-script"><i class="fa fa-check"></i><b>2.3.5</b> Example main script</a></li>
 <li class="chapter" data-level="2.3.6" data-path="setup-details.html"><a href="setup-details.html#advanced-info-regarding-installation"><i class="fa fa-check"></i><b>2.3.6</b> Advanced info regarding installation</a></li>
 </ul></li>
-<li class="chapter" data-level="2.4" data-path="setup-details.html"><a href="setup-details.html#sharing-the-pipeline-with-many-users"><i class="fa fa-check"></i><b>2.4</b> Sharing the pipeline with many users</a><ul>
+<li class="chapter" data-level="2.4" data-path="setup-details.html"><a href="setup-details.html#sharing"><i class="fa fa-check"></i><b>2.4</b> Sharing the pipeline with many users</a><ul>
 <li class="chapter" data-level="2.4.1" data-path="setup-details.html"><a href="setup-details.html#customizing-execution-for-each-user"><i class="fa fa-check"></i><b>2.4.1</b> Customizing execution for each user</a></li>
 </ul></li>
 </ul></li>
@@ -293,9 +293,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="run-on-the-jhpce-cluster" class="section level3">
 <h3><span class="header-section-number">2.3.4</span> Run on the <a href="https://jhpce.jhu.edu/">JHPCE</a> cluster</h3>
+<p>As noted in the <a href="#Installation">installation</a> section, it is recommended that you use the existing JHPCE installation at <code>/dcl01/lieber/ajaffe/Nick/SPEAQeasy/</code>. The following directions describe how to do this.</p>
 <ul>
-<li>(Optional) <strong>Adjust configuration</strong>: hardware resource usage, software versioning, and cluster option choices are specified in <em>conf/jhpce.config</em></li>
-<li><strong>Modify the main script and run</strong>: this is <em>run_pipeline_jhpce_qsub.sh</em>. The pipeline run is submitted to the cluster by executing <code>qsub run_pipeline_jhpce.sh</code>. See the <a href="command-opts.html#command-opts">full list of command-line options</a> for details about modifying the script you choose.</li>
+<li>(Optional) <strong>Use custom configuration</strong>: default configuration with thoroughly testing hardware resource specification is described within <code>/dcl01/lieber/ajaffe/Nick/SPEAQeasy/conf/jhpce.config</code>. If you wish to use any different settings than those provided, feel free to create your own configuration file under <code>/dcl01/lieber/ajaffe/Nick/SPEAQeasy/conf/</code>. More detailed instructions are provided <a href="setup-details.html#sharing">here</a>.</li>
+<li><strong>Copy the main script, modify, and run</strong>: the original “main” script is <code>/dcl01/lieber/ajaffe/Nick/SPEAQeasy/run_pipeline_jhpce_qsub.sh</code>. Please copy this script to a directory of your choice. From this directory, the pipeline run is submitted to the cluster by executing <code>qsub run_pipeline_jhpce.sh</code>. See the <a href="command-opts.html#command-opts">full list of command-line options</a> and <a href="setup-details.html#sharing">section on sharing pipeline installations</a> for details and tips about modifying your copy of <code>run_pipeline_jhpce.sh</code>.</li>
 </ul>
 </div>
 <div id="example-main-script" class="section level3">
@@ -353,7 +354,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 </div>
 </div>
-<div id="sharing-the-pipeline-with-many-users" class="section level2">
+<div id="sharing" class="section level2">
 <h2><span class="header-section-number">2.4</span> Sharing the pipeline with many users</h2>
 <p>A single installation of SPEAQeasy can be shared among potentially many users. New users can simply copy the appropriate “main” script (determined above) to a different desired directory, and modify the contents as appropriate for the particular experiment.</p>
 <p><strong>Note</strong> It is recommended to use a unique working directory with the <code>-w</code> <a href="command-opts.html#next-opts">option</a> for each experiment. This ensures:</p>
