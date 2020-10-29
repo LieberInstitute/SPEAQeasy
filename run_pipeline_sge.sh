@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -l virtual_free=40G,h_fsize=150G
+#$ -l virtual_free=40G,h_fsize=800G
 #$ -o SPEAQeasy_output.log
 #$ -e SPEAQeasy_output.log
 #$ -cwd
