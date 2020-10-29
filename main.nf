@@ -238,13 +238,9 @@ if (params.reference == "hg19" || params.reference == "hg38") {
 
 //  Path to small test files
 if (params.small_test) {
-  if (params.strand == "unstranded") {
-    params.input = "${workflow.projectDir}/test/$params.reference_type/${params.sample}/unstranded"
-  } else {
-    params.input = "${workflow.projectDir}/test/$params.reference_type/${params.sample}/stranded"
-  }
+    params.input = "${workflow.projectDir}/test/$params.reference_type/${params.sample}/${params.strand}"
 } else {
-  params.input = "${workflow.projectDir}/input"
+    params.input = "${workflow.projectDir}/input"
 }
 
 
