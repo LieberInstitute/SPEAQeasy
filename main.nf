@@ -642,6 +642,16 @@ process BuildKallistoIndex {
 //          in the manifest, and create a new manifest for internal use based
 //          on these changes
 
+// Extract FASTQ file paths from the manifest and place in a channel to pass to
+// PreprocessInputs
+Channel
+    .fromPath(params.input + '/samples.manifest')
+    .splitText()
+    .map{ row-> tuple(file(row.tokenize('\t')[0]), file(row.tokenize('\t')[2])) }
+    .flatten()
+    .collect()
+    .set{ raw_fastqs }
+
 process PreprocessInputs {
   
   publishDir "${params.output}/preprocessing", mode:'copy', pattern:'*.log'
@@ -649,9 +659,10 @@ process PreprocessInputs {
   input:
     file original_manifest from file("${params.input}/samples.manifest")
     file merge_script from file("${workflow.projectDir}/scripts/preprocess_inputs.R")
+    file raw_fastqs
 
   output:
-    file "*.f*q*" into merged_inputs_flat
+    path "*.f*q*" into merged_inputs_flat includeInputs true
     file "samples_processed.manifest" into strandness_manifest
     file "preprocess_inputs.log"
   
