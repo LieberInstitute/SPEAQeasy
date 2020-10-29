@@ -59,8 +59,10 @@ See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional
 
 ### Run on the [JHPCE](https://jhpce.jhu.edu/) cluster
 
-- (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/jhpce.config*
-- **Modify the main script and run**: this is *run_pipeline_jhpce_qsub.sh*. The pipeline run is submitted to the cluster by executing `qsub run_pipeline_jhpce.sh`. See the [full list of command-line options](#command-opts) for details about modifying the script you choose.
+As noted in the [installation](#Installation) section, it is recommended that you use the existing JHPCE installation at `/dcl01/lieber/ajaffe/Nick/SPEAQeasy/`. The following directions describe how to do this.
+
+- (Optional) **Use custom configuration**: default configuration with thoroughly testing hardware resource specification is described within `/dcl01/lieber/ajaffe/Nick/SPEAQeasy/conf/jhpce.config`. If you wish to use any different settings than those provided, feel free to create your own configuration file under `/dcl01/lieber/ajaffe/Nick/SPEAQeasy/conf/`. More detailed instructions are provided [here](#sharing).
+- **Copy the main script, modify, and run**: the original "main" script is `/dcl01/lieber/ajaffe/Nick/SPEAQeasy/run_pipeline_jhpce_qsub.sh`. Please copy this script to a directory of your choice. From this directory, the pipeline run is submitted to the cluster by executing `qsub run_pipeline_jhpce.sh`. See the [full list of command-line options](#command-opts) and [section on sharing pipeline installations](#sharing) for details and tips about modifying your copy of `run_pipeline_jhpce.sh`.
 
 ### Example main script
 
@@ -117,7 +119,7 @@ bash /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/generate_logs.sh $PWD/run_brain
 - If you are installing software to run the pipeline locally, all dependencies are installed into `[repo directory]/Software/`, and `[repo directory]/conf/command_paths_long.config` is configured to show nextflow the default installation locations of each software tool. Thus, this config file can be tweaked to manually point to different paths, if need be (though this shouldn't be necessary).
 - Nextflow supports the use of Lmod modules to conveniently point the pipeline to the bioinformatics software it needs. If you neither wish to use docker nor wish to install the many dependencies locally-- and already have Lmod modules on your cluster-- this is another option. In the appropriate config file (as determined in step 3 in the section you choose below), you can include a module specification line in the associated process (such as `module = 'hisat2/2.2.1'` for buildHISATindex) as configured in *conf/jhpce.config*. In most cases this will be more work to fully configure, and so running the pipeline with docker or locally installing software is generally recommended instead. See [nextflow modules](https://www.nextflow.io/docs/latest/process.html#module) for some more information.
 
-## Sharing the pipeline with many users
+## Sharing the pipeline with many users {#sharing}
 
 A single installation of SPEAQeasy can be shared among potentially many users. New users can simply copy the appropriate "main" script (determined above) to a different desired directory, and modify the contents as appropriate for the particular experiment.
 
