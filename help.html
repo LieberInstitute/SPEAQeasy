@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>10 Help | SPEAQeasy</title>
   <meta name="description" content="10 Help | SPEAQeasy" />
-  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
 
   <meta property="og:title" content="10 Help | SPEAQeasy" />
   <meta property="og:type" content="book" />
@@ -49,6 +49,8 @@
 
 
 <script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+<link href="libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.0/anchor-sections.js"></script>
 
 
 <style type="text/css">
@@ -253,7 +255,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Note that disk space may also be the limitation (particularly for SGE users). See the <a href="configuration.html#configuration">configuration</a> section for more info.</p>
 <ul>
 <li><p><em>Strandness for at least one sample disagrees with the asserted value</em>: all samples for a particular pipeline run are expected to have the same “strandness”, specified by the <code>--strand</code> <a href="command-opts.html#command-opts">command option</a> in your <a href="quick-start.html#quick-start">main script</a>. SPEAQeasy infers the strandness for each sample to verify your data has its expected structure- by default, when any sample is determined to have a strandness different than what is specified, the pipeline halts with an error. This is designed to catch faulty data quickly before analysis, but also consider the <code>--force_strand</code> <a href="command-opts.html#command-opts">command option</a> to suppress errors of this kind.</p></li>
-<li><p><em>biomaRt databases cannot be reached</em>: when aggregating gene/exon/junction counts in the <code>CountObjects</code> <a href="pipeline-overview.html#pipeline-overview">process</a>, biomaRt databases are queried for some additional annotation (namely gene IDs). Since this information is sometimes desired for downstream analysis, the pipeline will halt if unable to reach the databases (a fairly common event). The user can choose to either <a href="help.html#resuming">resume</a> as-is: to re-attempt the CountObjects process with the biomaRt query, or resume without requiring this information (see the <code>--no_biomart</code> <a href="command-opts.html#command-opts">command option</a>).</p></li>
 <li><p><em>Nextflow has trouble communicating with your cluster</em>: a less common issue can occur on slower clusters, related to nextflow failing to poll your grid scheduler (like SGE or SLURM) for information it needs about the jobs that are running. This can show up in an error message like: <code>Process</code>PairedEndHISAT (Prefix: Sample_FE2P1_blood)<code>terminated for an unknown reason -- Likely it has been terminated by the external system</code>. We have found that raising the <code>exitReadTimeout</code> to a large value (such as 30 minutes) solves this issue, but consider raising it further if needed.</p></li>
 </ul>
 <pre class="groovy"><code>executor {
@@ -322,7 +323,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2><span class="header-section-number">10.4</span> No Internet Access?</h2>
 <ul>
 <li>For users who do not have internet access when executing pipeline runs, you may first run <code>bash scripts/manual_annotation.sh</code>. This script must be run from the repository directory (from a machine with internet access). Modify the four lines in the “user configuration section” at the top of the script for your particular set-up. This sets up everything so that subsequent runs of the pipeline do not need an internet connection to complete.</li>
-<li>Towards the end of the pipeline run, when R objects are created containing gene/exon/junction counts, some additional data is <a href="https://bioconductor.org/packages/release/bioc/html/biomaRt.html">pulled from biomaRt</a> databases by default. However, if an internet connection is not available, this extra information is not pulled (and an error occurs). Users without access to the internet during pipeline execution should provide the <code>--no_biomart</code> <a href="command-opts.html#command-opts">command flag</a> to suppress this error and continue without the additional biomaRt data. This is the only difference between runs with and without internet access.</li>
 </ul>
 </div>
 <div id="docker-help" class="section level2">

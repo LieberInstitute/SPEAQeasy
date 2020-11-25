@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>3 All Command Options | SPEAQeasy</title>
   <meta name="description" content="3 All Command Options | SPEAQeasy" />
-  <meta name="generator" content="bookdown 0.20 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
 
   <meta property="og:title" content="3 All Command Options | SPEAQeasy" />
   <meta property="og:type" content="book" />
@@ -49,6 +49,8 @@
 
 
 <script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+<link href="libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.0/anchor-sections.js"></script>
 
 
 <style type="text/css">
@@ -256,7 +258,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><code>--fullCov</code> Include this flag to perform full coverage analysis.</li>
 <li><code>--input</code> The path to the directory with the “samples.manifest” file. Defaults to “./input” (relative to the repository)</li>
 <li><code>--keep_unpaired</code> include this flag to keep unpaired reads output from trimming paired-end samples, for use in alignment. Default: false, as this can cause issues in downstream tools like FeatureCounts.</li>
-<li><code>--no_biomart</code> Include this flag to suppress potential errors in retrieving additional annotation info, such as gene symbols, from biomaRt. BiomaRt will still be queried for this info, but the pipeline will proceed without it upon failure for any reason. This option is required for users without internet access during pipeline runs.</li>
 <li><code>--output</code> The path to the directory to store pipeline output files/ objects. Defaults to “./results” (relative to the repository)</li>
 <li><code>--prefix</code> An additional label (in conjunction with “experiment”) to use for the pipeline run- affecting result file names.</li>
 <li><code>--small_test</code> Uses sample files located in the test folder as input. Overrides the “–input” option.</li>
