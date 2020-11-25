@@ -19,7 +19,6 @@
 * `--fullCov`        Include this flag to perform full coverage analysis.
 * `--input`        The path to the directory with the "samples.manifest" file. Defaults to "./input" (relative to the repository)
 * `--keep_unpaired` include this flag to keep unpaired reads output from trimming paired-end samples, for use in alignment. Default: false, as this can cause issues in downstream tools like FeatureCounts.
-* `--no_biomart` Include this flag to suppress potential errors in retrieving additional annotation info, such as gene symbols, from biomaRt. BiomaRt will still be queried for this info, but the pipeline will proceed without it upon failure for any reason. This option is required for users without internet access during pipeline runs.
 * `--output`  The path to the directory to store pipeline output files/ objects. Defaults to "./results" (relative to the repository)
 * `--prefix`    An additional label (in conjunction with "experiment") to use for the pipeline run- affecting result file names.
 * `--small_test`    Uses sample files located in the test folder as input. Overrides the "--input" option.

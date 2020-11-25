@@ -22,8 +22,6 @@ Note that disk space may also be the limitation (particularly for SGE users). Se
 
 * *Strandness for at least one sample disagrees with the asserted value*: all samples for a particular pipeline run are expected to have the same "strandness", specified by the `--strand` [command option](#command-opts) in your [main script](#quick-start). SPEAQeasy infers the strandness for each sample to verify your data has its expected structure- by default, when any sample is determined to have a strandness different than what is specified, the pipeline halts with an error. This is designed to catch faulty data quickly before analysis, but also consider the `--force_strand` [command option](#command-opts) to suppress errors of this kind.
 
-* *biomaRt databases cannot be reached*: when aggregating gene/exon/junction counts in the `CountObjects` [process](#pipeline-overview), biomaRt databases are queried for some additional annotation (namely gene IDs). Since this information is sometimes desired for downstream analysis, the pipeline will halt if unable to reach the databases (a fairly common event). The user can choose to either [resume](#resuming) as-is: to re-attempt the CountObjects process with the biomaRt query, or resume without requiring this information (see the `--no_biomart` [command option](#command-opts)).
-
 * *Nextflow has trouble communicating with your cluster*: a less common issue can occur on slower clusters, related to nextflow failing to poll your grid scheduler (like SGE or SLURM) for information it needs about the jobs that are running. This can show up in an error message like: `Process `PairedEndHISAT (Prefix: Sample_FE2P1_blood)` terminated for an unknown reason -- Likely it has been terminated by the external system`. We have found that raising the `exitReadTimeout` to a large value (such as 30 minutes) solves this issue, but consider raising it further if needed.
 
 ```{groovy, eval=FALSE}
@@ -91,7 +89,7 @@ This is the default in `jhpce.config`, `sge.config`, and `docker_sge.config`, bu
 ## No Internet Access?
 
 * For users who do not have internet access when executing pipeline runs, you may first run `bash scripts/manual_annotation.sh`. This script must be run from the repository directory (from a machine with internet access). Modify the four lines in the "user configuration section" at the top of the script for your particular set-up. This sets up everything so that subsequent runs of the pipeline do not need an internet connection to complete.
-* Towards the end of the pipeline run, when R objects are created containing gene/exon/junction counts, some additional data is [pulled from biomaRt](https://bioconductor.org/packages/release/bioc/html/biomaRt.html) databases by default. However, if an internet connection is not available, this extra information is not pulled (and an error occurs). Users without access to the internet during pipeline execution should provide the `--no_biomart` [command flag](#command-opts) to suppress this error and continue without the additional biomaRt data. This is the only difference between runs with and without internet access.
+
 
 ## Docker help
 

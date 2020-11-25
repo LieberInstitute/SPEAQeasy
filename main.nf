@@ -123,12 +123,6 @@ def helpMessage() {
                        trimming paired-end samples, for use in alignment.
                        Default: false, as this can cause issues in downstream
                        tools like FeatureCounts.
-    --no_biomart    <- include this flag to suppress potential errors in
-                       retrieving additional annotation info, such as gene
-                       symbols, from biomaRt. BiomaRt will still be queried for
-                       this info, but the pipeline will proceed without it upon
-                       failure for any reason. This option is required for users
-                       without internet access during pipeline runs.
     --output [path] <- the directory to place pipeline outputs/results. Default:
                        "./results" (relative to the repository)
     --prefix [string] <- an additional identifier (name) for the experiment
@@ -183,7 +177,6 @@ params.experiment = "Jlab_experiment"
 params.force_strand = false
 params.fullCov = false
 params.keep_unpaired = false
-params.no_biomart = false
 params.output = "${workflow.projectDir}/results"
 params.prefix = ""
 params.reference = ""
@@ -380,7 +373,6 @@ summary['Force strand'] = params.force_strand
 summary['Full coverage'] = params.fullCov
 summary['Input dir']			   = params.input
 summary['Keep unpaired'] = params.keep_unpaired
-summary['Skip biomaRt'] = params.no_biomart
 summary['Output dir']		  = params.output
 summary['Prefix'] = params.prefix
 summary['Reference']		   = params.reference
@@ -1493,8 +1485,7 @@ process CountObjects {
             -c !{params.ercc} \
             -t !{task.cpus} \
             !{counts_strand} \
-            -n !{params.use_salmon} \
-            -b !{params.no_biomart}
+            -n !{params.use_salmon}
 
         cp .command.log counts.log
         '''
