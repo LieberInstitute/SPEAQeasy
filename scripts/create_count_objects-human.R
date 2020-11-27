@@ -14,7 +14,6 @@ library('Biostrings')
 library('GenomicRanges')
 library('GenomicFeatures')
 library('org.Hs.eg.db')
-library('biomaRt')
 library('jaffelab')
 library('getopt')
 library('rafalib')
@@ -37,7 +36,6 @@ spec <- matrix(c(
     'ercc', 'c', 1, 'logical', 'Whether the reads include ERCC or not',
     'cores', 't', 1, 'integer', 'Number of cores to use',
     'salmon', 'n', 1, 'logical', 'Whether to use salmon quants rather than kallisto',
-    'no_biomart', 'b', 1, 'logical', 'Whether to continue without error if biomaRt cannot be reached',
     'help' , 'h', 0, 'logical', 'Display help'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
@@ -453,51 +451,7 @@ geneMap$ensemblID = ss(geneMap$Geneid, "\\.")
 geneMap$Geneid = NULL
 geneMap$gene_type = gencodeGENES[geneMap$gencodeID,"gene_type"]
 geneMap$Symbol = gencodeGENES[geneMap$gencodeID,"gene_name"]
-
-######### attempt to query biomaRt
-get_result = function() {
-    tryCatch({
-        if (opt$organism=="hg19") {
-            # VERSION 75, GRCh37.p13
-            ensembl = useMart("ENSEMBL_MART_ENSEMBL", 
-                dataset="hsapiens_gene_ensembl", host="feb2014.archive.ensembl.org")
-            sym = getBM(attributes = c("ensembl_gene_id", "entrezgene"), 
-                filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
-    
-            #  Rename for compatibility with hg38 data 
-            sym$entrezgene_id = sym$entrezgene
-            sym$entrezgene = NULL
-    
-        } else if (opt$organism=="hg38") {
-            # Latest GRCh38 biomaRt data
-            ensembl = useMart("ENSEMBL_MART_ENSEMBL",  
-                dataset="hsapiens_gene_ensembl")
-            sym = getBM(attributes = c("ensembl_gene_id", "entrezgene_id"), 
-                filters="ensembl_gene_id", values=geneMap$ensemblID, mart=ensembl)
-        }
-        return(list(sym, TRUE))
-    }, error = function(e) {
-        #  By default biomaRt info is required (failure to reach biomaRt is a fatal
-        #  error)
-        if (!opt$no_biomart) {
-            print("Error: the biomaRt query to obtain gene symbols failed. BiomaRt servers are likely down.")
-            stop()
-        }
-        #  Otherwise proceed with a warning
-        print("Proceeding without ensembl_gene_id and entrezgene_id info from biomaRt, as the databases could not be reached (and '--no_biomart' was specified)")
-        return(list(c(), FALSE))
-    })
-}
-
-temp = get_result()
-sym = temp[[1]]
-has_internet_con = temp[[2]]
-
-#########
-
-if (has_internet_con) {
-    geneMap$EntrezID = sym$entrezgene_id[match(geneMap$ensemblID, sym$ensembl_gene_id)]
-}
+geneMap$EntrezID = mapIds(org.Hs.eg.db, geneMap$Symbol, "ENTREZID", "SYMBOL")
 
 ## counts
 geneCountList = mclapply(geneFn, function(x) {
@@ -555,10 +509,8 @@ rownames(exonMap) = paste0("e", rownames(exonMap))
 exonMap$Geneid = NULL
 exonMap$gene_type = gencodeGENES[exonMap$gencodeID,"gene_type"]
 exonMap$Symbol = gencodeGENES[exonMap$gencodeID,"gene_name"]
+exonMap$EntrezID = mapIds(org.Hs.eg.db, exonMap$Symbol, "ENTREZID", "SYMBOL")
 
-if (has_internet_con) {
-    exonMap$EntrezID = sym$entrezgene_id[match(exonMap$ensemblID, sym$ensembl_gene_id)]
-}
 
 ## add gencode exon id
 exonMap = join(exonMap, gencodeEXONS, type="left", match="first")
@@ -740,17 +692,11 @@ anno$startExon = match(paste0(seqnames(anno),":",start(anno)-1),
 anno$endExon = match(paste0(seqnames(anno),":",end(anno)+1),
 	paste0(seqnames(exonGR), ":", start(exonGR)))
 
-if (has_internet_con) {
-    g = data.frame(leftGene = exonMap$gencodeID[anno$startExon],
-                   rightGene = exonMap$gencodeID[anno$endExon],
-                   leftGeneSym = exonMap$Symbol[anno$startExon],
-                   rightGeneSym = exonMap$Symbol[anno$endExon],
-                   stringsAsFactors=FALSE)
-} else {
-    g = data.frame(leftGene = exonMap$gencodeID[anno$startExon],
-                   rightGene = exonMap$gencodeID[anno$endExon],
-                   stringsAsFactors=FALSE)
-}
+g = data.frame(leftGene = exonMap$gencodeID[anno$startExon],
+               rightGene = exonMap$gencodeID[anno$endExon],
+               leftGeneSym = exonMap$Symbol[anno$startExon],
+               rightGeneSym = exonMap$Symbol[anno$endExon],
+               stringsAsFactors=FALSE)
 
 g$newGene = NA
 g$newGene[which(g$leftGene==g$rightGene)] = 
@@ -766,22 +712,20 @@ anno$newGeneID = g$newGene
 anno$isFusion = grepl("-", anno$newGeneID)
 anno$newGeneID[anno$code =="InGen"] = anno$gencodeGeneID[anno$code =="InGen"]
 
-if (has_internet_con) {
-    g$newGeneSym = NA
-    g$newGeneSym[which(g$leftGene==g$rightGene)] = 
-        g$leftGeneSym[which(g$leftGene==g$rightGene)]
-    g$newGeneSym[which(g$leftGene!=g$rightGene)] = 
-        paste0(g$leftGeneSym,"-",g$rightGeneSym)[which(g$leftGene!=g$rightGene)]
-    g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))] = 
-        g$rightGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))] 
-    g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))] = 
-        g$leftGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))] 
-    g$newGeneSym[g$newGeneSym==""] = NA
-    g$newGeneSym[g$newGeneSym=="-"] = NA
+g$newGeneSym = NA
+g$newGeneSym[which(g$leftGene==g$rightGene)] = 
+    g$leftGeneSym[which(g$leftGene==g$rightGene)]
+g$newGeneSym[which(g$leftGene!=g$rightGene)] = 
+    paste0(g$leftGeneSym,"-",g$rightGeneSym)[which(g$leftGene!=g$rightGene)]
+g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))] = 
+    g$rightGeneSym[which(is.na(g$newGeneSym) & is.na(g$leftGene))] 
+g$newGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))] = 
+    g$leftGeneSym[which(is.na(g$newGeneSym) & is.na(g$rightGene))] 
+g$newGeneSym[g$newGeneSym==""] = NA
+g$newGeneSym[g$newGeneSym=="-"] = NA
     
-    anno$newGeneSymbol = g$newGeneSym
-    anno$newGeneSymbol[anno$code =="InGen"] = anno$Symbol[anno$code =="InGen"]
-}
+anno$newGeneSymbol = g$newGeneSym
+anno$newGeneSymbol[anno$code =="InGen"] = anno$Symbol[anno$code =="InGen"]
 
 
 ## extract out jMap
