@@ -342,6 +342,16 @@ def get_file_ext(f) {
   }
 }
 
+//  Given a "row" of the 'samples.manifest' file as a string, return the FASTQ
+//  files
+def get_fastq_names(row) {
+    if (params.sample == "single") {
+        return(file(row.tokenize('\t')[0]))
+    } else {
+        return(tuple(file(row.tokenize('\t')[0]), file(row.tokenize('\t')[2])))
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Summary of Defined Variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -639,7 +649,7 @@ process BuildKallistoIndex {
 Channel
     .fromPath(params.input + '/samples.manifest')
     .splitText()
-    .map{ row-> tuple(file(row.tokenize('\t')[0]), file(row.tokenize('\t')[2])) }
+    .map{ row -> get_fastq_names(row) }
     .flatten()
     .collect()
     .set{ raw_fastqs }
