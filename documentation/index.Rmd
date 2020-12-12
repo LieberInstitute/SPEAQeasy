@@ -28,7 +28,18 @@ SPEAQeasy is a [Nextflow](https://www.nextflow.io/)-based **S**calable RNA-seq *
 We hope that [`SPEAQeasy`](http://research.libd.org/SPEAQeasy/) will be useful for your research. Please use the following information to cite the package and the overall approach. Thank you!
 
 ```
-ADD CITATION INFO
+@article {Eagles2020.12.11.386789,
+	author = {Eagles, Nicholas J. and Burke, Emily E. and Leonard, Jabob and Barry, Brianna K. and Stolz, Joshua M. and Huuki, Louise and Phan, BaDoi N. and Larrios Serrato, Violeta and Guti{\'e}rrez-Mill{\'a}n, Everardo and Aguilar-Ordo{\~n}ez, Israel and Jaffe, Andrew E. and Collado-Torres, Leonardo},
+	title = {SPEAQeasy: a Scalable Pipeline for Expression Analysis and Quantification for R/Bioconductor-powered RNA-seq analyses},
+	elocation-id = {2020.12.11.386789},
+	year = {2020},
+	doi = {10.1101/2020.12.11.386789},
+	publisher = {Cold Spring Harbor Laboratory},
+	abstract = {RNA sequencing (RNA-seq) is a common and widespread biological assay, and an increasing amount of data is generated with it. In practice, there are a large number of individual steps a researcher must perform before raw RNA-seq reads yield directly valuable information, such as differential gene expression data. Existing software tools are typically specialized, only performing one step-- such as alignment of reads to a reference genome-- of a larger workflow. The demand for a more comprehensive and reproducible workflow has led to the production of a number of publicly available RNA-seq pipelines. However, we have found that most require computational expertise to set up or share among several users, are not actively maintained, or lack features we have found to be important in our own analyses. In response to these concerns, we have developed a Scalable Pipeline for Expression Analysis and Quantification (SPEAQeasy), which is easy to install and share, and provides a bridge towards R/Bioconductor downstream analysis solutions. SPEAQeasy is user-friendly and lowers the computational-domain entry barrier for biologists and clinicians to RNA-seq data processing as the main input file is a table with sample names and their corresponding FASTQ files. SPEAQeasy is portable across computational frameworks (SGE, SLURM, local, docker integration) and different configuration files are provided.Competing Interest StatementJ.L., V.L.S., E.G-M., I.A-O. were employed by Winter Genomics. All other authors have no conflicts of interest to declare.},
+	URL = {https://www.biorxiv.org/content/early/2020/12/11/2020.12.11.386789},
+	eprint = {https://www.biorxiv.org/content/early/2020/12/11/2020.12.11.386789.full.pdf},
+	journal = {bioRxiv}
+}
 ```
 
 
