@@ -47,11 +47,12 @@ Original Pipeline
  
 Nextflow Port
 
+ [Nick Eagles](mailto:nick.eagles@libd.org),
+ [Brianna Barry](https://github.com/BriannaBarry),
  [Jacob Leonard](mailto:leonard.jacob09@gmail.com),
  [Israel Aguilar](mailto:iaguilaror@gmail.com),
  [Violeta Larios](mailto:siedracko@gmail.com),
- [Everardo Gutierrez](mailto:ever.gmillan@gmail.com),
- [Nick Eagles](mailto:nick.eagles@libd.org)
+ [Everardo Gutierrez](mailto:ever.gmillan@gmail.com)
 
 ## Contact ##
 
