@@ -1748,7 +1748,6 @@ if (do_coverage) {
         
             shell:
                 '''
-                # hi
                 !{params.Rscript} !{fullCov_script} \
                     -o !{params.reference} \
                     -e !{params.experiment} \
