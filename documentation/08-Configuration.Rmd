@@ -72,15 +72,28 @@ A number of variables in your [config file](#quick-start) exist to control choic
 
 ### Software settings
 
-* *salmon_min_read_len*: this is passed directly to the `-d` argument to `salmon index`, when building a transcriptome index with [Salmon](https://salmon.readthedocs.io/en/latest/salmon.html). Note that Kallisto is used instead of Salmon, by default (see the `--use_salmon` [option](#command-opts)).
-* *min_intron_len*: this is passed to the `--min-intronlen` argument to `hisat2` during alignment ([hisat2 manual](https://ccb.jhu.edu/software/hisat2/manual.shtml))
-* *bam2wig_depth_thres*: this is passed to the `-t` argument to `bam2wig.py` from [RSeQC](http://rseqc.sourceforge.net/)
-* *samtools_min_map_q*, *samtools_min_base_q*, *samtools_max_depth*: these are passed to the `-q`, `-Q`, and `-d` arguments to `samtools mpileup`, respectively, when calling variants (see the [manual](http://www.htslib.org/doc/))
-* *kallisto_len_mean*, *kallisto_len_sd*: these are passed to the `-l` and `-s` arguments to `kallisto quant` when quantifying transcripts (and ERCC spike-ins, if applicable) (see the [manual](https://pachterlab.github.io/kallisto/manual))
+Command-line parameters can be directly passed to most software tools used in the pipeline, through configuration. Note that SPEAQeasy internally passes certain command-line options to some software tools, in a way that can not be overriden in the configuration file. This is done for options which control parallelization, file naming, or other functions which must either be fixed or are configurable through other means (e.g. number of threads is implicitly controlled by the `cpus` variable in the `QualityUntrimmed` process, rather than directly via the `-t` argument to `fastqc`). Open your particular config file determined [here](#setup-details) for details of which options are fixed vs. which can be specified through configuration. A list of variables which control command-line arguments is as follows:
+ 
+* *bam2wig_args*: a string of optional arguments to pass to `bam2wig.py` from [RSeQC](http://rseqc.sourceforge.net/), when producing coverage wig files from BAM alignments.
+* *bcftools_args*: a string of optional arguments to pass to `bcftools call` when calling variants (applicable for human samples only).
+* *fastqc_args*: a string of optional arguments to pass to `fastqc` when performing quality checking before (and if applicable, after) trimming.
+* *feat_counts_gene_args* and *feat_counts_exon_args*: strings of optional arguments passed to [FeatureCounts](http://bioinf.wehi.edu.au/featureCounts/) when counting genes and exons, respectively.
+* *hisat2_args*: a string of optional arguments to pass to `hisat2-align`.
+* *kallisto_len_mean* and *kallisto_len_sd*: the mean and standard deviation for fragment length, required by `kallisto quant` when performing pseudoalignment. It is recommended you directly modify these variables rather than individually modifying `kallisto_quant_single_args` and`kallisto_quant_ercc_single_args`. These variables are also used when performing our pseudo-alignment-based approach to inferring strandness with single-end samples.
+* *kallisto_quant_single_args* and *kallisto_quant_paired_args*: a string of arguments to pass to `kallisto quant` when performing pseudo-alignment to the reference transcriptome, for single-end and paired-end samples, respectively.
+* *kallisto_quant_ercc_single_args* and *kallisto_quant_ercc_paired_args*: a string of optional arguments to pass to `kallisto quant` for performing pseudo-alignment to the list of synthetic ERCC-defined transcripts, for applicable experiments.
+* *kallisto_index_args*: a string of optional arguments to pass to `kallisto index` when first preparing `kallisto` for a given reference transcriptome.
+* *salmon_index_args*: a string of optional arguments to pass to `salmon index` when first preparing `salmon` for a given reference transcriptome. Note that Kallisto is used instead of Salmon, by default (see the `--use_salmon` [option](#command-opts)).
+* *salmon_quant_args*: a string of optional arguments to pass to `salmon quant` when quantifying transcript abundances with Salmon.
+* *samtools_args*: a string of optional arguments to pass to `samtools mpileup` before calling variants on human samples.
 * *trim_adapter_args_single*, *trim_adapter_args_paired*: these are passed to the `ILLUMINACLIP` settings for [trimmomatic](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf) (after the adapter) for analysis with single and paired-end reads, respectively. Leave empty (i.e. "") to not perform adapter trimming.
 * *trim_quality_args*: literal string arguments used for quality trimming- leave empty (i.e. "") to not perform quality trimming. An example value could be `"LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:75"`.
-* *feat_counts_gene_opts*, *feat_counts_exon_opts*: strings passed to [FeatureCounts](http://bioinf.wehi.edu.au/featureCounts/), containing any (additional) literal command-line arguments for this program, when counting genes and exons, respectively. Note that the `-s`, `-T`, `-a`, and `-o` arguments are already specified in both cases, and the `-f` option is also specified for exons.
+* *regtools_args*: a string of optional arguments to pass to `regtools junctions extract` when quantifying junctions.
+* *wigToBigWig_args*: a string of optional arguments to pass to `wigToBigWig` when producing coverage BigWig files from their wig counterparts.
 
 ### Miscellaneous settings
 
-* *num_reads_infer_strand*: see InferStrandness described [here](#pipeline-overview). This is the number of reads pseudoaligned via kallisto in order to make a determination regarding the strandness of a particular sample (an integer).
+A couple configuration variables control functionality specific to SPEAQeasy (i.e. not external software tools called by SPEAQeasy). These are documented below.
+
+* *num_reads_infer_strand*: The number of lines in each FASTQ file to subset when determining strandness for a sample.
+* *wiggletools_max_threads*: The maximum number of files to handle simultaneously when producing wig coverage files. We have encountered issues with `wiggletools` starting too many threads (one is used per sample handled), and so this can be lowered if similar issues occur for other users in large experiments.
