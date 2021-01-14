@@ -1757,42 +1757,31 @@ if (do_coverage) {
     
     
     if (params.fullCov) {
-        
-        full_coverage_bams
-            .flatten()
-            .mix(full_coverage_bigwigs)
-            .flatten()
-            .collect()
-            .set{ full_coverage_inputs }
       
     	/*
     	 * Step 7b: Create Full Coverage Objects
     	 */
     
         process CoverageObjects {
-    
+            
+            tag "Strand: ${read_type}"
             publishDir "${params.output}/coverage_objects",'mode':'copy'
     
             input:
                 file fullCov_script from file("${workflow.projectDir}/scripts/create_fullCov_object.R")
                 file complete_manifest_fullcov
-                file full_coverage_inputs
+                set val(read_type), file(bigwigs) from full_coverage_bigwigs
     
             output:
                 file "*"
         
             shell:
-                if (params.sample == "paired") {
-                  coverage_pe = "TRUE"
-                } else {
-                  coverage_pe = "FALSE"
-                }
                 '''
                 !{params.Rscript} !{fullCov_script} \
                     -o !{params.reference} \
                     -e !{params.experiment} \
-                    -l !{coverage_pe} \
-                    -c !{task.cpus}
+                    -c !{task.cpus} \
+                    -s !{read_type}
                 
                 cp .command.log coverage_objects.log
                 '''
