@@ -615,7 +615,7 @@ if (params.use_salmon) {
               -i salmon_index_${params.anno_suffix} \
               -p $task.cpus \
               $gencode_flag \
-              -k ${params.salmon_min_read_len}
+              ${params.salmon_index_args}
           cp .command.log build_salmon_index_${params.anno_suffix}.log
           """
     }
@@ -634,7 +634,10 @@ process BuildKallistoIndex {
 
     shell:
         '''
-        !{params.kallisto} index -i kallisto_index_!{params.anno_suffix} !{transcript_fa}
+        !{params.kallisto} index \
+            -i kallisto_index_!{params.anno_suffix} \
+            !{params.kallisto_index_args} \
+            !{transcript_fa}
         cp .command.log build_kallisto_index_!{params.anno_suffix}.log
         '''
 }
@@ -785,9 +788,9 @@ if (params.ercc) {
 
     shell:
       if (params.sample == "single") {
-          kallisto_flags = "--single -l ${params.kallisto_len_mean} -s ${params.kallisto_len_sd}"
+          kallisto_flags = params.kallisto_quant_ercc_single_args
       } else {
-          kallisto_flags = ""
+          kallisto_flags = params.kallisto_quant_ercc_paired_args
       }
       '''
       ( set -o posix ; set ) > bash_vars.txt
@@ -802,7 +805,14 @@ if (params.ercc) {
           kallisto_strand=""
       fi
       
-      !{params.kallisto} quant -i !{erccidx} -t !{task.cpus} !{kallisto_flags} -o . $kallisto_strand !{ercc_input}
+      !{params.kallisto} quant \
+          -i !{erccidx} \
+          -t !{task.cpus} \
+          !{kallisto_flags} \
+          -o . \
+          $kallisto_strand \
+          !{ercc_input}
+      
       cp abundance.tsv !{prefix}_ercc_abundance.tsv
       cp .command.log ercc_!{prefix}.log
       
@@ -839,7 +849,7 @@ process QualityUntrimmed {
             data_command = "cp ${prefix}_1_fastqc/fastqc_data.txt ${prefix}_1_untrimmed_fastqc_data.txt && cp ${prefix}_2_fastqc/fastqc_data.txt ${prefix}_2_untrimmed_fastqc_data.txt"
         }
         '''
-        !{params.fastqc} -t !{task.cpus} --extract !{fastqc_untrimmed_input}
+        !{params.fastqc} -t !{task.cpus} --extract !{params.fastqc_args} !{fastqc_untrimmed_input}
         !{copy_command}
         !{data_command}
         '''
@@ -997,7 +1007,7 @@ process QualityTrimmed {
             data_command = "cp ${prefix}_trimmed_paired_1_fastqc/fastqc_data.txt ${prefix}_1_trimmed_fastqc_data.txt && cp ${prefix}_trimmed_paired_2_fastqc/fastqc_data.txt ${prefix}_2_trimmed_fastqc_data.txt"
         }
         '''
-        !{params.fastqc} -t !{task.cpus} --extract !{fastqc_trimmed_input}
+        !{params.fastqc} -t !{task.cpus} --extract !{params.fastqc_args} !{fastqc_trimmed_input}
         !{copy_command}
         !{data_command}
         '''
@@ -1051,8 +1061,7 @@ if (params.sample == "single") {
                 -U !{single_hisat_input} \
                 -S !{prefix}_hisat_out.sam \
                 ${hisat_strand} \
-                --phred33 \
-                --min-intronlen !{params.min_intron_len} \
+                !{params.hisat2_args} \
                 2> !{prefix}_align_summary.txt
             
             temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
@@ -1111,8 +1120,7 @@ if (params.sample == "single") {
                 -S !{prefix}_hisat_out.sam \
                 ${unpaired_opt} \
                 ${hisat_strand} \
-                --phred33 \
-                --min-intronlen !{params.min_intron_len} \
+                !{params.hisat2_args} \
                 !{unaligned_opt} \
                 2> !{prefix}_align_summary.txt
             
@@ -1195,20 +1203,21 @@ process FeatureCounts {
             feature_strand=0
         fi
         
+        # Genes
         ${params.featureCounts} \
             -s \$feature_strand \
             $sample_option \
-            ${params.feat_counts_gene_opts} \
+            ${params.feat_counts_gene_args} \
             -T $task.cpus \
             -a $gencode_gtf_feature \
             -o ${feature_out}_Genes.counts \
             $feature_bam
-
+        
+        # Exons
         ${params.featureCounts} \
             -s \$feature_strand \
             $sample_option \
-            ${params.feat_counts_exon_opts} \
-            -f \
+            ${params.feat_counts_exon_args} \
             -T $task.cpus \
             -a $gencode_gtf_feature \
             -o ${feature_out}_Exons.counts \
@@ -1277,7 +1286,7 @@ process Junctions {
             strand_integer=0
         fi
         
-        !{params.regtools} junctions extract -m !{params.min_intron_len} -s ${strand_integer} -o !{outjxn} !{alignment_bam}
+        !{params.regtools} junctions extract !{params.regtools_args} -s ${strand_integer} -o !{outjxn} !{alignment_bam}
         python3 !{bed_to_juncs_script} < !{outjxn} > !{outcount}
         
         temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
@@ -1332,7 +1341,8 @@ if (params.use_salmon) {
                 -p !{task.cpus} \
                 -l ${strand_flag} \
                 ${sample_flag} \
-                -o !{prefix}
+                -o !{prefix} \
+                !{params.salmon_quant_args}
     
             cp !{prefix}/quant.sf !{prefix}_quant.sf
             cp .command.log tx_quant_!{prefix}.log
@@ -1377,18 +1387,23 @@ if (params.use_salmon) {
                 fq1=$(ls *_1.f*q*)
                 fq2=$(ls *_2.f*q*)
             
-                !{params.kallisto} quant -t !{task.cpus} $strand_flag -i !{kallisto_index} -o . $fq1 $fq2
+                !{params.kallisto} quant \
+                    -t !{task.cpus} \
+                    $strand_flag \
+                    -i !{kallisto_index} \
+                    -o . \
+                    !{params.kallisto_quant_paired_args} \
+                    $fq1 $fq2
             else
                 fq=$(ls *.f*q*)
                 
                 !{params.kallisto} quant \
                     -t !{task.cpus} \
-                    --single \
-                    -l !{params.kallisto_len_mean} \
-                    -s !{params.kallisto_len_sd} \
+                    !{params.kallisto_quant_single_args} \
                     $strand_flag \
                     -i !{kallisto_index} \
-                    -o . $fq
+                    -o . \
+                    $fq
             fi
             
             mv abundance.tsv !{prefix}_abundance.tsv
@@ -1504,40 +1519,50 @@ process CountObjects {
 
 if (params.step8) {
 
-	/*
-	 * Step 8: Call Variants
-	*/
- 
-  if (params.custom_anno != "") {
-      snvbed = Channel.fromPath("${params.annotation}/*.bed")
-  } else {
-      snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
-  }
+    /*
+     * Step 8: Call Variants
+     */
+      
+    if (params.custom_anno != "") {
+        snvbed = Channel.fromPath("${params.annotation}/*.bed")
+    } else {
+        snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
+    }
+    
+    variant_calls_bam
+        .combine(snvbed)
+        .combine(variant_assembly)
+        .set{ variant_calls }
 
-	variant_calls_bam
-	  .combine(snvbed)
-	  .combine(variant_assembly)
-	  .set{ variant_calls }
-
-	process VariantCalls {
- 
-		tag "$variant_bams_prefix"
-		publishDir "${params.output}/variant_calls",'mode':'copy'
-
-		input:
-		set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai), file(snv_bed), file(variant_assembly_file) from variant_calls
-
-		output:
-		file "${variant_bams_prefix}.vcf.gz" into compressed_variant_calls
-		file "${variant_bams_prefix}.vcf.gz.tbi" into compressed_variant_calls_tbi
-
-		shell:
-		'''
-		!{params.samtools} mpileup -l !{snv_bed} -AB -q !{params.samtools_min_map_q} -Q !{params.samtools_min_base_q} -d !{params.samtools_max_depth} -uf !{variant_assembly_file} !{variant_calls_bam_file} -o !{variant_bams_prefix}_tmp.vcf
-		!{params.bcftools} call -mv -Oz !{variant_bams_prefix}_tmp.vcf > !{variant_bams_prefix}.vcf.gz
-		!{params.tabix} -p vcf !{variant_bams_prefix}.vcf.gz
-		'''
-	}
+    process VariantCalls {
+        tag "$variant_bams_prefix"
+        publishDir "${params.output}/variant_calls",'mode':'copy'
+        
+        input:
+            set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai), file(snv_bed), file(variant_assembly_file) from variant_calls
+        
+        output:
+            file "${variant_bams_prefix}.vcf.gz" into compressed_variant_calls
+            file "${variant_bams_prefix}.vcf.gz.tbi" into compressed_variant_calls_tbi
+        
+        shell:
+            '''
+            !{params.samtools} mpileup \
+                -l !{snv_bed} \
+                !{params.samtools_args} \
+                -u \
+                -f !{variant_assembly_file} \
+                !{variant_calls_bam_file} \
+                -o !{variant_bams_prefix}_tmp.vcf
+            
+            !{params.bcftools} call \
+                !{params.bcftools_args} \
+                !{variant_bams_prefix}_tmp.vcf \
+                > !{variant_bams_prefix}.vcf.gz
+            
+            !{params.tabix} -p vcf !{variant_bams_prefix}.vcf.gz
+            '''
+    }
 
 
 	/*
@@ -1604,7 +1629,7 @@ if (do_coverage) {
             python3 $(which bam2wig.py) \
                 -s !{chr_sizes} \
                 -i !{sorted_coverage_bam} \
-                -t !{params.bam2wig_depth_thres} \
+                !{params.bam2wig_args} \
                 -o !{coverage_prefix} \
                 $strand_flag
     
@@ -1636,7 +1661,11 @@ if (do_coverage) {
         
         shell:
             '''
-            !{params.wigToBigWig} -clip !{wig_file} !{chr_sizes} !{wig_prefix}.bw
+            !{params.wigToBigWig} \
+                !{params.wigToBigWig_args} \
+                !{wig_file} \
+                !{chr_sizes} \
+                !{wig_prefix}.bw
             '''
     }
     
