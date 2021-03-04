@@ -55,6 +55,7 @@
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
 pre.sourceCode { margin: 0; }
 @media screen {
@@ -272,14 +273,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3><span class="header-section-number">1.2.1</span> Your “main” script</h3>
 <p>The script you will use to run the pipeline depends on the system you wish to run the pipeline on. To execute SPEAQeasy on a SLURM cluster, simply run <code>bash run_pipeline_slurm.sh</code>. On an SGE cluster, the script is called <code>run_pipeline_sge.sh</code>. For local runs (no cluster), use <code>run_pipeline_local.sh</code>.</p>
 <p><em>Note</em>: Docker users must make one additional edit to their main script: prepend “docker_” to the profile flag. For example, for SLURM users, change this line to <code>-profile docker_slurm</code> as seen here:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="quick-start.html#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="va">$ORIG_DIR</span><span class="ex">/Software/nextflow</span> main.nf <span class="kw">\</span></span>
-<span id="cb7-2"><a href="quick-start.html#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="ex">--sample</span> <span class="st">&quot;single&quot;</span> <span class="kw">\</span></span>
-<span id="cb7-3"><a href="quick-start.html#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="ex">--reference</span> <span class="st">&quot;hg19&quot;</span> <span class="kw">\</span></span>
-<span id="cb7-4"><a href="quick-start.html#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="ex">--strand</span> <span class="st">&quot;unstranded&quot;</span> <span class="kw">\</span></span>
-<span id="cb7-5"><a href="quick-start.html#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="ex">--small_test</span> <span class="kw">\</span></span>
-<span id="cb7-6"><a href="quick-start.html#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="ex">--annotation</span> <span class="st">&quot;</span><span class="va">$ORIG_DIR</span><span class="st">/Annotation&quot;</span> <span class="kw">\</span></span>
-<span id="cb7-7"><a href="quick-start.html#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="ex">-with-report</span> execution_reports/pipeline_report.html <span class="kw">\</span></span>
-<span id="cb7-8"><a href="quick-start.html#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="ex">-profile</span> docker_slurm # was <span class="st">&quot;-profile slurm&quot;</span>!</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="quick-start.html#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="va">$ORIG_DIR</span><span class="ex">/Software/nextflow</span> main.nf <span class="dt">\</span></span>
+<span id="cb7-2"><a href="quick-start.html#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">--sample</span> <span class="st">&quot;single&quot;</span> <span class="dt">\</span></span>
+<span id="cb7-3"><a href="quick-start.html#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">--reference</span> <span class="st">&quot;hg19&quot;</span> <span class="dt">\</span></span>
+<span id="cb7-4"><a href="quick-start.html#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">--strand</span> <span class="st">&quot;unstranded&quot;</span> <span class="dt">\</span></span>
+<span id="cb7-5"><a href="quick-start.html#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">--small_test</span> <span class="dt">\</span></span>
+<span id="cb7-6"><a href="quick-start.html#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">--annotation</span> <span class="st">&quot;</span><span class="va">$ORIG_DIR</span><span class="st">/Annotation&quot;</span> <span class="dt">\</span></span>
+<span id="cb7-7"><a href="quick-start.html#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">-with-report</span> execution_reports/pipeline_report.html <span class="dt">\</span></span>
+<span id="cb7-8"><a href="quick-start.html#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">-profile</span> docker_slurm <span class="co"># was &quot;-profile slurm&quot;!</span></span></code></pre></div>
 </div>
 <div id="your-config-file" class="section level3" number="1.2.2">
 <h3><span class="header-section-number">1.2.2</span> Your config file</h3>
