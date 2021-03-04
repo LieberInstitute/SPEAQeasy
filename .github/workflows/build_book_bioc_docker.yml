@@ -195,6 +195,7 @@ jobs:
         run: |
           setwd("documentation")
           bookdown::render_book("index.Rmd")
+          system("touch _book/.nojekyll")
         shell: Rscript {0}
 
       - name: Install deploy dependencies
