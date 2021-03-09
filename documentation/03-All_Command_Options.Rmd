@@ -28,6 +28,7 @@
                     "force": perform trimming on all samples
 * `--unalign`        Include this flag to save discordant reads after the alignment step (false/ not included by default)
 * `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
+* `--use_star` Include this flag to use STAR during alignment, instead of the default of HISAT2.
 
 ## Nextflow Options {#next-opts}
 

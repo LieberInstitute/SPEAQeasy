@@ -141,6 +141,8 @@ def helpMessage() {
     --use_salmon    <- include this flag to perform transcript quantification
                        with salmon instead of the default of kallisto. Default:
                        false
+    --use_star      <- include this flag to use STAR during alignment, instead
+                       of the default of HISAT2
                        
     The above was a comprehensive list of options specific to SPEAQeasy. As a
     pipeline based on nextflow, SPEAQeasy also accepts any options the
@@ -186,6 +188,7 @@ params.strand = ""
 params.trim_mode = "adaptive"
 params.unalign = false
 params.use_salmon = false
+params.use_star = false
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validate Inputs
@@ -392,6 +395,7 @@ summary['Strand']			  = params.strand
 summary['Trim mode'] = params.trim_mode
 summary['Keep discordant'] = params.unalign
 summary['Use salmon'] = params.use_salmon
+summary['Use STAR'] = params.use_star
 log.info summary.collect { k,v -> "${k.padRight(18)}: $v" }.join("\n")
 log.info "==========================================="
 
