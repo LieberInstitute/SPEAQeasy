@@ -1,6 +1,6 @@
 # Configuration {#configuration}
 
-SPEAQeasy is designed to be highly customizable, yet need no configuration from a user wishing to rely on sensible default settings. All configuration, including software settings, hardware resources such as memory and CPU use, and more, can be done in a single file determined [here](#setup-details).
+SPEAQeasy is designed to be highly customizable, yet need no configuration from a user wishing to rely on sensible default settings. Most configuration, including software settings, hardware resources such as memory and CPU use, and more, can be done in a single file determined [here](#setup-details). Please note that the common, "major" [options](#command-opts) are specified in your [main script](#quick-config), and not in the configuration file. The config is intended to hold the "finer details", which are documented below.
 
 ## Specifying Options for your Cluster
 
