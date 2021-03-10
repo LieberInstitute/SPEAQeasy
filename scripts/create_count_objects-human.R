@@ -36,6 +36,7 @@ spec <- matrix(c(
     'ercc', 'c', 1, 'logical', 'Whether the reads include ERCC or not',
     'cores', 't', 1, 'integer', 'Number of cores to use',
     'salmon', 'n', 1, 'logical', 'Whether to use salmon quants rather than kallisto',
+    'star', 'r', 1, 'logical', 'Whether STAR was used for alignment',
     'help' , 'h', 0, 'logical', 'Display help'
 ), byrow=TRUE, ncol=5)
 opt <- getopt(spec)
@@ -355,7 +356,7 @@ if (opt$ercc == TRUE ){
 ### add bam file
 metrics$bamFile <- file.path(".", paste0(metrics$SAMPLE_ID, "_accepted_hits.sorted.bam"))
 
-### get alignment metrics
+#  Define functions for extracting metrics from HISAT2 logs
 if (opt$paired == TRUE) {
     hisatStats = function(logFile) {
     	y = scan(logFile, what = "character", sep= "\n", 
@@ -397,11 +398,56 @@ if (opt$paired == TRUE) {
     }
 }
 
-logFiles = file.path(".", paste0(metrics$SAMPLE_ID, '_align_summary.txt'))
-names(logFiles)  = metrics$SAMPLE_ID
-hiStats <- do.call(rbind, lapply(logFiles, hisatStats))
+#  Return a 1-row data frame of STAR alignment metrics, given a single
+#  sample ID and a character vector of metric names to extract. Note this
+#  vector is "fixed" (the function is hardcoded to work for a particular
+#  value of 'metric_names').
+starStats = function(id, metric_names) {
+    #  Infer log path from sample ID, then read
+    star_log = readLines(paste0(id, '_STAR_alignment.log'))
+    
+    #  Infer whether trimming was performed from whether a post-trimming FastQC
+    #  report exists for this sample ID
+    if (opt$paired) {
+        is_trimmed = file.exists(paste0(id, '_1_trimmed_summary.txt'))
+    } else {
+        is_trimmed = file.exists(paste0(id, '_trimmed_summary.txt'))
+    }
+    
+    #  Grab the lines including each metric of interest
+    key_lines = star_log[sapply(metric_names, function(n) grep(n, star_log))]
+    
+    #  Extract the numeric value for each metric in those lines
+    metric_values = as.numeric(ss(key_lines, '\t', 2))
+    
+    o = data.frame('trimmed' = is_trimmed
+                   'numReads' = metric_values[1],
+                   'numMapped' = sum(metric_values[5:6]),
+                   'numUnmapped' = sum(metric_values[2:4]),
+                   'overallMapRate' = sum(metric_values[5:6]) / metric_values[1])
+    
+    return(o)
+}
 
-metrics = cbind(metrics,hiStats)	
+#  Extract alignment stats, and add to 'metrics'
+if (opt$star) {
+    metric_names = c('Number of input reads',
+                     'Number of reads unmapped: too many mismatches',
+                     'Number of reads unmapped: too short',
+                     'Number of reads unmapped: other',
+                     'Uniquely mapped reads number',
+                     'Number of reads mapped to multiple loci')
+                     
+    alignment_stats = lapply(metrics$SAMPLE_ID, function(id) starStats(id, metric_names))
+    alignment_stats = do.call(rbind, alignment_stats)
+} else { # HISAT2 is used for alignment
+    logFiles = file.path(".", paste0(metrics$SAMPLE_ID, '_align_summary.txt'))
+    names(logFiles)  = metrics$SAMPLE_ID
+    
+    alignment_stats <- do.call(rbind, lapply(logFiles, hisatStats))
+}
+
+metrics = cbind(metrics, alignment_stats)	
 
 ### confirm total mapping
 metrics$totalMapped <- unlist(bplapply(metrics$bamFile, getTotalMapped,

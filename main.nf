@@ -1514,7 +1514,8 @@ process CountObjects {
             -c !{params.ercc} \
             -t !{task.cpus} \
             !{counts_strand} \
-            -n !{params.use_salmon}
+            -n !{params.use_salmon} \
+            -r !{params.use_star}
 
         cp .command.log counts.log
         '''
