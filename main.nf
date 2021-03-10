@@ -477,33 +477,9 @@ if (params.custom_anno != "") {
     }
 }
 
-/*
- * Step Ib: Build HISAT Index
- */
-
-// Uses "storeDir" to build HISAT2 index only when it doesn't exist, and output the cached
-// files if they do already exist
-process buildHISATindex {
-		
-  tag "Building HISAT2 Index: ${hisat_prefix}"
-  storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
-
-  input:
-    file reference_fasta
-
-  output:
-    file("${hisat_prefix}.*") into hisat_index
-
-  shell:
-    hisat_prefix = "hisat2_assembly_${params.anno_suffix}"
-    '''
-    !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{hisat_prefix}
-    '''
-}
-
 
 /*
- * Step II: Download reference .gtf (from GENCODE for human/ mouse, ensembl for rat)
+ * Download reference .gtf (from GENCODE for human/ mouse, ensembl for rat)
  */
 
 if (params.custom_anno != "") {
@@ -534,6 +510,54 @@ if (params.custom_anno != "") {
             '''
     }
 }
+
+
+/*
+ * Build aligner index (HISAT2 by default, or optionally STAR)
+ */
+
+if (params.use_star) {
+    process BuildStarIndex {
+        storeDir "${params.annotation}/reference/${params.reference}/assembly/index/star_${params.anno_suffix}"
+        
+        input:
+            file reference_fasta
+            file annotation_gtf
+            
+        output:
+            file "index_dir/*"
+            
+        shell:
+            '''
+            !{params.star} \
+                --runMode genomeGenerate \
+                --genomeDir ./index_dir \
+                --runThreadN !{task.cpus} \
+                --genomeFastaFiles !{reference_fasta} \
+                --sjdbGTFfile !{annotation_gtf}
+            '''
+    }
+} else { // HISAT2 is used as the aligner
+    // Uses "storeDir" to build HISAT2 index only when it doesn't exist, and output the cached
+    // files if they do already exist
+    process buildHISATindex {	
+        tag "Building HISAT2 Index: ${hisat_prefix}"
+        storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
+    
+        input:
+            file reference_fasta
+    
+        output:
+            file("${hisat_prefix}.*") into hisat_index
+    
+        shell:
+            hisat_prefix = "hisat2_assembly_${params.anno_suffix}"
+            '''
+            !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{hisat_prefix}
+            '''
+    }
+}
+
 
 // Build "objects" from the assembly fasta and reference gtf. These objects include
 // .rda files with junction and transcript feature information, and a file listing
