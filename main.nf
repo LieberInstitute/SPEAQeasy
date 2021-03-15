@@ -529,6 +529,8 @@ if (params.use_star) {
             
         shell:
             '''
+            mkdir index_dir
+            
             !{params.star} \
                 --runMode genomeGenerate \
                 --genomeDir ./index_dir \
@@ -1067,7 +1069,7 @@ if (params.use_star) {
             
         shell:
             if (params.sample == "paired") {
-                fastq_files = "*_1.f*q*,*_2.f*q*"
+                fastq_files = "*_trimmed_paired_1.f*q* *_trimmed_paired_2.f*q*"
             } else {
                 fastq_files = "*.f*q*"
             }
@@ -1085,9 +1087,9 @@ if (params.use_star) {
             mkdir index_dir
             mv *.txt index_dir/
             mv *.tab index_dir/
-            mv Log.out index_dir/
             mv SA index_dir/
             mv SAindex index_dir/
+            mv Genome index_dir/
             
             ( set -o posix ; set ) > bash_vars.txt
             
@@ -1095,7 +1097,7 @@ if (params.use_star) {
             !{params.star} \
                 --genomeDir ./index_dir \
                 --runThreadN !{task.cpus} \
-                --readFilesIn !{fastq_files} \
+                --readFilesIn $(echo !{fastq_files}) \
                 !{compress_args} \
                 !{params.star_args}
                 

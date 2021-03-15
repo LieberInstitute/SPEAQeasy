@@ -420,7 +420,7 @@ starStats = function(id, metric_names) {
     #  Extract the numeric value for each metric in those lines
     metric_values = as.numeric(ss(key_lines, '\t', 2))
     
-    o = data.frame('trimmed' = is_trimmed
+    o = data.frame('trimmed' = is_trimmed,
                    'numReads' = metric_values[1],
                    'numMapped' = sum(metric_values[5:6]),
                    'numUnmapped' = sum(metric_values[2:4]),
