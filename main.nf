@@ -136,6 +136,7 @@ def helpMessage() {
                               have failed the FastQC "Adapter content" metric
                           "force": perform trimming on all samples
     --unalign       <- include this flag to additionally save discordant reads
+                       (when using HISAT2) or unmapped reads (when using STAR)
                        to the pipeline outputs (default: false; only concordant
                        .sam files are saved)
     --use_salmon    <- include this flag to perform transcript quantification
@@ -217,6 +218,10 @@ if (params.trim_mode != "skip" && params.trim_mode != "adaptive" && params.trim_
 // Keeping unpaired reads that are not produced
 if (params.keep_unpaired && params.trim_mode == "skip") {
     exit 1, "You have opted to include unpaired outputs from trimming, but to skip trimming itself. Consider using a different 'trim_mode' or not using the '--keep_unpaired' option."
+}
+
+if (params.keep_unpaired && params.use_star) {
+    exit 1, "STAR does not support inclusion of unpaired reads. Consider using HISAT2 (default) or remove the '--keep_unpaired' option."
 }
 
 // Create a global variable to handle the situation where params.fullCov is
@@ -1057,7 +1062,7 @@ trimming_outputs
 if (params.use_star) {
     process AlignStar {
         tag "$prefix"
-        publishDir "${params.output}/Alignment", mode:'copy'
+        publishDir "${params.output}/alignment", mode:'copy'
         
         input:
             file star_index
@@ -1065,20 +1070,14 @@ if (params.use_star) {
             
         output:
             file "*.sam" into alignment_output
+            file "${prefix}_unmapped_*.fastq" optional true
             file "*_STAR_alignment.log" into alignment_summaries
             
-        shell:
-            if (params.sample == "paired") {
-                fastq_files = "*_trimmed_paired_1.f*q* *_trimmed_paired_2.f*q*"
+        shell:            
+            if (params.sample == "paired" && params.unalign) {
+                unaligned_args = "--outReadsUnmapped Fastx"
             } else {
-                fastq_files = "*.f*q*"
-            }
-            
-            //  Tell STAR to decompress files if needed
-            if (fastq_files.tokenize('.')[-1] == "gz") {
-                compress_args = "--readFilesCommand gunzip -c"
-            } else {
-                compress_args = ""
+                unaligned_args = ""
             }
             '''
             #  Recreate the index directory (nextflow cannot handle directories
@@ -1093,17 +1092,36 @@ if (params.use_star) {
             
             ( set -o posix ; set ) > bash_vars.txt
             
+            #  Determine file names for input FASTQs
+            if [ !{params.sample} == "paired" ]; then
+                fastq_files="!{prefix}*trimmed*_1.f*q* !{prefix}*trimmed*_2.f*q*"
+            else
+                fastq_files="*.f*q*"
+            fi
+            
+            #  Tell STAR to decompress files if needed 
+            if [ "$(echo $fastq_files | rev | cut -d "." -f 1 | rev)" == "gz" ]; then
+                compress_args='--readFilesCommand gunzip -c'
+            else
+                compress_args=''
+            fi
+            
             #  Perform alignment
             !{params.star} \
                 --genomeDir ./index_dir \
                 --runThreadN !{task.cpus} \
-                --readFilesIn $(echo !{fastq_files}) \
-                !{compress_args} \
+                --readFilesIn ${fastq_files} \
+                ${compress_args} \
+                !{unaligned_args} \
                 !{params.star_args}
                 
             #  Adjust file names (make unique)
             mv Log.final.out !{prefix}_STAR_alignment.log
             mv Aligned.out.sam !{prefix}.sam
+            if [ -f Unmapped.out.mate1 ]; then
+                mv Unmapped.out.mate1 !{prefix}_unmapped_mate1.fastq
+                mv Unmapped.out.mate2 !{prefix}_unmapped_mate2.fastq
+            fi
             
             temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
             echo "$temp" > bash_vars.txt
@@ -1116,7 +1134,7 @@ if (params.use_star) {
         process SingleEndHISAT {
     
             tag "$prefix"
-            publishDir "${params.output}/Alignment",mode:'copy'
+            publishDir "${params.output}/alignment",mode:'copy'
     
             input:
                 file hisat_index
@@ -1160,7 +1178,7 @@ if (params.use_star) {
         process PairedEndHISAT {
     
             tag "$prefix"
-            publishDir "${params.output}/Alignment",'mode':'copy'
+            publishDir "${params.output}/alignment",'mode':'copy'
     
             input:
                 file hisat_index
@@ -1231,7 +1249,7 @@ alignment_output
 process SamtoBam {
 	
 	tag "$sam_to_bam_prefix"
-	publishDir "${params.output}/HISAT2_out/sam_to_bam",'mode':'copy'
+	publishDir "${params.output}/alignment/sam_to_bam",'mode':'copy'
 
 	input:
 	set val(sam_to_bam_prefix), file(sam_to_bam_input) from sam_to_bam_inputs
