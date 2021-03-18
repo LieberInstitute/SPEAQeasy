@@ -200,11 +200,11 @@ elif [ "$1" == "local" ]; then
         
         #  STAR (2.7.8a)  ---------------------------------------------------------------
             
-        wget https://github.com/alexdobin/STAR/archive/2.7.8a.tar.gz && \
-            tar -xzf 2.7.8a.tar.gz && \
-            cd STAR-2.7.8a/source && \
-            make STAR
-            cd $INSTALL_DIR
+        wget https://github.com/alexdobin/STAR/archive/2.7.8a.tar.gz
+        tar -xzf 2.7.8a.tar.gz
+        cd STAR-2.7.8a/source
+        make STAR
+        cd $INSTALL_DIR
         
         #  Copy the binary to a fixed location, regardless of OS
         if [ $(uname -s) == "Linux" ]; then
