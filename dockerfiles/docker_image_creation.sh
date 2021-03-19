@@ -2,7 +2,7 @@
 #  for reproducibility.
 
 #  The user's working directory should be [REPO]/dockerfiles/
-REPO=..
+REPO=$(pwd)
 
 ########################################################
 #  R with bioconductor packages pre-installed
@@ -169,3 +169,13 @@ mkdir -p $REPO/rseqc/3.0.1
 #  produce $REPO/rseqc/3.0.1/Dockerfile
 docker build -t libddocker/rseqc:3.0.1 $REPO/rseqc/3.0.1
 docker push libddocker/rseqc:3.0.1
+
+########################################################
+#  STAR (2.7.8a)
+########################################################
+
+mkdir -p $REPO/star/2.7.8a
+#  produce $REPO/star/2.7.8a/Dockerfile
+#  Have not yet done the below build and push steps!!
+#  docker build -t libddocker/star:2.7.8a $REPO/star/2.7.8a
+#  docker push libddocker/star:2.7.8a
