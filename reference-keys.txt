@@ -50,7 +50,13 @@ annotation-settings
 software-settings
 miscellaneous-settings
 software
+software-versions
 docker-images
+using-custom-software
+prerequisites
+modifying-main.nf
+replace-the-relevant-command
+rename-output-files
 help
 common-errors
 deeper-investigation
