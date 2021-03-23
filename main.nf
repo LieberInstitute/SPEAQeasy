@@ -890,7 +890,7 @@ process Trimming {
 
     output:
         file "${fq_prefix}_trimmed*.fastq" optional true into trimmed_fastqc_inputs
-        file "${fq_prefix}*.f*q*" into trimming_outputs
+        file "${fq_prefix}*.fastq" into trimming_outputs
 
     shell:
         file_ext = get_file_ext(fq_file[0])

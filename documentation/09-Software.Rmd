@@ -1,0 +1,205 @@
+# Software {#software}
+
+SPEAQeasy makes use of several external bioinformatics software tools. The pipeline additionally supports the use of these tools via docker containers- this section also documents the docker images used in this mode.
+
+## Software Versions
+
+Here is the full list of software used by this pipeline:
+    
+Software | Version | Command used by the pipeline |
+|:-------------:| -----:| -----: |
+|[bcftools](http://www.htslib.org/download/) | 1.10.2 | `bcftools` |
+|[fastQC](http://www.bioinformatics.babraham.ac.uk/projects/fastqc) | 0.11.8 | `fastqc` |
+|[hisat2](https://ccb.jhu.edu/software/hisat2/manual.shtml#obtaining-hisat2) | 2.2.1 | `hisat2`, `hisat2-build` |
+|[htslib](http://www.htslib.org/download/) | 1.10.2 | `tabix` |
+|[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8+ | `java` |
+|[kallisto](https://pachterlab.github.io/kallisto/source) | 0.46.1 | `kallisto` |
+|[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 20.01.0) | `nextflow` |
+|[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 3.6 | `Rscript` |
+|[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.1 | `regtools` |
+|[RSeQC](http://rseqc.sourceforge.net/#installation) | 3.0.1 | `bam2wig.py`|
+|[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 1.2.1 | `salmon` |
+|[samtools](http://www.htslib.org/download/) | 1.10 | `samtools` |
+|[SubRead](http://bioinf.wehi.edu.au/subread-package/) | 2.0.0 | `featureCounts` |
+|[trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) | 0.39 | `java -jar path/to/trimmomatic.jar` |
+|[wiggletools](https://github.com/Ensembl/WiggleTools) | 1.2.1 | `wiggletools` |
+|[wigToBigWig](http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/) | 4 | `wigToBigWig` |
+
+## Docker Images {#docker-images}
+
+The following container versions are used in this pipeline. These are automatically managed by SPEAQeasy.
+
+| Image | Tag | Software |
+|:-------------:| -----:| -----: |
+| libddocker/r_3.6.1_bioc | latest | R and Bioconductor 3.10 |
+| libddocker/ubuntu16.04_base | 1_v3 | Ubuntu Base |
+| libddocker/infer_strandness | latest | R, Bioconductor 3.10, Kallisto |
+| libddocker/kallisto | 0.46.1 | Kallisto |
+| libddocker/fastqc | 0.11.8  | FastQC |
+| libddocker/trimmomatic | 0.39 | Trimmomatic |
+| libddocker/hisat2 | 2.2.1 | HISAT2 |
+| libddocker/rseqc | 3.0.1 | RSeQC |
+| libddocker/samtools | 1.10 | Samtools |
+| libddocker/salmon | 1.2.1 | Salmon |
+| libddocker/regtools | 0.5.1 | Regtools |
+| libddocker/subread | 2.0.0 | SubRead/FeatureCounts |
+| libddocker/wiggletools-1.2 | 1_v3 | Wiggletools |
+| libddocker/variant_calling | 1.10.2 | Samtools, BCFTools |
+
+## Using Custom Software
+
+Some users may wish to desire to "swap out" software tools used by particular steps in the pipeline. For example, a researcher may wish to use [Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) instead of [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) when trimming samples. SPEAQeasy doesn't "officially support" Trim Galore currently, so this will require making some direct changes to code. We provide a guide below for researchers interested in modifying a component of SPEAQeasy to use a different software tool. Please note that a couple software alternatives are already supported (Salmon instead of Kallisto for psuedoalignment to a transcriptome via the `--use_salmon` [option](#command-opts); STAR instead of HISAT2 for alignment to a genome via the `--use_star` [option](#command-opts)), and using these does not require any of the work described below. Additionally, the below guide requires "local" {installation](#installation) of SPEAQeasy (not using docker to manage software).
+
+### Prerequisites
+
+- familiarity with basic [glob expressions](https://en.wikipedia.org/wiki/Glob_(programming))
+- familiarity with basic shell scripting (if-statements, variables, and the `mv` command)
+- knowledge about what output files are created from both the original and replacement software tool
+- [basic knowledge of the SPEAQeasy workflow](#pipeline-overview)
+- the replacement software tool should be on the PATH
+
+### Modifying `main.nf`
+
+#### Replace the relevant command
+
+We will begin by locating the relevant [process](https://www.nextflow.io/docs/latest/process.html) in the file `main.nf`. While process names are intended to be intuitive, this step may require some inference. We are modifying the way SPEAQeasy trims files, so the process of interest is called "Trimming", and we locate this around line 883 (the exact number may change).
+
+```{groovy, eval=FALSE}
+process Trimming {
+```
+
+Next, we try to locate the command that runs the current software tool, Trimmomatic. Typically, there will only be a single command (possibly formatted to be spread across multiple lines for clarity). We look for this command in the section of the `shell` block of the process, enclosed in triple single-quotes. The below "template" version of the `Trimming` process may serve as a guide for where to look. Code that we can safely ignore has been replaced with brief comments.
+
+```{groovy, eval=FALSE}
+process Trimming {
+
+    // [Some initial details]
+
+    input:
+        // [Nextflow channel for input files]
+
+    output:
+        // [Nextflow channel for output files]
+
+    shell:
+        // [Some code to set arguments to Trimmomatic]
+        '''
+        # [Code to determine whether to trim this sample]
+        
+        #  Run trimming if required
+        if [ "$do_trim" == true ]; then
+            # [Set up some variables to pass to the Trimmomatic command]
+            
+            java -Xmx512M \
+                -jar $trim_jar \
+                !{trim_mode} \
+                -threads !{task.cpus} \
+                -phred33 \
+                *.f*q* \
+                !{output_option} \
+                $adapter_trim_settings \
+                !{params.trim_quality_args}
+        else
+            # [Rename files if this sample wasn't trimmed]
+        fi
+        
+        #  Write any output to a log
+        cp .command.log trimming_!{fq_prefix}.log
+        
+        # [Pass some details to the SPEAQeasy-specific logs]
+        '''
+}
+```
+
+In the `Trimming` process, there is a quite a bit of bash code used to conditionally trim samples depending on the `--trim_mode` [argument](#command-opts) and FastQC results. We can keep most of this bash code exactly how it is. From above, the command to run Trimmomatic looks like this:
+
+```{bash, eval=FALSE}
+java -Xmx512M \
+    -jar $trim_jar \
+    !{trim_mode} \
+    -threads !{task.cpus} \
+    -phred33 \
+    *.f*q* \
+    !{output_option} \
+    $adapter_trim_settings \
+    !{params.trim_quality_args}
+```
+
+We will replace this code with something similar, but appropriate for Trim Galore. In general and vague terms, we want the replacement to look like this (brackets are used in place of the actual code or variable name to be implemented):
+
+```{bash, eval=FALSE}
+[tool_name] [desired arguments] \
+    --[core or thread argument] !{task.cpus} \
+    [input files]
+```
+
+For our particular case, the exact code can look like the segment below. Here we identify that the option controlling number of cores to use is `-j` and the input FASTQ files can be passed the same way as to Trimmomatic, via the `*.f*q*` glob. Additionally, Trim Galore requires that a sample should be explicitly specified as paired-end. We grab the value of the `--sample` [argument](#command-opts) with the syntax `!{params.sample}` (any option passed to SPEAQeasy can be referenced this way!), and use some bash code to conditionally add the `--paired` and `--retain_unpaired` arguments to Trim Galore (we will later cover why the latter is added).
+
+```{bash, eval=FALSE}
+if [ "!{params.sample}" == "paired" ]; then
+    paired_opt="--paired --retain_unpaired"
+else
+    paired_opt=""
+fi
+
+trim_galore \
+    -j !{task.cpus} \
+    ${paired_opt} \
+    *.f*q*
+```
+
+#### Rename output files
+
+Next, the goal is to rename files to match the names of the original outputs (in our case, those from Trimmomatic). This obviates the need for worrying about managing nextflow channels, and which files should be "published" to the output directory. In this case, SPEAQeasy specifies a particular output file naming style when using Trimmomatic. We can determine the naming rules from the below code (in particular, note that `output_option` variable):
+
+```{groovy,eval=FALSE}
+shell:
+    file_ext = get_file_ext(fq_file[0])
+    if (params.sample == "single") {
+        output_option = "${fq_prefix}_trimmed.fastq"
+        trim_mode = "SE"
+        adapter_fa_temp = params.adapter_fasta_single
+        trim_clip = params.trim_adapter_args_single
+    } else {
+        output_option = "${fq_prefix}_trimmed_paired_1.fastq ${fq_prefix}_unpaired_1.fastq ${fq_prefix}_trimmed_paired_2.fastq ${fq_prefix}_unpaired_2.fastq"
+        trim_mode = "PE"
+        adapter_fa_temp = params.adapter_fasta_paired
+        trim_clip = params.trim_adapter_args_paired
+    }
+```
+
+From the above code and the documentation for Trim Galore 0.6.5, we can construct a table of all output file names (where "[id]" is sample-specific):
+
+| Tool | Pairing | Output filename |
+| ---- | ------- | --------------- |
+| Trimmomatic | single | "[id]_trimmed.fastq" |
+| Trimmomatic | paired | "[id]_trimmed_paired_1.fastq", "[id]_unpaired_1.fastq", "[id]_trimmed_paired_2.fastq", "[id]_unpaired_2.fastq" |
+| Trim Galore | single | "[id]_trimmed.fq.gz" |
+| Trim Galore | paired | "[id]_1_val_1.fq.gz", "[id]_1_unpaired_1.fq.gz", "[id]_2_val_2.fq.gz", "[id]_2_unpaired_2.fq.gz" |
+
+We first note that Trim Galore gzips its outputs by default. To produce uncompressed files (matching Trimmomatic), we'll add the `--dont_gzip` argument to the `trim_galore` command. Altogether, the code should like as below. In the `Trimming` process, the sample ID is given by `!{fq_prefix}`. The file renaming occurs in the final if-statement.
+
+```{bash, eval=FALSE}
+if [ "!{params.sample}" == "paired" ]; then
+    paired_opt="--paired --retain_unpaired"
+else
+    paired_opt=""
+fi
+            
+trim_galore \
+    --dont_gzip \
+    -j !{task.cpus} \
+    ${paired_opt} \
+    *.f*q*
+            
+#  Rename files to imitate SPEAQeasy outputs from Trimmomatic
+if [ "!{params.sample}" == "paired" ]; then
+    mv !{fq_prefix}_1_val_1.fq !{fq_prefix}_trimmed_paired_1.fastq
+    mv !{fq_prefix}_2_val_2.fq !{fq_prefix}_trimmed_paired_2.fastq
+                
+    mv !{fq_prefix}_1_unpaired_1.fq !{fq_prefix}_unpaired_1.fastq
+    mv !{fq_prefix}_2_unpaired_2.fq !{fq_prefix}_unpaired_2.fastq
+else
+    mv !{fq_prefix}_trimmed.fq !{fq_prefix}_trimmed.fastq
+fi
+```
