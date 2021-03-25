@@ -380,15 +380,19 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><code>region_info_[strand].Rdata</code>: An R object called <code>regInfo</code> that is a <code>data.frame</code> with the columns: <code>cutoff</code>, <code>n</code>, <code>mean</code>, and <code>sd</code>. This table summarizes the number, mean width, sd of the width for the expressed regions identified at each cutoff.</li>
 <li><code>region_info_[strand].pdf</code>: A PDF with a few exploratory plots made using <code>regInfo</code> that evaluate how the cutoff for identifying the expressed regions affects the number of ERs, their mean width, the sd of their width. These are the visualization plots recommended for choosing a cutoff as described on the <code>derfinder</code> <a href="https://doi.org/10.1093/nar/gkw852">manuscript</a> at Figure S4 <a href="https://github.com/leekgroup/derSupplement/blob/gh-pages/derfinder_supplement.pdf">available here</a>.</li>
 </ul>
-<p><strong>FastQC Outputs</strong> <code>fastQC</code></p>
+<p><strong>FastQC Outputs</strong> <code>fastQC/</code></p>
 <ul>
 <li>[trim_status]/[file_name]/*`: Outputs from <a href="https://www.bioinformatics.babraham.ac.uk/projects/fastqc/">FastQC</a>. Here trim_status indicates when FastQC was performed: Untrimmed is before trimming, and Trimmed is after. file_name contains the sample name, and if applicable, the mate number.</li>
 </ul>
-<p><strong>Alignment SAMs and Summaries</strong> <code>HISAT2_out/</code></p>
+<p><strong>Alignment SAMs, BAMs, and Summaries</strong> <code>alignment/</code></p>
 <ul>
-<li><code>[sample_name]_hisat_out.sam</code>: The main alignment output from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a> in SAM format.</li>
-<li><code>[sample_name]_align_summary.txt</code>: The text-based alignment summary from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a>. Note that metrics from these files are aggregated for the experiment, and so users likely will not need to check or process the original files manually.</li>
-<li>sam_to_bam/[sample_name]_accepted_hits.sorted.bam<code>and</code>sam_to_bam/[sample_name]_accepted_hits.sorted.bam.bai`: Alignments from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a> where unmapped reads are filtered out, and the resulting BAM file is coordinate-sorted and indexed.</li>
+<li><code>[sample_name]_hisat_out.sam</code>: The main alignment output from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a>, if used, in SAM format.</li>
+<li><code>[sample_name].sam</code>: The main alignment output from <a href="https://github.com/alexdobin/STAR">STAR</a>, if used, in SAM format.</li>
+<li><code>[sample_name]_align_summary.txt</code>: The text-based alignment summary from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a>, if applicable. Note that metrics from these files are aggregated for the experiment, and so users likely will not need to check or process the original files manually.</li>
+<li><code>[sample_name]_STAR_alignment.log</code>: Statistics from STAR alignment (if applicable) for a single sample, renamed from <code>Log.final.out</code>. Note that metrics from these files are aggregated for the experiment, and so users likely will not need to check or process the original files manually.</li>
+<li>sam_to_bam/[sample_name]_accepted_hits.sorted.bam<code>and</code>sam_to_bam/[sample_name]_accepted_hits.sorted.bam.bai`: Alignments where unmapped reads are filtered out, and the resulting BAM file is coordinate-sorted and indexed.</li>
+<li><code>[sample_name]_unmapped_mate*.fastq</code>: If using STAR with paired-end reads and the <code>--unalign</code> <a href="command-opts.html#command-opts">option</a>, these two files (mates 1 and 2) are produced, including unmapped reads (this includes “discordant” reads).</li>
+<li><code>[sample_name]_discordant.fastq</code>: If using HISAT2 (this is the default) and the <code>--unalign</code> <a href="command-opts.html#command-opts">option</a>, this file is produced and includes discordant mappings.</li>
 </ul>
 <p><strong>Outputs from Strand Inference</strong> <code>infer_strandness/</code></p>
 <ul>
