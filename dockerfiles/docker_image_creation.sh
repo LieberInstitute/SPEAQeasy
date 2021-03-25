@@ -176,6 +176,5 @@ docker push libddocker/rseqc:3.0.1
 
 mkdir -p $REPO/star/2.7.8a
 #  produce $REPO/star/2.7.8a/Dockerfile
-#  Have not yet done the below build and push steps!!
-#  docker build -t libddocker/star:2.7.8a $REPO/star/2.7.8a
-#  docker push libddocker/star:2.7.8a
+docker build -t libddocker/star:2.7.8a $REPO/star/2.7.8a
+docker push libddocker/star:2.7.8a
