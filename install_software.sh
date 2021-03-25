@@ -198,6 +198,25 @@ elif [ "$1" == "local" ]; then
         make install
         cd $INSTALL_DIR
         
+        #  STAR (2.7.8a)  ---------------------------------------------------------------
+            
+        wget https://github.com/alexdobin/STAR/archive/2.7.8a.tar.gz
+        tar -xzf 2.7.8a.tar.gz
+        cd STAR-2.7.8a/source
+        make STAR
+        cd $INSTALL_DIR
+        
+        #  Copy the binary to a fixed location, regardless of OS
+        if [ $(uname -s) == "Linux" ]; then
+            cp STAR-2.7.8a/bin/Linux_x86_64/bin/STAR bin/
+        elif [ $(uname -s) == "Darwin" ]; then
+            cp STAR-2.7.8a/bin/MacOSX_x86_64/bin/STAR bin/
+        else
+            echo "Non-docker installation of the STAR aligner is not supported on this operating system. Consider instead setting up SPEAQeasy for use with docker, by running:"
+            echo '    bash install_software.sh "docker"'
+            exit 1
+        fi
+        
         #  subread/ featureCounts (2.0.0)  -------------------------------------------------------------
             
         #  This works on Linux systems but needs testing on MacOS, FreeBSD

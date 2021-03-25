@@ -86,6 +86,7 @@ Command-line parameters can be directly passed to most software tools used in th
 * *salmon_index_args*: a string of optional arguments to pass to `salmon index` when first preparing `salmon` for a given reference transcriptome. Note that Kallisto is used instead of Salmon, by default (see the `--use_salmon` [option](#command-opts)).
 * *salmon_quant_args*: a string of optional arguments to pass to `salmon quant` when quantifying transcript abundances with Salmon.
 * *samtools_args*: a string of optional arguments to pass to `samtools mpileup` before calling variants on human samples.
+* *star_args*: a string of optional arguments to pass to `STAR` when aligning samples to the chosen reference genome.
 * *trim_adapter_args_single*, *trim_adapter_args_paired*: these are passed to the `ILLUMINACLIP` settings for [trimmomatic](http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/TrimmomaticManual_V0.32.pdf) (after the adapter) for analysis with single and paired-end reads, respectively. Leave empty (i.e. "") to not perform adapter trimming.
 * *trim_quality_args*: literal string arguments used for quality trimming- leave empty (i.e. "") to not perform quality trimming. An example value could be `"LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:75"`.
 * *regtools_args*: a string of optional arguments to pass to `regtools junctions extract` when quantifying junctions.
