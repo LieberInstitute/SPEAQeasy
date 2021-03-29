@@ -21,6 +21,13 @@ R_container="libddocker/r_3.6.1_bioc"
 
 set -e
 
+error_message() {
+    echo -e "\nPlease check http://research.libd.org/SPEAQeasy/setup-details.html#troubleshooting for information about resolving installation-related issues."
+    echo -e "\nNote that the 'Software' directory should be deleted before re-attempting installation."
+}
+
+trap "error_message" ERR
+
 if [ "$1" == "docker" ]; then
 
     echo "User selected docker mode: nextflow will be installed, along with some test files."

@@ -32,7 +32,45 @@ module load conda_R
 
 #  Install required R packages
 Rscript /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/check_R_packages_JHPCE.R
+
+### Troubleshooting
+
+Some users may encounter errors during the installation process, particularly when installing software locally. We provide a list below of the most common installation-related issues.
+
+- *required utilities are missing*: this is particularly common issue for MacOS users, or Linux users trying to get SPEAQeasy running on a local machine (like a laptop). In either case, we will assume the user has root privileges for the solutions suggested below. 
+
+```{bash, eval=FALSE}
+install_software.sh: line 99: wget: command not found
 ```
+
+Mac OS users in particular may be missing the utility `wget`, required for the SPEAQeasy installation. A solution on Mac is to install [brew](https://brew.sh/), and install `wget` through `brew`:
+
+```{bash, eval=FALSE}
+#  Install brew, if you don't already have it
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+#  Install wget
+brew install wget
+```
+
+It is recommended that Linux users install some basic dependencies if local installation fails for any reason.
+
+```{bash,eval=FALSE}
+#  On Debian or Ubuntu:
+sudo apt install autoconf automake make gcc zlib1g-dev libbz2-dev liblzma-dev libpcre3-dev libcurl4-openssl-dev texinfo texlive-base default-jre default-jdk
+
+#  On RedHat or CentOS:
+sudo yum install autoconf automake make gcc zlib-devel bzip2 bzip2-devel xz-devel pcre-devel curl-devel texi2html texinfo java-1.8.0-openjdk java-1.8.0-openjdk-devel
+```
+
+- *docker permissions issues*: users managing dependencies with docker might encounter error messages if docker is not properly configured:
+
+```{bash,eval=FALSE}
+docker: Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post http://%2Fvar%2Frun%2Fdocker.sock/v1.40/containers/create: dial unix /var/run/docker.sock: connect: permission denied.
+See 'docker run --help'.
+```
+
+On a computing cluster, a system administrator is responsible for correctly configuring docker so that such errors do not occur. We provide a brief guide [here](#docker-help) for users who want to set up docker on a local machine.
 
 ## Run the Pipeline
 
