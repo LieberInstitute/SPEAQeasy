@@ -274,40 +274,40 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="default-for-all-processes" class="section level4" number="8.1.1.1">
 <h4><span class="header-section-number">8.1.1.1</span> Default for all processes</h4>
 <p>The simplest change you may wish to make is to relax time constraints for all processes. The setting for this is here:</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb17-1"><a href="configuration.html#cb17-1" aria-hidden="true" tabindex="-1"></a>executor <span class="op">{</span></span>
-<span id="cb17-2"><a href="configuration.html#cb17-2" aria-hidden="true" tabindex="-1"></a>  name <span class="op">=</span> <span class="st">&#39;sge&#39;</span></span>
-<span id="cb17-3"><a href="configuration.html#cb17-3" aria-hidden="true" tabindex="-1"></a>  queueSize <span class="op">=</span> <span class="dv">40</span></span>
-<span id="cb17-4"><a href="configuration.html#cb17-4" aria-hidden="true" tabindex="-1"></a>  submitRateLimit <span class="op">=</span> <span class="st">&#39;1 sec&#39;</span></span>
-<span id="cb17-5"><a href="configuration.html#cb17-5" aria-hidden="true" tabindex="-1"></a>  exitReadTimeout <span class="op">=</span> <span class="st">&#39;30 min&#39;</span></span>
-<span id="cb17-6"><a href="configuration.html#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
-<span id="cb17-7"><a href="configuration.html#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-8"><a href="configuration.html#cb17-8" aria-hidden="true" tabindex="-1"></a>process <span class="op">{</span></span>
-<span id="cb17-9"><a href="configuration.html#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-10"><a href="configuration.html#cb17-10" aria-hidden="true" tabindex="-1"></a>  time <span class="op">=</span> <span class="fl">10.</span>hour  <span class="co">// this can be adjusted as needed</span></span>
-<span id="cb17-11"><a href="configuration.html#cb17-11" aria-hidden="true" tabindex="-1"></a>  errorStrategy <span class="op">=</span> <span class="op">{</span> task<span class="op">.</span>exitStatus <span class="op">==</span> <span class="dv">140</span> <span class="op">?</span> <span class="st">&#39;retry&#39;</span> <span class="op">:</span> <span class="st">&#39;terminate&#39;</span> <span class="op">}</span></span>
-<span id="cb17-12"><a href="configuration.html#cb17-12" aria-hidden="true" tabindex="-1"></a>  maxRetries <span class="op">=</span> <span class="dv">1</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb21-1"><a href="configuration.html#cb21-1" aria-hidden="true" tabindex="-1"></a>executor <span class="op">{</span></span>
+<span id="cb21-2"><a href="configuration.html#cb21-2" aria-hidden="true" tabindex="-1"></a>  name <span class="op">=</span> <span class="st">&#39;sge&#39;</span></span>
+<span id="cb21-3"><a href="configuration.html#cb21-3" aria-hidden="true" tabindex="-1"></a>  queueSize <span class="op">=</span> <span class="dv">40</span></span>
+<span id="cb21-4"><a href="configuration.html#cb21-4" aria-hidden="true" tabindex="-1"></a>  submitRateLimit <span class="op">=</span> <span class="st">&#39;1 sec&#39;</span></span>
+<span id="cb21-5"><a href="configuration.html#cb21-5" aria-hidden="true" tabindex="-1"></a>  exitReadTimeout <span class="op">=</span> <span class="st">&#39;30 min&#39;</span></span>
+<span id="cb21-6"><a href="configuration.html#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb21-7"><a href="configuration.html#cb21-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-8"><a href="configuration.html#cb21-8" aria-hidden="true" tabindex="-1"></a>process <span class="op">{</span></span>
+<span id="cb21-9"><a href="configuration.html#cb21-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-10"><a href="configuration.html#cb21-10" aria-hidden="true" tabindex="-1"></a>  time <span class="op">=</span> <span class="fl">10.</span>hour  <span class="co">// this can be adjusted as needed</span></span>
+<span id="cb21-11"><a href="configuration.html#cb21-11" aria-hidden="true" tabindex="-1"></a>  errorStrategy <span class="op">=</span> <span class="op">{</span> task<span class="op">.</span>exitStatus <span class="op">==</span> <span class="dv">140</span> <span class="op">?</span> <span class="st">&#39;retry&#39;</span> <span class="op">:</span> <span class="st">&#39;terminate&#39;</span> <span class="op">}</span></span>
+<span id="cb21-12"><a href="configuration.html#cb21-12" aria-hidden="true" tabindex="-1"></a>  maxRetries <span class="op">=</span> <span class="dv">1</span></span></code></pre></div>
 <p>While the syntax is not strict, some examples for properly specifying the option are <code>time = '5m'</code>, <code>time = '2h'</code>, and <code>time = '1d'</code> (minutes, hours, and days, respectively).</p>
 </div>
 <div id="specify-per-process" class="section level4" number="8.1.1.2">
 <h4><span class="header-section-number">8.1.1.2</span> Specify per-process</h4>
 <p>SLURM users especially may want to modify the time setting by process. This can be done with the same syntax- suppose you wish to request 30 minutes for a given sample to be trimmed (note process names <a href="pipeline-overview.html#pipeline-overview">here</a>). In the “process” section of your config, find the section labelled “withName: Trimming” as in the example here:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb18-1"><a href="configuration.html#cb18-1" aria-hidden="true" tabindex="-1"></a>withName<span class="op">:</span> Trimming <span class="op">{</span></span>
-<span id="cb18-2"><a href="configuration.html#cb18-2" aria-hidden="true" tabindex="-1"></a>    cpus <span class="op">=</span> <span class="dv">4</span></span>
-<span id="cb18-3"><a href="configuration.html#cb18-3" aria-hidden="true" tabindex="-1"></a>    memory <span class="op">=</span> <span class="fl">16.G</span>B</span>
-<span id="cb18-4"><a href="configuration.html#cb18-4" aria-hidden="true" tabindex="-1"></a>    time <span class="op">=</span> <span class="st">&#39;30m&#39;</span></span>
-<span id="cb18-5"><a href="configuration.html#cb18-5" aria-hidden="true" tabindex="-1"></a>    disk <span class="op">=</span> <span class="fl">80.G</span>B</span>
-<span id="cb18-6"><a href="configuration.html#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb22-1"><a href="configuration.html#cb22-1" aria-hidden="true" tabindex="-1"></a>withName<span class="op">:</span> Trimming <span class="op">{</span></span>
+<span id="cb22-2"><a href="configuration.html#cb22-2" aria-hidden="true" tabindex="-1"></a>    cpus <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb22-3"><a href="configuration.html#cb22-3" aria-hidden="true" tabindex="-1"></a>    memory <span class="op">=</span> <span class="fl">16.G</span>B</span>
+<span id="cb22-4"><a href="configuration.html#cb22-4" aria-hidden="true" tabindex="-1"></a>    time <span class="op">=</span> <span class="st">&#39;30m&#39;</span></span>
+<span id="cb22-5"><a href="configuration.html#cb22-5" aria-hidden="true" tabindex="-1"></a>    disk <span class="op">=</span> <span class="fl">80.G</span>B</span>
+<span id="cb22-6"><a href="configuration.html#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </div>
 </div>
 <div id="cluster-specific-options" class="section level3" number="8.1.2">
 <h3><span class="header-section-number">8.1.2</span> Cluster-specific options</h3>
 <p>In some cases, you may find it simpler to directly specify options accepted by your cluster. For example, SGE users with a default limit on the maximum file size they may write might specify the following:</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb19-1"><a href="configuration.html#cb19-1" aria-hidden="true" tabindex="-1"></a>withName<span class="op">:</span> PairedEndHISAT <span class="op">{</span></span>
-<span id="cb19-2"><a href="configuration.html#cb19-2" aria-hidden="true" tabindex="-1"></a>    cpus <span class="op">=</span> <span class="dv">4</span></span>
-<span id="cb19-3"><a href="configuration.html#cb19-3" aria-hidden="true" tabindex="-1"></a>    memory <span class="op">=</span> <span class="st">&#39;20.GB&#39;</span></span>
-<span id="cb19-4"><a href="configuration.html#cb19-4" aria-hidden="true" tabindex="-1"></a>    penv <span class="op">=</span> <span class="st">&#39;local&#39;</span></span>
-<span id="cb19-5"><a href="configuration.html#cb19-5" aria-hidden="true" tabindex="-1"></a>    clusterOptions <span class="op">=</span> <span class="st">&#39;-l h_fsize=500G&#39;</span> <span class="co">// This is SGE-specific syntax </span></span>
-<span id="cb19-6"><a href="configuration.html#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb23-1"><a href="configuration.html#cb23-1" aria-hidden="true" tabindex="-1"></a>withName<span class="op">:</span> PairedEndHISAT <span class="op">{</span></span>
+<span id="cb23-2"><a href="configuration.html#cb23-2" aria-hidden="true" tabindex="-1"></a>    cpus <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb23-3"><a href="configuration.html#cb23-3" aria-hidden="true" tabindex="-1"></a>    memory <span class="op">=</span> <span class="st">&#39;20.GB&#39;</span></span>
+<span id="cb23-4"><a href="configuration.html#cb23-4" aria-hidden="true" tabindex="-1"></a>    penv <span class="op">=</span> <span class="st">&#39;local&#39;</span></span>
+<span id="cb23-5"><a href="configuration.html#cb23-5" aria-hidden="true" tabindex="-1"></a>    clusterOptions <span class="op">=</span> <span class="st">&#39;-l h_fsize=500G&#39;</span> <span class="co">// This is SGE-specific syntax </span></span>
+<span id="cb23-6"><a href="configuration.html#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>As with the time option, this can be specified per-process or for all processes. Any option recognized by your cluster may be used.</p>
 </div>
 </div>

@@ -293,7 +293,32 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb8-2"><a href="setup-details.html#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load conda_R</span>
 <span id="cb8-3"><a href="setup-details.html#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-4"><a href="setup-details.html#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install required R packages</span></span>
-<span id="cb8-5"><a href="setup-details.html#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/check_R_packages_JHPCE.R</span></code></pre></div>
+<span id="cb8-5"><a href="setup-details.html#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/check_R_packages_JHPCE.R</span>
+<span id="cb8-6"><a href="setup-details.html#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="setup-details.html#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">### Troubleshooting</span></span>
+<span id="cb8-8"><a href="setup-details.html#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="setup-details.html#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="ex">Some</span> users may encounter errors during the installation process, particularly when installing software locally. We provide a list below of the most common installation-related issues.</span>
+<span id="cb8-10"><a href="setup-details.html#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="setup-details.html#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="ex">-</span> <span class="pp">*</span>required utilities are missing<span class="pp">*</span>: this is particularly common issue for MacOS users, or Linux users trying to get SPEAQeasy running on a local machine <span class="er">(</span><span class="ex">like</span> a laptop<span class="kw">)</span><span class="bu">.</span> In either case, we will assume the user has root privileges for the solutions suggested below. </span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="setup-details.html#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">install_software.sh:</span> line 99: wget: command not found</span></code></pre></div>
+<p>Mac OS users in particular may be missing the utility <code>wget</code>, required for the SPEAQeasy installation. A solution on Mac is to install <a href="https://brew.sh/">brew</a>, and install <code>wget</code> through <code>brew</code>:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="setup-details.html#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install brew, if you don&#39;t already have it</span></span>
+<span id="cb10-2"><a href="setup-details.html#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">/bin/bash</span> <span class="at">-c</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="va">)</span><span class="st">&quot;</span></span>
+<span id="cb10-3"><a href="setup-details.html#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="setup-details.html#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install wget</span></span>
+<span id="cb10-5"><a href="setup-details.html#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install wget</span></code></pre></div>
+<p>It is recommended that Linux users install some basic dependencies if local installation fails for any reason.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="setup-details.html#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  On Debian or Ubuntu:</span></span>
+<span id="cb11-2"><a href="setup-details.html#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install autoconf automake make gcc zlib1g-dev libbz2-dev liblzma-dev libpcre3-dev libcurl4-openssl-dev texinfo texlive-base default-jre default-jdk</span>
+<span id="cb11-3"><a href="setup-details.html#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="setup-details.html#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  On RedHat or CentOS:</span></span>
+<span id="cb11-5"><a href="setup-details.html#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum install autoconf automake make gcc zlib-devel bzip2 bzip2-devel xz-devel pcre-devel curl-devel texi2html texinfo java-1.8.0-openjdk java-1.8.0-openjdk-devel</span></code></pre></div>
+<ul>
+<li><em>docker permissions issues</em>: users managing dependencies with docker might encounter error messages if docker is not properly configured:</li>
+</ul>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="setup-details.html#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker:</span> Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post http://%2Fvar%2Frun%2Fdocker.sock/v1.40/containers/create: dial unix /var/run/docker.sock: connect: permission denied.</span>
+<span id="cb12-2"><a href="setup-details.html#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">See</span> <span class="st">&#39;docker run --help&#39;</span>.</span></code></pre></div>
+<p>On a computing cluster, a system administrator is responsible for correctly configuring docker so that such errors do not occur. We provide a brief guide <a href="help.html#docker-help">here</a> for users who want to set up docker on a local machine.</p>
 </div>
 <div id="run-the-pipeline" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Run the Pipeline</h2>
@@ -345,36 +370,36 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><code>-w "/scratch/nextflow_runs"</code>: this is a nextflow-specific command option (note the single dash), telling SPEAQeasy that temporary files for the pipeline run can be placed under <code>/scratch/nextflow_runs</code></li>
 <li><code>--output "/users/neagles/RNA_output"</code>: SPEAQeasy output files should be placed under <code>/users/neagles/RNA_output</code></li>
 </ul>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="setup-details.html#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
-<span id="cb9-2"><a href="setup-details.html#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">#$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=150G</span></span>
-<span id="cb9-3"><a href="setup-details.html#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">#$ -o ./run_brain_subset.log</span></span>
-<span id="cb9-4"><a href="setup-details.html#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">#$ -e ./run_brain_subset.log</span></span>
-<span id="cb9-5"><a href="setup-details.html#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#$ -cwd</span></span>
-<span id="cb9-6"><a href="setup-details.html#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="setup-details.html#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> use /jhpce/shared/jhpce/modulefiles/libd</span>
-<span id="cb9-8"><a href="setup-details.html#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load nextflow</span>
-<span id="cb9-9"><a href="setup-details.html#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">_JAVA_OPTIONS=</span><span class="st">&quot;-Xms8g -Xmx10g&quot;</span></span>
-<span id="cb9-10"><a href="setup-details.html#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-11"><a href="setup-details.html#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="ex">nextflow</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf <span class="dt">\</span></span>
-<span id="cb9-12"><a href="setup-details.html#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">--sample</span> <span class="st">&quot;paired&quot;</span> <span class="dt">\</span></span>
-<span id="cb9-13"><a href="setup-details.html#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">--reference</span> <span class="st">&quot;mm10&quot;</span> <span class="dt">\</span></span>
-<span id="cb9-14"><a href="setup-details.html#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">--strand</span> <span class="st">&quot;reverse&quot;</span> <span class="dt">\</span></span>
-<span id="cb9-15"><a href="setup-details.html#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">--ercc</span> <span class="dt">\</span></span>
-<span id="cb9-16"><a href="setup-details.html#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">--trim_mode</span> <span class="st">&quot;skip&quot;</span> <span class="dt">\</span></span>
-<span id="cb9-17"><a href="setup-details.html#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">--experiment</span> <span class="st">&quot;mouse_brain&quot;</span> <span class="dt">\</span></span>
-<span id="cb9-18"><a href="setup-details.html#cb9-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">--input</span> <span class="st">&quot;/users/neagles/RNA_input&quot;</span> <span class="dt">\</span></span>
-<span id="cb9-19"><a href="setup-details.html#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">-profile</span> jhpce <span class="dt">\</span></span>
-<span id="cb9-20"><a href="setup-details.html#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">-w</span> <span class="st">&quot;/scratch/nextflow_runs&quot;</span> <span class="dt">\</span></span>
-<span id="cb9-21"><a href="setup-details.html#cb9-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">--output</span> <span class="st">&quot;/users/neagles/RNA_output&quot;</span></span>
-<span id="cb9-22"><a href="setup-details.html#cb9-22" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb9-23"><a href="setup-details.html#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="co">#  Produces a report for each sample tracing the pipeline steps</span></span>
-<span id="cb9-24"><a href="setup-details.html#cb9-24" aria-hidden="true" tabindex="-1"></a><span class="co">#  performed (can be helpful for debugging).</span></span>
-<span id="cb9-25"><a href="setup-details.html#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb9-26"><a href="setup-details.html#cb9-26" aria-hidden="true" tabindex="-1"></a><span class="co">#  Note that the reports are generated from the output log produced in the above</span></span>
-<span id="cb9-27"><a href="setup-details.html#cb9-27" aria-hidden="true" tabindex="-1"></a><span class="co">#  section, and so if you rename the log, you must also pass replace the filename</span></span>
-<span id="cb9-28"><a href="setup-details.html#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="co">#  in the bash call below.</span></span>
-<span id="cb9-29"><a href="setup-details.html#cb9-29" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;Generating per-sample logs for debugging...&quot;</span></span>
-<span id="cb9-30"><a href="setup-details.html#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/generate_logs.sh <span class="va">$PWD</span>/run_brain_subset.log</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="setup-details.html#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!/bin/bash</span></span>
+<span id="cb13-2"><a href="setup-details.html#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=150G</span></span>
+<span id="cb13-3"><a href="setup-details.html#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#$ -o ./run_brain_subset.log</span></span>
+<span id="cb13-4"><a href="setup-details.html#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">#$ -e ./run_brain_subset.log</span></span>
+<span id="cb13-5"><a href="setup-details.html#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">#$ -cwd</span></span>
+<span id="cb13-6"><a href="setup-details.html#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="setup-details.html#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> use /jhpce/shared/jhpce/modulefiles/libd</span>
+<span id="cb13-8"><a href="setup-details.html#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load nextflow</span>
+<span id="cb13-9"><a href="setup-details.html#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">_JAVA_OPTIONS=</span><span class="st">&quot;-Xms8g -Xmx10g&quot;</span></span>
+<span id="cb13-10"><a href="setup-details.html#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="setup-details.html#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="ex">nextflow</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf <span class="dt">\</span></span>
+<span id="cb13-12"><a href="setup-details.html#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">--sample</span> <span class="st">&quot;paired&quot;</span> <span class="dt">\</span></span>
+<span id="cb13-13"><a href="setup-details.html#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">--reference</span> <span class="st">&quot;mm10&quot;</span> <span class="dt">\</span></span>
+<span id="cb13-14"><a href="setup-details.html#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">--strand</span> <span class="st">&quot;reverse&quot;</span> <span class="dt">\</span></span>
+<span id="cb13-15"><a href="setup-details.html#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">--ercc</span> <span class="dt">\</span></span>
+<span id="cb13-16"><a href="setup-details.html#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">--trim_mode</span> <span class="st">&quot;skip&quot;</span> <span class="dt">\</span></span>
+<span id="cb13-17"><a href="setup-details.html#cb13-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">--experiment</span> <span class="st">&quot;mouse_brain&quot;</span> <span class="dt">\</span></span>
+<span id="cb13-18"><a href="setup-details.html#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">--input</span> <span class="st">&quot;/users/neagles/RNA_input&quot;</span> <span class="dt">\</span></span>
+<span id="cb13-19"><a href="setup-details.html#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">-profile</span> jhpce <span class="dt">\</span></span>
+<span id="cb13-20"><a href="setup-details.html#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">-w</span> <span class="st">&quot;/scratch/nextflow_runs&quot;</span> <span class="dt">\</span></span>
+<span id="cb13-21"><a href="setup-details.html#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">--output</span> <span class="st">&quot;/users/neagles/RNA_output&quot;</span></span>
+<span id="cb13-22"><a href="setup-details.html#cb13-22" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb13-23"><a href="setup-details.html#cb13-23" aria-hidden="true" tabindex="-1"></a><span class="co">#  Produces a report for each sample tracing the pipeline steps</span></span>
+<span id="cb13-24"><a href="setup-details.html#cb13-24" aria-hidden="true" tabindex="-1"></a><span class="co">#  performed (can be helpful for debugging).</span></span>
+<span id="cb13-25"><a href="setup-details.html#cb13-25" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb13-26"><a href="setup-details.html#cb13-26" aria-hidden="true" tabindex="-1"></a><span class="co">#  Note that the reports are generated from the output log produced in the above</span></span>
+<span id="cb13-27"><a href="setup-details.html#cb13-27" aria-hidden="true" tabindex="-1"></a><span class="co">#  section, and so if you rename the log, you must also pass replace the filename</span></span>
+<span id="cb13-28"><a href="setup-details.html#cb13-28" aria-hidden="true" tabindex="-1"></a><span class="co">#  in the bash call below.</span></span>
+<span id="cb13-29"><a href="setup-details.html#cb13-29" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;Generating per-sample logs for debugging...&quot;</span></span>
+<span id="cb13-30"><a href="setup-details.html#cb13-30" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/generate_logs.sh <span class="va">$PWD</span>/run_brain_subset.log</span></code></pre></div>
 </div>
 <div id="advanced-info-regarding-installation" class="section level3" number="2.3.6">
 <h3><span class="header-section-number">2.3.6</span> Advanced info regarding installation</h3>
@@ -393,62 +418,62 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>Deleting the work directory (which can take a large amount of disk space) does not affect SPEAQeasy execution for other users</li>
 </ul>
 <p>New users who wish to include the <code>--coverage</code> <a href="command-opts.html#command-opts">option</a> must also install RSeQC personally:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="setup-details.html#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> pip install <span class="at">--user</span> RSeQC==3.0.1</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="setup-details.html#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> pip install <span class="at">--user</span> RSeQC==3.0.1</span></code></pre></div>
 <div id="customizing-execution-for-each-user" class="section level3" number="2.4.1">
 <h3><span class="header-section-number">2.4.1</span> Customizing execution for each user</h3>
 <p>By default, all users will share the same <a href="configuration.html#configuration">configuration</a>. This likely suffices for many use cases, but alternatively new configuration files can be created. Below we will walk through an example where a new user of a SLURM-based cluster wishes to use an existing SPEAQeasy installation, but wants a personal configuration file to specify different annotation settings.</p>
 <ol style="list-style-type: decimal">
 <li><strong>Copy the existing configuration to a new file</strong></li>
 </ol>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="setup-details.html#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  Verify we are in the SPEAQeasy repository</span></span>
-<span id="cb11-2"><a href="setup-details.html#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="bu">pwd</span></span>
-<span id="cb11-3"><a href="setup-details.html#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="setup-details.html#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  Create the new configuration file</span></span>
-<span id="cb11-5"><a href="setup-details.html#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> conf/slurm.config conf/my_new.config</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="setup-details.html#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  Verify we are in the SPEAQeasy repository</span></span>
+<span id="cb15-2"><a href="setup-details.html#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="bu">pwd</span></span>
+<span id="cb15-3"><a href="setup-details.html#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="setup-details.html#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  Create the new configuration file</span></span>
+<span id="cb15-5"><a href="setup-details.html#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> conf/slurm.config conf/my_new.config</span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
 <li><strong>Modify the new file as desired</strong></li>
 </ol>
 <p>Below we will change the GENCODE release to the older release 25, for human, via the <code>gencode_version_human</code> variable.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb12-1"><a href="setup-details.html#cb12-1" aria-hidden="true" tabindex="-1"></a>executor <span class="op">=</span> <span class="st">&#39;slurm&#39;</span></span>
-<span id="cb12-2"><a href="setup-details.html#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-3"><a href="setup-details.html#cb12-3" aria-hidden="true" tabindex="-1"></a>params <span class="op">{</span></span>
-<span id="cb12-4"><a href="setup-details.html#cb12-4" aria-hidden="true" tabindex="-1"></a>  gencode_version_human <span class="op">=</span> <span class="st">&quot;25&quot;</span> <span class="co">// originally was &quot;32&quot;!</span></span>
-<span id="cb12-5"><a href="setup-details.html#cb12-5" aria-hidden="true" tabindex="-1"></a>  gencode_version_mouse <span class="op">=</span> <span class="st">&quot;M25&quot;</span></span>
-<span id="cb12-6"><a href="setup-details.html#cb12-6" aria-hidden="true" tabindex="-1"></a>  ensembl_version_rat <span class="op">=</span> <span class="st">&quot;98&quot;</span></span>
-<span id="cb12-7"><a href="setup-details.html#cb12-7" aria-hidden="true" tabindex="-1"></a>  anno_build <span class="op">=</span> <span class="st">&quot;main&quot;</span> <span class="co">// main or primary (main is canonical seqs only)</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb16-1"><a href="setup-details.html#cb16-1" aria-hidden="true" tabindex="-1"></a>executor <span class="op">=</span> <span class="st">&#39;slurm&#39;</span></span>
+<span id="cb16-2"><a href="setup-details.html#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="setup-details.html#cb16-3" aria-hidden="true" tabindex="-1"></a>params <span class="op">{</span></span>
+<span id="cb16-4"><a href="setup-details.html#cb16-4" aria-hidden="true" tabindex="-1"></a>  gencode_version_human <span class="op">=</span> <span class="st">&quot;25&quot;</span> <span class="co">// originally was &quot;32&quot;!</span></span>
+<span id="cb16-5"><a href="setup-details.html#cb16-5" aria-hidden="true" tabindex="-1"></a>  gencode_version_mouse <span class="op">=</span> <span class="st">&quot;M25&quot;</span></span>
+<span id="cb16-6"><a href="setup-details.html#cb16-6" aria-hidden="true" tabindex="-1"></a>  ensembl_version_rat <span class="op">=</span> <span class="st">&quot;98&quot;</span></span>
+<span id="cb16-7"><a href="setup-details.html#cb16-7" aria-hidden="true" tabindex="-1"></a>  anno_build <span class="op">=</span> <span class="st">&quot;main&quot;</span> <span class="co">// main or primary (main is canonical seqs only)</span></span></code></pre></div>
 <p>See <a href="configuration.html#configuration">configuration</a> for details on customizing SPEAQeasy settings.</p>
 <ol start="3" style="list-style-type: decimal">
 <li><strong>Add the new file as a “profile”</strong></li>
 </ol>
 <p>This involves adding some code to <code>nextflow.config</code>, as shown below.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb13-1"><a href="setup-details.html#cb13-1" aria-hidden="true" tabindex="-1"></a>profiles <span class="op">{</span></span>
-<span id="cb13-2"><a href="setup-details.html#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Here we&#39;ve named the new profile &quot;my_new_config&quot;, and pointed it to the</span></span>
-<span id="cb13-3"><a href="setup-details.html#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// file &quot;conf/my_new.config&quot;. Note that docker users should have the 2nd line</span></span>
-<span id="cb13-4"><a href="setup-details.html#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// &quot;includeConfig &#39;conf/command_paths_short.config&#39;&quot; instead!</span></span>
-<span id="cb13-5"><a href="setup-details.html#cb13-5" aria-hidden="true" tabindex="-1"></a>  my_new_config <span class="op">{</span></span>
-<span id="cb13-6"><a href="setup-details.html#cb13-6" aria-hidden="true" tabindex="-1"></a>    includeConfig <span class="st">&#39;conf/my_new.config&#39;</span></span>
-<span id="cb13-7"><a href="setup-details.html#cb13-7" aria-hidden="true" tabindex="-1"></a>    includeConfig <span class="st">&#39;conf/command_paths_long.config&#39;</span></span>
-<span id="cb13-8"><a href="setup-details.html#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
-<span id="cb13-9"><a href="setup-details.html#cb13-9" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-10"><a href="setup-details.html#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This configuration had already existed</span></span>
-<span id="cb13-11"><a href="setup-details.html#cb13-11" aria-hidden="true" tabindex="-1"></a>  local <span class="op">{</span></span>
-<span id="cb13-12"><a href="setup-details.html#cb13-12" aria-hidden="true" tabindex="-1"></a>    includeConfig <span class="st">&#39;conf/local.config&#39;</span></span>
-<span id="cb13-13"><a href="setup-details.html#cb13-13" aria-hidden="true" tabindex="-1"></a>    includeConfig <span class="st">&#39;conf/command_paths_long.config&#39;</span></span>
-<span id="cb13-14"><a href="setup-details.html#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb17-1"><a href="setup-details.html#cb17-1" aria-hidden="true" tabindex="-1"></a>profiles <span class="op">{</span></span>
+<span id="cb17-2"><a href="setup-details.html#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Here we&#39;ve named the new profile &quot;my_new_config&quot;, and pointed it to the</span></span>
+<span id="cb17-3"><a href="setup-details.html#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// file &quot;conf/my_new.config&quot;. Note that docker users should have the 2nd line</span></span>
+<span id="cb17-4"><a href="setup-details.html#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// &quot;includeConfig &#39;conf/command_paths_short.config&#39;&quot; instead!</span></span>
+<span id="cb17-5"><a href="setup-details.html#cb17-5" aria-hidden="true" tabindex="-1"></a>  my_new_config <span class="op">{</span></span>
+<span id="cb17-6"><a href="setup-details.html#cb17-6" aria-hidden="true" tabindex="-1"></a>    includeConfig <span class="st">&#39;conf/my_new.config&#39;</span></span>
+<span id="cb17-7"><a href="setup-details.html#cb17-7" aria-hidden="true" tabindex="-1"></a>    includeConfig <span class="st">&#39;conf/command_paths_long.config&#39;</span></span>
+<span id="cb17-8"><a href="setup-details.html#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span>
+<span id="cb17-9"><a href="setup-details.html#cb17-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb17-10"><a href="setup-details.html#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This configuration had already existed</span></span>
+<span id="cb17-11"><a href="setup-details.html#cb17-11" aria-hidden="true" tabindex="-1"></a>  local <span class="op">{</span></span>
+<span id="cb17-12"><a href="setup-details.html#cb17-12" aria-hidden="true" tabindex="-1"></a>    includeConfig <span class="st">&#39;conf/local.config&#39;</span></span>
+<span id="cb17-13"><a href="setup-details.html#cb17-13" aria-hidden="true" tabindex="-1"></a>    includeConfig <span class="st">&#39;conf/command_paths_long.config&#39;</span></span>
+<span id="cb17-14"><a href="setup-details.html#cb17-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li><strong>Reference the new profile in the “main” script</strong></li>
 </ol>
 <p>Recall that new users should copy the “main” script and modify the copy as appropriate. In this case, we open a copy of the original <code>run_pipeline_slurm.sh</code>:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb14-1"><a href="setup-details.html#cb14-1" aria-hidden="true" tabindex="-1"></a>#  At the nextflow command<span class="op">,</span> we change the <span class="st">&#39;-profile&#39;</span> argument at the bottom</span>
-<span id="cb14-2"><a href="setup-details.html#cb14-2" aria-hidden="true" tabindex="-1"></a>$ORIG_DIR<span class="op">/</span>Software<span class="op">/</span>nextflow main<span class="op">.</span>nf \</span>
-<span id="cb14-3"><a href="setup-details.html#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>sample <span class="st">&quot;single&quot;</span> \</span>
-<span id="cb14-4"><a href="setup-details.html#cb14-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>reference <span class="st">&quot;hg19&quot;</span> \</span>
-<span id="cb14-5"><a href="setup-details.html#cb14-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>strand <span class="st">&quot;unstranded&quot;</span> \</span>
-<span id="cb14-6"><a href="setup-details.html#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>small_test \</span>
-<span id="cb14-7"><a href="setup-details.html#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>annotation <span class="st">&quot;</span><span class="ss">$ORIG_DIR</span><span class="st">/Annotation&quot;</span> \</span>
-<span id="cb14-8"><a href="setup-details.html#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span>with<span class="op">-</span>report execution_reports<span class="op">/</span>pipeline_report<span class="op">.</span>html \</span>
-<span id="cb14-9"><a href="setup-details.html#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span>with<span class="op">-</span>dag execution_DAGs<span class="op">/</span>pipeline_DAG<span class="op">.</span>html \</span>
-<span id="cb14-10"><a href="setup-details.html#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span>profile my_new_config # <span class="kw">this</span> was changed from <span class="st">&quot;-profile slurm&quot;</span><span class="op">!</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb18-1"><a href="setup-details.html#cb18-1" aria-hidden="true" tabindex="-1"></a>#  At the nextflow command<span class="op">,</span> we change the <span class="st">&#39;-profile&#39;</span> argument at the bottom</span>
+<span id="cb18-2"><a href="setup-details.html#cb18-2" aria-hidden="true" tabindex="-1"></a>$ORIG_DIR<span class="op">/</span>Software<span class="op">/</span>nextflow main<span class="op">.</span>nf \</span>
+<span id="cb18-3"><a href="setup-details.html#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>sample <span class="st">&quot;single&quot;</span> \</span>
+<span id="cb18-4"><a href="setup-details.html#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>reference <span class="st">&quot;hg19&quot;</span> \</span>
+<span id="cb18-5"><a href="setup-details.html#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>strand <span class="st">&quot;unstranded&quot;</span> \</span>
+<span id="cb18-6"><a href="setup-details.html#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>small_test \</span>
+<span id="cb18-7"><a href="setup-details.html#cb18-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>annotation <span class="st">&quot;</span><span class="ss">$ORIG_DIR</span><span class="st">/Annotation&quot;</span> \</span>
+<span id="cb18-8"><a href="setup-details.html#cb18-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span>with<span class="op">-</span>report execution_reports<span class="op">/</span>pipeline_report<span class="op">.</span>html \</span>
+<span id="cb18-9"><a href="setup-details.html#cb18-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span>with<span class="op">-</span>dag execution_DAGs<span class="op">/</span>pipeline_DAG<span class="op">.</span>html \</span>
+<span id="cb18-10"><a href="setup-details.html#cb18-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span>profile my_new_config # <span class="kw">this</span> was changed from <span class="st">&quot;-profile slurm&quot;</span><span class="op">!</span></span></code></pre></div>
 
 </div>
 </div>
