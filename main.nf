@@ -136,11 +136,14 @@ def helpMessage() {
                               have failed the FastQC "Adapter content" metric
                           "force": perform trimming on all samples
     --unalign       <- include this flag to additionally save discordant reads
+                       (when using HISAT2) or unmapped reads (when using STAR)
                        to the pipeline outputs (default: false; only concordant
                        .sam files are saved)
     --use_salmon    <- include this flag to perform transcript quantification
                        with salmon instead of the default of kallisto. Default:
                        false
+    --use_star      <- include this flag to use STAR during alignment, instead
+                       of the default of HISAT2
                        
     The above was a comprehensive list of options specific to SPEAQeasy. As a
     pipeline based on nextflow, SPEAQeasy also accepts any options the
@@ -186,6 +189,7 @@ params.strand = ""
 params.trim_mode = "adaptive"
 params.unalign = false
 params.use_salmon = false
+params.use_star = false
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validate Inputs
@@ -214,6 +218,10 @@ if (params.trim_mode != "skip" && params.trim_mode != "adaptive" && params.trim_
 // Keeping unpaired reads that are not produced
 if (params.keep_unpaired && params.trim_mode == "skip") {
     exit 1, "You have opted to include unpaired outputs from trimming, but to skip trimming itself. Consider using a different 'trim_mode' or not using the '--keep_unpaired' option."
+}
+
+if (params.keep_unpaired && params.use_star) {
+    exit 1, "STAR does not support inclusion of unpaired reads. Consider using HISAT2 (default) or remove the '--keep_unpaired' option."
 }
 
 // Create a global variable to handle the situation where params.fullCov is
@@ -392,6 +400,7 @@ summary['Strand']			  = params.strand
 summary['Trim mode'] = params.trim_mode
 summary['Keep discordant'] = params.unalign
 summary['Use salmon'] = params.use_salmon
+summary['Use STAR'] = params.use_star
 log.info summary.collect { k,v -> "${k.padRight(18)}: $v" }.join("\n")
 log.info "==========================================="
 
@@ -473,33 +482,9 @@ if (params.custom_anno != "") {
     }
 }
 
-/*
- * Step Ib: Build HISAT Index
- */
-
-// Uses "storeDir" to build HISAT2 index only when it doesn't exist, and output the cached
-// files if they do already exist
-process buildHISATindex {
-		
-  tag "Building HISAT2 Index: ${hisat_prefix}"
-  storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
-
-  input:
-    file reference_fasta
-
-  output:
-    file("${hisat_prefix}.*") into hisat_index
-
-  shell:
-    hisat_prefix = "hisat2_assembly_${params.anno_suffix}"
-    '''
-    !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{hisat_prefix}
-    '''
-}
-
 
 /*
- * Step II: Download reference .gtf (from GENCODE for human/ mouse, ensembl for rat)
+ * Download reference .gtf (from GENCODE for human/ mouse, ensembl for rat)
  */
 
 if (params.custom_anno != "") {
@@ -530,6 +515,56 @@ if (params.custom_anno != "") {
             '''
     }
 }
+
+
+/*
+ * Build aligner index (HISAT2 by default, or optionally STAR)
+ */
+
+if (params.use_star) {
+    process BuildStarIndex {
+        storeDir "${params.annotation}/reference/${params.reference}/assembly/index/star_${params.anno_suffix}"
+        
+        input:
+            file reference_fasta
+            file annotation_gtf
+            
+        output:
+            file "index_dir/*" into star_index
+            
+        shell:
+            '''
+            mkdir index_dir
+            
+            !{params.star} \
+                --runMode genomeGenerate \
+                --genomeDir ./index_dir \
+                --runThreadN !{task.cpus} \
+                --genomeFastaFiles !{reference_fasta} \
+                --sjdbGTFfile !{annotation_gtf}
+            '''
+    }
+} else { // HISAT2 is used as the aligner
+    // Uses "storeDir" to build HISAT2 index only when it doesn't exist, and output the cached
+    // files if they do already exist
+    process buildHISATindex {	
+        tag "Building HISAT2 Index: ${hisat_prefix}"
+        storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
+    
+        input:
+            file reference_fasta
+    
+        output:
+            file("${hisat_prefix}.*") into hisat_index
+    
+        shell:
+            hisat_prefix = "hisat2_assembly_${params.anno_suffix}"
+            '''
+            !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{hisat_prefix}
+            '''
+    }
+}
+
 
 // Build "objects" from the assembly fasta and reference gtf. These objects include
 // .rda files with junction and transcript feature information, and a file listing
@@ -1014,123 +1049,194 @@ process QualityTrimmed {
 }
 
 /*
- * Step 3a: Hisat Alignment
+ * Step 3a: Alignment (HISAT2 by default, or otherwise STAR)
  */
 
 trimming_outputs
     .flatten()
     .map{ file -> tuple(get_prefix(file), file) }
-    .ifEmpty{ error "Input channel to HISAT is empty" }
+    .ifEmpty{ error "Input channel to alignment process is empty" }
     .groupTuple()
-    .set{ hisat_inputs }
-        
-if (params.sample == "single") {
+    .set{ alignment_inputs }
 
-    process SingleEndHISAT {
-
+if (params.use_star) {
+    process AlignStar {
         tag "$prefix"
-        publishDir "${params.output}/HISAT2_out",mode:'copy'
-
+        publishDir "${params.output}/alignment", mode:'copy'
+        
         input:
-            file hisat_index
-            file complete_manifest_hisat
-            set val(prefix), file(single_hisat_input) from hisat_inputs
-
+            file star_index
+            set val(prefix), file(single_star_input) from alignment_inputs
+            
         output:
-            file "*_hisat_out.sam" into hisat_output
-            file "*_align_summary.txt" into alignment_summaries
-
-        shell:
+            file "*.sam" into alignment_output
+            file "${prefix}_unmapped_*.fastq" optional true
+            file "*_STAR_alignment.log" into alignment_summaries
+            
+        shell:            
+            if (params.sample == "paired" && params.unalign) {
+                unaligned_args = "--outReadsUnmapped Fastx"
+            } else {
+                unaligned_args = ""
+            }
             '''
+            #  Recreate the index directory (nextflow cannot handle directories
+            #  as channel input). This step is likely sensitive to the STAR
+            #  version used
+            mkdir index_dir
+            mv *.txt index_dir/
+            mv *.tab index_dir/
+            mv SA index_dir/
+            mv SAindex index_dir/
+            mv Genome index_dir/
+            
             ( set -o posix ; set ) > bash_vars.txt
             
-            #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
-            if [ ${strand} == "unstranded" ]; then
-                hisat_strand=""
-            elif [ ${strand} == "forward" ]; then
-                hisat_strand="--rna-strandness F"
+            #  Determine file names for input FASTQs
+            if [ !{params.sample} == "paired" ]; then
+                fastq_files="!{prefix}*trimmed*_1.f*q* !{prefix}*trimmed*_2.f*q*"
             else
-                hisat_strand="--rna-strandness R"
+                fastq_files="*.f*q*"
             fi
             
-            #  Run Hisat2
-            !{params.hisat2} \
-                -p !{task.cpus} \
-                -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
-                -U !{single_hisat_input} \
-                -S !{prefix}_hisat_out.sam \
-                ${hisat_strand} \
-                !{params.hisat2_args} \
-                2> !{prefix}_align_summary.txt
+            #  Tell STAR to decompress files if needed 
+            if [ "$(echo $fastq_files | rev | cut -d "." -f 1 | rev)" == "gz" ]; then
+                compress_args='--readFilesCommand gunzip -c'
+            else
+                compress_args=''
+            fi
+            
+            #  Perform alignment
+            !{params.star} \
+                --genomeDir ./index_dir \
+                --runThreadN !{task.cpus} \
+                --readFilesIn ${fastq_files} \
+                ${compress_args} \
+                !{unaligned_args} \
+                !{params.star_args}
+                
+            #  Adjust file names (make unique)
+            mv Log.final.out !{prefix}_STAR_alignment.log
+            mv Aligned.out.sam !{prefix}.sam
+            if [ -f Unmapped.out.mate1 ]; then
+                mv Unmapped.out.mate1 !{prefix}_unmapped_mate1.fastq
+                mv Unmapped.out.mate2 !{prefix}_unmapped_mate2.fastq
+            fi
             
             temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
             echo "$temp" > bash_vars.txt
             '''
     }
-} else { // sample is paired-end
-
-    process PairedEndHISAT {
-
-        tag "$prefix"
-        publishDir "${params.output}/HISAT2_out",'mode':'copy'
-
-        input:
-            file hisat_index
-            file complete_manifest_hisat
-            set val(prefix), file(fq_files) from hisat_inputs
-
-        output:
-            file "*_hisat_out.sam" into hisat_output
-            file "*_unpaired*.fastq" optional true
-            file "*_align_summary.txt" into alignment_summaries
-
-        shell:
-            if (params.unalign) {
-                unaligned_opt = "--un-conc ${prefix}_discordant.fastq"
-            } else {
-                unaligned_opt = ""
-            }
-            '''
-            ( set -o posix ; set ) > bash_vars.txt
+} else { // Alignment will be done with HISAT2
             
-            #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
-            if [ ${strand} == "unstranded" ]; then
-                hisat_strand=""
-            elif [ ${strand} == "forward" ]; then
-                hisat_strand="--rna-strandness FR"
-            else
-                hisat_strand="--rna-strandness RF"
-            fi
-            
-            #  If this sample had unpaired trimming outputs, include them
-            if [ "!{params.keep_unpaired}" == "true" ]; then
-                unpaired_opt='-U !{prefix}_unpaired_1.fastq,!{prefix}_unpaired_2.fastq'
-            else
-                unpaired_opt=''
-            fi
-            
-            #  Run Hisat2
-            !{params.hisat2} \
-                -p !{task.cpus} \
-                -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
-                -1 !{prefix}*trimmed*_1.f*q* \
-                -2 !{prefix}*trimmed*_2.f*q* \
-                -S !{prefix}_hisat_out.sam \
-                ${unpaired_opt} \
-                ${hisat_strand} \
-                !{params.hisat2_args} \
-                !{unaligned_opt} \
-                2> !{prefix}_align_summary.txt
-            
-            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-            echo "$temp" > bash_vars.txt
-            '''
+    if (params.sample == "single") {
+        
+        process SingleEndHISAT {
+    
+            tag "$prefix"
+            publishDir "${params.output}/alignment",mode:'copy'
+    
+            input:
+                file hisat_index
+                file complete_manifest_hisat
+                set val(prefix), file(single_hisat_input) from alignment_inputs
+    
+            output:
+                file "*_hisat_out.sam" into alignment_output
+                file "*_align_summary.txt" into alignment_summaries
+    
+            shell:
+                '''
+                ( set -o posix ; set ) > bash_vars.txt
+                
+                #  Find this sample's strandness and determine strand flag
+                strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+                if [ ${strand} == "unstranded" ]; then
+                    hisat_strand=""
+                elif [ ${strand} == "forward" ]; then
+                    hisat_strand="--rna-strandness F"
+                else
+                    hisat_strand="--rna-strandness R"
+                fi
+                
+                #  Run Hisat2
+                !{params.hisat2} \
+                    -p !{task.cpus} \
+                    -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
+                    -U !{single_hisat_input} \
+                    -S !{prefix}_hisat_out.sam \
+                    ${hisat_strand} \
+                    !{params.hisat2_args} \
+                    2> !{prefix}_align_summary.txt
+                
+                temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+                echo "$temp" > bash_vars.txt
+                '''
+        }
+    } else { // sample is paired-end
+    
+        process PairedEndHISAT {
+    
+            tag "$prefix"
+            publishDir "${params.output}/alignment",'mode':'copy'
+    
+            input:
+                file hisat_index
+                file complete_manifest_hisat
+                set val(prefix), file(fq_files) from alignment_inputs
+    
+            output:
+                file "*_hisat_out.sam" into alignment_output
+                file "*_unpaired*.fastq" optional true
+                file "*_align_summary.txt" into alignment_summaries
+    
+            shell:
+                if (params.unalign) {
+                    unaligned_opt = "--un-conc ${prefix}_discordant.fastq"
+                } else {
+                    unaligned_opt = ""
+                }
+                '''
+                ( set -o posix ; set ) > bash_vars.txt
+                
+                #  Find this sample's strandness and determine strand flag
+                strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+                if [ ${strand} == "unstranded" ]; then
+                    hisat_strand=""
+                elif [ ${strand} == "forward" ]; then
+                    hisat_strand="--rna-strandness FR"
+                else
+                    hisat_strand="--rna-strandness RF"
+                fi
+                
+                #  If this sample had unpaired trimming outputs, include them
+                if [ "!{params.keep_unpaired}" == "true" ]; then
+                    unpaired_opt='-U !{prefix}_unpaired_1.fastq,!{prefix}_unpaired_2.fastq'
+                else
+                    unpaired_opt=''
+                fi
+                
+                #  Run Hisat2
+                !{params.hisat2} \
+                    -p !{task.cpus} \
+                    -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
+                    -1 !{prefix}*trimmed*_1.f*q* \
+                    -2 !{prefix}*trimmed*_2.f*q* \
+                    -S !{prefix}_hisat_out.sam \
+                    ${unpaired_opt} \
+                    ${hisat_strand} \
+                    !{params.hisat2_args} \
+                    !{unaligned_opt} \
+                    2> !{prefix}_align_summary.txt
+                
+                temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+                echo "$temp" > bash_vars.txt
+                '''
+        }
     }
 }
 
-hisat_output
+alignment_output
     .flatten()
     .map{ file -> tuple(get_prefix(file), file) }
     .set{ sam_to_bam_inputs }
@@ -1143,7 +1249,7 @@ hisat_output
 process SamtoBam {
 	
 	tag "$sam_to_bam_prefix"
-	publishDir "${params.output}/HISAT2_out/sam_to_bam",'mode':'copy'
+	publishDir "${params.output}/alignment/sam_to_bam",'mode':'copy'
 
 	input:
 	set val(sam_to_bam_prefix), file(sam_to_bam_input) from sam_to_bam_inputs
@@ -1510,7 +1616,8 @@ process CountObjects {
             -c !{params.ercc} \
             -t !{task.cpus} \
             !{counts_strand} \
-            -n !{params.use_salmon}
+            -n !{params.use_salmon} \
+            -r !{params.use_star}
 
         cp .command.log counts.log
         '''

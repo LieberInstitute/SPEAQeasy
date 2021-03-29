@@ -17,6 +17,7 @@
 * `--experiment`    Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
 * `--force_strand` Include this flag to continue pipeline execution with a warning, when user-provided strand contrasts with inferred strandness in any sample. Default: false (halt pipeline execution with an error message if any sample appears to be a different strandness than stated by the user)
 * `--fullCov`        Include this flag to perform full coverage analysis.
+* `--help`  Provides an explanation about each of these command options, and exits.
 * `--input`        The path to the directory with the "samples.manifest" file. Defaults to "./input" (relative to the repository)
 * `--keep_unpaired` include this flag to keep unpaired reads output from trimming paired-end samples, for use in alignment. Default: false, as this can cause issues in downstream tools like FeatureCounts.
 * `--output`  The path to the directory to store pipeline output files/ objects. Defaults to "./results" (relative to the repository)
@@ -26,8 +27,9 @@
                     "skip": do not perform trimming on samples
                     "adaptive": [default] perform trimming on samples that have failed the FastQC "Adapter content" metric
                     "force": perform trimming on all samples
-* `--unalign`        Include this flag to save discordant reads after the alignment step (false/ not included by default)
+* `--unalign`        Include this flag to save discordant reads (when using HISAT2) or unmapped reads (when using STAR) after the alignment step (false/ not included by default)
 * `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
+* `--use_star` Include this flag to use STAR during alignment, instead of the default of HISAT2.
 
 ## Nextflow Options {#next-opts}
 
