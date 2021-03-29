@@ -145,7 +145,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2" data-path="setup-details.html"><a href="setup-details.html"><i class="fa fa-check"></i><b>2</b> Setup Details</a>
 <ul>
 <li class="chapter" data-level="2.1" data-path="setup-details.html"><a href="setup-details.html#requirements"><i class="fa fa-check"></i><b>2.1</b> Requirements</a></li>
-<li class="chapter" data-level="2.2" data-path="setup-details.html"><a href="setup-details.html#installation"><i class="fa fa-check"></i><b>2.2</b> Installation</a></li>
+<li class="chapter" data-level="2.2" data-path="setup-details.html"><a href="setup-details.html#installation"><i class="fa fa-check"></i><b>2.2</b> Installation</a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="setup-details.html"><a href="setup-details.html#troubleshooting"><i class="fa fa-check"></i><b>2.2.1</b> Troubleshooting</a></li>
+</ul></li>
 <li class="chapter" data-level="2.3" data-path="setup-details.html"><a href="setup-details.html#run-the-pipeline"><i class="fa fa-check"></i><b>2.3</b> Run the Pipeline</a>
 <ul>
 <li class="chapter" data-level="2.3.1" data-path="setup-details.html"><a href="setup-details.html#run-in-a-slurm-environment-cluster"><i class="fa fa-check"></i><b>2.3.1</b> Run in a SLURM environment/ cluster</a></li>
@@ -293,13 +296,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb8-2"><a href="setup-details.html#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">module</span> load conda_R</span>
 <span id="cb8-3"><a href="setup-details.html#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-4"><a href="setup-details.html#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install required R packages</span></span>
-<span id="cb8-5"><a href="setup-details.html#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/check_R_packages_JHPCE.R</span>
-<span id="cb8-6"><a href="setup-details.html#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="setup-details.html#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">### Troubleshooting</span></span>
-<span id="cb8-8"><a href="setup-details.html#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="setup-details.html#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="ex">Some</span> users may encounter errors during the installation process, particularly when installing software locally. We provide a list below of the most common installation-related issues.</span>
-<span id="cb8-10"><a href="setup-details.html#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-11"><a href="setup-details.html#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="ex">-</span> <span class="pp">*</span>required utilities are missing<span class="pp">*</span>: this is particularly common issue for MacOS users, or Linux users trying to get SPEAQeasy running on a local machine <span class="er">(</span><span class="ex">like</span> a laptop<span class="kw">)</span><span class="bu">.</span> In either case, we will assume the user has root privileges for the solutions suggested below. </span></code></pre></div>
+<span id="cb8-5"><a href="setup-details.html#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/check_R_packages_JHPCE.R</span></code></pre></div>
+<div id="troubleshooting" class="section level3" number="2.2.1">
+<h3><span class="header-section-number">2.2.1</span> Troubleshooting</h3>
+<p>Some users may encounter errors during the installation process, particularly when installing software locally. We provide a list below of the most common installation-related issues.</p>
+<div id="required-utilities-are-missing" class="section level4" number="2.2.1.1">
+<h4><span class="header-section-number">2.2.1.1</span> Required utilities are missing</h4>
+<p>This is particularly common issue for MacOS users, or Linux users trying to get SPEAQeasy running on a local machine (like a laptop). In either case, we will assume the user has root privileges for the solutions suggested below.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="setup-details.html#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">install_software.sh:</span> line 99: wget: command not found</span></code></pre></div>
 <p>Mac OS users in particular may be missing the utility <code>wget</code>, required for the SPEAQeasy installation. A solution on Mac is to install <a href="https://brew.sh/">brew</a>, and install <code>wget</code> through <code>brew</code>:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="setup-details.html#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install brew, if you don&#39;t already have it</span></span>
@@ -313,12 +316,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb11-3"><a href="setup-details.html#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-4"><a href="setup-details.html#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  On RedHat or CentOS:</span></span>
 <span id="cb11-5"><a href="setup-details.html#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> yum install autoconf automake make gcc zlib-devel bzip2 bzip2-devel xz-devel pcre-devel curl-devel texi2html texinfo java-1.8.0-openjdk java-1.8.0-openjdk-devel</span></code></pre></div>
-<ul>
-<li><em>docker permissions issues</em>: users managing dependencies with docker might encounter error messages if docker is not properly configured:</li>
-</ul>
+</div>
+<div id="docker-permissions-issues" class="section level4" number="2.2.1.2">
+<h4><span class="header-section-number">2.2.1.2</span> Docker permissions issues</h4>
+<p>Users managing dependencies with docker might encounter error messages if docker is not properly configured:</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="setup-details.html#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker:</span> Got permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock: Post http://%2Fvar%2Frun%2Fdocker.sock/v1.40/containers/create: dial unix /var/run/docker.sock: connect: permission denied.</span>
 <span id="cb12-2"><a href="setup-details.html#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">See</span> <span class="st">&#39;docker run --help&#39;</span>.</span></code></pre></div>
 <p>On a computing cluster, a system administrator is responsible for correctly configuring docker so that such errors do not occur. We provide a brief guide <a href="help.html#docker-help">here</a> for users who want to set up docker on a local machine.</p>
+</div>
+</div>
 </div>
 <div id="run-the-pipeline" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Run the Pipeline</h2>

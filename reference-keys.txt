@@ -6,6 +6,9 @@ your-config-file
 setup-details
 requirements
 installation
+troubleshooting
+required-utilities-are-missing
+docker-permissions-issues
 run-the-pipeline
 run-in-a-slurm-environment-cluster
 run-on-a-sun-grid-engines-sge-cluster
