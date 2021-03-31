@@ -186,8 +186,9 @@ elif [ "$1" == "local" ]; then
         
         #  salmon (1.2.1)  -------------------------------------------------------------
             
-        wget https://github.com/COMBINE-lab/salmon/archive/v1.2.1.tar.gz
-        tar -xzf v1.2.1.tar.gz
+        wget -O salmon_v1.2.1.tar.gz https://github.com/COMBINE-lab/salmon/archive/v1.2.1.tar.gz
+        tar -xzf salmon_v1.2.1.tar.gz
+        cd salmon-1.2.1
         mkdir build
         cd build
         $INSTALL_DIR/bin/cmake -DFETCH_BOOST=TRUE ..
@@ -215,9 +216,9 @@ elif [ "$1" == "local" ]; then
         
         #  Copy the binary to a fixed location, regardless of OS
         if [ $(uname -s) == "Linux" ]; then
-            cp STAR-2.7.8a/bin/Linux_x86_64/bin/STAR bin/
+            cp STAR-2.7.8a/bin/Linux_x86_64/STAR bin/
         elif [ $(uname -s) == "Darwin" ]; then
-            cp STAR-2.7.8a/bin/MacOSX_x86_64/bin/STAR bin/
+            cp STAR-2.7.8a/bin/MacOSX_x86_64/STAR bin/
         else
             echo "Non-docker installation of the STAR aligner is not supported on this operating system. Consider instead setting up SPEAQeasy for use with docker, by running:"
             echo '    bash install_software.sh "docker"'
