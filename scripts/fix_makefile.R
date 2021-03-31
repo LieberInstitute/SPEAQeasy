@@ -5,10 +5,7 @@ makefile = readLines(makefilePath)
 
 #  Return the index of the line beginning with the string [key]
 getLineNum = function(key) {
-    isLine = sapply(makefile, function(text_line) {
-        (nchar(text_line) > nchar(key)) && (substr(text_line, 1, nchar(key)) == key)
-    })
-    match(TRUE, isLine)
+    which(substr(makefile, 1, nchar(key)) == key)
 }
 
 #  GSL and libBigWig were installed to a local directory, which the
