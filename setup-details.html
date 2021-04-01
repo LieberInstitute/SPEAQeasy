@@ -300,17 +300,26 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="troubleshooting" class="section level3" number="2.2.1">
 <h3><span class="header-section-number">2.2.1</span> Troubleshooting</h3>
 <p>Some users may encounter errors during the installation process, particularly when installing software locally. We provide a list below of the most common installation-related issues.</p>
+<p>SPEAQeasy has been tested on:</p>
+<ul>
+<li>CentOS 7 (Linux)</li>
+<li>Ubuntu 20.04.2 LTS (Linux)</li>
+</ul>
 <div id="required-utilities-are-missing" class="section level4" number="2.2.1.1">
 <h4><span class="header-section-number">2.2.1.1</span> Required utilities are missing</h4>
 <p>This is particularly common issue for MacOS users, or Linux users trying to get SPEAQeasy running on a local machine (like a laptop). In either case, we will assume the user has root privileges for the solutions suggested below.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="setup-details.html#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">install_software.sh:</span> line 99: wget: command not found</span></code></pre></div>
-<p>Mac OS users in particular may be missing the utility <code>wget</code>, required for the SPEAQeasy installation. A solution on Mac is to install <a href="https://brew.sh/">brew</a>, and install <code>wget</code> through <code>brew</code>:</p>
+<p>Mac OS users in particular may be missing the utility <code>wget</code> (and others), required for the SPEAQeasy installation. A solution on Mac is to install <a href="https://brew.sh/">brew</a>, and install the required utilities through <code>brew</code>:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="setup-details.html#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install brew, if you don&#39;t already have it</span></span>
 <span id="cb10-2"><a href="setup-details.html#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">/bin/bash</span> <span class="at">-c</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="va">)</span><span class="st">&quot;</span></span>
 <span id="cb10-3"><a href="setup-details.html#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="setup-details.html#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install wget</span></span>
-<span id="cb10-5"><a href="setup-details.html#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install wget</span></code></pre></div>
-<p>It is recommended that Linux users install some basic dependencies if local installation fails for any reason.</p>
+<span id="cb10-4"><a href="setup-details.html#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install required utilities</span></span>
+<span id="cb10-5"><a href="setup-details.html#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install wget autoconf automake make gcc zlib bzip2 xz pcre openssl texinfo texlive</span>
+<span id="cb10-6"><a href="setup-details.html#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="setup-details.html#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install openJDK8 (Java) from a third-party repository</span></span>
+<span id="cb10-8"><a href="setup-details.html#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> tap adoptopenjdk/openjdk</span>
+<span id="cb10-9"><a href="setup-details.html#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> cask install adoptopenjdk8</span></code></pre></div>
+<p>It is also recommended that Linux users install some basic dependencies if local installation fails for any reason.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="setup-details.html#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  On Debian or Ubuntu:</span></span>
 <span id="cb11-2"><a href="setup-details.html#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install autoconf automake make gcc zlib1g-dev libbz2-dev liblzma-dev libpcre3-dev libcurl4-openssl-dev texinfo texlive-base default-jre default-jdk</span>
 <span id="cb11-3"><a href="setup-details.html#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
