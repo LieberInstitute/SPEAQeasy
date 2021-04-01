@@ -38,6 +38,11 @@ Rscript /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/check_R_packages_JHPCE.R
 
 Some users may encounter errors during the installation process, particularly when installing software locally. We provide a list below of the most common installation-related issues.
 
+SPEAQeasy has been tested on:
+
+- CentOS 7 (Linux)
+- Ubuntu 20.04.2 LTS (Linux)
+
 #### Required utilities are missing
 
 This is particularly common issue for MacOS users, or Linux users trying to get SPEAQeasy running on a local machine (like a laptop). In either case, we will assume the user has root privileges for the solutions suggested below. 
@@ -46,17 +51,21 @@ This is particularly common issue for MacOS users, or Linux users trying to get 
 install_software.sh: line 99: wget: command not found
 ```
 
-Mac OS users in particular may be missing the utility `wget`, required for the SPEAQeasy installation. A solution on Mac is to install [brew](https://brew.sh/), and install `wget` through `brew`:
+Mac OS users in particular may be missing the utility `wget` (and others), required for the SPEAQeasy installation. A solution on Mac is to install [brew](https://brew.sh/), and install the required utilities through `brew`:
 
 ```{bash, eval=FALSE}
 #  Install brew, if you don't already have it
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-#  Install wget
-brew install wget
+#  Install required utilities
+brew install wget autoconf automake make gcc zlib bzip2 xz pcre openssl texinfo texlive
+
+#  Install openJDK8 (Java) from a third-party repository
+brew tap adoptopenjdk/openjdk
+brew cask install adoptopenjdk8
 ```
 
-It is recommended that Linux users install some basic dependencies if local installation fails for any reason.
+It is also recommended that Linux users install some basic dependencies if local installation fails for any reason.
 
 ```{bash,eval=FALSE}
 #  On Debian or Ubuntu:
