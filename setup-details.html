@@ -282,7 +282,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>SPEAQeasy makes use of a number of different additional software tools. The user is provided two options to automatically manage these dependencies.</p>
 <ul>
 <li><p><em>Docker</em>: The recommended option is to manage software with docker, if it is available. From within the repository, perform the one-time setup by running <code>bash install_software.sh "docker"</code>. This installs nextflow and sets up some test files. When running SPEAQeasy, the required docker images are automatically pulled if not already present, and components of the pipeline run within the associated containers. A full list of the images that are used is <a href="software.html#software">here</a>.</p></li>
-<li><p><em>Local install</em>: The alternative is to locally install all dependencies. This is done by running <code>bash install_software.sh "local"</code> from within the repository. This installs nextflow, several bioinformatics tools, R and packages, and sets up some test files. A full list of software used is <a href="software.html#software">here</a>. The script <code>install_software.sh</code> builds each software tool from source, and hence relies on some common utilities which are often pre-installed in many unix-like systems:</p>
+<li><p><em>Local install</em>: The alternative is to locally install all dependencies. This option is only officially supported on Linux; it is currently experimental and recommended against on other platforms. Installation is done by running <code>bash install_software.sh "local"</code> from within the repository. This installs nextflow, several bioinformatics tools, R and packages, and sets up some test files. A full list of software used is <a href="software.html#software">here</a>. The script <code>install_software.sh</code> builds each software tool from source, and hence relies on some common utilities which are often pre-installed in many unix-like systems:</p>
 <ul>
 <li>A C/C++ compiler, such as <a href="https://gcc.gnu.org/">GCC</a> or <a href="http://clang.llvm.org/index.html">Clang</a></li>
 <li>The GNU <code>make</code> utility</li>
@@ -299,7 +299,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb8-5"><a href="setup-details.html#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/check_R_packages_JHPCE.R</span></code></pre></div>
 <div id="troubleshooting" class="section level3" number="2.2.1">
 <h3><span class="header-section-number">2.2.1</span> Troubleshooting</h3>
-<p>Some users may encounter errors during the installation process, particularly when installing software locally. We provide a list below of the most common installation-related issues.</p>
+<p>Some users may encounter errors during the installation process, particularly when installing software locally. We provide a list below of the most common installation-related issues. Please note that “local” installation is only officially supported on Linux, and Mac users should install in “docker” mode! Below solutions for Mac OS are <strong>experimental</strong>, and not yet complete.</p>
 <p>SPEAQeasy has been tested on:</p>
 <ul>
 <li>CentOS 7 (Linux)</li>
@@ -313,12 +313,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="setup-details.html#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install brew, if you don&#39;t already have it</span></span>
 <span id="cb10-2"><a href="setup-details.html#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">/bin/bash</span> <span class="at">-c</span> <span class="st">&quot;</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="va">)</span><span class="st">&quot;</span></span>
 <span id="cb10-3"><a href="setup-details.html#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="setup-details.html#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install required utilities</span></span>
-<span id="cb10-5"><a href="setup-details.html#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install wget autoconf automake make gcc zlib bzip2 xz pcre openssl texinfo texlive</span>
+<span id="cb10-4"><a href="setup-details.html#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install most required utilities</span></span>
+<span id="cb10-5"><a href="setup-details.html#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install wget autoconf automake make gcc zlib bzip2 xz pcre openssl texinfo llvm libomp</span>
 <span id="cb10-6"><a href="setup-details.html#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-7"><a href="setup-details.html#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install openJDK8 (Java) from a third-party repository</span></span>
-<span id="cb10-8"><a href="setup-details.html#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> tap adoptopenjdk/openjdk</span>
-<span id="cb10-9"><a href="setup-details.html#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> cask install adoptopenjdk8</span></code></pre></div>
+<span id="cb10-7"><a href="setup-details.html#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#  Install openJDK8 (Java)</span></span>
+<span id="cb10-8"><a href="setup-details.html#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install <span class="at">--cask</span> homebrew/cask-versions/adoptopenjdk8</span></code></pre></div>
 <p>It is also recommended that Linux users install some basic dependencies if local installation fails for any reason.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="setup-details.html#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  On Debian or Ubuntu:</span></span>
 <span id="cb11-2"><a href="setup-details.html#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install autoconf automake make gcc zlib1g-dev libbz2-dev liblzma-dev libpcre3-dev libcurl4-openssl-dev texinfo texlive-base default-jre default-jdk</span>
