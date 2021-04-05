@@ -22,8 +22,11 @@ R_container="libddocker/r_3.6.1_bioc"
 set -e
 
 error_message() {
-    echo -e "\nPlease check http://research.libd.org/SPEAQeasy/setup-details.html#troubleshooting for information about resolving installation-related issues."
-    echo -e "\nNote that the 'Software' directory should be deleted before re-attempting installation."
+    if [[ $(uname -s) == "Darwin" ]] && [[ "$1" == "local" ]]; then
+        echo -e "\nNote that 'local' installation is not officially supported on Mac OS! Please use the 'docker' mode instead if possible."
+    fi
+    
+    echo -e "\nPlease check http://research.libd.org/SPEAQeasy/setup-details.html#troubleshooting for information about resolving installation-related issues. Note that the 'Software' directory should be deleted before re-attempting installation."
 }
 
 trap "error_message" ERR
