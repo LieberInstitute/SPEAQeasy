@@ -16,7 +16,7 @@ SPEAQeasy has been tested on Linux, but it designed to run on any of a number of
 SPEAQeasy makes use of a number of different additional software tools. The user is provided two options to automatically manage these dependencies.
 
 - *Docker*: The recommended option is to manage software with docker, if it is available. From within the repository, perform the one-time setup by running `bash install_software.sh "docker"`. This installs nextflow and sets up some test files. When running SPEAQeasy, the required docker images are automatically pulled if not already present, and components of the pipeline run within the associated containers. A full list of the images that are used is [here](#software).
-- *Local install*: The alternative is to locally install all dependencies. This is done by running `bash install_software.sh "local"` from within the repository. This installs nextflow, several bioinformatics tools, R and packages, and sets up some test files. A full list of software used is [here](#software). The script `install_software.sh` builds each software tool from source, and hence relies on some common utilities which are often pre-installed in many unix-like systems:
+- *Local install*: The alternative is to locally install all dependencies. This option is only officially supported on Linux; it is currently experimental and recommended against on other platforms. Installation is done by running `bash install_software.sh "local"` from within the repository. This installs nextflow, several bioinformatics tools, R and packages, and sets up some test files. A full list of software used is [here](#software). The script `install_software.sh` builds each software tool from source, and hence relies on some common utilities which are often pre-installed in many unix-like systems:
 
     * A C/C++ compiler, such as [GCC](https://gcc.gnu.org/) or [Clang](http://clang.llvm.org/index.html)
     * The GNU `make` utility
@@ -36,7 +36,7 @@ Rscript /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/check_R_packages_JHPCE.R
 
 ### Troubleshooting
 
-Some users may encounter errors during the installation process, particularly when installing software locally. We provide a list below of the most common installation-related issues.
+Some users may encounter errors during the installation process, particularly when installing software locally. We provide a list below of the most common installation-related issues. Please note that "local" installation is only officially supported on Linux, and Mac users should install in "docker" mode! Below solutions for Mac OS are **experimental**, and not yet complete.
 
 SPEAQeasy has been tested on:
 
@@ -57,12 +57,11 @@ Mac OS users in particular may be missing the utility `wget` (and others), requi
 #  Install brew, if you don't already have it
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-#  Install required utilities
-brew install wget autoconf automake make gcc zlib bzip2 xz pcre openssl texinfo texlive
+#  Install most required utilities
+brew install wget autoconf automake make gcc zlib bzip2 xz pcre openssl texinfo llvm libomp
 
-#  Install openJDK8 (Java) from a third-party repository
-brew tap adoptopenjdk/openjdk
-brew cask install adoptopenjdk8
+#  Install openJDK8 (Java)
+brew install --cask homebrew/cask-versions/adoptopenjdk8
 ```
 
 It is also recommended that Linux users install some basic dependencies if local installation fails for any reason.
