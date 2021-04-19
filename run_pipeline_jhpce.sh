@@ -8,7 +8,7 @@ module use /jhpce/shared/jhpce/modulefiles/libd
 module load nextflow
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
-nextflow /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf \
+nextflow main.nf \
     --sample "paired" \
     --reference "hg38" \
     --strand "forward" \
@@ -16,9 +16,7 @@ nextflow /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf \
     --trim_mode "force" \
     --annotation "/dcl01/lieber/ajaffe/Nick/SPEAQeasy/Annotation" \
     -with-report execution_reports/JHPCE_run.html \
-    -profile jhpce \
-    -w "/dcl01/lieber/ajaffe/lab/RNAsp_work/runs" \
-    --output "/dcl01/lieber/ajaffe/lab/RNAsp_work/results"
+    -profile jhpce
 
 #  Produces a report for each sample tracing the pipeline steps
 #  performed (can be helpful for debugging).
@@ -27,4 +25,4 @@ nextflow /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf \
 #  section, and so if you rename the log, you must also pass replace the filename
 #  in the bash call below.
 echo "Generating per-sample logs for debugging..."
-bash /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/generate_logs.sh $PWD/SPEAQeasy_output.log
+bash scripts/generate_logs.sh $PWD/SPEAQeasy_output.log
