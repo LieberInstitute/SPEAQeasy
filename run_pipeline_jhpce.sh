@@ -13,7 +13,6 @@ nextflow main.nf \
     --reference "hg38" \
     --strand "forward" \
     --small_test \
-    --trim_mode "force" \
     --annotation "/dcl01/lieber/ajaffe/Nick/SPEAQeasy/Annotation" \
     -with-report execution_reports/JHPCE_run.html \
     -profile jhpce
