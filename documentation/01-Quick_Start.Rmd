@@ -6,13 +6,22 @@ A brief guide to setting up SPEAQeasy. A more detailed and thorough guide is [he
 
 1. Clone the SPEAQeasy repository with `git clone git@github.com:LieberInstitute/SPEAQeasy.git`
 2. Change directory into the repository with `cd SPEAQeasy`
-3. For users with access to docker, run `bash install_software.sh "docker"`. This will install nextflow and set up some test files. Otherwise, you can install everything required locally with `bash install_software.sh "local"`.
+3. Users of the [JHPCE](https://jhpce.jhu.edu/) cluster should run `bash install_software.sh "jhpce"`. For all other users with access to docker, run `bash install_software.sh "docker"`. This will install nextflow and set up some test files. Otherwise, you can install everything required locally with `bash install_software.sh "local"`.
 
 ## Configuration {#quick-config}
 
 ### Your "main" script ###
 
-The script you will use to run the pipeline depends on the system you wish to run the pipeline on. To execute SPEAQeasy on a SLURM cluster, simply run `bash run_pipeline_slurm.sh`. On an SGE cluster, the script is called `run_pipeline_sge.sh`. For local runs (no cluster), use `run_pipeline_local.sh`.
+The script you will use to run the pipeline depends on the system ("executor") you wish to run the pipeline on. 
+
+| Executor | Script |
+| -----  | ----------- |
+| SGE cluster | run_pipeline_sge.sh |
+| SLURM cluster | run_pipeline_slurm.sh |
+| local machine | run_pipeline_local.sh |
+| The [JHPCE](https://jhpce.jhu.edu/) cluster | run_pipeline_jhpce.sh |
+
+[Options included in the main script](#command-opts) should be modified as appropriate for the experiment. On SLURM and SGE clusters (including JHPCE), the main script should be submitted as a job (i.e. using `sbatch` or `qsub`). On local machines, the pipeline can be run interactively (i.e. `bash run_pipeline_local.sh`).
 
 *Note*: Docker users must make one additional edit to their main script: prepend "docker_" to the profile flag. For example, for SLURM users, change this line to `-profile docker_slurm` as seen here:
 
@@ -30,6 +39,16 @@ $ORIG_DIR/Software/nextflow main.nf \
 
 ### Your config file ###
 
-Your combination of "executor" (SLURM cluster, SGE cluster, or local) and software manager (use docker or not use docker) determine the name of your config. Thus the possible config file names are `slurm.config`, `docker_slurm.config`, `sge.config`, `docker_sge.config`, `local.config`, and `docker_local.config`. Find your file under `SPEAQeasy/conf/`.
+Your combination of "executor" (SLURM cluster, SGE cluster, or local) and software management method (use docker or not use docker) determine the name of your config. Find your file under `SPEAQeasy/conf/`.
+
+| Executor | Using docker? | Config Filename |
+| -----  | --- | ----- |
+| SGE cluster | Yes | docker_sge.config |
+| SGE cluster | No | sge.config |
+| SLURM cluster | Yes | docker_slurm.config |
+| SLURM cluster | No | slurm.config |
+| local machine | Yes | docker_local.config |
+| local machine | No | local.config |
+| The [JHPCE](https://jhpce.jhu.edu/) cluster | No | jhpce.config |
 
 As an example, suppose you have access to a SLURM cluster, and cannot use docker. Your config file is then `SPEAQeasy/conf/slurm.config`.

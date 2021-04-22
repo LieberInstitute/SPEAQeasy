@@ -6,10 +6,11 @@
 #
 #  Usage:  bash install_software.sh [installation_type]
 #
-#    installation_type may be "docker" or "local":
+#    installation_type may be "docker", "local", or "jhpce":
 #        docker:    user plans to run pipeline with docker to manage software dependencies
 #        local:     user wishes to install all dependencies locally (regardless of whether
 #                   the pipeline will be run on a cluster or with local resources) 
+#        jhpce:     user is setting up SPEAQeasy on the JHPCE cluster
 
 
 #  This is the docker image to be used for execution of R via docker (with docker mode)
@@ -330,10 +331,18 @@ elif [ "$1" == "local" ]; then
         
         echo -e "\nAfter installing the required software, rerun this script to finish the installation procedure."
     fi
+elif [ "$1" == "jhpce" ]; then
+    echo "User selected set-up at JHPCE. Installing any missing R packages..."
+    module load conda_R/4.0.x
+    Rscript scripts/check_R_packages_JHPCE.R
     
-else # neither "docker" nor "local" was chosen
+    echo "Setting up test files..."
+    Rscript scripts/make_test_manifests.R -d $(pwd)
     
-    echo 'Error: please specify "docker" or "local" and rerun this script.'
+    echo "Done."
+else # neither "docker", "local", nor "jhpce" were chosen
+    
+    echo 'Error: please specify "docker", "local", or "jhpce" and rerun this script.'
     echo '    eg. bash install_software.sh "local"'
     exit 1
     

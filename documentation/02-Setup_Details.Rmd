@@ -24,15 +24,8 @@ SPEAQeasy makes use of a number of different additional software tools. The user
     * [git](https://git-scm.com/), for downloading some software from their GitHub repositories
     * The `unzip` utility
     
-**Note:** users at the JHPCE cluster can use the existing installation at `/dcl01/lieber/ajaffe/Nick/SPEAQeasy/`, skipping the above process. Instead, simply make sure you have the required R packages installed before running the pipeline:
+**Note:** users at the JHPCE cluster do not need to worry about managing software via the above methods (required software is automatically available through modules). Simply run `bash install_software.sh "jhpce"` to install any missing R packages and set up some test files.
 
-```{bash, eval=FALSE}
-#  Load the current stable R module
-module load conda_R
-
-#  Install required R packages
-Rscript /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/check_R_packages_JHPCE.R
-```
 
 ### Troubleshooting
 
@@ -110,10 +103,8 @@ See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional
 
 ### Run on the [JHPCE](https://jhpce.jhu.edu/) cluster
 
-As noted in the [installation](#Installation) section, it is recommended that you use the existing JHPCE installation at `/dcl01/lieber/ajaffe/Nick/SPEAQeasy/`. The following directions describe how to do this.
-
-- (Optional) **Use custom configuration**: default configuration with thoroughly testing hardware resource specification is described within `/dcl01/lieber/ajaffe/Nick/SPEAQeasy/conf/jhpce.config`. If you wish to use any different settings than those provided, feel free to create your own configuration file under `/dcl01/lieber/ajaffe/Nick/SPEAQeasy/conf/`. More detailed instructions are provided [here](#sharing).
-- **Copy the main script, modify, and run**: the original "main" script is `/dcl01/lieber/ajaffe/Nick/SPEAQeasy/run_pipeline_jhpce_qsub.sh`. Please copy this script to a directory of your choice. From this directory, the pipeline run is submitted to the cluster by executing `qsub run_pipeline_jhpce.sh`. See the [full list of command-line options](#command-opts) and [section on sharing pipeline installations](#sharing) for details and tips about modifying your copy of `run_pipeline_jhpce.sh`.
+- (Optional) **Adjust configuration**: default configuration with thoroughly testing hardware resource specification is described within `conf/jhpce.config`. [Other settings](#speaqeasy-parameters), such as annotation release/version, can also be tweaked via this file. 
+- **Modify the main script and run**: the "main" script is `run_pipeline_jhpce_qsub.sh`. The pipeline run is submitted as a job to the cluster by executing `qsub run_pipeline_jhpce.sh`. See the [full list of command-line options](#command-opts) for other details about modifying the script for your use-case.
 
 ### Example main script
 
