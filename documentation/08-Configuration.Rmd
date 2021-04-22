@@ -1,6 +1,6 @@
 # Configuration {#configuration}
 
-SPEAQeasy is designed to be highly customizable, yet need no configuration from a user wishing to rely on sensible default settings. Most configuration, including software settings, hardware resources such as memory and CPU use, and more, can be done in a single file determined [here](#setup-details). Please note that the common, "major" [options](#command-opts) are specified in your [main script](#quick-config), and not in the configuration file. The config is intended to hold the "finer details", which are documented below.
+SPEAQeasy is designed to be highly customizable, yet need no configuration from a user wishing to rely on sensible default settings. Most configuration, including software settings, hardware resources such as memory and CPU use, and more, can be done in a single file determined [here](#your-config-file). Please note that the common, "major" [options](#command-opts) are specified in your [main script](#your-main-script), and not in the configuration file. The config is intended to hold the "finer details", which are documented below.
 
 ## Specifying Options for your Cluster
 
@@ -61,7 +61,7 @@ As with the time option, this can be specified per-process or for all processes.
 
 ## SPEAQeasy Parameters
 
-A number of variables in your [config file](#quick-start) exist to control choices about annotation to use, options passed to software tools, and more. These need not necessarily be changed, but allow more precise control over the pipeline if desired. Values for these variables may be changed in the "params" section of your config (near the top). A full descriptive list is provided below.
+A number of variables in your [config file](#your-config-file) exist to control choices about annotation to use, options passed to software tools, and more. These need not necessarily be changed, but allow more precise control over the pipeline if desired. Values for these variables may be changed in the "params" section of your config (near the top). A full descriptive list is provided below.
 
 ### Annotation settings
 
@@ -72,7 +72,7 @@ A number of variables in your [config file](#quick-start) exist to control choic
 
 ### Software settings
 
-Command-line parameters can be directly passed to most software tools used in the pipeline, through configuration. Note that SPEAQeasy internally passes certain command-line options to some software tools, in a way that can not be overriden in the configuration file. This is done for options which control parallelization, file naming, or other functions which must either be fixed or are configurable through other means (e.g. number of threads is implicitly controlled by the `cpus` variable in the `QualityUntrimmed` process, rather than directly via the `-t` argument to `fastqc`). Open your particular config file determined [here](#setup-details) for details of which options are fixed vs. which can be specified through configuration. A list of variables which control command-line arguments is as follows:
+Command-line parameters can be directly passed to most software tools used in the pipeline, through configuration. Note that SPEAQeasy internally passes certain command-line options to some software tools, in a way that can not be overriden in the configuration file. This is done for options which control parallelization, file naming, or other functions which must either be fixed or are configurable through other means (e.g. number of threads is implicitly controlled by the `cpus` variable in the `QualityUntrimmed` process, rather than directly via the `-t` argument to `fastqc`). Open your particular config file determined [here](#your-config-file) for details of which options are fixed vs. which can be specified through configuration. A list of variables which control command-line arguments is as follows:
  
 * *bam2wig_args*: a string of optional arguments to pass to `bam2wig.py` from [RSeQC](http://rseqc.sourceforge.net/), when producing coverage wig files from BAM alignments.
 * *bcftools_args*: a string of optional arguments to pass to `bcftools call` when calling variants (applicable for human samples only).
