@@ -24,8 +24,13 @@ SPEAQeasy makes use of a number of different additional software tools. The user
     * [git](https://git-scm.com/), for downloading some software from their GitHub repositories
     * The `unzip` utility
     
-**Note:** users at the JHPCE cluster do not need to worry about managing software via the above methods (required software is automatically available through modules). Simply run `bash install_software.sh "jhpce"` to install any missing R packages and set up some test files.
+**Note:** users at the JHPCE cluster do not need to worry about managing software via the above methods (required software is automatically available through modules). Simply run `bash install_software.sh "jhpce"` to install any missing R packages and set up some test files. Next, make sure you have the following lines added to your `~/.bashrc` file:
 
+```{bash, eval=FALSE}
+if [[ $HOSTNAME == compute-* ]]; then
+    module use /jhpce/shared/jhpce/modulefiles/libd
+fi
+```
 
 ### Troubleshooting
 
