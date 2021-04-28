@@ -18,7 +18,7 @@ output:
 
 # Overview {-}
 
-SPEAQeasy is a [Nextflow](https://www.nextflow.io/)-based **S**calable RNA-seq **P**ipeline for **E**xpression **A**nd **Q**uantification.
+SPEAQeasy is a [Nextflow](https://www.nextflow.io/)-based **S**calable RNA-seq **P**ipeline for **E**xpression **A**nalysis and **Q**uantification.
 
 ![](images/4_workflow.png)
 *Diagram representing the "conceptual" workflow traversed by SPEAQeasy. Here some nextflow [`processes`](https://www.nextflow.io/docs/latest/process.html) are grouped together for simplicity; the exact processes traversed are enumerated [here](#pipeline-overview). The red box indicates the FASTQ files are inputs to the pipeline; green coloring denotes major output files from the pipeline; the remaining boxes represent computational steps. Yellow-colored steps are optional or not always performed; for example, preparing a particular set of annotation files occurs once and uses a cache for further runs. Finally, blue-colored steps are ordinary processes which occur on every pipeline execution.*
