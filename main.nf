@@ -1142,7 +1142,7 @@ if (params.use_star) {
                 set val(prefix), file(single_hisat_input) from alignment_inputs
     
             output:
-                file "*_hisat_out.sam" into alignment_output
+                file "${prefix}.bam" into alignment_output
                 file "*_align_summary.txt" into alignment_summaries
     
             shell:
@@ -1167,7 +1167,8 @@ if (params.use_star) {
                     -S !{prefix}_hisat_out.sam \
                     ${hisat_strand} \
                     !{params.hisat2_args} \
-                    2> !{prefix}_align_summary.txt
+                    2> !{prefix}_align_summary.txt \
+                | !{params.samtools} view -b -F 4 -o !{prefix}.bam
                 
                 temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
                 echo "$temp" > bash_vars.txt
@@ -1186,7 +1187,7 @@ if (params.use_star) {
                 set val(prefix), file(fq_files) from alignment_inputs
     
             output:
-                file "*_hisat_out.sam" into alignment_output
+                file "${prefix}.bam" into alignment_output
                 file "*_unpaired*.fastq" optional true
                 file "*_align_summary.txt" into alignment_summaries
     
@@ -1222,12 +1223,12 @@ if (params.use_star) {
                     -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
                     -1 !{prefix}*trimmed*_1.f*q* \
                     -2 !{prefix}*trimmed*_2.f*q* \
-                    -S !{prefix}_hisat_out.sam \
                     ${unpaired_opt} \
                     ${hisat_strand} \
                     !{params.hisat2_args} \
                     !{unaligned_opt} \
-                    2> !{prefix}_align_summary.txt
+                    2> !{prefix}_align_summary.txt \
+                | !{params.samtools} view -b -F 4 -o !{prefix}.bam
                 
                 temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
                 echo "$temp" > bash_vars.txt
@@ -1239,32 +1240,28 @@ if (params.use_star) {
 alignment_output
     .flatten()
     .map{ file -> tuple(get_prefix(file), file) }
-    .set{ sam_to_bam_inputs }
+    .set{ bam_sort_inputs }
 
 /*
- * Step 3b: Sam to Bam (Drop low-quality alignments, sort and index the BAM
- *          file produced from the original SAM)
+ * Step 3b: Bam sort (sort and index the BAM)
  */
 
-process SamtoBam {
+process BamSort {
 	
-	tag "$sam_to_bam_prefix"
-	publishDir "${params.output}/alignment/sam_to_bam",'mode':'copy'
+    tag "$prefix"
+    publishDir "${params.output}/HISAT2_out/bam_sort",'mode':'copy'
 
-	input:
-	set val(sam_to_bam_prefix), file(sam_to_bam_input) from sam_to_bam_inputs
+    input:
+        set val(prefix), file(input_bam) from bam_sort_inputs
 
-	output:
-	set val("${sam_to_bam_prefix}"), file("${sam_to_bam_prefix}*.sorted.bam"), file("${sam_to_bam_prefix}*.sorted.bam.bai") into feature_bam_inputs, alignment_bam_inputs, coverage_bam_inputs, full_coverage_bams, count_objects_bam_files, variant_calls_bam
+    output:
+        set val(prefix), file("${prefix}_sorted.bam"), file("${prefix}*_sorted.bam.bai") into feature_bam_inputs, alignment_bam_inputs, coverage_bam_inputs, full_coverage_bams, count_objects_bam_files, variant_calls_bam
 
-	script:
-	original_bam = "${sam_to_bam_prefix}_accepted_hits.bam"
-	sorted_bam = "${sam_to_bam_prefix}_accepted_hits.sorted"
-	"""
-	${params.samtools} view -bh -F 4 $sam_to_bam_input > $original_bam
-	${params.samtools} sort -T temporary -@ $task.cpus $original_bam -o ${sorted_bam}.bam
-	${params.samtools} index ${sorted_bam}.bam
-	"""
+    shell:
+        '''
+        !{params.samtools} sort -T temporary -l 6 --no-PG -@ !{task.cpus} !{input_bam} -o !{prefix}_sorted.bam
+        !{params.samtools} index !{prefix}_sorted.bam
+        '''
 }
 
 feature_bam_inputs
