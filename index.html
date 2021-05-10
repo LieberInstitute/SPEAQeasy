@@ -31,7 +31,7 @@
   
 
 <link rel="next" href="quick-start.html"/>
-<script src="libs/header-attrs-2.7/header-attrs.js"></script>
+<script src="libs/header-attrs-2.8/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -288,17 +288,17 @@ Lieber Institute for Brain Development, Johns Hopkins Medical CampusCenter for C
 <div id="cite-speaqeasy" class="section level2 unnumbered">
 <h2>Cite <code>SPEAQeasy</code></h2>
 <p>We hope that <a href="http://research.libd.org/SPEAQeasy/"><code>SPEAQeasy</code></a> will be useful for your research. Please use the following information to cite the package and the overall approach. Thank you!</p>
-<pre><code>@article {Eagles2020.12.11.386789,
+<pre><code>@article {Eagless12859-021-04142-3,
     author = {Eagles, Nicholas J. and Burke, Emily E. and Leonard, Jabob and Barry, Brianna K. and Stolz, Joshua M. and Huuki, Louise and Phan, BaDoi N. and Larrios Serrato, Violeta and Guti{\&#39;e}rrez-Mill{\&#39;a}n, Everardo and Aguilar-Ordo{\~n}ez, Israel and Jaffe, Andrew E. and Collado-Torres, Leonardo},
-    title = {SPEAQeasy: a Scalable Pipeline for Expression Analysis and Quantification for R/Bioconductor-powered RNA-seq analyses},
-    elocation-id = {2020.12.11.386789},
-    year = {2020},
-    doi = {10.1101/2020.12.11.386789},
+    title = {SPEAQeasy: a scalable pipeline for expression analysis and quantification for R/bioconductor-powered RNA-seq analyses},
+    elocation-id = {s12859-021-04142-3},
+    year = {2021},
+    doi = {10.1186/s12859-021-04142-3},
     publisher = {Cold Spring Harbor Laboratory},
     abstract = {RNA sequencing (RNA-seq) is a common and widespread biological assay, and an increasing amount of data is generated with it. In practice, there are a large number of individual steps a researcher must perform before raw RNA-seq reads yield directly valuable information, such as differential gene expression data. Existing software tools are typically specialized, only performing one step-- such as alignment of reads to a reference genome-- of a larger workflow. The demand for a more comprehensive and reproducible workflow has led to the production of a number of publicly available RNA-seq pipelines. However, we have found that most require computational expertise to set up or share among several users, are not actively maintained, or lack features we have found to be important in our own analyses. In response to these concerns, we have developed a Scalable Pipeline for Expression Analysis and Quantification (SPEAQeasy), which is easy to install and share, and provides a bridge towards R/Bioconductor downstream analysis solutions. SPEAQeasy is user-friendly and lowers the computational-domain entry barrier for biologists and clinicians to RNA-seq data processing as the main input file is a table with sample names and their corresponding FASTQ files. SPEAQeasy is portable across computational frameworks (SGE, SLURM, local, docker integration) and different configuration files are provided.Competing Interest StatementJ.L., V.L.S., E.G-M., I.A-O. were employed by Winter Genomics. All other authors have no conflicts of interest to declare.},
-    URL = {https://www.biorxiv.org/content/early/2020/12/11/2020.12.11.386789},
-    eprint = {https://www.biorxiv.org/content/early/2020/12/11/2020.12.11.386789.full.pdf},
-    journal = {bioRxiv}
+    URL = {https://doi.org/10.1186/s12859-021-04142-3},
+    eprint = {https://bmcbioinformatics.biomedcentral.com/track/pdf/10.1186/s12859-021-04142-3.pdf},
+    journal = {BMC Bioinformatics}
 }</code></pre>
 <p>This is a project by the <a href="https://lcolladotor.github.io/bioc_team_ds">R/Bioconductor-powered Team Data Science</a> at the <a href="https://www.libd.org/">Lieber Institute for Brain Development</a>.</p>
 <table>
@@ -323,9 +323,9 @@ Lieber Institute for Brain Development, Johns Hopkins Medical CampusCenter for C
 <span id="cb2-8"><a href="index.html#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">width =</span> <span class="dv">120</span>)</span>
 <span id="cb2-9"><a href="index.html#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">session_info</span>()</span></code></pre></div>
 <pre><code>## [1] &quot;Reproducibility information:&quot;</code></pre>
-<pre><code>## [1] &quot;2021-04-28 18:56:42 UTC&quot;</code></pre>
+<pre><code>## [1] &quot;2021-05-10 15:34:04 UTC&quot;</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.501   0.128   0.530</code></pre>
+##   0.502   0.096   0.483</code></pre>
 <pre><code>## ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
 ##  setting  value                                             
 ##  version  R Under development (unstable) (2021-04-15 r80175)
@@ -336,7 +336,7 @@ Lieber Institute for Brain Development, Johns Hopkins Medical CampusCenter for C
 ##  collate  en_US.UTF-8                                       
 ##  ctype    en_US.UTF-8                                       
 ##  tz       Etc/UTC                                           
-##  date     2021-04-28                                        
+##  date     2021-05-10                                        
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##  package     * version date       lib source        
@@ -349,9 +349,9 @@ Lieber Institute for Brain Development, Johns Hopkins Medical CampusCenter for C
 ##  knitr         1.32    2021-04-14 [2] CRAN (R 4.1.0)
 ##  magrittr      2.0.1   2020-11-17 [2] CRAN (R 4.1.0)
 ##  rlang         0.4.10  2020-12-30 [2] CRAN (R 4.1.0)
-##  rmarkdown     2.7     2021-02-19 [1] CRAN (R 4.1.0)
+##  rmarkdown     2.8     2021-05-07 [1] CRAN (R 4.1.0)
 ##  rstudioapi    0.13    2020-11-12 [2] CRAN (R 4.1.0)
-##  sessioninfo * 1.1.1   2018-11-05 [1] CRAN (R 4.1.0)
+##  sessioninfo * 1.1.1   2018-11-05 [2] CRAN (R 4.1.0)
 ##  stringi       1.5.3   2020-09-09 [2] CRAN (R 4.1.0)
 ##  stringr       1.4.0   2019-02-10 [2] CRAN (R 4.1.0)
 ##  withr         2.4.1   2021-01-26 [2] CRAN (R 4.1.0)
@@ -361,7 +361,7 @@ Lieber Institute for Brain Development, Johns Hopkins Medical CampusCenter for C
 ## [1] /usr/local/lib/R/host-site-library
 ## [2] /usr/local/lib/R/site-library
 ## [3] /usr/local/lib/R/library</code></pre>
-<p>This book was last updated on 2021-04-28 18:56:42.</p>
+<p>This book was last updated on 2021-05-10 15:34:04.</p>
 
 </div>
 </div>
