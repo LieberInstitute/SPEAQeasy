@@ -1249,7 +1249,7 @@ alignment_output
 process BamSort {
 	
     tag "$prefix"
-    publishDir "${params.output}/HISAT2_out/bam_sort",'mode':'copy'
+    publishDir "${params.output}/alignment/bam_sort",'mode':'copy'
 
     input:
         set val(prefix), file(input_bam) from bam_sort_inputs

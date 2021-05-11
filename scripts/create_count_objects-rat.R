@@ -296,7 +296,7 @@ if (opt$ercc == TRUE ){
 ############################################################
 
 ### add bam file
-metrics$bamFile <- file.path(paste0(metrics$SAMPLE_ID, '_accepted_hits.sorted.bam'))
+metrics$bamFile <- file.path(paste0(metrics$SAMPLE_ID, '_sorted.bam'))
 
 #  Define functions for extracting metrics from HISAT2 logs
 if (opt$paired == TRUE) {
