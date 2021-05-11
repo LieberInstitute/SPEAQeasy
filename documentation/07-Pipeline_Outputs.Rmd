@@ -74,13 +74,12 @@ SPEAQeasy generates a number of files along the process before producing the mai
 
 - [trim_status]/[file_name]/*`: Outputs from [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/). Here trim_status indicates when FastQC was performed: Untrimmed is before trimming, and Trimmed is after. file_name contains the sample name, and if applicable, the mate number.
 
-**Alignment SAMs, BAMs, and Summaries** `alignment/`
+**Alignment BAMs and Summaries** `alignment/`
 
-- `[sample_name]_hisat_out.sam`: The main alignment output from [Hisat2](http://daehwankimlab.github.io/hisat2/), if used, in SAM format.
-- `[sample_name].sam`: The main alignment output from [STAR](https://github.com/alexdobin/STAR), if used, in SAM format.
+- `[sample_name].bam`: The main alignment output from [Hisat2](http://daehwankimlab.github.io/hisat2/) or optionally [STAR](https://github.com/alexdobin/STAR) in BAM format. In either case, unmapped reads are not included (different from the default behavior for HISAT2!).
 - `[sample_name]_align_summary.txt`: The text-based alignment summary from [Hisat2](http://daehwankimlab.github.io/hisat2/), if applicable. Note that metrics from these files are aggregated for the experiment, and so users likely will not need to check or process the original files manually.
 - `[sample_name]_STAR_alignment.log`: Statistics from STAR alignment (if applicable) for a single sample, renamed from `Log.final.out`. Note that metrics from these files are aggregated for the experiment, and so users likely will not need to check or process the original files manually.
-- sam_to_bam/[sample_name]_accepted_hits.sorted.bam` and `sam_to_bam/[sample_name]_accepted_hits.sorted.bam.bai`: Alignments where unmapped reads are filtered out, and the resulting BAM file is coordinate-sorted and indexed.
+- bam_sort/[sample_name]_sorted.bam` and `bam_sort/[sample_name]_sorted.bam.bai`: Coordinate-sorted alignments and their corresponding indices.
 - `[sample_name]_unmapped_mate*.fastq`: If using STAR with paired-end reads and the `--unalign` [option](#command-opts), these two files (mates 1 and 2) are produced, including unmapped reads (this includes "discordant" reads).
 - `[sample_name]_discordant.fastq`: If using HISAT2 (this is the default) and the `--unalign` [option](#command-opts), this file is produced and includes discordant mappings.
 
