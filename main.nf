@@ -1069,7 +1069,7 @@ if (params.use_star) {
             set val(prefix), file(single_star_input) from alignment_inputs
             
         output:
-            file "*.sam" into alignment_output
+            file "*.bam" into alignment_output
             file "${prefix}_unmapped_*.fastq" optional true
             file "*_STAR_alignment.log" into alignment_summaries
             
@@ -1111,13 +1111,14 @@ if (params.use_star) {
                 --genomeDir ./index_dir \
                 --runThreadN !{task.cpus} \
                 --readFilesIn ${fastq_files} \
+                --outSAMtype BAM Unsorted \
                 ${compress_args} \
                 !{unaligned_args} \
                 !{params.star_args}
                 
             #  Adjust file names (make unique)
             mv Log.final.out !{prefix}_STAR_alignment.log
-            mv Aligned.out.sam !{prefix}.sam
+            mv Aligned.out.bam !{prefix}.bam
             if [ -f Unmapped.out.mate1 ]; then
                 mv Unmapped.out.mate1 !{prefix}_unmapped_mate1.fastq
                 mv Unmapped.out.mate2 !{prefix}_unmapped_mate2.fastq
