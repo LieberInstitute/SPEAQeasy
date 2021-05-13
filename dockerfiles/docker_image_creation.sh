@@ -124,6 +124,11 @@ mkdir -p $REPO/hisat2/2.2.1
 docker build -t libddocker/hisat2:2.2.1 $REPO/hisat2/2.2.1
 docker push libddocker/hisat2:2.2.1
 
+#  Modify $REPO/hisat2/2.2.1/Dockerfile to include samtools 1.10, in line with
+#  the changes making the output from alignment a BAM file rather than SAM
+docker build -t libddocker/hisat2:2.2.1 $REPO/hisat2/2.2.1
+docker push libddocker/hisat2:2.2.1
+
 ########################################################
 #  fastQC (0.11.8)
 ########################################################
