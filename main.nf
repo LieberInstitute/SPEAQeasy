@@ -1165,7 +1165,6 @@ if (params.use_star) {
                     -p !{task.cpus} \
                     -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
                     -U !{single_hisat_input} \
-                    -S !{prefix}_hisat_out.sam \
                     ${hisat_strand} \
                     !{params.hisat2_args} \
                     2> !{prefix}_align_summary.txt \
