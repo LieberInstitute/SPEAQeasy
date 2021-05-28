@@ -31,3 +31,55 @@ This is an example of a `samples.manifest` file for some paired-end samples. Not
 
 + Input FASTQ files can have the following file extensions: `.fastq`, `.fq`, `.fastq.gz`, `.fq.gz`
 + FASTQ files must not contain "." characters before the typical extension (e.g. sample.1.fastq), since some internal functions rely on splitting file names by ".".
+
+## Creating a manifest file
+
+In a common scenario, you may have a large number of FASTQ files in a single directory, for a given experiment. How can the `samples.manifest` file be constructed in this case? While the method you use is a matter of preference, we find it straightforward to write a small R script to generate the manifest.
+
+Suppose we have 3 paired-end samples, consisting of a total of 6 FASTQ files:
+
+```
+/data/fastq/SAMPLE1_L001_R1_001.fastq.gz
+/data/fastq/SAMPLE1_L001_R2_001.fastq.gz
+/data/fastq/SAMPLE2_L002_R1_001.fastq.gz
+/data/fastq/SAMPLE2_L002_R2_001.fastq.gz
+/data/fastq/SAMPLE3_L003_R1_001.fastq.gz
+/data/fastq/SAMPLE3_L003_R2_001.fastq.gz
+```
+
+The following script can generate the manifest appropriate for this experiment:
+
+```{R, eval=FALSE}
+#  If needed, install the 'jaffelab' GitHub-based package, which includes a
+#  useful function for string manipulation
+remotes::install_github('LieberInstitute/jaffelab')
+
+library('jaffelab')
+
+fastq_dir = '/data/fastq'
+
+#  We can take advantage of the uniform file naming convention to get the paths
+#  of each mate in the pair, for every sample. Here we use a somewhat
+#  complicated regular expression to match file names (to be sure we are
+#  matching precisely the files we think we're matching), but this can be kept
+#  simple if preferred.
+r1 = list.files(fastq_dir, '.*_L00._R1_001\\.fastq\\.gz', full.names=TRUE)
+r2 = list.files(fastq_dir, '.*_L00._R2_001\\.fastq\\.gz', full.names=TRUE)
+
+#  We can form a unique ID for each sample by taking the portion of the path to
+#  the first read preceding the lane and mate identifiers. The function 'ss' is
+#  a vectorized form of 'strsplit', handy for this task
+ids = ss(basename(r1), '_L00')
+
+#  Sanity check: there should be the same number of first reads as second reads
+stopifnot(length(R1) == length(R2))
+
+#  Prepare the existing sample information into the format expected by
+#  SPEAQeasy (for now, as a character vector where each element will be a line
+#  in 'samples.manifest')
+manifest = paste(r1, 0, r2, 0, ids, sep='\t')
+
+#  Write the manifest to a file (in this case, in the current working
+#  directory)
+writeLines(manifest, con='samples.manifest')
+```
