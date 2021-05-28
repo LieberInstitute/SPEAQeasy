@@ -203,6 +203,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="6.1.1" data-path="manifest.html"><a href="manifest.html#more-details-regarding-inputs"><i class="fa fa-check"></i><b>6.1.1</b> More details regarding inputs</a></li>
 </ul></li>
+<li class="chapter" data-level="6.2" data-path="manifest.html"><a href="manifest.html#creating-a-manifest-file"><i class="fa fa-check"></i><b>6.2</b> Creating a manifest file</a></li>
 </ul></li>
 <li class="chapter" data-level="7" data-path="outputs.html"><a href="outputs.html"><i class="fa fa-check"></i><b>7</b> Pipeline Outputs</a>
 <ul>
@@ -320,45 +321,44 @@ Lieber Institute for Brain Development, Johns Hopkins Medical CampusCenter for C
 <span id="cb2-8"><a href="index.html#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">width =</span> <span class="dv">120</span>)</span>
 <span id="cb2-9"><a href="index.html#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">session_info</span>()</span></code></pre></div>
 <pre><code>## [1] &quot;Reproducibility information:&quot;</code></pre>
-<pre><code>## [1] &quot;2021-05-14 17:38:29 UTC&quot;</code></pre>
+<pre><code>## [1] &quot;2021-05-28 19:46:03 UTC&quot;</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.480   0.101   0.490</code></pre>
+##   0.505   0.115   0.508</code></pre>
 <pre><code>## ─ Session info ───────────────────────────────────────────────────────────────────────────────────────────────────────
-##  setting  value                                             
-##  version  R Under development (unstable) (2021-04-15 r80175)
-##  os       Ubuntu 20.04.2 LTS                                
-##  system   x86_64, linux-gnu                                 
-##  ui       X11                                               
-##  language (EN)                                              
-##  collate  en_US.UTF-8                                       
-##  ctype    en_US.UTF-8                                       
-##  tz       Etc/UTC                                           
-##  date     2021-05-14                                        
+##  setting  value                       
+##  version  R version 4.1.0 (2021-05-18)
+##  os       Ubuntu 20.04.2 LTS          
+##  system   x86_64, linux-gnu           
+##  ui       X11                         
+##  language (EN)                        
+##  collate  en_US.UTF-8                 
+##  ctype    en_US.UTF-8                 
+##  tz       Etc/UTC                     
+##  date     2021-05-28                  
 ## 
 ## ─ Packages ───────────────────────────────────────────────────────────────────────────────────────────────────────────
 ##  package     * version date       lib source        
-##  bookdown      0.22    2021-04-22 [1] CRAN (R 4.1.0)
-##  cli           2.4.0   2021-04-05 [2] CRAN (R 4.1.0)
-##  digest        0.6.27  2020-10-24 [2] CRAN (R 4.1.0)
-##  evaluate      0.14    2019-05-28 [2] CRAN (R 4.1.0)
-##  glue          1.4.2   2020-08-27 [2] CRAN (R 4.1.0)
-##  htmltools     0.5.1.1 2021-01-22 [1] CRAN (R 4.1.0)
-##  knitr         1.32    2021-04-14 [2] CRAN (R 4.1.0)
-##  magrittr      2.0.1   2020-11-17 [2] CRAN (R 4.1.0)
-##  rlang         0.4.10  2020-12-30 [2] CRAN (R 4.1.0)
-##  rmarkdown     2.8     2021-05-07 [1] CRAN (R 4.1.0)
-##  rstudioapi    0.13    2020-11-12 [2] CRAN (R 4.1.0)
-##  sessioninfo * 1.1.1   2018-11-05 [2] CRAN (R 4.1.0)
-##  stringi       1.5.3   2020-09-09 [2] CRAN (R 4.1.0)
-##  stringr       1.4.0   2019-02-10 [2] CRAN (R 4.1.0)
-##  withr         2.4.1   2021-01-26 [2] CRAN (R 4.1.0)
-##  xfun          0.22    2021-03-11 [2] CRAN (R 4.1.0)
-##  yaml          2.2.1   2020-02-01 [2] CRAN (R 4.1.0)
+##  bookdown      0.22    2021-04-22 [1] RSPM (R 4.1.0)
+##  cli           2.5.0   2021-04-26 [2] RSPM (R 4.1.0)
+##  digest        0.6.27  2020-10-24 [2] RSPM (R 4.1.0)
+##  evaluate      0.14    2019-05-28 [2] RSPM (R 4.1.0)
+##  htmltools     0.5.1.1 2021-01-22 [1] RSPM (R 4.1.0)
+##  knitr         1.33    2021-04-24 [2] RSPM (R 4.1.0)
+##  magrittr      2.0.1   2020-11-17 [2] RSPM (R 4.1.0)
+##  rlang         0.4.11  2021-04-30 [2] RSPM (R 4.1.0)
+##  rmarkdown     2.8     2021-05-07 [1] RSPM (R 4.1.0)
+##  rstudioapi    0.13    2020-11-12 [2] RSPM (R 4.1.0)
+##  sessioninfo * 1.1.1   2018-11-05 [2] RSPM (R 4.1.0)
+##  stringi       1.6.2   2021-05-17 [2] RSPM (R 4.1.0)
+##  stringr       1.4.0   2019-02-10 [2] RSPM (R 4.1.0)
+##  withr         2.4.2   2021-04-18 [2] RSPM (R 4.1.0)
+##  xfun          0.23    2021-05-15 [2] RSPM (R 4.1.0)
+##  yaml          2.2.1   2020-02-01 [2] RSPM (R 4.1.0)
 ## 
 ## [1] /usr/local/lib/R/host-site-library
 ## [2] /usr/local/lib/R/site-library
 ## [3] /usr/local/lib/R/library</code></pre>
-<p>This book was last updated on 2021-05-14 17:38:29.</p>
+<p>This book was last updated on 2021-05-28 19:46:03.</p>
 
 </div>
 </div>

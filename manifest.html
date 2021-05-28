@@ -203,6 +203,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="6.1.1" data-path="manifest.html"><a href="manifest.html#more-details-regarding-inputs"><i class="fa fa-check"></i><b>6.1.1</b> More details regarding inputs</a></li>
 </ul></li>
+<li class="chapter" data-level="6.2" data-path="manifest.html"><a href="manifest.html#creating-a-manifest-file"><i class="fa fa-check"></i><b>6.2</b> Creating a manifest file</a></li>
 </ul></li>
 <li class="chapter" data-level="7" data-path="outputs.html"><a href="outputs.html"><i class="fa fa-check"></i><b>7</b> Pipeline Outputs</a>
 <ul>
@@ -297,8 +298,52 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>Input FASTQ files can have the following file extensions: <code>.fastq</code>, <code>.fq</code>, <code>.fastq.gz</code>, <code>.fq.gz</code></li>
 <li>FASTQ files must not contain “.” characters before the typical extension (e.g. sample.1.fastq), since some internal functions rely on splitting file names by “.”.</li>
 </ul>
-
 </div>
+</div>
+<div id="creating-a-manifest-file" class="section level2" number="6.2">
+<h2><span class="header-section-number">6.2</span> Creating a manifest file</h2>
+<p>In a common scenario, you may have a large number of FASTQ files in a single directory, for a given experiment. How can the <code>samples.manifest</code> file be constructed in this case? While the method you use is a matter of preference, we find it straightforward to write a small R script to generate the manifest.</p>
+<p>Suppose we have 3 paired-end samples, consisting of a total of 6 FASTQ files:</p>
+<pre><code>/data/fastq/SAMPLE1_L001_R1_001.fastq.gz
+/data/fastq/SAMPLE1_L001_R2_001.fastq.gz
+/data/fastq/SAMPLE2_L002_R1_001.fastq.gz
+/data/fastq/SAMPLE2_L002_R2_001.fastq.gz
+/data/fastq/SAMPLE3_L003_R1_001.fastq.gz
+/data/fastq/SAMPLE3_L003_R2_001.fastq.gz</code></pre>
+<p>The following script can generate the manifest appropriate for this experiment:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="manifest.html#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#  If needed, install the &#39;jaffelab&#39; GitHub-based package, which includes a</span></span>
+<span id="cb22-2"><a href="manifest.html#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co">#  useful function for string manipulation</span></span>
+<span id="cb22-3"><a href="manifest.html#cb22-3" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&#39;LieberInstitute/jaffelab&#39;</span>)</span>
+<span id="cb22-4"><a href="manifest.html#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="manifest.html#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&#39;jaffelab&#39;</span>)</span>
+<span id="cb22-6"><a href="manifest.html#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="manifest.html#cb22-7" aria-hidden="true" tabindex="-1"></a>fastq_dir <span class="ot">=</span> <span class="st">&#39;/data/fastq&#39;</span></span>
+<span id="cb22-8"><a href="manifest.html#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="manifest.html#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="co">#  We can take advantage of the uniform file naming convention to get the paths</span></span>
+<span id="cb22-10"><a href="manifest.html#cb22-10" aria-hidden="true" tabindex="-1"></a><span class="co">#  of each mate in the pair, for every sample. Here we use a somewhat</span></span>
+<span id="cb22-11"><a href="manifest.html#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="co">#  complicated regular expression to match file names (to be sure we are</span></span>
+<span id="cb22-12"><a href="manifest.html#cb22-12" aria-hidden="true" tabindex="-1"></a><span class="co">#  matching precisely the files we think we&#39;re matching), but this can be kept</span></span>
+<span id="cb22-13"><a href="manifest.html#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co">#  simple if preferred.</span></span>
+<span id="cb22-14"><a href="manifest.html#cb22-14" aria-hidden="true" tabindex="-1"></a>r1 <span class="ot">=</span> <span class="fu">list.files</span>(fastq_dir, <span class="st">&#39;.*_L00._R1_001</span><span class="sc">\\</span><span class="st">.fastq</span><span class="sc">\\</span><span class="st">.gz&#39;</span>, <span class="at">full.names=</span><span class="cn">TRUE</span>)</span>
+<span id="cb22-15"><a href="manifest.html#cb22-15" aria-hidden="true" tabindex="-1"></a>r2 <span class="ot">=</span> <span class="fu">list.files</span>(fastq_dir, <span class="st">&#39;.*_L00._R2_001</span><span class="sc">\\</span><span class="st">.fastq</span><span class="sc">\\</span><span class="st">.gz&#39;</span>, <span class="at">full.names=</span><span class="cn">TRUE</span>)</span>
+<span id="cb22-16"><a href="manifest.html#cb22-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-17"><a href="manifest.html#cb22-17" aria-hidden="true" tabindex="-1"></a><span class="co">#  We can form a unique ID for each sample by taking the portion of the path to</span></span>
+<span id="cb22-18"><a href="manifest.html#cb22-18" aria-hidden="true" tabindex="-1"></a><span class="co">#  the first read preceding the lane and mate identifiers. The function &#39;ss&#39; is</span></span>
+<span id="cb22-19"><a href="manifest.html#cb22-19" aria-hidden="true" tabindex="-1"></a><span class="co">#  a vectorized form of &#39;strsplit&#39;, handy for this task</span></span>
+<span id="cb22-20"><a href="manifest.html#cb22-20" aria-hidden="true" tabindex="-1"></a>ids <span class="ot">=</span> <span class="fu">ss</span>(<span class="fu">basename</span>(r1), <span class="st">&#39;_L00&#39;</span>)</span>
+<span id="cb22-21"><a href="manifest.html#cb22-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-22"><a href="manifest.html#cb22-22" aria-hidden="true" tabindex="-1"></a><span class="co">#  Sanity check: there should be the same number of first reads as second reads</span></span>
+<span id="cb22-23"><a href="manifest.html#cb22-23" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(<span class="fu">length</span>(R1) <span class="sc">==</span> <span class="fu">length</span>(R2))</span>
+<span id="cb22-24"><a href="manifest.html#cb22-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-25"><a href="manifest.html#cb22-25" aria-hidden="true" tabindex="-1"></a><span class="co">#  Prepare the existing sample information into the format expected by</span></span>
+<span id="cb22-26"><a href="manifest.html#cb22-26" aria-hidden="true" tabindex="-1"></a><span class="co">#  SPEAQeasy (for now, as a character vector where each element will be a line</span></span>
+<span id="cb22-27"><a href="manifest.html#cb22-27" aria-hidden="true" tabindex="-1"></a><span class="co">#  in &#39;samples.manifest&#39;)</span></span>
+<span id="cb22-28"><a href="manifest.html#cb22-28" aria-hidden="true" tabindex="-1"></a>manifest <span class="ot">=</span> <span class="fu">paste</span>(r1, <span class="dv">0</span>, r2, <span class="dv">0</span>, ids, <span class="at">sep=</span><span class="st">&#39;</span><span class="sc">\t</span><span class="st">&#39;</span>)</span>
+<span id="cb22-29"><a href="manifest.html#cb22-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-30"><a href="manifest.html#cb22-30" aria-hidden="true" tabindex="-1"></a><span class="co">#  Write the manifest to a file (in this case, in the current working</span></span>
+<span id="cb22-31"><a href="manifest.html#cb22-31" aria-hidden="true" tabindex="-1"></a><span class="co">#  directory)</span></span>
+<span id="cb22-32"><a href="manifest.html#cb22-32" aria-hidden="true" tabindex="-1"></a><span class="fu">writeLines</span>(manifest, <span class="at">con=</span><span class="st">&#39;samples.manifest&#39;</span>)</span></code></pre></div>
+
 </div>
 </div>
             </section>
