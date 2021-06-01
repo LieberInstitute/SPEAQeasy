@@ -426,11 +426,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="sharing" class="section level2" number="2.4">
 <h2><span class="header-section-number">2.4</span> Sharing the pipeline with many users</h2>
-<p>A single installation of SPEAQeasy can be shared among potentially many users. New users can simply copy the appropriate “main” script (determined above) to a different desired directory, and modify the contents as appropriate for the particular experiment.</p>
+<p>A single installation of SPEAQeasy can be shared among potentially many users. New users can simply copy the appropriate “main” script (determined above) to a different desired directory, and modify the contents as appropriate for the particular experiment. Similarly, a single user can copy the “main” script and modify the copy whenever there is a new experiment/ set of samples to process, reusing a single installation of SPEAQeasy arbitrarily many times.</p>
 <p><strong>Note</strong> It is recommended to use a unique working directory with the <code>-w</code> <a href="command-opts.html#next-opts">option</a> for each experiment. This ensures:</p>
 <ul>
 <li>SPEAQeasy resumes from the correct point, if ever stopped while multiple users are running the pipeline</li>
-<li>Deleting the work directory (which can take a large amount of disk space) does not affect SPEAQeasy execution for other users</li>
+<li>Deleting the work directory (which can take a large amount of disk space) does not affect SPEAQeasy execution for other users or other experiments</li>
 </ul>
 <p>New users who wish to include the <code>--coverage</code> <a href="command-opts.html#command-opts">option</a> must also install RSeQC personally:</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="setup-details.html#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> pip install <span class="at">--user</span> RSeQC==3.0.1</span></code></pre></div>
