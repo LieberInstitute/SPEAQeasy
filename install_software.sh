@@ -339,6 +339,9 @@ elif [ "$1" == "jhpce" ]; then
     echo "Setting up test files..."
     Rscript scripts/make_test_manifests.R -d $(pwd)
     
+    echo "Preparing main script..."
+    sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(pwd)|" run_pipeline_jhpce.sh
+    
     echo "Done."
 else # neither "docker", "local", nor "jhpce" were chosen
     

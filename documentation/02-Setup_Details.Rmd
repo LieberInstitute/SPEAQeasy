@@ -168,12 +168,12 @@ bash /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/generate_logs.sh $PWD/run_brain
 
 ## Sharing the pipeline with many users {#sharing}
 
-A single installation of SPEAQeasy can be shared among potentially many users. New users can simply copy the appropriate "main" script (determined above) to a different desired directory, and modify the contents as appropriate for the particular experiment.
+A single installation of SPEAQeasy can be shared among potentially many users. New users can simply copy the appropriate "main" script (determined above) to a different desired directory, and modify the contents as appropriate for the particular experiment. Similarly, a single user can copy the "main" script and modify the copy whenever there is a new experiment/ set of samples to process, reusing a single installation of SPEAQeasy arbitrarily many times.
 
 **Note** It is recommended to use a unique working directory with the `-w` [option](#next-opts) for each experiment. This ensures:
 
 - SPEAQeasy resumes from the correct point, if ever stopped while multiple users are running the pipeline
-- Deleting the work directory (which can take a large amount of disk space) does not affect SPEAQeasy execution for other users
+- Deleting the work directory (which can take a large amount of disk space) does not affect SPEAQeasy execution for other users or other experiments
 
 New users who wish to include the `--coverage` [option](#command-opts) must also install RSeQC personally:
 
