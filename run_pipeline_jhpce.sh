@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=800G
+#$ -l mem_free=40G,h_vmem=40G,h_fsize=800G
 #$ -o ./SPEAQeasy_output.log
 #$ -e ./SPEAQeasy_output.log
 #$ -cwd
