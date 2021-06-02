@@ -120,9 +120,10 @@ if (opt$reference != "rn6") {
     ensExons = unlist(ensExons)
     ensExons$TxID = map$TXNAME[match(names(ensExons),map$TXID)]
     
-    
+    gtf_colnames = c("seqnames", "start", "end", "width", "strand", "gene_id",
+                     "gene_name")
     geneMap = data.frame(gencode_gtf)
-    geneMap = geneMap[geneMap$type == 'gene', c(1:5, 10, 13)]
+    geneMap = geneMap[geneMap$type == 'gene', gtf_colnames]
     geneMap$ensemblID = ss(geneMap$gene_id, "\\.")
     rownames(geneMap) = geneMap$gene_id
     
@@ -134,7 +135,7 @@ if (opt$reference != "rn6") {
     geneMapGR$GenTx[!is.na(mmGene) ] = geneToTx[mmGene[!is.na(mmGene)]]
     
     exonMap = data.frame(gencode_gtf)
-    exonMap = exonMap[exonMap$type == 'exon', c(1:5, 10, 13)]
+    exonMap = exonMap[exonMap$type == 'exon', gtf_colnames]
     exonMap$ensemblID = ss(exonMap$gene_id, "\\.")
     eMap = GRanges(exonMap$seqnames, IRanges(exonMap$start, exonMap$end))
     keepIndex= which(!duplicated(eMap))
