@@ -337,7 +337,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb22-24"><a href="manifest.html#cb22-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-25"><a href="manifest.html#cb22-25" aria-hidden="true" tabindex="-1"></a><span class="co">#  Prepare the existing sample information into the format expected by</span></span>
 <span id="cb22-26"><a href="manifest.html#cb22-26" aria-hidden="true" tabindex="-1"></a><span class="co">#  SPEAQeasy (for now, as a character vector where each element will be a line</span></span>
-<span id="cb22-27"><a href="manifest.html#cb22-27" aria-hidden="true" tabindex="-1"></a><span class="co">#  in &#39;samples.manifest&#39;)</span></span>
+<span id="cb22-27"><a href="manifest.html#cb22-27" aria-hidden="true" tabindex="-1"></a><span class="co">#  in &#39;samples.manifest&#39;). We will simply use zeros for the optional MD5 sums.</span></span>
 <span id="cb22-28"><a href="manifest.html#cb22-28" aria-hidden="true" tabindex="-1"></a>manifest <span class="ot">=</span> <span class="fu">paste</span>(r1, <span class="dv">0</span>, r2, <span class="dv">0</span>, ids, <span class="at">sep=</span><span class="st">&#39;</span><span class="sc">\t</span><span class="st">&#39;</span>)</span>
 <span id="cb22-29"><a href="manifest.html#cb22-29" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-30"><a href="manifest.html#cb22-30" aria-hidden="true" tabindex="-1"></a><span class="co">#  Write the manifest to a file (in this case, in the current working</span></span>
