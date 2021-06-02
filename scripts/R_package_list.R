@@ -4,5 +4,5 @@
 #  'library' calls to signal the full list of non-Bioconductor packages to
 #  install.
 
-library('usethis')
-library('remotes')
+library("usethis")
+library("remotes")

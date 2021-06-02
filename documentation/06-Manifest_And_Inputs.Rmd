@@ -52,24 +52,24 @@ The following script can generate the manifest appropriate for this experiment:
 ```{R, eval=FALSE}
 #  If needed, install the 'jaffelab' GitHub-based package, which includes a
 #  useful function for string manipulation
-remotes::install_github('LieberInstitute/jaffelab')
+remotes::install_github("LieberInstitute/jaffelab")
 
-library('jaffelab')
+library("jaffelab")
 
-fastq_dir = '/data/fastq'
+fastq_dir <- "/data/fastq"
 
 #  We can take advantage of the uniform file naming convention to get the paths
 #  of each mate in the pair, for every sample. Here we use a somewhat
 #  complicated regular expression to match file names (to be sure we are
 #  matching precisely the files we think we're matching), but this can be kept
 #  simple if preferred.
-r1 = list.files(fastq_dir, '.*_L00._R1_001\\.fastq\\.gz', full.names=TRUE)
-r2 = list.files(fastq_dir, '.*_L00._R2_001\\.fastq\\.gz', full.names=TRUE)
+r1 <- list.files(fastq_dir, ".*_L00._R1_001\\.fastq\\.gz", full.names = TRUE)
+r2 <- list.files(fastq_dir, ".*_L00._R2_001\\.fastq\\.gz", full.names = TRUE)
 
 #  We can form a unique ID for each sample by taking the portion of the path to
 #  the first read preceding the lane and mate identifiers. The function 'ss' is
 #  a vectorized form of 'strsplit', handy for this task
-ids = ss(basename(r1), '_L00')
+ids <- ss(basename(r1), "_L00")
 
 #  Sanity check: there should be the same number of first reads as second reads
 stopifnot(length(R1) == length(R2))
@@ -77,9 +77,9 @@ stopifnot(length(R1) == length(R2))
 #  Prepare the existing sample information into the format expected by
 #  SPEAQeasy (for now, as a character vector where each element will be a line
 #  in 'samples.manifest'). We will simply use zeros for the optional MD5 sums.
-manifest = paste(r1, 0, r2, 0, ids, sep='\t')
+manifest <- paste(r1, 0, r2, 0, ids, sep = "\t")
 
 #  Write the manifest to a file (in this case, in the current working
 #  directory)
-writeLines(manifest, con='samples.manifest')
+writeLines(manifest, con = "samples.manifest")
 ```
