@@ -13,37 +13,23 @@ if (!requireNamespace("checkpoint", quietly = TRUE)) {
 #  released
 dir.create(paste0(getwd(), "/R-3.6.1/.checkpoint"))
 checkpoint::checkpoint("2019-08-05",
-    project = paste0(dirname(getwd()), "/scripts/"),
+    project = paste0(dirname(getwd()), "/scripts"),
     checkpointLocation = paste0(getwd(), "/R-3.6.1/")
 )
 
-library("BiocManager")
-
 #  These are Bioconductor packages to install
 packages <- c(
-    "Biostrings", "GenomicRanges", "GenomicFeatures", "org.Hs.eg.db",
-    "biomaRt", "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38",
-    "org.Mm.eg.db", "BSgenome.Mmusculus.UCSC.mm10", "org.Rn.eg.db",
-    "BSgenome.Rnorvegicus.UCSC.rn6", "bumphunter",
-    "BiocParallel", "derfinder", "rafalib", "SummarizedExperiment",
-    "plyr", "rtracklayer", "RColorBrewer", "LieberInstitute/jaffelab"
+    "BiocParallel", "biomaRt", "Biostrings",
+    "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38",
+    "BSgenome.Mmusculus.UCSC.mm10", "BSgenome.Rnorvegicus.UCSC.rn6",
+    "DelayedArray", "derfinder", "GenomicFeatures", "GenomicRanges",
+    "org.Hs.eg.db", "org.Mm.eg.db", "org.Rn.eg.db", "rtracklayer",
+    "SummarizedExperiment"
 )
 
-## Try to load the required packages and send a message for each package that fails to load
-load_res <- sapply(packages, requireNamespace, quietly = TRUE)
-if (any(!load_res)) {
-    print(paste0("check_R_packages.R: missing the package: ", names(which(!load_res))))
+#  Install the Bioc packages and the GitHub package "jaffelab"
+BiocManager::install(packages, lib = lib_path, update = FALSE)
+remotes::install_github("LieberInstitute/jaffelab", lib = lib_path)
 
-    #  Install missing packages: suppressing updates to avoid "path not writeable" warnings
-    ## when trying to update packages above the user's file permissions
-    present <- installed.packages(lib.loc = lib_path)
-    BiocManager::install(packages[!packages %in% rownames(present)],
-        update = TRUE,
-        lib = lib_path
-    )
-} else {
-    print("check_R_packages.R: Everything OK. No R packages need to be installed")
-}
-
-library("devtools")
-devtools::session_info()
+library("sessioninfo")
+session_info()
