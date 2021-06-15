@@ -112,18 +112,22 @@ get_file <- function(id, suffix, read) {
 #  Parse a vector of FastQC summaries, containing each sample in the order
 #  present in 'metrics'. Return a matrix of statistics
 parse_summary <- function(summary_paths, metrics) {
-    #  Verify FastQC stat names are as expected
-    observed_keys <- ss(readLines(summary_paths[1]), "\t", 2)
-    stopifnot(all(observed_keys %in% fastqc_stat_names))
-    observed_keys <- tolower(gsub(" ", "_", observed_keys))
+    temp_rows <- lapply(summary_paths, function(x) {
+        temp <- readLines(x)
+        vals <- ss(temp, "\t")
+        names(vals) <- ss(temp, "\t", 2)
 
-    #  Extract values for each file
-    temp_rows <- lapply(summary_paths, function(x) ss(readLines(x), "\t"))
+        stopifnot(all(names(vals) %in% fastqc_stat_names))
+        vals <- vals[fastqc_stat_names]
+    })
+
+    actual_colnames <- gsub(" ", "_", tolower(fastqc_stat_names))
     stat_mat <- matrix(unlist(temp_rows),
-        ncol = length(observed_keys),
+        ncol = length(fastqc_stat_names),
         byrow = TRUE,
-        dimnames = list(metrics$SAMPLE_ID, observed_keys)
+        dimnames = list(metrics$SAMPLE_ID, actual_colnames)
     )
+
     return(stat_mat)
 }
 
@@ -221,6 +225,7 @@ if (opt$paired) {
     stat_mat[stat_mat == "PASS/PASS"] <- "PASS"
     stat_mat[stat_mat == "WARN/WARN"] <- "WARN"
     stat_mat[stat_mat == "FAIL/FAIL"] <- "FAIL"
+    stat_mat[stat_mat == "NA/NA"] <- "NA"
 
     metrics <- cbind(metrics, stat_mat)
 
