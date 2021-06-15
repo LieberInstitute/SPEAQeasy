@@ -100,24 +100,25 @@ get_file <- function(id, suffix, read) {
 
 #  Parse a vector of FastQC summaries, containing each sample in the order
 #  present in 'metrics'. Return a matrix of statistics
-parse_summary = function(summary_paths, metrics) {
+parse_summary <- function(summary_paths, metrics) {
     #  Verify FastQC stat names are as expected
-    observed_keys = ss(readLines(summary_paths[1]), '\t', 2)
+    observed_keys <- ss(readLines(summary_paths[1]), "\t", 2)
     stopifnot(all(observed_keys %in% fastqc_stat_names))
-    observed_keys = tolower(gsub(' ', '_', observed_keys))
-    
+    observed_keys <- tolower(gsub(" ", "_", observed_keys))
+
     #  Extract values for each file
-    temp_rows = lapply(summary_paths, function(x) ss(readLines(x), '\t'))
-    stat_mat = matrix(unlist(temp_rows),
-                      ncol = length(observed_keys),
-                      byrow = TRUE,
-                      dimnames = list(metrics$SAMPLE_ID, observed_keys))
+    temp_rows <- lapply(summary_paths, function(x) ss(readLines(x), "\t"))
+    stat_mat <- matrix(unlist(temp_rows),
+        ncol = length(observed_keys),
+        byrow = TRUE,
+        dimnames = list(metrics$SAMPLE_ID, observed_keys)
+    )
     return(stat_mat)
 }
 
 #  Parse a vector of FastQC "data reports", containing each sample in the order
 #  present in 'metrics'. Return a matrix of statistics
-parse_data = function(data_path, metrics) {
+parse_data <- function(data_path, metrics) {
     R <- lapply(data_path, function(x) {
         scan(x,
             what = "character", sep = "\n",
@@ -158,14 +159,14 @@ parse_data = function(data_path, metrics) {
     }
     phred2 <- lapply(sc, function(x) x[3:(length(x) - 1)])
     phred2 <- lapply(phred2, function(x) {
-          data.frame(score = ss(x, "\t", 1), count = ss(x, "\t", 2))
-      })
+        data.frame(score = ss(x, "\t", 1), count = ss(x, "\t", 2))
+    })
     phred2 <- lapply(phred2, function(x) {
-          data.frame(x, cumulRev = rev(cumsum(rev(as.numeric(levels(x$count))[x$count]))))
-      })
+        data.frame(x, cumulRev = rev(cumsum(rev(as.numeric(levels(x$count))[x$count]))))
+    })
     phred2 <- lapply(phred2, function(x) {
-          data.frame(x, prop = x$cumulRev / x$cumulRev[1])
-      })
+        data.frame(x, prop = x$cumulRev / x$cumulRev[1])
+    })
     phred2 <- lapply(phred2, function(x) c(x[which(x$score %in% c(30, 35)), 4], 0, 0)[1:2])
     phred2 <- matrix(unlist(phred2), ncol = 2, byrow = T)
 
@@ -191,46 +192,46 @@ parse_data = function(data_path, metrics) {
 
     combined <- data.frame(SeqLen = unlist(seqlen), GCprec = unlist(gcp), phred, phred2, adap)
     rownames(combined) <- NULL
-    
+
     return(list(combined, fastqcdata))
 }
-    
+
 #  Parse FastQC summaries and "data reports"; append to 'metrics'
 if (opt$paired) {
-    summary_paths_1 = sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "_1")
-    summary_paths_2 = sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "_2")
-    
+    summary_paths_1 <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "_1")
+    summary_paths_2 <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "_2")
+
     #  Get stat values for each mate
-    stat_mat = parse_summary(summary_paths_1, metrics)
-    stat_mat_2 = parse_summary(summary_paths_2, metrics)
-    
+    stat_mat <- parse_summary(summary_paths_1, metrics)
+    stat_mat_2 <- parse_summary(summary_paths_2, metrics)
+
     #  Combine into a single matrix and simplify some values
-    stat_mat[] = paste(stat_mat, stat_mat_2, sep='/')
-    stat_mat[stat_mat == 'PASS/PASS'] = 'PASS'
-    stat_mat[stat_mat == 'WARN/WARN'] = 'WARN'
-    stat_mat[stat_mat == 'FAIL/FAIL'] = 'FAIL'
-    
+    stat_mat[] <- paste(stat_mat, stat_mat_2, sep = "/")
+    stat_mat[stat_mat == "PASS/PASS"] <- "PASS"
+    stat_mat[stat_mat == "WARN/WARN"] <- "WARN"
+    stat_mat[stat_mat == "FAIL/FAIL"] <- "FAIL"
+
     metrics <- cbind(metrics, stat_mat)
-    
+
     for (i in 1:2) {
-        data_path = sapply(metrics$SAMPLE_ID, get_file, suffix = "_fastqc_data.txt", read = paste0("_", i))
-        temp = parse_data(data_path, metrics)
-        combined = temp[[1]]
-        fastqcdata = temp[[2]]
+        data_path <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_fastqc_data.txt", read = paste0("_", i))
+        temp <- parse_data(data_path, metrics)
+        combined <- temp[[1]]
+        fastqcdata <- temp[[2]]
         names(combined) <- paste0(fastqcdata, "_R", i)
         metrics <- cbind(metrics, combined)
     }
 } else {
-    summary_paths = sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "")
-    metrics = cbind(metrics, parse_summary(summary_paths, metrics))
-    
-    data_paths = sapply(metrics$SAMPLE_ID, get_file, suffix = "_fastqc_data.txt", read = "")
-    temp = parse_data(data_paths, metrics)
-    combined = temp[[1]]
-    fastqcdata = temp[[2]]
+    summary_paths <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "")
+    metrics <- cbind(metrics, parse_summary(summary_paths, metrics))
+
+    data_paths <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_fastqc_data.txt", read = "")
+    temp <- parse_data(data_paths, metrics)
+    combined <- temp[[1]]
+    fastqcdata <- temp[[2]]
     rownames(combined) <- NULL
     names(combined) <- fastqcdata
-    
+
     metrics <- cbind(metrics, combined)
 }
 
