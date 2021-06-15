@@ -77,19 +77,14 @@ N <- length(metrics$SAMPLE_ID)
 
 ############################################################
 ###### FastQC results
-flagNames <- c(
-    "FQCbasicStats", "perBaseQual", "perTileQual", "perSeqQual",
-    "perBaseContent", "GCcontent", "Ncontent", "SeqLengthDist",
-    "SeqDuplication", "OverrepSeqs", "AdapterContent", "KmerContent"
-)
 fastqcdata <- c(
     "SeqLength", "percentGC", "phred1", "phred2", "phred3", "phred4",
     "phredGT30", "phredGT35", "Adapter1", "Adapter2", "Adapter3"
 )
 splitAt <- function(x, pos) unname(split(x, cumsum(seq_along(x) %in% pos)))
 
-
-flagRows <- c(
+#  Possible columns we expect in FastQC summaries
+fastqc_stat_names <- c(
     "Basic Statistics",
     "Per base sequence quality",
     "Per tile sequence quality",
@@ -114,144 +109,34 @@ get_file <- function(id, suffix, read) {
     }
 }
 
-if (opt$paired == TRUE) {
-    #### Summary flags (PASS/WARN/FAIL) ####
-    qcFlagsR1 <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "_1")
-    qcFlagsR2 <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "_2")
+#  Parse a vector of FastQC summaries, containing each sample in the order
+#  present in 'metrics'. Return a matrix of statistics
+parse_summary = function(summary_paths, metrics) {
+    #  Verify FastQC stat names are as expected
+    observed_keys = ss(readLines(summary_paths[1]), '\t', 2)
+    stopifnot(all(observed_keys %in% fastqc_stat_names))
+    observed_keys = tolower(gsub(' ', '_', observed_keys))
+    
+    #  Extract values for each file
+    temp_rows = lapply(summary_paths, function(x) ss(readLines(x), '\t'))
+    stat_mat = matrix(unlist(temp_rows),
+                      ncol = length(observed_keys),
+                      byrow = TRUE,
+                      dimnames = list(metrics$SAMPLE_ID, observed_keys))
+    return(stat_mat)
+}
 
-    R1 <- lapply(qcFlagsR1, function(x) scan(x, what = "character", sep = "\n", quiet = TRUE, strip = TRUE))
-    R1 <- lapply(R1, function(x) {
-        data.frame(a = ss(x, "\t"), row.names = ss(x, "\t", 2))
-    })
-    R1 <- lapply(R1, function(x) {
-        x[flagRows, ]
-    })
-    R1 <- matrix(unlist(R1), ncol = 12, byrow = TRUE)
-
-    R2 <- lapply(qcFlagsR2, function(x) scan(x, what = "character", sep = "\n", quiet = TRUE, strip = TRUE))
-    R2 <- lapply(R2, function(x) {
-        data.frame(a = ss(x, "\t"), row.names = ss(x, "\t", 2))
-    })
-    R2 <- lapply(R2, function(x) {
-        x[flagRows, ]
-    })
-    R2 <- matrix(unlist(R2), ncol = 12, byrow = TRUE)
-
-    ## combine
-    o3 <- paste0(R1, "/", R2)
-    dim(o3) <- c(N, 12)
-    o3[o3 == "PASS/PASS"] <- "PASS"
-    o3[o3 == "WARN/WARN"] <- "WARN"
-    o3[o3 == "FAIL/FAIL"] <- "FAIL"
-    o3[o3 == "NA/NA"] <- "NA"
-    colnames(o3) <- flagNames
-    metrics <- cbind(metrics, o3)
-
-    rm(qcFlagsR1, qcFlagsR2, R1, R2, o3)
-
-    #### FastQC metrics/data ####
-    for (i in c(1:2)) {
-        qcData <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_fastqc_data.txt", read = paste0("_", i))
-
-        R <- lapply(qcData, function(x) scan(x, what = "character", sep = "\n", quiet = TRUE, strip = TRUE))
-        names(R) <- metrics$SAMPLE_ID
-
-        ## Split list into sublists of metric categories
-        zz <- lapply(R, function(x) splitAt(x, which(x == ">>END_MODULE") + 1))
-
-        # sequence length
-        seqlen <- lapply(zz, function(x) x[[1]][9])
-        seqlen <- sapply(seqlen, function(x) ss(x, "\t", 2))
-        # percent GC
-        gcp <- lapply(zz, function(x) x[[1]][10])
-        gcp <- sapply(gcp, function(x) ss(x, "\t", 2))
-
-        # median phred scores (at roughly 1/4, 1/2, 3/4, and end of seq length)
-        # get positions
-        len <- round((length(zz[[1]][[2]]) - 3) / 4)
-        pos <- c(len + 3, 2 * len + 3, 3 * len + 3, length(zz[[1]][[2]]) - 1)
-        nameSuf <- ss(zz[[1]][[2]][pos], "\t", 1)
-        fastqcdata[3:6] <- paste0("phred", nameSuf)
-        phred <- lapply(zz, function(x) x[[2]][pos])
-        phred <- lapply(phred, function(x) ss(x, "\t", 3))
-        phred <- matrix(unlist(phred), ncol = 4, byrow = T)
-
-        # proportion of reads above phred 30 and 35
-        ind <- sapply(zz, function(x) {
-            grep("Per sequence quality scores", x)
-        })
-        sc <- mapply(function(i, x) {
-            x[[i]]
-        }, ind, zz)
-        if (class(sc) == "matrix") {
-            sc <- as.list(as.data.frame(sc, stringsAsFactors = FALSE))
-        }
-        phred2 <- lapply(sc, function(x) x[3:(length(x) - 1)])
-        phred2 <- lapply(phred2, function(x) {
-              data.frame(score = ss(x, "\t", 1), count = ss(x, "\t", 2))
-          })
-        phred2 <- lapply(phred2, function(x) {
-              data.frame(x, cumulRev = rev(cumsum(rev(as.numeric(levels(x$count))[x$count]))))
-          })
-        phred2 <- lapply(phred2, function(x) {
-              data.frame(x, prop = x$cumulRev / x$cumulRev[1])
-          })
-        phred2 <- lapply(phred2, function(x) c(x[which(x$score %in% c(30, 35)), 4], 0, 0)[1:2])
-        phred2 <- matrix(unlist(phred2), ncol = 2, byrow = T)
-
-        # Illumina adapter content
-        # get positions
-        ind <- sapply(zz, function(x) {
-            grep("Adapter Content", x)
-        })
-        ac <- mapply(function(i, x) {
-            x[[i]]
-        }, ind, zz)
-        if (class(ac) == "matrix") {
-            ac <- as.list(as.data.frame(ac, stringsAsFactors = FALSE))
-        }
-        len <- round((length(ac[[1]]) - 3) / 5)
-        pos <- c(3 * len + 2, 4 * len + 2, length(ac[[1]]) - 1)
-        nameSuf <- ss(ac[[1]][pos], "\t", 1)
-        fastqcdata[9:11] <- paste0("Adapter", nameSuf)
-        adap <- lapply(ac, function(x) x[pos])
-        adap <- lapply(adap, function(x) ss(x, "\t", 2))
-        adap <- matrix(unlist(adap), ncol = 3, byrow = T)
-        adap <- matrix(as.numeric(adap), ncol = 3, byrow = F)
-
-        combined <- data.frame(SeqLen = unlist(seqlen), GCprec = unlist(gcp), phred, phred2, adap)
-        rownames(combined) <- NULL
-        names(combined) <- paste0(fastqcdata, "_R", i)
-        metrics <- cbind(metrics, combined)
-
-        rm(zz, ind, sc, ac, seqlen, gcp, phred, phred2, adap, qcData, R)
-    }
-
-    ## single-end:
-} else {
-    qcFlags <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "")
-
-    y <- lapply(qcFlags, function(x) scan(x, what = "character", sep = "\n", quiet = TRUE, strip = TRUE))
-    y <- lapply(y, function(x) {
-        data.frame(a = ss(x, "\t"), row.names = ss(x, "\t", 2))
-    })
-    y <- lapply(y, function(x) {
-        x[flagRows, ]
-    })
-    y <- matrix(unlist(y), ncol = 12, byrow = TRUE)
-
-    colnames(y) <- flagNames
-    metrics <- cbind(metrics, y)
-
-    ### Phred scores / GC & adapter content fastqcdata
-    qcData <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_fastqc_data.txt", read = "")
-    R <- lapply(qcData, function(x) {
+#  Parse a vector of FastQC "data reports", containing each sample in the order
+#  present in 'metrics'. Return a matrix of statistics
+parse_data = function(data_path, metrics) {
+    R <- lapply(data_path, function(x) {
         scan(x,
             what = "character", sep = "\n",
             quiet = TRUE, strip = TRUE
         )
     })
     names(R) <- metrics$SAMPLE_ID
+
     ## Split list into sublists of metric categories
     zz <- lapply(R, function(x) splitAt(x, which(x == ">>END_MODULE") + 1))
 
@@ -295,7 +180,6 @@ if (opt$paired == TRUE) {
     phred2 <- lapply(phred2, function(x) c(x[which(x$score %in% c(30, 35)), 4], 0, 0)[1:2])
     phred2 <- matrix(unlist(phred2), ncol = 2, byrow = T)
 
-
     # Illumina adapter content (at roughly 1/2, 3/4, and end of seq length)
     # get positions
     ind <- sapply(zz, function(x) {
@@ -318,12 +202,48 @@ if (opt$paired == TRUE) {
 
     combined <- data.frame(SeqLen = unlist(seqlen), GCprec = unlist(gcp), phred, phred2, adap)
     rownames(combined) <- NULL
-    names(combined) <- fastqcdata
-    metrics <- cbind(metrics, combined)
-
-    rm(qcFlags, y, zz, ind, sc, ac, seqlen, gcp, phred, phred2, adap, qcData, R)
+    
+    return(list(combined, fastqcdata))
 }
-############################################################
+    
+#  Parse FastQC summaries and "data reports"; append to 'metrics'
+if (opt$paired) {
+    summary_paths_1 = sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "_1")
+    summary_paths_2 = sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "_2")
+    
+    #  Get stat values for each mate
+    stat_mat = parse_summary(summary_paths_1, metrics)
+    stat_mat_2 = parse_summary(summary_paths_2, metrics)
+    
+    #  Combine into a single matrix and simplify some values
+    stat_mat[] = paste(stat_mat, stat_mat_2, sep='/')
+    stat_mat[stat_mat == 'PASS/PASS'] = 'PASS'
+    stat_mat[stat_mat == 'WARN/WARN'] = 'WARN'
+    stat_mat[stat_mat == 'FAIL/FAIL'] = 'FAIL'
+    
+    metrics <- cbind(metrics, stat_mat)
+    
+    for (i in 1:2) {
+        data_path = sapply(metrics$SAMPLE_ID, get_file, suffix = "_fastqc_data.txt", read = paste0("_", i))
+        temp = parse_data(data_path, metrics)
+        combined = temp[[1]]
+        fastqcdata = temp[[2]]
+        names(combined) <- paste0(fastqcdata, "_R", i)
+        metrics <- cbind(metrics, combined)
+    }
+} else {
+    summary_paths = sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "")
+    metrics = cbind(metrics, parse_summary(summary_paths, metrics))
+    
+    data_paths = sapply(metrics$SAMPLE_ID, get_file, suffix = "_fastqc_data.txt", read = "")
+    temp = parse_data(data_paths, metrics)
+    combined = temp[[1]]
+    fastqcdata = temp[[2]]
+    rownames(combined) <- NULL
+    names(combined) <- fastqcdata
+    
+    metrics <- cbind(metrics, combined)
+}
 
 sampIDs <- as.vector(metrics$SAMPLE_ID)
 if (opt$salmon) {
