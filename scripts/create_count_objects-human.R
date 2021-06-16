@@ -146,32 +146,39 @@ parse_data <- function(data_path, metrics) {
     zz <- lapply(R, function(x) splitAt(x, which(x == ">>END_MODULE") + 1))
 
     # sequence length
-    seqlen <- lapply(zz, function(x) x[[1]][9])
-    seqlen <- sapply(seqlen, function(x) ss(x, "\t", 2))
+    seqlen <- sapply(zz, function(x) {
+        index <- grep(">>Basic Statistics", x)
+        stopifnot(ss(x[[index]][9], "\t") == "Sequence length")
+        return(ss(x[[index]][9], "\t", 2))
+    })
+
     # percent GC
-    gcp <- lapply(zz, function(x) x[[1]][10])
-    gcp <- sapply(gcp, function(x) ss(x, "\t", 2))
+    gcp <- sapply(zz, function(x) {
+        index <- grep(">>Basic Statistics", x)
+        stopifnot(ss(x[[index]][10], "\t") == "%GC")
+        return(ss(x[[index]][10], "\t", 2))
+    })
 
     # median phred scores (at roughly 1/4, 1/2, 3/4, and end of seq length)
     # get positions
-    len <- round((length(zz[[1]][[2]]) - 3) / 4)
-    pos <- c(len + 3, 2 * len + 3, 3 * len + 3, length(zz[[1]][[2]]) - 1)
-    nameSuf <- ss(zz[[1]][[2]][pos], "\t", 1)
+    index <- grep(">>Per base sequence quality", zz[[1]])
+    len <- round((length(zz[[1]][[index]]) - 3) / 4)
+    pos <- c(len + 3, 2 * len + 3, 3 * len + 3, length(zz[[1]][[index]]) - 1)
+    nameSuf <- ss(zz[[1]][[index]][pos], "\t", 1)
     fastqcdata[3:6] <- paste0("phred", nameSuf)
-    phred <- lapply(zz, function(x) x[[2]][pos])
-    phred <- lapply(phred, function(x) ss(x, "\t", 3))
-    phred <- matrix(unlist(phred), ncol = 4, byrow = T)
+
+    phred <- lapply(zz, function(x) {
+        index <- grep(">>Per base sequence quality", x)
+        stopifnot(ss(x[[index]][2], "\t", 3) == "Median")
+        return(ss(x[[index]][pos], "\t", 3))
+    })
+    phred <- matrix(unlist(phred), ncol = 4, byrow = TRUE)
 
     # proportion of reads above phred 30 and 35
-    ind <- sapply(zz, function(x) {
-        grep("Per sequence quality scores", x)
+    sc <- lapply(zz, function(x) {
+        return(x[[grep(">>Per sequence quality scores", x)]])
     })
-    sc <- mapply(function(i, x) {
-        x[[i]]
-    }, ind, zz)
-    if (class(sc) == "matrix") {
-        sc <- as.list(as.data.frame(sc, stringsAsFactors = FALSE))
-    }
+
     phred2 <- lapply(sc, function(x) x[3:(length(x) - 1)])
     phred2 <- lapply(phred2, function(x) {
         data.frame(score = ss(x, "\t", 1), count = ss(x, "\t", 2))
@@ -182,28 +189,23 @@ parse_data <- function(data_path, metrics) {
     phred2 <- lapply(phred2, function(x) {
         data.frame(x, prop = x$cumulRev / x$cumulRev[1])
     })
-    phred2 <- lapply(phred2, function(x) c(x[which(x$score %in% c(30, 35)), 4], 0, 0)[1:2])
-    phred2 <- matrix(unlist(phred2), ncol = 2, byrow = T)
+    phred2 <- lapply(phred2, function(x) c(x[which(x$score %in% c(30, 35)), "prop"], 0, 0)[1:2])
+    phred2 <- matrix(unlist(phred2), ncol = 2, byrow = TRUE)
 
     # Illumina adapter content (at roughly 1/2, 3/4, and end of seq length)
     # get positions
-    ind <- sapply(zz, function(x) {
-        grep("Adapter Content", x)
+    ac <- lapply(zz, function(x) {
+        return(x[[grep(">>Adapter Content", x)]])
     })
-    ac <- mapply(function(i, x) {
-        x[[i]]
-    }, ind, zz)
-    if (class(ac) == "matrix") {
-        ac <- as.list(as.data.frame(ac, stringsAsFactors = FALSE))
-    }
+
     len <- round((length(ac[[1]]) - 3) / 5)
     pos <- c(3 * len + 2, 4 * len + 2, length(ac[[1]]) - 1)
     nameSuf <- ss(ac[[1]][pos], "\t", 1)
     fastqcdata[9:11] <- paste0("Adapter", nameSuf)
+
     adap <- lapply(ac, function(x) x[pos])
     adap <- lapply(adap, function(x) ss(x, "\t", 2))
-    adap <- matrix(unlist(adap), ncol = 3, byrow = T)
-    adap <- matrix(as.numeric(adap), ncol = 3, byrow = F)
+    adap <- matrix(as.numeric(unlist(adap)), ncol = 3, byrow = TRUE)
 
     combined <- data.frame(SeqLen = unlist(seqlen), GCprec = unlist(gcp), phred, phred2, adap)
     rownames(combined) <- NULL
