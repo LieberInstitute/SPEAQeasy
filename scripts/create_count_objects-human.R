@@ -100,12 +100,21 @@ fastqc_stat_names <- c(
 )
 
 #  For choosing the post-trimming FastQC files for any samples that
-#  were trimmed
-get_file <- function(id, suffix, read) {
+#  were trimmed. If 'only_check_trim', then return a logical instead,
+#  indicating if a sample was trimmed.
+get_file <- function(id, suffix, read, only_check_trim = FALSE) {
     if (file.exists(paste0(id, read, "_trimmed", suffix))) {
-        return(paste0(id, read, "_trimmed", suffix))
+        if (only_check_trim) {
+            return(TRUE)
+        } else {
+            return(paste0(id, read, "_trimmed", suffix))
+        }
     } else {
-        return(paste0(id, read, "_untrimmed", suffix))
+        if (only_check_trim) {
+            return(FALSE)
+        } else {
+            return(paste0(id, read, "_untrimmed", suffix))
+        }
     }
 }
 
@@ -251,6 +260,13 @@ if (opt$paired) {
     names(combined) <- fastqcdata
 
     metrics <- cbind(metrics, combined)
+}
+
+#  Add a metric indicating if each sample was trimmed
+if (opt$paired) {
+    metrics$trimmed <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "_1", only_check_trim = TRUE)
+} else {
+    metrics$trimmed <- sapply(metrics$SAMPLE_ID, get_file, suffix = "_summary.txt", read = "", only_check_trim = TRUE)
 }
 
 sampIDs <- as.vector(metrics$SAMPLE_ID)
