@@ -1614,7 +1614,8 @@ process CountObjects {
             -t !{task.cpus} \
             !{counts_strand} \
             -n !{params.use_salmon} \
-            -r !{params.use_star}
+            -r !{params.use_star} \
+            -u !{params.output}
 
         cp .command.log counts.log
         '''

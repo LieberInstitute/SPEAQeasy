@@ -351,10 +351,6 @@ if (opt$ercc == TRUE) {
 }
 ############################################################
 
-
-### add bam file
-metrics$bamFile <- file.path(paste0(metrics$SAMPLE_ID, "_sorted.bam"))
-
 #  Return a desired value from a HISAT2 alignment summary.
 #
 #  Here 'log_lines' is a whitespace-stripped character vector containing each
@@ -480,11 +476,14 @@ if (opt$star) {
 metrics <- cbind(metrics, alignment_stats)
 
 ### confirm total mapping
-metrics$totalMapped <- unlist(bplapply(metrics$bamFile, getTotalMapped,
+bamFile <- paste0(metrics$SAMPLE_ID, "_sorted.bam")
+metrics$bamFile <- file.path(opt$output, "alignment", "bam_sort", bamFile)
+
+metrics$totalMapped <- unlist(bplapply(bamFile, getTotalMapped,
     chrs = paste0("chr", c(1:19, "X", "Y")),
     BPPARAM = MulticoreParam(opt$cores)
 ))
-metrics$mitoMapped <- unlist(bplapply(metrics$bamFile, getTotalMapped,
+metrics$mitoMapped <- unlist(bplapply(bamFile, getTotalMapped,
     chrs = "chrM",
     BPPARAM = MulticoreParam(opt$cores)
 ))
