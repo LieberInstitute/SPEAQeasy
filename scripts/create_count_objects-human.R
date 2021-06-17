@@ -351,56 +351,73 @@ if (opt$ercc == TRUE) {
 ### add bam file
 metrics$bamFile <- file.path(".", paste0(metrics$SAMPLE_ID, "_sorted.bam"))
 
-#  Define functions for extracting metrics from HISAT2 logs
-if (opt$paired == TRUE) {
-    hisatStats <- function(logFile) {
-        y <- scan(logFile,
-            what = "character", sep = "\n",
-            quiet = TRUE, strip = TRUE
+#  Return a desired value from a HISAT2 alignment summary.
+#
+#  Here 'log_lines' is a whitespace-stripped character vector containing each
+#  line in the summary; 'phrase' is a string that should be present in the
+#  lines of interest; 'get_perc' is a logical determining whether to extract
+#  the percentage enclosed in parenthesis (rather than the first integer
+#  present in the line); 'num_hits' is the number of times 'phrase' should be
+#  present in a line.
+parse_hisat_line <- function(log_lines, phrase, get_perc, num_hits = 1) {
+    index <- grep(phrase, log_lines)
+    if (length(index) != num_hits) {
+        stop(
+            paste0(
+                "Phrase '", phrase, "' in HISAT2 log was expected ", num_hits,
+                " time(s) but was observed ", length(index), " times."
+            )
         )
+    }
 
-        if (as.numeric(ss(ss(y[2], "\\(", 2), "%")) == 100) {
+    if (get_perc) {
+        #  Grab a percentage enclosed in parenthesis
+        val <- ss(ss(log_lines[index], "\\(", 2), "%")
+    } else {
+        #  Grab a raw integer (the first number in every line)
+        val <- gsub("%", "", ss(log_lines[index], " "))
+    }
+
+    val <- sum(as.numeric(val))
+
+    return(val)
+}
+
+hisatStats <- function(logFile) {
+    y <- scan(logFile,
+        what = "character", sep = "\n",
+        quiet = TRUE, strip = TRUE
+    )
+    if (opt$paired) {
+        perc_paired <- parse_hisat_line(y, "%) were paired; of these:", TRUE)
+        if (perc_paired == 100) {
             ## 100% of reads paired
-            reads <- as.numeric(ss(y[1], " ")) * 2
-            unaligned <- as.numeric(ss(y[12], " "))
-            o <- data.frame(
-                trimmed = FALSE,
-                numReads = reads,
-                numMapped = reads - unaligned,
-                numUnmapped = unaligned,
-                overallMapRate = as.numeric(ss(y[15], "\\%")) / 100,
-                concordMapRate = (as.numeric(ss(ss(y[4], "\\(", 2), "%")) + as.numeric(ss(ss(y[5], "\\(", 2), "%"))) / 100,
-                stringsAsFactors = FALSE
-            )
+            reads <- 2 * parse_hisat_line(y, "%) were paired; of these:", FALSE)
+            unaligned <- parse_hisat_line(y, "%) aligned 0 times", FALSE)
         } else {
-            ## Combo of paired and unpaired (from trimming)
-            reads <- as.numeric(ss(y[2], " ")) * 2 + as.numeric(ss(y[15], " "))
-            unaligned <- as.numeric(ss(y[12], " ")) + as.numeric(ss(y[16], " "))
-            o <- data.frame(
-                trimmed = TRUE,
-                numReads = reads,
-                numMapped = reads - unaligned,
-                numUnmapped = unaligned,
-                overallMapRate = as.numeric(ss(y[19], "\\%")) / 100,
-                concordMapRate = (as.numeric(ss(ss(y[4], "\\(", 2), "%")) + as.numeric(ss(ss(y[5], "\\(", 2), "%"))) / 100,
-                stringsAsFactors = FALSE
-            )
+            ## Combo of paired and unpaired (from trimming w/ '--keep_unpaired')
+            reads <- 2 * parse_hisat_line(y, "%) were paired; of these:", FALSE) +
+                parse_hisat_line(y, "%) were unpaired; of these:", FALSE)
+            unaligned <- parse_hisat_line(y, "%) aligned 0 times", FALSE, 2)
         }
+    } else {
+        reads <- parse_hisat_line(y, "reads; of these:", FALSE)
+        unaligned <- parse_hisat_line(y, "%) aligned 0 times", FALSE)
     }
-} else {
-    ## all reads unpaired
-    hisatStats <- function(logFile) {
-        y <- scan(logFile,
-            what = "character", sep = "\n",
-            quiet = TRUE, strip = TRUE
-        )
-        o <- data.frame(
-            numReads = as.numeric(ss(y[1], " ")),
-            numMapped = as.numeric(ss(y[1], " ")) - as.numeric(ss(y[3], " ")),
-            numUnmapped = as.numeric(ss(y[3], " ")),
-            overallMapRate = as.numeric(ss(y[6], "\\%")) / 100
-        )
+
+    o <- data.frame(
+        numReads = reads,
+        numMapped = reads - unaligned,
+        numUnmapped = unaligned,
+        overallMapRate = parse_hisat_line(y, "% overall alignment rate", FALSE) / 100
+    )
+
+    if (opt$paired) {
+        o$concordMapRate <- (parse_hisat_line(y, "%) aligned concordantly exactly 1 time", TRUE) +
+            parse_hisat_line(y, "%) aligned concordantly >1 times", TRUE)) / 100
     }
+
+    return(o)
 }
 
 #  Return a 1-row data frame of STAR alignment metrics, given a single
