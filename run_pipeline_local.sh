@@ -8,7 +8,7 @@ ORIG_DIR=$PWD
 
 export _JAVA_OPTIONS="-Xms5g -Xmx7g"
 
-$ORIG_DIR/Software/nextflow main.nf \
+$ORIG_DIR/Software/nextflow $ORIG_DIR/main.nf \
     --small_test \
     --sample "single" \
     --reference "hg38" \
