@@ -31,7 +31,7 @@
   
 <link rel="prev" href="command-opts.html"/>
 <link rel="next" href="annotation.html"/>
-<script src="libs/header-attrs-2.8/header-attrs.js"></script>
+<script src="libs/header-attrs-2.9/header-attrs.js"></script>
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -288,8 +288,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3><span class="header-section-number">4.1.2</span> Preparing annotation files for direct use</h3>
 <ul>
 <li><em>BuildAnnotationObjects</em>: a number of files are produced for internal use by SPEAQeasy. These include a text file of sequence ranges and a few R data files with annotation information (regarding genes, junctions, and exons).</li>
-<li><em>BuildHISATIndex</em>: the Hisat2 aligner requires an indexed genome- this process builds that file for the given genome fasta.</li>
-<li><em>BuildKallistoIndex</em>: similarly to Hisat2, the transcript quantification tool Kallisto requires that the transcripts be indexed. This process builds the required index.</li>
+<li><em>BuildHISATIndex</em>: the HISAT2 aligner requires an indexed genome- this process builds that file for the given genome fasta.</li>
+<li><em>BuildKallistoIndex</em>: similarly to HISAT2, the transcript quantification tool Kallisto requires that the transcripts be indexed. This process builds the required index.</li>
 <li><em>BuildSalmonIndex</em>: when Salmon is used as the pseudoaligner (with the <a href="command-opts.html#command-opts">command option</a> <code>--use_salmon</code>), an index like that for Kallisto is built in this process.</li>
 </ul>
 </div>
@@ -297,7 +297,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="main-workflow-steps" class="section level2" number="4.2">
 <h2><span class="header-section-number">4.2</span> Main Workflow Steps</h2>
 <ul>
-<li><em>QualityUntrimmed</em>: FASTQ files are ran through FastQC as a preliminary quality control measure. By default, the presence of “adapter content” determined in this process decides whether a given sample is trimmed in the next step. See the <code>--force_trim</code> <a href="command-opts.html#command-opts">command option</a> for modifying this default behavior.</li>
+<li><em>QualityUntrimmed</em>: FASTQ files are ran through FastQC as a preliminary quality control measure. By default, the presence of “adapter content” determined in this process decides whether a given sample is trimmed in the next step. See the <code>--trim_mode</code> <a href="command-opts.html#command-opts">command option</a> for modifying this default behavior.</li>
 <li><em>Trimming</em>: See “QualityUntrimmed” above- FASTQ inputs are trimmed either based on adapter content from FastQC, or regardless of this measure.</li>
 <li><em>QualityTrimmed</em>: a post-trimming assessment of quality metrics (again with FastQC) for each sample.</li>
 <li><em>InferStrandness</em>: determines the “strandness” of each sample (“forward”, “reverse”, or “unstranded”/mixed). This is done via pseudoalignment to the transcriptome with Kallisto- for a subset of reads in a given sample, pseudoalignment is attempted assuming each of the three strandness possibilities. The number of successfully aligned reads in each case is used to determine a final “observed strandness”. By default an error is thrown for any disagreement between “observed strandness” and user-provided <code>--strand</code>. See the <code>--force_strand</code> <a href="command-opts.html#command-opts">command option</a> and the <a href="configuration.html#speaqeasy-parameters">configuration variable</a> <code>num_reads_infer_strand</code> for tuning the behavior of this process.</li>
