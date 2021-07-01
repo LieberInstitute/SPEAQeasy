@@ -16,13 +16,13 @@ The following processes in the pipeline are done only once for a given configura
 ### Preparing annotation files for direct use ###
 
 * *BuildAnnotationObjects*: a number of files are produced for internal use by SPEAQeasy. These include a text file of sequence ranges and a few R data files with annotation information (regarding genes, junctions, and exons).
-* *BuildHISATIndex*: the Hisat2 aligner requires an indexed genome- this process builds that file for the given genome fasta.
-* *BuildKallistoIndex*: similarly to Hisat2, the transcript quantification tool Kallisto requires that the transcripts be indexed. This process builds the required index.
+* *BuildHISATIndex*: the HISAT2 aligner requires an indexed genome- this process builds that file for the given genome fasta.
+* *BuildKallistoIndex*: similarly to HISAT2, the transcript quantification tool Kallisto requires that the transcripts be indexed. This process builds the required index.
 * *BuildSalmonIndex*: when Salmon is used as the pseudoaligner (with the [command option](#command-opts) `--use_salmon`), an index like that for Kallisto is built in this process.
 
 ## Main Workflow Steps
 
-* *QualityUntrimmed*: FASTQ files are ran through FastQC as a preliminary quality control measure. By default, the presence of "adapter content" determined in this process decides whether a given sample is trimmed in the next step. See the `--force_trim` [command option](#command-opts) for modifying this default behavior.
+* *QualityUntrimmed*: FASTQ files are ran through FastQC as a preliminary quality control measure. By default, the presence of "adapter content" determined in this process decides whether a given sample is trimmed in the next step. See the `--trim_mode` [command option](#command-opts) for modifying this default behavior.
 * *Trimming*: See "QualityUntrimmed" above- FASTQ inputs are trimmed either based on adapter content from FastQC, or regardless of this measure.
 * *QualityTrimmed*: a post-trimming assessment of quality metrics (again with FastQC) for each sample.
 * *InferStrandness*: determines the "strandness" of each sample ("forward", "reverse", or "unstranded"/mixed). This is done via pseudoalignment to the transcriptome with Kallisto- for a subset of reads in a given sample, pseudoalignment is attempted assuming each of the three strandness possibilities. The number of successfully aligned reads in each case is used to determine a final "observed strandness". By default an error is thrown for any disagreement between "observed strandness" and user-provided `--strand`. See the `--force_strand` [command option](#command-opts) and the [configuration variable](#speaqeasy-parameters) `num_reads_infer_strand` for tuning the behavior of this process.
