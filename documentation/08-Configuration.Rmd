@@ -8,7 +8,7 @@ In many cases, a user has access to a computing cluster which they intend to run
 
 ### Time
 
-The maximum allowed run time for a process, or step in the pipeline, can be specified. For SGE users, this may be unimportant; however, SLURM users may be charged based on run time for their jobs.
+The maximum allowed run time for a process, or step in the pipeline, can be specified. This may be necessary for users who are charged based on run time for their jobs.
 
 #### Default for all processes
 
@@ -33,14 +33,13 @@ While the syntax is not strict, some examples for properly specifying the option
 
 #### Specify per-process
 
-SLURM users especially may want to modify the time setting by process. This can be done with the same syntax- suppose you wish to request 30 minutes for a given sample to be trimmed (note process names [here](#pipeline-overview)). In the "process" section of your config, find the section labelled "withName: Trimming" as in the example here:
+Time restrictions may also be specified for individual workflow steps. This can be done with the same syntax- suppose you wish to request 30 minutes for a given sample to be trimmed (note process names [here](#pipeline-overview)). In the "process" section of your config, find the section labelled "withName: Trimming" as in the example here:
 
 ```{groovy, eval=FALSE}
 withName: Trimming {
     cpus = 4
     memory = 16.GB
     time = '30m'
-    disk = 80.GB
 }
 ```
 
