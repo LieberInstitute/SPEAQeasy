@@ -452,15 +452,10 @@ if (params.custom_anno != "") {
             '''
             ( set -o posix ; set ) > bash_vars.txt
             
-            #  Pull and unzip primary assembly fasta, if this hasn't been done. Otherwise
-            #  symbolically link the fasta into the working directory
-            if [ -f !{params.annotation}/reference/!{params.reference}/assembly/fa/!{primaryName} ]; then
-                ln -s !{params.annotation}/reference/!{params.reference}/assembly/fa/!{primaryName} !{primaryName}
-            else
-                wget "!{params.fa_link}"
-                gunzip "!{baseName}.gz"
-                mv !{baseName} !{primaryName} # rename for consistency with pipeline naming conventions
-            fi
+            #  Pull and unzip primary assembly fasta
+            wget "!{params.fa_link}"
+            gunzip "!{baseName}.gz"
+            mv !{baseName} !{primaryName} # rename for consistency with pipeline naming conventions
             
             #######################################################################
             #  Create the "main" fasta of canonical seqs only
