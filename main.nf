@@ -2,27 +2,32 @@
 /*
 vim: syntax=groovy
 -*- mode: groovy;-*-
-===================================================================================================================================
-					LIEBER INSTITUTE JAFFE-LAB	 R N A - S E Q	 A N A L Y S I S	 P I P E L I N E  
-===================================================================================================================================
- RNA-Seq Multi-Input Analysis Pipeline. Nextflow Version: Started December 2017.
- #### Homepage / Documentation
- https://github.com/LieberInstitute/RNAsp
- #### Authors
- ##### Original Pipeline
- Emily Burke <emily.burke@libd.org>
- Leonardo Collado-Tores <lcolladotor@gmail.com>
- Andrew Jaffe <andrew.jaffe@libd.org>
- BaDoi Phan <badoi.phan@pitt.edu>
- ##### Nextflow Version
- Jacob Leonard <leonard.jacob09@gmail.com>
- Israel Aguilar <iaguilaror@gmail.com>
- Violeta Larios <siedracko@gmail.com>
- Nick Eagles <nick.eagles@libd.org>
- ###### References
- https://github.com/SciLifeLab/NGI-smRNAseq
------------------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------------------
+===============================================================================
+    SPEAQeasy: an RNA-seq analysis pipeline from LIBD
+===============================================================================
+
+RNA-Seq Multi-Input Analysis Pipeline. Nextflow Version: Started December 2017.
+ 
+## Homepage / Documentation
+https://github.com/LieberInstitute/SPEAQeasy
+ 
+## Authors
+    ## Original Pipeline
+    Emily Burke <emily.burke@libd.org>
+    Leonardo Collado-Tores <lcolladotor@gmail.com>
+    Andrew Jaffe <andrew.jaffe@libd.org>
+    BaDoi Phan <badoi.phan@pitt.edu>
+ 
+    ## Nextflow Version
+    Nick Eagles <nick.eagles@libd.org>
+    Jacob Leonard <leonard.jacob09@gmail.com>
+    Israel Aguilar <iaguilaror@gmail.com>
+    Violeta Larios <siedracko@gmail.com>
+    
+## References
+https://github.com/SciLifeLab/NGI-smRNAseq
+-------------------------------------------------------------------------------
+
  Pipeline Overview:
 
    Preprocessing:
@@ -51,13 +56,14 @@ vim: syntax=groovy
 	-  8a: Call Variants
 	-  8b: Merge Called Variants
 	-   9: Expressed Regions
------------------------------------------------------------------------------------------------------------------------------------
+
+===============================================================================
 */
 
 def helpMessage() {
 	log.info"""
 	=============================================================
-	 LIEBER INSTITUTE JAFFE-LAB RNA-seq : RNA-Seq Multi-Input Analysis v${version}
+    SPEAQeasy: an RNA-seq analysis pipeline from LIBD
 	=============================================================
 	Usage:
  
@@ -371,9 +377,9 @@ def get_fastq_names(row) {
 params.commitId = "git --git-dir=${workflow.projectDir}/.git rev-parse HEAD".execute().text.trim()
 
 // Header log info
-log.info "============================================================="
-log.info " LIBD-RNAseq : Multi-Input RNA-Seq Best Practice v${version}"
-log.info "============================================================="
+log.info "==============================================================================="
+log.info "    SPEAQeasy: an RNA-seq analysis pipeline from LIBD"
+log.info "==============================================================================="
 def summary = [:]
 summary['SPEAQeasy version'] = params.commitId
 summary['Working dir']		 = workflow.workDir
@@ -402,7 +408,7 @@ summary['Keep discordant'] = params.unalign
 summary['Use salmon'] = params.use_salmon
 summary['Use STAR'] = params.use_star
 log.info summary.collect { k,v -> "${k.padRight(18)}: $v" }.join("\n")
-log.info "==========================================="
+log.info "==============================================================================="
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // BEGIN PIPELINE
