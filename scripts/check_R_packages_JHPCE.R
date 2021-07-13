@@ -26,13 +26,11 @@ if (any(!installed)) {
 }
 
 #  Jaffelab is a special case since it is a package from GitHub
-if (!("jaffelab" %in% installed.packages()[, 1])) {
+if (!requireNamespace("jaffelab", quietly = TRUE)) {
     print("Missing the GitHub package 'jaffelab'.")
-    library("remotes")
     remotes::install_github("LieberInstitute/jaffelab")
 }
 
 print("Done checking/installing packages.")
 
-library("devtools")
 devtools::session_info()
