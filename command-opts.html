@@ -284,17 +284,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="optional-parameters" class="section level3" number="3.1.2">
 <h3><span class="header-section-number">3.1.2</span> Optional Parameters</h3>
 <ul>
-<li><code>--annotation</code> The path to the directory containing pipeline annotations. Defaults to “./Annotation” (relative to the repository). If annotations are not found here, the pipeline includes a step to build them.</li>
+<li><code>--annotation</code> The path to the directory containing pipeline annotations. Defaults to “[SPEAQeasy dir]/Annotation”. Note only full paths may be used! If annotations are not found here, the pipeline includes a step to build them.</li>
 <li><code>--coverage</code> Include this flag to produce coverage bigWigs and compute expressed genomic regions. These steps are a useful precursor for analyses involving finding differentially expressed regions (DERs). Default: false</li>
 <li><code>--custom_anno [label]</code> Include this flag to indicate that the directory specified with <code>--annotation [dir]</code> includes user-provided annotation files to use instead of the default files. See the “Using custom annotation” section for more details.</li>
-<li><code>--ercc</code> Include this flag to enable ERCC quantification with Kallisto (or Salmon, if <code>--use_salmon</code> is provided). This is appropriate for experiments where samples have ERCC spike-ins.</li>
+<li><code>--ercc</code> Include this flag to enable ERCC quantification with Kallisto. This is appropriate for experiments where samples have ERCC spike-ins.</li>
 <li><code>--experiment</code> Name of the experiment being run (ex: “alzheimer”). Defaults to “Jlab_experiment”</li>
 <li><code>--force_strand</code> Include this flag to continue pipeline execution with a warning, when user-provided strand contrasts with inferred strandness in any sample. Default: false (halt pipeline execution with an error message if any sample appears to be a different strandness than stated by the user)</li>
 <li><code>--fullCov</code> Include this flag to perform full coverage analysis.</li>
 <li><code>--help</code> Provides an explanation about each of these command options, and exits.</li>
-<li><code>--input</code> The path to the directory with the “samples.manifest” file. Defaults to “./input” (relative to the repository)</li>
+<li><code>--input</code> The path to the directory with the “samples.manifest” file. Defaults to “[SPEAQeasy dir]/input”. Note only full paths may be used!</li>
 <li><code>--keep_unpaired</code> include this flag to keep unpaired reads output from trimming paired-end samples, for use in alignment. Default: false, as this can cause issues in downstream tools like FeatureCounts.</li>
-<li><code>--output</code> The path to the directory to store pipeline output files/ objects. Defaults to “./results” (relative to the repository)</li>
+<li><code>--output</code> The path to the directory to store pipeline output files/ objects. Defaults to “[SPEAQeasy dir]/results”. Note only full paths may be used!</li>
 <li><code>--prefix</code> An additional label (in conjunction with “experiment”) to use for the pipeline run- affecting result file names.</li>
 <li><code>--small_test</code> Uses sample files located in the test folder as input. Overrides the “–input” option.</li>
 <li><code>--trim_mode</code> Determines the conditions under which trimming occurs:
