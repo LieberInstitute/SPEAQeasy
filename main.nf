@@ -96,8 +96,8 @@ def helpMessage() {
     {OPTIONS}:
     
     --annotation [path] <- the directory to store and check for annotation-
-                       related files. Default: "./Annotations" (relative to the
-                       repository)
+                       related files. Default: "[SPEAQeasy dir]/Annotation".
+                       Note only full paths may be used!
     --coverage      <- Include this flag to produce coverage bigWigs and
                        compute expressed genomic regions. These steps are a
                        useful precursor for analyses involving finding
@@ -123,14 +123,15 @@ def helpMessage() {
                        Implies the '--coverage' option.
     --help          <- shows this message
     --input [path]  <- the directory containing samples.manifest, the file
-                       describing the input FASTQ files. Default: "./input"
-                       (relative to the repository)
+                       describing the input FASTQ files. Default:
+                       "[SPEAQeasy dir]/input". Note only full paths may be
+                       used!
     --keep_unpaired <- include this flag to keep unpaired reads output from
                        trimming paired-end samples, for use in alignment.
                        Default: false, as this can cause issues in downstream
                        tools like FeatureCounts.
-    --output [path] <- the directory to place pipeline outputs/results. Default:
-                       "./results" (relative to the repository)
+    --output [path] <- the directory to place pipeline outputs. Default:
+                       "[SPEAQeasy dir]/results". Note only full paths may be used!
     --prefix [string] <- an additional identifier (name) for the experiment
                        (e.g. date, genome)
     --small_test	  <- use small test files as input, rather than the files

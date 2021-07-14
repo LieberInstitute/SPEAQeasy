@@ -10,17 +10,17 @@
 
 ### Optional Parameters
 
-* `--annotation`    The path to the directory containing pipeline annotations. Defaults to "./Annotation" (relative to the repository). If annotations are not found here, the pipeline includes a step to build them.
+* `--annotation`    The path to the directory containing pipeline annotations. Defaults to "[SPEAQeasy dir]/Annotation". Note only full paths may be used! If annotations are not found here, the pipeline includes a step to build them.
 * `--coverage` Include this flag to produce coverage bigWigs and compute expressed genomic regions. These steps are a useful precursor for analyses involving finding differentially expressed regions (DERs). Default: false
 * `--custom_anno [label]` Include this flag to indicate that the directory specified with `--annotation [dir]` includes user-provided annotation files to use instead of the default files. See the "Using custom annotation" section for more details.
-* `--ercc`            Include this flag to enable ERCC quantification with Kallisto (or Salmon, if `--use_salmon` is provided). This is appropriate for experiments where samples have ERCC spike-ins.
+* `--ercc`            Include this flag to enable ERCC quantification with Kallisto. This is appropriate for experiments where samples have ERCC spike-ins.
 * `--experiment`    Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
 * `--force_strand` Include this flag to continue pipeline execution with a warning, when user-provided strand contrasts with inferred strandness in any sample. Default: false (halt pipeline execution with an error message if any sample appears to be a different strandness than stated by the user)
 * `--fullCov`        Include this flag to perform full coverage analysis.
 * `--help`  Provides an explanation about each of these command options, and exits.
-* `--input`        The path to the directory with the "samples.manifest" file. Defaults to "./input" (relative to the repository)
+* `--input`        The path to the directory with the "samples.manifest" file. Defaults to "[SPEAQeasy dir]/input". Note only full paths may be used!
 * `--keep_unpaired` include this flag to keep unpaired reads output from trimming paired-end samples, for use in alignment. Default: false, as this can cause issues in downstream tools like FeatureCounts.
-* `--output`  The path to the directory to store pipeline output files/ objects. Defaults to "./results" (relative to the repository)
+* `--output`  The path to the directory to store pipeline output files/ objects. Defaults to "[SPEAQeasy dir]/results". Note only full paths may be used!
 * `--prefix`    An additional label (in conjunction with "experiment") to use for the pipeline run- affecting result file names.
 * `--small_test`    Uses sample files located in the test folder as input. Overrides the "--input" option.
 * `--trim_mode`  Determines the conditions under which trimming occurs:
