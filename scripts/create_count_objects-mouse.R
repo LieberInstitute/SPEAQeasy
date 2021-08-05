@@ -792,8 +792,7 @@ rm(anno)
 
 ############ jCounts
 jCounts <- as.matrix(as.data.frame(juncCounts$countDF))
-jCounts <- jCounts[names(jMap), gsub("-", ".", metrics$SAMPLE_ID)] # ensure lines up
-colnames(jCounts) <- metrics$SAMPLE_ID # change from '.' to hyphens if needed
+jCounts <- jCounts[names(jMap), metrics$SAMPLE_ID]
 
 ############ jRpkm
 bgJ <- matrix(rep(colSums(jCounts)),
