@@ -5,8 +5,8 @@
 packages <- c(
     "Biostrings", "biomaRt", "BiocParallel", "Biostrings",
     "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38",
-    "BSgenome.Mmusculus.UCSC.mm10", "derfinder", "devtools",
-    "GenomicFeatures", "GenomicRanges", "getopt",
+    "BSgenome.Mmusculus.UCSC.mm10", "BSgenome.Rnorvegicus.UCSC.rn6",
+    "derfinder", "devtools", "GenomicFeatures", "GenomicRanges", "getopt",
     "org.Hs.eg.db", "org.Mm.eg.db", "org.Rn.eg.db", "plyr", "rafalib",
     "remotes", "rtracklayer", "SummarizedExperiment", "usethis"
 )
