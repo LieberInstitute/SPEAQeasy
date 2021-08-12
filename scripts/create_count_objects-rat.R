@@ -33,6 +33,7 @@ spec <- matrix(c(
     "stranded", "s", 1, "character", "Strandedness of the data: Either 'FALSE', 'forward' or 'reverse'",
     "salmon", "n", 1, "logical", "Whether to use salmon quants rather than kallisto",
     "star", "r", 1, "logical", "Whether STAR was used for alignment",
+    "output", "u", 1, "character", "Output directory for SPEAQeasy",
     "help", "h", 0, "logical", "Display help"
 ), byrow = TRUE, ncol = 5)
 opt <- getopt(spec)
