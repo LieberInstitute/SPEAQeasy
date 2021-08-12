@@ -515,7 +515,7 @@ names(gencodeEXONS) <- c("Chr", "Start", "End", "gene_id", "exon_gencodeID")
 ### exons in PAR regions
 par_y <- grep("PAR_Y", gencodeEXONS$gene_id)
 gencodeEXONS$exon_gencodeID[par_y] <- paste0(gencodeEXONS$exon_gencodeID[par_y], "_PAR_Y")
-gencodeEXONS[, -match('gene_id', colnames(gencodeEXONS))]
+gencodeEXONS[, -match("gene_id", colnames(gencodeEXONS))]
 
 ###############
 ### gene counts
