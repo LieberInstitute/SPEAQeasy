@@ -1061,7 +1061,7 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
 
     txMap <- tx[rownames(txTpm)]
     rse_tx <- SummarizedExperiment(
-        assays = list("tpm" = txTpm),
+        assays = list("counts" = txNumReads, "tpm" = txTpm),
         colData = metrics, rowRanges = txMap
     )
     save(rse_tx, file = paste0("rse_tx_", EXPNAME, "_n", N, ".Rdata"))
