@@ -1584,7 +1584,7 @@ process CountObjects {
     input:
         file counts_inputs
         file counts_annotations
-        file create_counts from file("${workflow.projectDir}/scripts/create_count_objects-${params.reference_type}.R")
+        file create_counts from file("${workflow.projectDir}/scripts/create_count_objects.R")
         file ercc_actual_conc from file("${params.annotation}/ERCC/ercc_actual_conc.txt")
         file complete_manifest_counts
 
