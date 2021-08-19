@@ -1557,7 +1557,7 @@ if (params.ercc) {
  */
 
 //  Mix with reference-dependent annotation info
-if(params.reference == "hg19" || (params.reference == "hg38" && params.anno_version != "25")) {
+if(params.reference == "hg19" || params.reference == "mm10" || (params.reference == "hg38" && params.anno_version != "25")) {
     junction_annotation
         .mix(feature_to_tx_gencode)
         .toList()
@@ -1568,7 +1568,7 @@ if(params.reference == "hg19" || (params.reference == "hg38" && params.anno_vers
         .mix(exon_maps_by_coord_hg38)
         .toList()
         .set{counts_annotations}
-} else { // mouse or rat
+} else { // rat
     junction_annotation
         .set{counts_annotations}
 }

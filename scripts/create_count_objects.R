@@ -630,8 +630,8 @@ colnames(geneStats) <- metrics$SAMPLE_ID
 metrics$totalAssignedGene <- as.numeric(geneStats[1, ] / colSums(geneStats))
 
 #  Add all the other stats from featureCounts at the gene level
-#  (Why is this done only for human?)
-if (opt$organism %in% c("hg19", "hg38")) {
+#  (Why is this not done for rat?)
+if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     geneStats_t <- t(geneStats)
     colnames(geneStats_t) <- paste0("gene_", colnames(geneStats_t))
     metrics <- cbind(metrics, geneStats_t)
@@ -767,7 +767,7 @@ exonMap$meanExprs <- rowMeans(exonRpkm)
 #  for human and mouse)
 ###############################################################################
 
-if (opt$organism %in% c("hg19", "hg38")) {
+if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     load(list.files(pattern = "feature_to_Tx.*\\.rda"))
 
     #  For gencode version 25 (the pipeline default), we have additional exon annotation
@@ -806,8 +806,10 @@ if (opt$organism %in% c("hg19", "hg38")) {
         tx[!is.na(mmTx)] <- coordToTX[mmTx[!is.na(mmTx)]]
         exonMap$NumTx <- elementNROWS(tx)
         exonMap$gencodeTx <- sapply(tx, paste0, collapse = ";")
-    } else { # hg19 or hg38 without additional exon annotation for gencode release 25
-        mmTx <- match(exonMap$exon_libdID, names(allTx))
+    } else {
+        #  hg19 or hg38 without additional exon annotation for gencode release
+        #  25, or mm10
+        mmTx <- match(exonMap$gencodeID, names(allTx))
         tx <- CharacterList(vector("list", nrow(exonMap)))
         tx[!is.na(mmTx)] <- allTx[mmTx[!is.na(mmTx)]]
         exonMap$NumTx <- elementNROWS(tx)
