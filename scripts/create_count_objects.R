@@ -541,7 +541,6 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped + metrics$totalMapp
 
 ###############################################################################
 #  Read in GTF to get reference data regarding genes and exons
-#  (Why do we not do this for rat?)
 ###############################################################################
 
 gencodeGTF <- import(con = list.files(pattern = ".*\\.gtf"), format = "gtf")
@@ -764,8 +763,6 @@ exonMap$meanExprs <- rowMeans(exonRpkm)
 
 ###############################################################################
 #  Add transcript maps
-#  (Why is this not done for mouse? We produce the 'feature_to_Tx*.rda' file
-#  for human and mouse)
 ###############################################################################
 
 if (opt$organism %in% c("hg19", "hg38", "mm10")) {
