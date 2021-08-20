@@ -1054,12 +1054,9 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     tx <- gencodeGTF[which(gencodeGTF$type == "transcript")]
     names(tx) <- tx$transcript_id
 
-    #  Why is this done for human and not mouse?
-    if (opt$organism %in% c("hg19", "hg38")) {
-        txTpm <- txTpm[which(rownames(txTpm) %in% names(tx)), ]
-    }
-
+    txTpm <- txTpm[which(rownames(txTpm) %in% names(tx)), ]
     txMap <- tx[rownames(txTpm)]
+    
     rse_tx <- SummarizedExperiment(
         assays = list("counts" = txNumReads, "tpm" = txTpm),
         colData = metrics, rowRanges = txMap
