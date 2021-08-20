@@ -544,18 +544,24 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped + metrics$totalMapp
 #  (Why do we not do this for rat?)
 ###############################################################################
 
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
-    gencodeGTF <- import(con = list.files(pattern = ".*\\.gtf"), format = "gtf")
-    gencodeGENES <- mcols(gencodeGTF)[which(gencodeGTF$type == "gene"), c("gene_id", "type", "gene_type", "gene_name")]
-    rownames(gencodeGENES) <- gencodeGENES$gene_id
+gencodeGTF <- import(con = list.files(pattern = ".*\\.gtf"), format = "gtf")
 
-    if (opt$organism == "mm10") {
-        gencodeEXONS <- as.data.frame(gencodeGTF)[which(gencodeGTF$type == "exon"), c("seqnames", "start", "end", "exon_id")]
-        names(gencodeEXONS) <- c("Chr", "Start", "End", "exon_gencodeID")
-    } else {
-        gencodeEXONS <- as.data.frame(gencodeGTF)[which(gencodeGTF$type == "exon"), c("seqnames", "start", "end", "gene_id", "exon_id")]
-        names(gencodeEXONS) <- c("Chr", "Start", "End", "gene_id", "exon_gencodeID")
-    }
+if (opt$organism == "rn6") {
+    gencodeGENES <- mcols(gencodeGTF)[which(gencodeGTF$type == "gene"), c("gene_id", "type", "gene_name")]
+} else {
+    gencodeGENES <- mcols(gencodeGTF)[which(gencodeGTF$type == "gene"), c("gene_id", "type", "gene_type", "gene_name")]
+}
+rownames(gencodeGENES) <- gencodeGENES$gene_id
+
+if (opt$organism == "mm10") {
+    gencodeEXONS <- as.data.frame(gencodeGTF)[which(gencodeGTF$type == "exon"), c("seqnames", "start", "end", "exon_id")]
+    names(gencodeEXONS) <- c("Chr", "Start", "End", "exon_gencodeID")
+} else if (opt$organism == "rn6") {
+    gencodeEXONS <- as.data.frame(gencodeGTF)[which(gencodeGTF$type == "exon"), c("seqnames", "start", "end", "exon_id")]
+    names(gencodeEXONS) <- c("Chr", "Start", "End", "exon_ensemblID")
+} else { # human
+    gencodeEXONS <- as.data.frame(gencodeGTF)[which(gencodeGTF$type == "exon"), c("seqnames", "start", "end", "gene_id", "exon_id")]
+    names(gencodeEXONS) <- c("Chr", "Start", "End", "gene_id", "exon_gencodeID")
 }
 
 if (opt$organism %in% c("hg19", "hg38")) {
@@ -591,12 +597,14 @@ geneMap$End <- as.numeric(sapply(tmp, function(x) x[length(x)]))
 geneMap$Strand <- ss(geneMap$Strand, ";")
 rownames(geneMap) <- geneMap$Geneid
 
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
+if (opt$organism == "rn6") {
+    geneMap$ensemblID <- geneMap$Geneid
+} else {
     geneMap$gencodeID <- geneMap$Geneid
     geneMap$ensemblID <- ss(geneMap$Geneid, "\\.")
-    geneMap$Geneid <- NULL
     geneMap$gene_type <- gencodeGENES[geneMap$gencodeID, "gene_type"]
 }
+geneMap$Geneid <- NULL
 
 #  Get the 'Symbol' and 'EntrezID' columns
 if (opt$organism %in% c("hg19", "hg38")) {
@@ -607,8 +615,8 @@ if (opt$organism %in% c("hg19", "hg38")) {
     geneMap$EntrezID <- mapIds(org.Mm.eg.db, temp, "ENTREZID", "SYMBOL")
     geneMap$Symbol <- mapIds(org.Mm.eg.db, temp, "MGI", "SYMBOL")
 } else { # 'rn6'
-    geneMap$Symbol <- mapIds(org.Rn.eg.db, geneMap$Geneid, "SYMBOL", "ENSEMBL")
-    geneMap$EntrezID <- mapIds(org.Rn.eg.db, geneMap$Geneid, "ENTREZID", "ENSEMBL")
+    geneMap$Symbol <- gencodeGENES[geneMap$ensemblID, "gene_name"]
+    geneMap$EntrezID <- mapIds(org.Rn.eg.db, geneMap$Symbol, "ENTREZID", "SYMBOL")
 }
 
 ## counts
@@ -630,15 +638,11 @@ colnames(geneStats) <- metrics$SAMPLE_ID
 metrics$totalAssignedGene <- as.numeric(geneStats[1, ] / colSums(geneStats))
 
 #  Add all the other stats from featureCounts at the gene level
-#  (Why is this not done for rat?)
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
-    geneStats_t <- t(geneStats)
-    colnames(geneStats_t) <- paste0("gene_", colnames(geneStats_t))
-    metrics <- cbind(metrics, geneStats_t)
-}
+geneStats_t <- t(geneStats)
+colnames(geneStats_t) <- paste0("gene_", colnames(geneStats_t))
+metrics <- cbind(metrics, geneStats_t)
 
-#  rRNA rate
-#  (Why is this not computed for rat?)
+#  rRNA rate: the 'gene_type' column does not exist in the rat GTF
 if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     metrics$rRNA_rate <- colSums(geneCounts[which(geneMap$gene_type == "rRNA"), ]) / colSums(geneCounts)
 }
@@ -680,12 +684,14 @@ names(exonFn) <- metrics$SAMPLE_ID
 exonMap <- read.delim(exonFn[1], skip = 1, as.is = TRUE)[, 1:6]
 rownames(exonMap) <- paste0("e", rownames(exonMap))
 
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
+if (opt$organism == "rn6") {
+    exonMap$ensemblID <- exonMap$Geneid
+} else {
     exonMap$gencodeID <- exonMap$Geneid
     exonMap$ensemblID <- ss(exonMap$Geneid, "\\.")
-    exonMap$Geneid <- NULL
     exonMap$gene_type <- gencodeGENES[exonMap$gencodeID, "gene_type"]
 }
+exonMap$Geneid <- NULL
 
 #  Get the 'Symbol' and 'EntrezID' columns
 if (opt$organism %in% c("hg19", "hg38")) {
@@ -696,14 +702,12 @@ if (opt$organism %in% c("hg19", "hg38")) {
     exonMap$EntrezID <- mapIds(org.Mm.eg.db, temp, "ENTREZID", "SYMBOL")
     exonMap$Symbol <- mapIds(org.Mm.eg.db, temp, "MGI", "SYMBOL")
 } else { # 'rn6'
-    exonMap$Symbol <- mapIds(org.Rn.eg.db, exonMap$Geneid, "SYMBOL", "ENSEMBL")
-    exonMap$EntrezID <- mapIds(org.Rn.eg.db, exonMap$Geneid, "ENTREZID", "ENSEMBL")
+    exonMap$Symbol <- gencodeGENES[exonMap$ensemblID, "gene_name"]
+    exonMap$EntrezID <- mapIds(org.Rn.eg.db, exonMap$Symbol, "ENTREZID", "SYMBOL")
 }
 
 #  Add GENCODE exon ID
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
-    exonMap <- join(exonMap, gencodeEXONS, type = "left", match = "first")
-}
+exonMap <- join(exonMap, gencodeEXONS, type = "left", match = "first")
 
 ## counts
 exonCountList <- mclapply(exonFn, function(x) {
@@ -733,10 +737,7 @@ exonCounts <- exonCounts[keepIndex, ]
 exonMap <- exonMap[keepIndex, ]
 
 #  Change rownames
-#  (Why is this not done for rat?)
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
-    exonMap$exon_libdID <- rownames(exonMap)
-}
+exonMap$exon_libdID <- rownames(exonMap)
 
 # number of reads assigned
 exonStatList <- lapply(paste0(exonFn, ".summary"),
@@ -959,8 +960,8 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     )
 } else { # 'rn6'
     g <- data.frame(
-        leftGene = exonMap$Geneid[anno$startExon],
-        rightGene = exonMap$Geneid[anno$endExon],
+        leftGene = exonMap$ensemblID[anno$startExon],
+        rightGene = exonMap$ensemblID[anno$endExon],
         leftGeneSym = exonMap$Symbol[anno$startExon],
         rightGeneSym = exonMap$Symbol[anno$endExon],
         stringsAsFactors = FALSE
@@ -1049,9 +1050,9 @@ rse_jx <- SummarizedExperiment(
     rowRanges = jMap, colData = metrics
 )
 
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
-    save(rse_jx, file = paste0("rse_jx_", EXPNAME, "_n", N, ".Rdata"))
+save(rse_jx, file = paste0("rse_jx_", EXPNAME, "_n", N, ".Rdata"))
 
+if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     ## transcript
     tx <- gencodeGTF[which(gencodeGTF$type == "transcript")]
     names(tx) <- tx$transcript_id
@@ -1067,18 +1068,6 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
         colData = metrics, rowRanges = txMap
     )
     save(rse_tx, file = paste0("rse_tx_", EXPNAME, "_n", N, ".Rdata"))
-} else { # 'rn6'
-    ## Create RangedSummarizedExperiment objects
-    getRPM <- function(rse, target = 80e6) {
-        require(SummarizedExperiment)
-        mapped <- colSums(assays(rse)$counts)
-        bg <- matrix(rep(mapped / target),
-            nc = ncol(rse), nr = nrow(rse), byrow = TRUE
-        )
-        assays(rse)$counts / bg
-    }
-
-    save(rse_jx, getRPM, file = paste0("rse_jx_", EXPNAME, "_n", N, ".Rdata"))
 }
 
 ## Reproducibility information
