@@ -16,7 +16,7 @@ nextflow $ORIG_DIR/main.nf \
     --reference "hg38" \
     --strand "forward" \
     --small_test \
-    --annotation "/dcl01/lieber/ajaffe/Nick/SPEAQeasy/Annotation" \
+    --annotation "/dcs04/lieber/lcolladotor/annotationFiles_LIBD001/SPEAQeasy/Annotation" \
     -with-report execution_reports/JHPCE_run.html \
     -profile jhpce
 
