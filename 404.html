@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>7 Pipeline Outputs | SPEAQeasy</title>
-  <meta name="description" content="7 Pipeline Outputs | SPEAQeasy" />
+  <title>Page not found | SPEAQeasy</title>
+  <meta name="description" content="Page not found | SPEAQeasy" />
   <meta name="generator" content="bookdown 0.24 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="7 Pipeline Outputs | SPEAQeasy" />
+  <meta property="og:title" content="Page not found | SPEAQeasy" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="7 Pipeline Outputs | SPEAQeasy" />
+  <meta name="twitter:title" content="Page not found | SPEAQeasy" />
   
   
   
@@ -29,8 +29,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="manifest.html"/>
-<link rel="next" href="configuration.html"/>
+
+
 <script src="libs/header-attrs-2.10/header-attrs.js"></script>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
@@ -269,166 +269,19 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="outputs" class="section level1" number="7">
-<h1><span class="header-section-number">7</span> Pipeline Outputs</h1>
-<div id="main-outputs" class="section level2" number="7.1">
-<h2><span class="header-section-number">7.1</span> Main Outputs</h2>
-<div class="figure">
-<img src="images/7_main_outputs.png" alt="" />
-<p class="caption">Main Outputs</p>
-</div>
-<p>Most importantly, SPEAQeasy generates <a href="https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html"><code>RangedSummarizedExperiment</code></a> objects storing counts at several features (genes, exons, and exon-exon junctions). A number of <a href="https://bioconductor.org/">Bioconductor</a> packages can be trivially utilized to perform desired differential expression analyses from counts in the widespread <code>SummarizedExperiment</code> format, and we provide a <a href="http://research.libd.org/SPEAQeasy-example">vignette</a> demonstrating an example analysis.</p>
-<p>For human samples, variants are called at a list of common missense single nucleotide variants (SNVs), and SPEAQeasy ultimately a single VCF file to store genotype calls at these sites for all samples in the experiment. We provide a <a href="http://research.libd.org/SPEAQeasy-example">guide</a> walking through how this genotype data can be used to resolve identity issues that arise during sequencing, salvaging samples which otherwise might be dropped from further analysis.</p>
-<p>Finally, expressed regions data is optionally generated (with the <code>--coverage</code> <a href="command-opts.html#command-opts">option</a>). The <code>RData</code> files provide a starting point for finding differentially expressed regions (DERs), for analyses involving this end goal.</p>
-<div id="quality-metrics" class="section level3" number="7.1.1">
-<h3><span class="header-section-number">7.1.1</span> Quality Metrics</h3>
-<p>One of the major pipeline outputs is a comma-separated values (CSV) file where fields (columns) are different quality metrics, and each line (row) is associated with one sample. A list of the exact field names and their descriptions is given below.</p>
-<table>
-<colgroup>
-<col width="31%" />
-<col width="68%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Metric name</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>SAMPLE_ID</td>
-<td>The name of the sample, as specified in the last column of samples.manifest</td>
-</tr>
-<tr class="even">
-<td>ERCCsumLogErr</td>
-<td>If applicable, a summary statistic quantifying overall difference of expected and actual ERCC concentrations for one sample</td>
-</tr>
-<tr class="odd">
-<td>trimmed</td>
-<td>A boolean value (“TRUE” or “FALSE”), indicating whether the given sample underwent trimming</td>
-</tr>
-<tr class="even">
-<td>numReads</td>
-<td>The number of reads present in any FASTQ files associated with the sample (after any trimming)</td>
-</tr>
-<tr class="odd">
-<td>numMapped</td>
-<td>The number of reads which successfully mapped to the reference genome during alignment</td>
-</tr>
-<tr class="even">
-<td>numUnmapped</td>
-<td>The number of reads which did not successfully map to the reference genome during alignment</td>
-</tr>
-<tr class="odd">
-<td>overallMapRate</td>
-<td>The decimal fraction of reads which successfully mapped to the reference genome (i.e. <em>numMapped / numReads</em>)</td>
-</tr>
-<tr class="even">
-<td>concordMapRate</td>
-<td>The decimal fraction of reads which aligned concordantly to the reference genome</td>
-</tr>
-<tr class="odd">
-<td>totalMapped</td>
-<td>The number of reads which successfully mapped to the canonical sequences in the reference genome (excluding mitochondrial chromosomes)</td>
-</tr>
-<tr class="even">
-<td>mitoMapped</td>
-<td>The number of reads which successfully mapped to the mitochondrial chromosome</td>
-</tr>
-<tr class="odd">
-<td>mitoRate</td>
-<td>The decimal fraction of reads which mapped to the mitochondrial chromosome, of those which map at all (i.e. <em>mitoMapped / (totalMapped + mitoMapped))</em></td>
-</tr>
-<tr class="even">
-<td>totalAssignedGene</td>
-<td>The decimal fraction of reads assigned unambiguously to a gene, with featureCounts (Liao et al. 2014), of those in total</td>
-</tr>
-<tr class="odd">
-<td>rRNA_rate</td>
-<td>The decimal fraction of reads assigned to a gene whose type is ‘rRNA’, of those assigned to any gene</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div id="intermediary-outputs" class="section level2" number="7.2">
-<h2><span class="header-section-number">7.2</span> Intermediary Outputs</h2>
-<p>SPEAQeasy generates a number of files along the process before producing the main outputs of interest. Each of these “intermediary” files is described below.</p>
-<p><strong>Count Objects</strong> <code>count_objects/</code></p>
-<ul>
-<li><code>ercc_spikein_check_mix1.pdf</code>: A plot comparing the Mix1 <a href="https://tools.thermofisher.com/content/sfs/manuals/cms_095046.txt">expected concentration</a> against the observed counts from <a href="https://pachterlab.github.io/kallisto/">Kallisto</a>.</li>
-<li><code>rawCounts_[experiment_name]_n[num_samples].rda</code>: An R data file containing a number of matrices/ data frames containing raw gene, exon, exon-exon junction, and transcript counts. A data frame of quality metrics is also included.</li>
-<li><code>read_and_alignment_metrics_[experiment_name].csv</code>: A comma-separated values file of quality metrics.</li>
-<li><code>rpkm_counts_[experiment_name]_n[num_samples].rda</code>: The same data as in rawCounts_[experiment_name]_n[num_samples].rda, but normalized as reads-per-kilobase-million (RPKM).</li>
-</ul>
-<p><strong>Raw Counts</strong> <code>counts/</code></p>
-<ul>
-<li>[sample_name]_[annotation_version]_Exons.counts`: Exon counts for each sample individually, as reported by <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</li>
-<li><code>[sample_name]_[annotation_version]_Exons.counts.summary</code>: A summary of key information generated from quantifying exons on a particular sample with <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</li>
-<li><code>[sample_name]_[annotation_version]_Gene.counts</code>: Gene counts for each sample individually, as reported by <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</li>
-<li><code>[sample_name]_[annotation_version]_Gene.counts.summary</code>: A summary of key information generated from quantifying genes on a particular sample with <a href="http://bioinf.wehi.edu.au/featureCounts/">featureCounts</a>.</li>
-<li><code>junction/[sample_name]_junctions_primaryOnly_regtools.bed</code>: A file in BED format describing junctions determined by <a href="https://regtools.readthedocs.io/en/latest/">regtools</a> run on primary alignments for a given sample.</li>
-<li><code>junction/[sample_name]_junctions_primaryOnly_regtools.count</code>: A text file describing the junction ranges and providing raw counts of hits for each junction, as output by <a href="https://regtools.readthedocs.io/en/latest/">regtools</a>.</li>
-<li><code>junction/primary_alignments/[sample_name].bam</code> and <code>junction/primary_alignments/[sample_name].bam.bai</code>: The subset of primary alignments for a given sample, in BAM format, along with an index for each BAM.</li>
-</ul>
-<p><strong>ERCC Raw Quantification</strong> <code>ERCC/</code></p>
-<ul>
-<li><code>ERCC/[sample_name]/abundance.tsv</code>: The output from running <a href="https://pachterlab.github.io/kallisto/">Kallisto</a> against the 92 <a href="https://www.thermofisher.com/order/catalog/product/4456740">ERCC RNA Spike Mix</a> sequences for each sample.</li>
-</ul>
-<p><strong>Coverage wigs and bigWigs</strong> <code>coverage/</code></p>
-<ul>
-<li><code>[sample_name].[strand].wig</code>: Wiggle files containing coverage information for a given sample and strand.</li>
-<li><code>mean/mean.forward.bw</code> and <code>mean/mean.reverse.bw</code>: BigWig files containing coverage information averaged across all samples in the experiment, and split by strand.</li>
-</ul>
-<p><strong>Expressed Regions Data</strong> <code>expressed_regions/</code></p>
-<ul>
-<li><code>region_cuts_raw_[strand].Rdata</code>: An R object called <code>region_cuts_raw</code> that is a list with one element per chromosome, then a nested element per cutoff used for identifying expressed regions using <a href="https://bioconductor.org/packages/derfinder"><code>derfinder::findRegions()</code></a>.</li>
-<li><code>region_cuts_[strand].Rdata</code>: An R object called <code>region_cuts</code> that is a list with one element per cutoff that contains a <code>GenomicRanges::GRanges()</code> object with the expressed regions across all chromosomes.</li>
-<li><code>region_info_[strand].Rdata</code>: An R object called <code>regInfo</code> that is a <code>data.frame</code> with the columns: <code>cutoff</code>, <code>n</code>, <code>mean</code>, and <code>sd</code>. This table summarizes the number, mean width, sd of the width for the expressed regions identified at each cutoff.</li>
-<li><code>region_info_[strand].pdf</code>: A PDF with a few exploratory plots made using <code>regInfo</code> that evaluate how the cutoff for identifying the expressed regions affects the number of ERs, their mean width, the sd of their width. These are the visualization plots recommended for choosing a cutoff as described on the <code>derfinder</code> <a href="https://doi.org/10.1093/nar/gkw852">manuscript</a> at Figure S4 <a href="https://github.com/leekgroup/derSupplement/blob/gh-pages/derfinder_supplement.pdf">available here</a>.</li>
-</ul>
-<p><strong>FastQC Outputs</strong> <code>fastQC/</code></p>
-<ul>
-<li>[trim_status]/[file_name]/*`: Outputs from <a href="https://www.bioinformatics.babraham.ac.uk/projects/fastqc/">FastQC</a>. Here trim_status indicates when FastQC was performed: Untrimmed is before trimming, and Trimmed is after. file_name contains the sample name, and if applicable, the mate number.</li>
-</ul>
-<p><strong>Alignment BAMs and Summaries</strong> <code>alignment/</code></p>
-<ul>
-<li><code>[sample_name].bam</code>: The main alignment output from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a> or optionally <a href="https://github.com/alexdobin/STAR">STAR</a> in BAM format. In either case, unmapped reads are not included (different from the default behavior for HISAT2!).</li>
-<li><code>[sample_name]_align_summary.txt</code>: The text-based alignment summary from <a href="http://daehwankimlab.github.io/hisat2/">Hisat2</a>, if applicable. Note that metrics from these files are aggregated for the experiment, and so users likely will not need to check or process the original files manually.</li>
-<li><code>[sample_name]_STAR_alignment.log</code>: Statistics from STAR alignment (if applicable) for a single sample, renamed from <code>Log.final.out</code>. Note that metrics from these files are aggregated for the experiment, and so users likely will not need to check or process the original files manually.</li>
-<li>bam_sort/[sample_name]_sorted.bam<code>and</code>bam_sort/[sample_name]_sorted.bam.bai`: Coordinate-sorted alignments and their corresponding indices.</li>
-<li><code>[sample_name]_unmapped_mate*.fastq</code>: If using STAR with paired-end reads and the <code>--unalign</code> <a href="command-opts.html#command-opts">option</a>, these two files (mates 1 and 2) are produced, including unmapped reads (this includes “discordant” reads).</li>
-<li><code>[sample_name]_discordant.fastq</code>: If using HISAT2 (this is the default) and the <code>--unalign</code> <a href="command-opts.html#command-opts">option</a>, this file is produced and includes discordant mappings.</li>
-</ul>
-<p><strong>Outputs from Strand Inference</strong> <code>infer_strandness/</code></p>
-<ul>
-<li><code>[sample_name]_strandness_pattern.txt</code>: A text file containing the inferred strandness pattern for each sample. These files are primarily for internal use by the pipeline, and it is recommended to check the output file <code>samples_complete.manifest</code> to quickly view strandness patterns for all samples.</li>
-<li><code>samples_complete.manifest</code>: A version of the input samples.manifest, with an additional column listing the inferred strandness pattern for each sample</li>
-</ul>
-<p><strong>Transcript Quantification by Sample</strong> <code>kallisto_tx/</code></p>
-<ul>
-<li><code>[sample_name]/abundance.h5</code>: Abundance estimates, bootstrap estimates, run metadata, and transcript length from <a href="https://pachterlab.github.io/kallisto/">Kallisto</a>, saved into an HDF5 binary file.</li>
-<li><code>[sample_name]/[sample_name]_abundance.tsv</code>: Plain-text abundance estimates from <a href="https://pachterlab.github.io/kallisto/">Kallisto</a> across the reference transcriptome.</li>
-<li><code>[sample_name]/run_info.json</code>: <a href="https://pachterlab.github.io/kallisto/">Kallisto</a> run metadata in javascript object notation.</li>
-</ul>
-<p><strong>SPEAQeasy Logs by Sample</strong> <code>logs/</code></p>
-<ul>
-<li><code>[sample_name]_process_trace.log</code>: A SPEAQeasy-generated log tracing the processes and associated commands run for each sample. This is intended to help users quickly determine the source of any errors during pipeline execution (text).</li>
-</ul>
-<p><strong>Trimmed FASTQ Files</strong> <code>trimming/</code></p>
-<ul>
-<li><code>[sample_name]_trimmed*.fastq</code>: Trimmed FASTQ files, if applicable, from <a href="http://www.usadellab.org/cms/?page=trimmomatic">Trimmomatic</a></li>
-</ul>
-
-</div>
+<div id="page-not-found" class="section level1">
+<h1>Page not found</h1>
+<p>The page you requested cannot be found (perhaps it was moved or renamed).</p>
+<p>You may want to try searching to find the page's new location, or use
+the table of contents to find the page you are looking for.</p>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-<a href="manifest.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="configuration.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+
+
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
