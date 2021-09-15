@@ -113,12 +113,6 @@ def helpMessage() {
                        (default: false)
     --experiment [string] <- main name for the experiment (default:
                        "Jlab_experiment")
-    --force_strand  <- include this flag to continue pipeline execution with a
-                       warning, when user-provided strand contrasts with
-                       inferred strandness in any sample. Default: false (Halt
-                       pipeline execution with an error message if any sample
-                       appears to be a different strandness than stated by the
-                       user).
     --fullCov       <- flag to perform full coverage analysis (default: false).
                        Implies the '--coverage' option.
     --help          <- shows this message
@@ -137,6 +131,15 @@ def helpMessage() {
     --small_test	  <- use small test files as input, rather than the files
                        specified in samples.manifest in the directory given by
                        "--input [path]". Default: false.
+    --strand_mode [mode] <- determines how to handle disagreement between
+                       user-asserted and SPEAQeasy-inferred strandness:
+                           "accept": warn about disagreement but continue,
+                               using SPEAQeasy-inferred strandness downstream
+                           "declare": warn about disagreement but continue,
+                               using user-asserted strandness downstream
+                           "strict": (default) halt with an error if any
+                               disagreement occurs (since this often indicates
+                               problems in the input data)
     --trim_mode [mode] <- determines the conditions under which trimming occurs:
                           "skip": do not perform trimming on samples
                           "adaptive": [default] perform trimming on samples that
@@ -184,7 +187,6 @@ params.coverage = false
 params.custom_anno = ""
 params.ercc = false
 params.experiment = "Jlab_experiment"
-params.force_strand = false
 params.fullCov = false
 params.keep_unpaired = false
 params.output = "${workflow.projectDir}/results"
@@ -193,6 +195,7 @@ params.reference = ""
 params.sample = ""
 params.small_test = false
 params.strand = ""
+params.strand_mode = "strict"
 params.trim_mode = "adaptive"
 params.unalign = false
 params.use_salmon = false
@@ -220,6 +223,11 @@ if (params.reference != "hg19" && params.reference != "hg38" && params.reference
 // Trim mode
 if (params.trim_mode != "skip" && params.trim_mode != "adaptive" && params.trim_mode != "force") {
     exit 1, "'--trim_mode' accepts one of three possible arguments: 'skip', 'adaptive', or 'force'."
+}
+
+// Strand mode
+if (params.strand_mode != "accept" && params.strand_mode != "declare" && params.strand_mode != "strict") {
+    exit 1, "'--strand_mode' accepts one of three possible arguments: 'accept', 'declare', or 'strict'."
 }
 
 // Keeping unpaired reads that are not produced
@@ -394,7 +402,6 @@ summary['Compute coverage'] = do_coverage
 summary['Custom anno label'] = params.custom_anno
 summary['ERCC spike-in'] = params.ercc
 summary['Experiment name'] = params.experiment
-summary['Force strand'] = params.force_strand
 summary['Full coverage'] = params.fullCov
 summary['Input dir']			   = params.input
 summary['Keep unpaired'] = params.keep_unpaired
@@ -404,6 +411,7 @@ summary['Reference']		   = params.reference
 summary['Sample']			  = params.sample
 summary['Small test']	= params.small_test
 summary['Strand']			  = params.strand
+summary['Strand mode'] = params.strand_mode
 summary['Trim mode'] = params.trim_mode
 summary['Keep discordant'] = params.unalign
 summary['Use salmon'] = params.use_salmon
@@ -770,7 +778,7 @@ process InferStrandness {
             !{params.kallisto_len_sd} \
             !{params.strand} \
             !{params.Rscript} \
-            !{params.force_strand} \
+            !{params.strand_mode} \
             !{prefix}
         
         cp .command.log !{prefix}_infer_strand.log

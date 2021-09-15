@@ -15,7 +15,6 @@
 * `--custom_anno [label]` Include this flag to indicate that the directory specified with `--annotation [dir]` includes user-provided annotation files to use instead of the default files. See the "Using custom annotation" section for more details.
 * `--ercc`            Include this flag to enable ERCC quantification with Kallisto. This is appropriate for experiments where samples have ERCC spike-ins.
 * `--experiment`    Name of the experiment being run (ex: "alzheimer"). Defaults to "Jlab_experiment"
-* `--force_strand` Include this flag to continue pipeline execution with a warning, when user-provided strand contrasts with inferred strandness in any sample. Default: false (halt pipeline execution with an error message if any sample appears to be a different strandness than stated by the user)
 * `--fullCov`        Include this flag to perform full coverage analysis.
 * `--help`  Provides an explanation about each of these command options, and exits.
 * `--input`        The path to the directory with the "samples.manifest" file. Defaults to "[SPEAQeasy dir]/input". Note only full paths may be used!
@@ -23,9 +22,13 @@
 * `--output`  The path to the directory to store pipeline output files/ objects. Defaults to "[SPEAQeasy dir]/results". Note only full paths may be used!
 * `--prefix`    An additional label (in conjunction with "experiment") to use for the pipeline run- affecting result file names.
 * `--small_test`    Uses sample files located in the test folder as input. Overrides the "--input" option.
-* `--trim_mode`  Determines the conditions under which trimming occurs:
-                    "skip": do not perform trimming on samples
-                    "adaptive": [default] perform trimming on samples that have failed the FastQC "Adapter content" metric
+* `--strand_mode [mode]` <- Determines how to handle disagreement between user-asserted and SPEAQeasy-inferred strandness:    
+                           "accept": warn about disagreement but continue, using SPEAQeasy-inferred strandness downstream    
+                           "declare": warn about disagreement but continue, using user-asserted strandness downstream    
+                           "strict": (default) halt with an error if any disagreement occurs (since this often indicates problems in the input data)
+* `--trim_mode [mode]`  Determines the conditions under which trimming occurs:    
+                    "skip": do not perform trimming on samples    
+                    "adaptive": [default] perform trimming on samples that have failed the FastQC "Adapter content" metric    
                     "force": perform trimming on all samples
 * `--unalign`        Include this flag to save discordant reads (when using HISAT2) or unmapped reads (when using STAR) after the alignment step (false/ not included by default)
 * `--use_salmon`  Include this flag to quantify transcripts with Salmon rather than the default of Kallisto.
