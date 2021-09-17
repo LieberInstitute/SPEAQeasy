@@ -284,44 +284,259 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Finally, expressed regions data is optionally generated (with the <code>--coverage</code> <a href="command-opts.html#command-opts">option</a>). The <code>RData</code> files provide a starting point for finding differentially expressed regions (DERs), for analyses involving this end goal.</p>
 <div id="rowranges-of-rse-objects" class="section level3" number="7.1.1">
 <h3><span class="header-section-number">7.1.1</span> <code>rowRanges</code> of RSE objects</h3>
-<p>For the <code>rse_tx</code> object, all columns of its <code>rowRanges</code> are directly pulled from the annotation GTF, and thus will not be described below. The remaining objects have columns extracted or computed from several different sources. The following key will be used to label <code>colnames</code> with their description:</p>
-<p><strong>(1)</strong>: present in <code>rse_gene</code>
-<strong>(2)</strong>: present in <code>rse_exon</code>
-<strong>(3)</strong>: present in <code>rse_jx</code></p>
+<p>For the <code>rse_tx</code> object, all columns of its <code>rowRanges</code> are directly pulled from the annotation GTF, and thus will not be described below. The remaining objects have columns extracted or computed from several different sources.</p>
 <div id="pulled-from-featurecounts-outputs" class="section level4" number="7.1.1.1">
 <h4><span class="header-section-number">7.1.1.1</span> Pulled from <code>featureCounts</code> outputs</h4>
-<p><strong>(1, 2, 3)</strong>: <code>seqnames</code>, <code>ranges</code>, <code>strand</code>, <code>Length</code>, (human/mouse): <code>ensemblID</code> is truncated from <code>Geneid</code> (1, 2) or <code>gencodeID</code> (3)</p>
-<p><strong>(1, 2)</strong>: (human/mouse): <code>gencodeID</code> is <code>Geneid</code>; (rat): <code>Symbol</code>, <code>EntrezID</code></p>
-<p><strong>(1)</strong>: rownames are <code>Geneid</code></p>
-<p><strong>(2)</strong>: <code>exon_gencodeID</code> is <code>exon_id</code>, <code>coord</code> is <code>ranges</code> pasted into a string</p>
+<table>
+<colgroup>
+<col width="21%" />
+<col width="35%" />
+<col width="21%" />
+<col width="21%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Column Name</th>
+<th>Description</th>
+<th>Species</th>
+<th>RSE object(s)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>seqnames</code></td>
+<td>directly pulled</td>
+<td>human, mouse, rat</td>
+<td><code>rse_gene</code>, <code>rse_exon</code>, <code>rse_jx</code></td>
+</tr>
+<tr class="even">
+<td>ranges</td>
+<td>directly pulled</td>
+<td>human, mouse, rat</td>
+<td><code>rse_gene</code>, <code>rse_exon</code>, <code>rse_jx</code></td>
+</tr>
+<tr class="odd">
+<td><code>strand</code></td>
+<td>directly pulled</td>
+<td>human, mouse, rat</td>
+<td><code>rse_gene</code>, <code>rse_exon</code>, <code>rse_jx</code></td>
+</tr>
+<tr class="even">
+<td><code>Length</code></td>
+<td>directly pulled</td>
+<td>human, mouse, rat</td>
+<td><code>rse_gene</code>, <code>rse_exon</code>, <code>rse_jx</code></td>
+</tr>
+<tr class="odd">
+<td><code>ensemblID</code></td>
+<td>truncated from <code>Geneid</code> (genes, exons) or <code>gencodeID</code> (junctions)</td>
+<td>human, mouse</td>
+<td><code>rse_gene</code>, <code>rse_exon</code>, <code>rse_jx</code></td>
+</tr>
+<tr class="even">
+<td><code>gencodeID</code></td>
+<td>is <code>Geneid</code></td>
+<td>human, mouse</td>
+<td><code>rse_gene</code>, <code>rse_exon</code></td>
+</tr>
+<tr class="odd">
+<td><code>Symbol</code></td>
+<td>directly pulled</td>
+<td>rat</td>
+<td><code>rse_gene</code>, <code>rse_exon</code></td>
+</tr>
+<tr class="even">
+<td><code>EntrezID</code></td>
+<td>directly pulled</td>
+<td>rat</td>
+<td><code>rse_gene</code>, <code>rse_exon</code></td>
+</tr>
+<tr class="odd">
+<td><code>exon_gencodeID</code></td>
+<td>is <code>exon_id</code></td>
+<td>human, mouse, rat</td>
+<td><code>rse_exon</code></td>
+</tr>
+<tr class="even">
+<td><code>coord</code></td>
+<td>ranges pasted into a string</td>
+<td>human, mouse, rat</td>
+<td><code>rse_exon</code></td>
+</tr>
+</tbody>
+</table>
+<p>In addition, the <code>rownames</code> for <code>rse_gene</code> are <code>Geneid</code> from <code>featureCounts</code>.</p>
 </div>
 <div id="pulled-directly-from-gtf" class="section level4" number="7.1.1.2">
 <h4><span class="header-section-number">7.1.1.2</span> Pulled directly from GTF</h4>
-<p><strong>(1, 2)</strong>: (human/mouse): <code>gene_type</code></p>
-<p><strong>(3)</strong>: (human/mouse): <code>gencodeGeneID</code> is from <code>gencodeID</code>, <code>gencodeStrand</code> is strand, <code>gencodeTx</code> is <code>tx</code>; (rat): <code>ensemblGeneID</code> is from <code>ensemblID</code>, <code>ensemblStrand</code> is strand, <code>ensemblTx</code> is <code>tx</code></p>
+<table>
+<thead>
+<tr class="header">
+<th>Column Name</th>
+<th>Description</th>
+<th>Species</th>
+<th>RSE object(s)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>gene_type</code></td>
+<td>directly pulled</td>
+<td>human, mouse</td>
+<td><code>rse_gene</code>, <code>rse_exon</code></td>
+</tr>
+<tr class="even">
+<td><code>gencodeGeneID</code></td>
+<td>is <code>gencodeID</code></td>
+<td>human, mouse</td>
+<td><code>rse_jx</code></td>
+</tr>
+<tr class="odd">
+<td><code>gencodeStrand</code></td>
+<td>is strand</td>
+<td>human, mouse</td>
+<td><code>rse_jx</code></td>
+</tr>
+<tr class="even">
+<td><code>gencodeTx</code></td>
+<td>is <code>tx</code></td>
+<td>human, mouse</td>
+<td><code>rse_jx</code></td>
+</tr>
+<tr class="odd">
+<td><code>ensemblGeneID</code></td>
+<td>is <code>ensemblID</code></td>
+<td>rat</td>
+<td><code>rse_jx</code></td>
+</tr>
+<tr class="even">
+<td><code>ensemblStrand</code></td>
+<td>is strand</td>
+<td>rat</td>
+<td><code>rse_jx</code></td>
+</tr>
+<tr class="odd">
+<td><code>ensemblTx</code></td>
+<td>is <code>tx</code></td>
+<td>rat</td>
+<td><code>rse_jx</code></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="mapped-using-org..eg.db-r-packages" class="section level4" number="7.1.1.3">
 <h4><span class="header-section-number">7.1.1.3</span> Mapped using <code>org.*.eg.db</code> R packages</h4>
-<p><strong>(1, 2)</strong>: (human/mouse): <code>Symbol</code>, <code>EntrezID</code> mapped from info pulled from GTF</p>
+<table>
+<thead>
+<tr class="header">
+<th>Column Name</th>
+<th>Description</th>
+<th>Species</th>
+<th>RSE object(s)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Symbol</code></td>
+<td>mapped from info pulled from GTF</td>
+<td>human, mouse</td>
+<td><code>rse_gene</code>, <code>rse_exon</code></td>
+</tr>
+<tr class="even">
+<td><code>EntrezID</code></td>
+<td>mapped from info pulled from GTF</td>
+<td>human, mouse</td>
+<td><code>rse_gene</code>, <code>rse_exon</code></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="computed-by-speaqeasy" class="section level4" number="7.1.1.4">
 <h4><span class="header-section-number">7.1.1.4</span> Computed by SPEAQeasy</h4>
-<p><strong>(1, 2, 3)</strong>:</p>
-<p><code>meanExprs</code>: the rowmeans of computed RPKMs<br />
-<code>NumTx</code>: number of transcripts associated with a particular gene name (called <code>numTx</code> in <code>rse_jx</code>)</p>
-<p><strong>(1, 2)</strong>:</p>
-<p><code>Class</code>: holds the value “InGen”, meaning the gene is part of GENCODE annotation (as opposed to possible values in the <code>rse_jx</code> object)<br />
-<code>gencodeTx</code>: GENCODE names for transcripts associated with a gene</p>
-<p><strong>(2, human/mouse only)</strong>:</p>
-<p><code>exon_libdID</code>: a string made from “e” and integers pasted together, where the integer value is the index of the exon in the rows of <code>rse_exon</code> (this column may be removed in the future)</p>
-<p><strong>(3)</strong>:</p>
-<p><code>inGencode</code> (<code>inEnsembl</code>): <code>TRUE</code> for <code>featureCounts</code> ranges that are exactly present in GENCODE (Ensembl) annotation<br />
-<code>inGencodeStart</code> (<code>inEnsemblStart</code>): <code>TRUE</code> for <code>featureCounts</code> ranges whose start is the same as the corresponding junction in GENCODE (Ensembl) annotation<br />
-<code>inGencodeEnd</code> (<code>inEnsemblEnd</code>): <code>TRUE</code> for <code>featureCounts</code> ranges whose end is the same as the corresponding junction in GENCODE (Ensembl) annotation<br />
-<code>Class</code>: “InGen” (“InEns”) if the exact junction is present in GENCODE (Ensembl) annotation, otherwise: “ExonSkip” if the junction start and end match a junction in annotation, “AltStartEnd” if either the junction start or end match (but not both), or “Novel” if neither start nor end match<br />
-<code>newGeneID</code>: gene name or gene names associated with the exons that each junction spans<br />
-<code>newGeneSymbol</code>: gene symbol or gene symbols associated with the exons that each junction spans<br />
-<code>isFusion</code>: <code>TRUE</code> if a junction spans exons associated with different genes</p>
+<table>
+<colgroup>
+<col width="17%" />
+<col width="47%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Column Name</th>
+<th>Description</th>
+<th>Species</th>
+<th>RSE object(s)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>meanExprs</code></td>
+<td>the rowmeans of computed RPKMs</td>
+<td>human, mouse, rat</td>
+<td><code>rse_gene</code>, <code>rse_exon</code>, <code>rse_jx</code></td>
+</tr>
+<tr class="even">
+<td><code>NumTx</code></td>
+<td>number of transcripts associated with a particular gene name (called <code>numTx</code> in <code>rse_jx</code>)</td>
+<td>human, mouse, rat</td>
+<td><code>rse_gene</code>, <code>rse_exon</code>, <code>rse_jx</code></td>
+</tr>
+<tr class="odd">
+<td><code>Class</code></td>
+<td>holds the value “InGen”, meaning the gene is part of GENCODE annotation (as opposed to possible values in the <code>rse_jx</code> object)</td>
+<td>human, mouse, rat</td>
+<td><code>rse_gene</code>, <code>rse_exon</code></td>
+</tr>
+<tr class="even">
+<td><code>gencodeTx</code></td>
+<td>GENCODE names for transcripts associated with each gene</td>
+<td>human, mouse, rat</td>
+<td><code>rse_gene</code>, <code>rse_exon</code></td>
+</tr>
+<tr class="odd">
+<td><code>exon_libdID</code></td>
+<td>a string made from “e” and integers pasted together, where the integer value is the index of the exon in the rows of <code>rse_exon</code> (this column may be removed in the future)</td>
+<td>human, mouse</td>
+<td><code>rse_exon</code></td>
+</tr>
+<tr class="even">
+<td><code>inGencode</code> (<code>inEnsembl</code>)</td>
+<td><code>TRUE</code> for <code>featureCounts</code> ranges that are exactly present in GENCODE (Ensembl) annotation</td>
+<td>human, mouse, rat</td>
+<td><code>rse_jx</code></td>
+</tr>
+<tr class="odd">
+<td><code>inGencodeStart</code> (<code>inEnsemblStart</code>)</td>
+<td><code>TRUE</code> for <code>featureCounts</code> ranges whose start is the same as the corresponding junction in GENCODE (Ensembl) annotation</td>
+<td>human, mouse, rat</td>
+<td><code>rse_jx</code></td>
+</tr>
+<tr class="even">
+<td><code>inGencodeEnd</code> (<code>inEnsemblEnd</code>)</td>
+<td><code>TRUE</code> for <code>featureCounts</code> ranges whose end is the same as the corresponding junction in GENCODE (Ensembl) annotation</td>
+<td>human, mouse, rat</td>
+<td><code>rse_jx</code></td>
+</tr>
+<tr class="odd">
+<td><code>Class</code></td>
+<td>“InGen” (“InEns”) if the exact junction is present in GENCODE (Ensembl) annotation, otherwise: “ExonSkip” if the junction start and end match a junction in annotation, “AltStartEnd” if either the junction start or end match (but not both), or “Novel” if neither start nor end match</td>
+<td>human, mouse, rat</td>
+<td><code>rse_jx</code></td>
+</tr>
+<tr class="even">
+<td><code>newGeneID</code></td>
+<td>gene name or gene names associated with the exons that each junction spans</td>
+<td>human, mouse, rat</td>
+<td><code>rse_jx</code></td>
+</tr>
+<tr class="odd">
+<td><code>isFusion</code></td>
+<td><code>TRUE</code> if a junction spans exons associated with different genes</td>
+<td>human, mouse, rat</td>
+<td><code>rse_jx</code></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div id="coldata-of-rse-objects" class="section level3" number="7.1.2">
