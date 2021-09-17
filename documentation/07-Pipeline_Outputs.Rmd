@@ -13,57 +13,63 @@ Finally, expressed regions data is optionally generated (with the `--coverage` [
 
 ### `rowRanges` of RSE objects
 
-For the `rse_tx` object, all columns of its `rowRanges` are directly pulled from the annotation GTF, and thus will not be described below. The remaining objects have columns extracted or computed from several different sources. The following key will be used to label `colnames` with their description:
-
-**(1)**: present in `rse_gene`
-**(2)**: present in `rse_exon`
-**(3)**: present in `rse_jx`
+For the `rse_tx` object, all columns of its `rowRanges` are directly pulled from the annotation GTF, and thus will not be described below. The remaining objects have columns extracted or computed from several different sources.
 
 #### Pulled from `featureCounts` outputs
 
-**(1, 2, 3)**: `seqnames`, `ranges`, `strand`, `Length`, (human/mouse): `ensemblID` is truncated from `Geneid` (1, 2) or `gencodeID` (3)
+| Column Name | Description | Species | RSE object(s) |
+| --- | ----- | --- | --- |
+| `seqnames` | directly pulled | human, mouse, rat | `rse_gene`, `rse_exon`, `rse_jx` |
+| ranges | directly pulled | human, mouse, rat | `rse_gene`, `rse_exon`, `rse_jx` |
+| `strand` | directly pulled | human, mouse, rat | `rse_gene`, `rse_exon`, `rse_jx` |
+| `Length` | directly pulled | human, mouse, rat | `rse_gene`, `rse_exon`, `rse_jx` |
+| `ensemblID` | truncated from `Geneid` (genes, exons) or `gencodeID` (junctions) | human, mouse | `rse_gene`, `rse_exon`, `rse_jx` |
+| `gencodeID` | is `Geneid` | human, mouse | `rse_gene`, `rse_exon` |
+| `Symbol` | directly pulled | rat | `rse_gene`, `rse_exon` |
+| `EntrezID` | directly pulled | rat | `rse_gene`, `rse_exon` |
+| `exon_gencodeID` | is `exon_id` | human, mouse, rat | `rse_exon` |
+| `coord` | ranges pasted into a string | human, mouse, rat | `rse_exon` |
 
-**(1, 2)**: (human/mouse): `gencodeID` is `Geneid`; (rat): `Symbol`, `EntrezID`
+In addition, the `rownames` for `rse_gene` are `Geneid` from `featureCounts`.
 
-**(1)**: rownames are `Geneid`
-
-**(2)**: `exon_gencodeID` is `exon_id`, `coord` is `ranges` pasted into a string
 
 #### Pulled directly from GTF
 
-**(1, 2)**: (human/mouse): `gene_type`
+| Column Name | Description | Species | RSE object(s) |
+| --- | ----- | --- | --- |
+| `gene_type` | directly pulled | human, mouse | `rse_gene`, `rse_exon` |
+| `gencodeGeneID` | is `gencodeID` | human, mouse | `rse_jx` |
+| `gencodeStrand` | is strand | human, mouse | `rse_jx` |
+| `gencodeTx` | is `tx` | human, mouse | `rse_jx` |
+| `ensemblGeneID` | is `ensemblID` | rat | `rse_jx` |
+| `ensemblStrand` | is strand | rat | `rse_jx` |
+| `ensemblTx` | is `tx` | rat | `rse_jx` |
 
-**(3)**: (human/mouse): `gencodeGeneID` is from `gencodeID`, `gencodeStrand` is strand, `gencodeTx` is `tx`; (rat): `ensemblGeneID` is from `ensemblID`, `ensemblStrand` is strand, `ensemblTx` is `tx`
 
 #### Mapped using `org.*.eg.db` R packages
 
-**(1, 2)**: (human/mouse): `Symbol`, `EntrezID` mapped from info pulled from GTF
+| Column Name | Description | Species | RSE object(s) |
+| --- | ----- | --- | --- |
+| `Symbol` | mapped from info pulled from GTF | human, mouse | `rse_gene`, `rse_exon` |
+| `EntrezID` | mapped from info pulled from GTF | human, mouse | `rse_gene`, `rse_exon` |
+
 
 #### Computed by SPEAQeasy
 
-**(1, 2, 3)**:
+| Column Name | Description | Species | RSE object(s) |
+| --- | -------- | --- | --- |
+| `meanExprs` | the rowmeans of computed RPKMs | human, mouse, rat | `rse_gene`, `rse_exon`, `rse_jx` |
+| `NumTx` | number of transcripts associated with a particular gene name (called `numTx` in `rse_jx`) | human, mouse, rat | `rse_gene`, `rse_exon`, `rse_jx` |
+| `Class` | holds the value "InGen", meaning the gene is part of GENCODE annotation (as opposed to possible values in the `rse_jx` object) | human, mouse, rat | `rse_gene`, `rse_exon` |
+| `gencodeTx` | GENCODE names for transcripts associated with each gene | human, mouse, rat | `rse_gene`, `rse_exon` |
+| `exon_libdID` | a string made from "e" and integers pasted together, where the integer value is the index of the exon in the rows of `rse_exon` (this column may be removed in the future) | human, mouse | `rse_exon` |
+| `inGencode` (`inEnsembl`) | `TRUE` for `featureCounts` ranges that are exactly present in GENCODE (Ensembl) annotation | human, mouse, rat | `rse_jx` |
+| `inGencodeStart` (`inEnsemblStart`) | `TRUE` for `featureCounts` ranges whose start is the same as the corresponding junction in GENCODE (Ensembl) annotation | human, mouse, rat | `rse_jx` |
+| `inGencodeEnd` (`inEnsemblEnd`) | `TRUE` for `featureCounts` ranges whose end is the same as the corresponding junction in GENCODE (Ensembl) annotation | human, mouse, rat | `rse_jx` |
+| `Class` | "InGen" ("InEns") if the exact junction is present in GENCODE (Ensembl) annotation, otherwise: "ExonSkip" if the junction start and end match a junction in annotation, "AltStartEnd" if either the junction start or end match (but not both), or "Novel" if neither start nor end match | human, mouse, rat | `rse_jx` |
+| `newGeneID` | gene name or gene names associated with the exons that each junction spans | human, mouse, rat | `rse_jx` |
+| `isFusion` | `TRUE` if a junction spans exons associated with different genes | human, mouse, rat | `rse_jx` |
 
-`meanExprs`: the rowmeans of computed RPKMs    
-`NumTx`: number of transcripts associated with a particular gene name (called `numTx` in `rse_jx`)
-
-**(1, 2)**:
-
-`Class`: holds the value "InGen", meaning the gene is part of GENCODE annotation (as opposed to possible values in the `rse_jx` object)    
-`gencodeTx`: GENCODE names for transcripts associated with a gene
-
-**(2, human/mouse only)**:
-
-`exon_libdID`: a string made from "e" and integers pasted together, where the integer value is the index of the exon in the rows of `rse_exon` (this column may be removed in the future)
-
-**(3)**:
-
-`inGencode` (`inEnsembl`): `TRUE` for `featureCounts` ranges that are exactly present in GENCODE (Ensembl) annotation    
-`inGencodeStart` (`inEnsemblStart`): `TRUE` for `featureCounts` ranges whose start is the same as the corresponding junction in GENCODE (Ensembl) annotation    
-`inGencodeEnd` (`inEnsemblEnd`): `TRUE` for `featureCounts` ranges whose end is the same as the corresponding junction in GENCODE (Ensembl) annotation    
-`Class`: "InGen" ("InEns") if the exact junction is present in GENCODE (Ensembl) annotation, otherwise: "ExonSkip" if the junction start and end match a junction in annotation, "AltStartEnd" if either the junction start or end match (but not both), or "Novel" if neither start nor end match    
-`newGeneID`: gene name or gene names associated with the exons that each junction spans    
-`newGeneSymbol`: gene symbol or gene symbols associated with the exons that each junction spans    
-`isFusion`: `TRUE` if a junction spans exons associated with different genes
 
 ### `colData` of RSE objects
 
