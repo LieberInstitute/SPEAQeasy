@@ -11,7 +11,66 @@ For human samples, variants are called at a list of common missense single nucle
 
 Finally, expressed regions data is optionally generated (with the `--coverage` [option](#command-opts)). The `RData` files provide a starting point for finding differentially expressed regions (DERs), for analyses involving this end goal.
 
-### Quality Metrics
+### `rowRanges` of RSE objects
+
+For the `rse_tx` object, all columns of its `rowRanges` are directly pulled from the annotation GTF, and thus will not be described below. The remaining objects have columns extracted or computed from several different sources. The following key will be used to label `colnames` with their description:
+
+**(1)**: present in `rse_gene`
+**(2)**: present in `rse_exon`
+**(3)**: present in `rse_jx`
+
+#### Pulled from `featureCounts` outputs
+
+**(1, 2, 3)**: `seqnames`, `ranges`, `strand`, `Length`, (human/mouse): `ensemblID` is truncated from `Geneid` (1, 2) or `gencodeID` (3)
+
+**(1, 2)**: (human/mouse): `gencodeID` is `Geneid`; (rat): `Symbol`, `EntrezID`
+
+**(1)**: rownames are `Geneid`
+
+**(2)**: `exon_gencodeID` is `exon_id`, `coord` is `ranges` pasted into a string
+
+#### Pulled directly from GTF
+
+**(1, 2)**: (human/mouse): `gene_type`
+
+**(3)**: (human/mouse): `gencodeGeneID` is from `gencodeID`, `gencodeStrand` is strand, `gencodeTx` is `tx`; (rat): `ensemblGeneID` is from `ensemblID`, `ensemblStrand` is strand, `ensemblTx` is `tx`
+
+#### Mapped using `org.*.eg.db` R packages
+
+**(1, 2)**: (human/mouse): `Symbol`, `EntrezID` mapped from info pulled from GTF
+
+#### Computed by SPEAQeasy
+
+**(1, 2, 3)**:
+
+`meanExprs`: the rowmeans of computed RPKMs    
+`NumTx`: number of transcripts associated with a particular gene name (called `numTx` in `rse_jx`)
+
+**(1, 2)**:
+
+`Class`: holds the value "InGen", meaning the gene is part of GENCODE annotation (as opposed to possible values in the `rse_jx` object)    
+`gencodeTx`: GENCODE names for transcripts associated with a gene
+
+**(2, human/mouse only)**:
+
+`exon_libdID`: a string made from "e" and integers pasted together, where the integer value is the index of the exon in the rows of `rse_exon` (this column may be removed in the future)
+
+**(3)**:
+
+`inGencode` (`inEnsembl`): `TRUE` for `featureCounts` ranges that are exactly present in GENCODE (Ensembl) annotation    
+`inGencodeStart` (`inEnsemblStart`): `TRUE` for `featureCounts` ranges whose start is the same as the corresponding junction in GENCODE (Ensembl) annotation    
+`inGencodeEnd` (`inEnsemblEnd`): `TRUE` for `featureCounts` ranges whose end is the same as the corresponding junction in GENCODE (Ensembl) annotation    
+`Class`: "InGen" ("InEns") if the exact junction is present in GENCODE (Ensembl) annotation, otherwise: "ExonSkip" if the junction start and end match a junction in annotation, "AltStartEnd" if either the junction start or end match (but not both), or "Novel" if neither start nor end match    
+`newGeneID`: gene name or gene names associated with the exons that each junction spans    
+`newGeneSymbol`: gene symbol or gene symbols associated with the exons that each junction spans    
+`isFusion`: `TRUE` if a junction spans exons associated with different genes
+
+### `colData` of RSE objects
+
+Many of the columns in the `colData` of each RSE object are considered "quality metrics", which are documented in the [next section](#quality-metrics) and also contained in a standalone CSV output. The remaining columns in the `colData` of each object have names of the form: `gene_Assigned` and `geneUnassigned_*`, and are pulled directly from the `featureCounts` summary outputs. Note that all objects (`rse_gene`, `rse_exon`, `rse_jx`, and `rse_tx) share identical `colData`.
+
+
+### Quality Metrics {#quality-metrics}
 
 One of the major pipeline outputs is a comma-separated values (CSV) file where fields (columns) are different quality metrics, and each line (row) is associated with one sample. A list of the exact field names and their descriptions is given below.
 
