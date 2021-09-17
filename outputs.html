@@ -209,7 +209,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="7.1" data-path="outputs.html"><a href="outputs.html#main-outputs"><i class="fa fa-check"></i><b>7.1</b> Main Outputs</a>
 <ul>
-<li class="chapter" data-level="7.1.1" data-path="outputs.html"><a href="outputs.html#quality-metrics"><i class="fa fa-check"></i><b>7.1.1</b> Quality Metrics</a></li>
+<li class="chapter" data-level="7.1.1" data-path="outputs.html"><a href="outputs.html#rowranges-of-rse-objects"><i class="fa fa-check"></i><b>7.1.1</b> <code>rowRanges</code> of RSE objects</a></li>
+<li class="chapter" data-level="7.1.2" data-path="outputs.html"><a href="outputs.html#coldata-of-rse-objects"><i class="fa fa-check"></i><b>7.1.2</b> <code>colData</code> of RSE objects</a></li>
+<li class="chapter" data-level="7.1.3" data-path="outputs.html"><a href="outputs.html#quality-metrics"><i class="fa fa-check"></i><b>7.1.3</b> Quality Metrics</a></li>
 </ul></li>
 <li class="chapter" data-level="7.2" data-path="outputs.html"><a href="outputs.html#intermediary-outputs"><i class="fa fa-check"></i><b>7.2</b> Intermediary Outputs</a></li>
 </ul></li>
@@ -280,8 +282,54 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Most importantly, SPEAQeasy generates <a href="https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html"><code>RangedSummarizedExperiment</code></a> objects storing counts at several features (genes, exons, and exon-exon junctions). A number of <a href="https://bioconductor.org/">Bioconductor</a> packages can be trivially utilized to perform desired differential expression analyses from counts in the widespread <code>SummarizedExperiment</code> format, and we provide a <a href="http://research.libd.org/SPEAQeasy-example">vignette</a> demonstrating an example analysis.</p>
 <p>For human samples, variants are called at a list of common missense single nucleotide variants (SNVs), and SPEAQeasy ultimately a single VCF file to store genotype calls at these sites for all samples in the experiment. We provide a <a href="http://research.libd.org/SPEAQeasy-example">guide</a> walking through how this genotype data can be used to resolve identity issues that arise during sequencing, salvaging samples which otherwise might be dropped from further analysis.</p>
 <p>Finally, expressed regions data is optionally generated (with the <code>--coverage</code> <a href="command-opts.html#command-opts">option</a>). The <code>RData</code> files provide a starting point for finding differentially expressed regions (DERs), for analyses involving this end goal.</p>
-<div id="quality-metrics" class="section level3" number="7.1.1">
-<h3><span class="header-section-number">7.1.1</span> Quality Metrics</h3>
+<div id="rowranges-of-rse-objects" class="section level3" number="7.1.1">
+<h3><span class="header-section-number">7.1.1</span> <code>rowRanges</code> of RSE objects</h3>
+<p>For the <code>rse_tx</code> object, all columns of its <code>rowRanges</code> are directly pulled from the annotation GTF, and thus will not be described below. The remaining objects have columns extracted or computed from several different sources. The following key will be used to label <code>colnames</code> with their description:</p>
+<p><strong>(1)</strong>: present in <code>rse_gene</code>
+<strong>(2)</strong>: present in <code>rse_exon</code>
+<strong>(3)</strong>: present in <code>rse_jx</code></p>
+<div id="pulled-from-featurecounts-outputs" class="section level4" number="7.1.1.1">
+<h4><span class="header-section-number">7.1.1.1</span> Pulled from <code>featureCounts</code> outputs</h4>
+<p><strong>(1, 2, 3)</strong>: <code>seqnames</code>, <code>ranges</code>, <code>strand</code>, <code>Length</code>, (human/mouse): <code>ensemblID</code> is truncated from <code>Geneid</code> (1, 2) or <code>gencodeID</code> (3)</p>
+<p><strong>(1, 2)</strong>: (human/mouse): <code>gencodeID</code> is <code>Geneid</code>; (rat): <code>Symbol</code>, <code>EntrezID</code></p>
+<p><strong>(1)</strong>: rownames are <code>Geneid</code></p>
+<p><strong>(2)</strong>: <code>exon_gencodeID</code> is <code>exon_id</code>, <code>coord</code> is <code>ranges</code> pasted into a string</p>
+</div>
+<div id="pulled-directly-from-gtf" class="section level4" number="7.1.1.2">
+<h4><span class="header-section-number">7.1.1.2</span> Pulled directly from GTF</h4>
+<p><strong>(1, 2)</strong>: (human/mouse): <code>gene_type</code></p>
+<p><strong>(3)</strong>: (human/mouse): <code>gencodeGeneID</code> is from <code>gencodeID</code>, <code>gencodeStrand</code> is strand, <code>gencodeTx</code> is <code>tx</code>; (rat): <code>ensemblGeneID</code> is from <code>ensemblID</code>, <code>ensemblStrand</code> is strand, <code>ensemblTx</code> is <code>tx</code></p>
+</div>
+<div id="mapped-using-org..eg.db-r-packages" class="section level4" number="7.1.1.3">
+<h4><span class="header-section-number">7.1.1.3</span> Mapped using <code>org.*.eg.db</code> R packages</h4>
+<p><strong>(1, 2)</strong>: (human/mouse): <code>Symbol</code>, <code>EntrezID</code> mapped from info pulled from GTF</p>
+</div>
+<div id="computed-by-speaqeasy" class="section level4" number="7.1.1.4">
+<h4><span class="header-section-number">7.1.1.4</span> Computed by SPEAQeasy</h4>
+<p><strong>(1, 2, 3)</strong>:</p>
+<p><code>meanExprs</code>: the rowmeans of computed RPKMs<br />
+<code>NumTx</code>: number of transcripts associated with a particular gene name (called <code>numTx</code> in <code>rse_jx</code>)</p>
+<p><strong>(1, 2)</strong>:</p>
+<p><code>Class</code>: holds the value “InGen”, meaning the gene is part of GENCODE annotation (as opposed to possible values in the <code>rse_jx</code> object)<br />
+<code>gencodeTx</code>: GENCODE names for transcripts associated with a gene</p>
+<p><strong>(2, human/mouse only)</strong>:</p>
+<p><code>exon_libdID</code>: a string made from “e” and integers pasted together, where the integer value is the index of the exon in the rows of <code>rse_exon</code> (this column may be removed in the future)</p>
+<p><strong>(3)</strong>:</p>
+<p><code>inGencode</code> (<code>inEnsembl</code>): <code>TRUE</code> for <code>featureCounts</code> ranges that are exactly present in GENCODE (Ensembl) annotation<br />
+<code>inGencodeStart</code> (<code>inEnsemblStart</code>): <code>TRUE</code> for <code>featureCounts</code> ranges whose start is the same as the corresponding junction in GENCODE (Ensembl) annotation<br />
+<code>inGencodeEnd</code> (<code>inEnsemblEnd</code>): <code>TRUE</code> for <code>featureCounts</code> ranges whose end is the same as the corresponding junction in GENCODE (Ensembl) annotation<br />
+<code>Class</code>: “InGen” (“InEns”) if the exact junction is present in GENCODE (Ensembl) annotation, otherwise: “ExonSkip” if the junction start and end match a junction in annotation, “AltStartEnd” if either the junction start or end match (but not both), or “Novel” if neither start nor end match<br />
+<code>newGeneID</code>: gene name or gene names associated with the exons that each junction spans<br />
+<code>newGeneSymbol</code>: gene symbol or gene symbols associated with the exons that each junction spans<br />
+<code>isFusion</code>: <code>TRUE</code> if a junction spans exons associated with different genes</p>
+</div>
+</div>
+<div id="coldata-of-rse-objects" class="section level3" number="7.1.2">
+<h3><span class="header-section-number">7.1.2</span> <code>colData</code> of RSE objects</h3>
+<p>Many of the columns in the <code>colData</code> of each RSE object are considered “quality metrics”, which are documented in the <a href="outputs.html#quality-metrics">next section</a> and also contained in a standalone CSV output. The remaining columns in the <code>colData</code> of each object have names of the form: <code>gene_Assigned</code> and <code>geneUnassigned_*</code>, and are pulled directly from the <code>featureCounts</code> summary outputs. Note that all objects (<code>rse_gene</code>, <code>rse_exon</code>, <code>rse_jx</code>, and <code>rse_tx) share identical</code>colData`.</p>
+</div>
+<div id="quality-metrics" class="section level3" number="7.1.3">
+<h3><span class="header-section-number">7.1.3</span> Quality Metrics</h3>
 <p>One of the major pipeline outputs is a comma-separated values (CSV) file where fields (columns) are different quality metrics, and each line (row) is associated with one sample. A list of the exact field names and their descriptions is given below.</p>
 <table>
 <colgroup>
