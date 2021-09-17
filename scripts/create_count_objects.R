@@ -1056,7 +1056,7 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
 
     txTpm <- txTpm[which(rownames(txTpm) %in% names(tx)), ]
     txMap <- tx[rownames(txTpm)]
-    
+
     rse_tx <- SummarizedExperiment(
         assays = list("counts" = txNumReads, "tpm" = txTpm),
         colData = metrics, rowRanges = txMap
