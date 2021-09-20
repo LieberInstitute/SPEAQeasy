@@ -68,7 +68,7 @@ if (opt$type == "main") {
     isCircular[length(chrom_names)] <- TRUE
     chrInfo$isCircular <- isCircular
 }
-si <- with(chrInfo, Seqinfo(as.character(chrom), length, isCircular, genome = opt$reference))
+si <- with(chrInfo, Seqinfo(as.character(chrom), size, isCircular, genome = opt$reference))
 
 ## read in GTF as GRanges
 gencode_gtf <- import(con = list.files(pattern = ".*\\.gtf"), format = "gtf")

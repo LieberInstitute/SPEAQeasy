@@ -333,7 +333,7 @@ elif [ "$1" == "local" ]; then
     fi
 elif [ "$1" == "jhpce" ]; then
     echo "User selected set-up at JHPCE. Installing any missing R packages..."
-    module load conda_R/4.0.x
+    module load conda_R/4.1
     Rscript scripts/check_R_packages_JHPCE.R
     
     echo "Setting up test files..."
