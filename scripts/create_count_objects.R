@@ -92,6 +92,8 @@ metrics <- data.frame(
     "SAMPLE_ID" = manifest[, ncol(manifest) - 1],
     stringsAsFactors = FALSE
 )
+metrics$SAMPLE_ID <- as.character(metrics$SAMPLE_ID)
+
 N <- length(metrics$SAMPLE_ID)
 
 
