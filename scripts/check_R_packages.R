@@ -3,18 +3,23 @@
 
 print("Checking R packages...")
 
-lib_path <- paste0(getwd(), "/R-3.6.1/library")
+lib_path <- paste0(getwd(), "/R-4.1.0/library")
 
-if (!requireNamespace("checkpoint", quietly = TRUE)) {
-      install.packages("checkpoint", repos = "http://cran.us.r-project.org", lib = lib_path)
-  }
+for (package in c('checkpoint', 'here')) {
+    if (!requireNamespace(package, quietly = TRUE)) {
+          install.packages(package, repos = "http://cran.us.r-project.org", lib = lib_path)
+    }
+}
 
-#  Automatically install ordinary packages as they existed when R 3.6.1 was
+library('here')
+library('checkpoint')
+
+#  Automatically install ordinary packages as they existed when R 4.1.0 was
 #  released
-dir.create(paste0(getwd(), "/R-3.6.1/.checkpoint"))
-checkpoint::checkpoint("2019-08-05",
-    project = paste0(dirname(getwd()), "/scripts"),
-    checkpointLocation = paste0(getwd(), "/R-3.6.1/")
+dir.create(here("Software", "R-4.1.0", ".checkpoint"))
+checkpoint("2021-09-01",
+    project_dir = here("scripts", "r_packages"),
+    checkpoint_location = here("Software", "R-4.1.0")
 )
 
 #  These are Bioconductor packages to install
