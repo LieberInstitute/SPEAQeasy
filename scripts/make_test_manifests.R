@@ -1,10 +1,11 @@
+library("here")
+
 #  If R was installed locally, use packages associated with that installation
-if (grepl("SPEAQeasy/Software/R-3.6.1/library", .libPaths()[1])) {
-    repo_dir <- dirname(dirname(dirname(.libPaths()[1])))
+if (.libPaths()[1] == here("Software", "R-4.1.0", "library")) {
     library("checkpoint")
-    checkpoint::checkpoint("2019-08-05",
-        project = paste0(repo_dir, "/scripts/"),
-        checkpointLocation = paste0(repo_dir, "/Software/R-3.6.1/")
+    checkpoint("2021-09-01",
+        project_dir = here("scripts", "r_packages"),
+        checkpoint_location = here("Software", "R-4.1.0")
     )
 }
 
