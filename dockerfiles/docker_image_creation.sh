@@ -8,6 +8,11 @@ REPO=$(pwd)
 #  R with bioconductor packages pre-installed
 ########################################################
 
+#  Note that this docker image is deprecated in place of
+#  "libddocker: bioc_kallisto:3.13", which works for R 4.1 + Bioc 3.13, and
+#  includes a few additional R packages. The replacement image is produced
+#  here: https://github.com/LieberInstitute/WGBS-Pipeline rather than through
+#  SPEAQeasy.
 mkdir $REPO/r_3.6.1_bioc
 cp $REPO/scripts/check_R_packages.R $REPO/r_3.6.1_bioc/
 #  produce $REPO/r_3.6.1_bioc/Dockerfile
@@ -18,6 +23,11 @@ docker push libddocker/r_3.6.1_bioc
 #  R + bioconductor packages + kallisto
 ########################################################
 
+#  Note that this docker image is deprecated in place of
+#  "libddocker: bioc_kallisto:3.13", which works for R 4.1 + Bioc 3.13, and
+#  includes a few additional R packages. The replacement image is produced
+#  here: https://github.com/LieberInstitute/WGBS-Pipeline rather than through
+#  SPEAQeasy.
 mkdir $REPO/infer_strandness
 #  produce $REPO/infer_strandness/Dockerfile
 docker build -t libddocker/infer_strandness $REPO/infer_strandness
