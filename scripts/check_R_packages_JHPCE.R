@@ -3,12 +3,13 @@
 #  script installs any missing R packages for the user.
 
 packages <- c(
-    "Biostrings", "biomaRt", "BiocParallel", "Biostrings",
+    "BiocParallel", "biocthis", "biomaRt", "Biostrings",
     "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38",
     "BSgenome.Mmusculus.UCSC.mm10", "BSgenome.Rnorvegicus.UCSC.rn6",
-    "derfinder", "devtools", "GenomicFeatures", "GenomicRanges", "getopt",
-    "org.Hs.eg.db", "org.Mm.eg.db", "org.Rn.eg.db", "plyr", "rafalib",
-    "remotes", "rtracklayer", "SummarizedExperiment", "usethis"
+    "checkpoint", "DelayedArray", "derfinder", "devtools", "GenomicFeatures",
+    "GenomicRanges", "getopt", "here", "matrixStats", "org.Hs.eg.db",
+    "org.Mm.eg.db", "org.Rn.eg.db", "plyr", "rafalib", "RColorBrewer",
+    "rtracklayer", "sessioninfo", "styler", "SummarizedExperiment"
 )
 
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
