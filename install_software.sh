@@ -14,7 +14,7 @@
 
 
 #  This is the docker image to be used for execution of R via docker (with docker mode)
-R_container="libddocker/r_3.6.1_bioc"
+R_container="libddocker/bioc_kallisto:3.13"
 
 #  --------------------------------------------------------
 #  Users should not need to alter code below this point
@@ -48,14 +48,18 @@ if [ "$1" == "docker" ]; then
     #  Create the samples.manifest files for test directories
     ###########################################################################
     
-    #  Grab the container
-    docker pull $R_container
+    if [[ "$2" == "sudo" ]]; then
+        command="sudo docker run"
+    else
+        command="docker run"
+    fi
     
-    docker run \
-        -v $(pwd)/scripts:/scripts/ \
-        -v $(pwd)/test:/test \
+    $command \
+        -u $(id -u):$(id -g) \
+        -v $(pwd)/scripts:/usr/local/src/scripts/ \
+        -v $(pwd)/test:/usr/local/src/test \
         $R_container \
-        Rscript scripts/make_test_manifests.R -d $(pwd)
+        Rscript /usr/local/src/scripts/make_test_manifests.R -d $(pwd)
     
     #  Point to the original repository so that the "main" scripts can be
     #  trivially copied to share the pipeline
