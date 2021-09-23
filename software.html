@@ -323,7 +323,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tr>
 <tr class="even">
 <td align="center"><a href="https://cran.r-project.org/bin/linux/ubuntu/README.html#installation">R</a></td>
-<td align="right">3.6</td>
+<td align="right">4.1</td>
 <td align="right"><code>Rscript</code></td>
 </tr>
 <tr class="odd">
@@ -373,6 +373,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2><span class="header-section-number">9.2</span> Docker Images</h2>
 <p>The following container versions are used in this pipeline. These are automatically managed by SPEAQeasy.</p>
 <table>
+<colgroup>
+<col width="55%" />
+<col width="22%" />
+<col width="22%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th align="center">Image</th>
@@ -382,9 +387,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </thead>
 <tbody>
 <tr class="odd">
-<td align="center">libddocker/r_3.6.1_bioc</td>
-<td align="right">latest</td>
-<td align="right">R and Bioconductor 3.10</td>
+<td align="center">libddocker/bioc_kallisto</td>
+<td align="right">3.13</td>
+<td align="right">R 4.1, Bioconductor 3.13, and Kallisto 0.46.1</td>
 </tr>
 <tr class="even">
 <td align="center">libddocker/ubuntu16.04_base</td>
@@ -392,61 +397,56 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <td align="right">Ubuntu Base</td>
 </tr>
 <tr class="odd">
-<td align="center">libddocker/infer_strandness</td>
-<td align="right">latest</td>
-<td align="right">R, Bioconductor 3.10, Kallisto</td>
-</tr>
-<tr class="even">
 <td align="center">libddocker/kallisto</td>
 <td align="right">0.46.1</td>
 <td align="right">Kallisto</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="center">libddocker/fastqc</td>
 <td align="right">0.11.8</td>
 <td align="right">FastQC</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="center">libddocker/trimmomatic</td>
 <td align="right">0.39</td>
 <td align="right">Trimmomatic</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="center">libddocker/hisat2</td>
 <td align="right">2.2.1</td>
 <td align="right">HISAT2</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="center">libddocker/rseqc</td>
 <td align="right">3.0.1</td>
 <td align="right">RSeQC</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="center">libddocker/samtools</td>
 <td align="right">1.10</td>
 <td align="right">Samtools</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="center">libddocker/salmon</td>
 <td align="right">1.2.1</td>
 <td align="right">Salmon</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="center">libddocker/regtools</td>
 <td align="right">0.5.1</td>
 <td align="right">Regtools</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="center">libddocker/subread</td>
 <td align="right">2.0.0</td>
 <td align="right">SubRead/FeatureCounts</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="center">libddocker/wiggletools-1.2</td>
 <td align="right">1_v3</td>
 <td align="right">Wiggletools</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="center">libddocker/variant_calling</td>
 <td align="right">1.10.2</td>
 <td align="right">Samtools, BCFTools</td>
