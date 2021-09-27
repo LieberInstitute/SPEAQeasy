@@ -1007,6 +1007,12 @@ rm(anno)
 
 ############ jCounts
 jCounts <- as.matrix(as.data.frame(juncCounts$countDF))
+
+#  Preserve exact colnames, which is actually not in general the case without
+#  this line (columns/ sample IDs starting with an integer automatically get
+#  an 'X' prepended, which we don't want)
+colnames(jCounts) <- colnames(juncCounts$countDF)
+
 jCounts <- jCounts[names(jMap), metrics$SAMPLE_ID]
 
 ############ jRpkm
