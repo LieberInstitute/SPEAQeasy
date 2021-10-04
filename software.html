@@ -528,9 +528,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb29-3"><a href="software.html#cb29-3" aria-hidden="true" tabindex="-1"></a>    [input files]</span></code></pre></div>
 <p>For our particular case, the exact code can look like the segment below. Here we identify that the option controlling number of cores to use is <code>-j</code> and the input FASTQ files can be passed the same way as to Trimmomatic, via the <code>*.f*q*</code> glob. Additionally, Trim Galore requires that a sample should be explicitly specified as paired-end. We grab the value of the <code>--sample</code> <a href="command-opts.html#command-opts">argument</a> with the syntax <code>!{params.sample}</code> (any option passed to SPEAQeasy can be referenced this way!), and use some bash code to conditionally add the <code>--paired</code> and <code>--retain_unpaired</code> arguments to Trim Galore (we will later cover why the latter is added).</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="software.html#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="st">&quot;!{params.sample}&quot;</span> <span class="ot">==</span> <span class="st">&quot;paired&quot;</span> <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
-<span id="cb30-2"><a href="software.html#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">paired_opt=</span><span class="st">&quot;--paired --retain_unpaired&quot;</span></span>
+<span id="cb30-2"><a href="software.html#cb30-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">paired_opt</span><span class="op">=</span><span class="st">&quot;--paired --retain_unpaired&quot;</span></span>
 <span id="cb30-3"><a href="software.html#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
-<span id="cb30-4"><a href="software.html#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="va">paired_opt=</span><span class="st">&quot;&quot;</span></span>
+<span id="cb30-4"><a href="software.html#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="va">paired_opt</span><span class="op">=</span><span class="st">&quot;&quot;</span></span>
 <span id="cb30-5"><a href="software.html#cb30-5" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span>
 <span id="cb30-6"><a href="software.html#cb30-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb30-7"><a href="software.html#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="ex">trim_galore</span> <span class="dt">\</span></span>
@@ -572,30 +572,30 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <tr class="odd">
 <td>Trimmomatic</td>
 <td>single</td>
-<td>"[id]_trimmed.fastq"</td>
+<td>“[id]_trimmed.fastq”</td>
 </tr>
 <tr class="even">
 <td>Trimmomatic</td>
 <td>paired</td>
-<td>"[id]_trimmed_paired_1.fastq“,”[id]_unpaired_1.fastq“,”[id]_trimmed_paired_2.fastq“,”[id]_unpaired_2.fastq"</td>
+<td>“[id]_trimmed_paired_1.fastq”, “[id]_unpaired_1.fastq”, “[id]_trimmed_paired_2.fastq”, “[id]_unpaired_2.fastq”</td>
 </tr>
 <tr class="odd">
 <td>Trim Galore</td>
 <td>single</td>
-<td>"[id]_trimmed.fq.gz"</td>
+<td>“[id]_trimmed.fq.gz”</td>
 </tr>
 <tr class="even">
 <td>Trim Galore</td>
 <td>paired</td>
-<td>"[id]_1_val_1.fq.gz“,”[id]_1_unpaired_1.fq.gz“,”[id]_2_val_2.fq.gz“,”[id]_2_unpaired_2.fq.gz"</td>
+<td>“[id]_1_val_1.fq.gz”, “[id]_1_unpaired_1.fq.gz”, “[id]_2_val_2.fq.gz”, “[id]_2_unpaired_2.fq.gz”</td>
 </tr>
 </tbody>
 </table>
 <p>We first note that Trim Galore gzips its outputs by default. To produce uncompressed files (matching Trimmomatic), we’ll add the <code>--dont_gzip</code> argument to the <code>trim_galore</code> command. Altogether, the code should like as below. In the <code>Trimming</code> process, the sample ID is given by <code>!{fq_prefix}</code>. The file renaming occurs in the final if-statement.</p>
 <div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="software.html#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="bu">[</span> <span class="st">&quot;!{params.sample}&quot;</span> <span class="ot">==</span> <span class="st">&quot;paired&quot;</span> <span class="bu">]</span><span class="kw">;</span> <span class="cf">then</span></span>
-<span id="cb32-2"><a href="software.html#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">paired_opt=</span><span class="st">&quot;--paired --retain_unpaired&quot;</span></span>
+<span id="cb32-2"><a href="software.html#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="va">paired_opt</span><span class="op">=</span><span class="st">&quot;--paired --retain_unpaired&quot;</span></span>
 <span id="cb32-3"><a href="software.html#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span></span>
-<span id="cb32-4"><a href="software.html#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="va">paired_opt=</span><span class="st">&quot;&quot;</span></span>
+<span id="cb32-4"><a href="software.html#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="va">paired_opt</span><span class="op">=</span><span class="st">&quot;&quot;</span></span>
 <span id="cb32-5"><a href="software.html#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="cf">fi</span></span>
 <span id="cb32-6"><a href="software.html#cb32-6" aria-hidden="true" tabindex="-1"></a>            </span>
 <span id="cb32-7"><a href="software.html#cb32-7" aria-hidden="true" tabindex="-1"></a><span class="ex">trim_galore</span> <span class="dt">\</span></span>
