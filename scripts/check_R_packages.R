@@ -5,14 +5,14 @@ print("Checking R packages...")
 
 lib_path <- paste0(getwd(), "/R-4.1.0/library")
 
-for (package in c('checkpoint', 'here')) {
+for (package in c("checkpoint", "here")) {
     if (!requireNamespace(package, quietly = TRUE)) {
-          install.packages(package, repos = "http://cran.us.r-project.org", lib = lib_path)
+        install.packages(package, repos = "http://cran.us.r-project.org", lib = lib_path)
     }
 }
 
-library('here')
-library('checkpoint')
+library("here")
+library("checkpoint")
 
 #  Automatically install ordinary packages as they existed when R 4.1.0 was
 #  released
