@@ -12,6 +12,15 @@ if (.libPaths()[1] == here("Software", "R-4.1.0", "library")) {
 library("BiocParallel")
 library("devtools")
 library("jaffelab")
+library("getopt")
+
+spec <- matrix(
+    c(
+        "paired", "p", 1, "logical", "Whether the reads are paired-end or not"
+    ),
+    byrow = TRUE, ncol = 5
+)
+opt <- getopt(spec)
 
 run_command <- function(command) {
     print(paste0("Running command: '", command, "'..."))
@@ -21,15 +30,18 @@ run_command <- function(command) {
 
 manifest <- read.table("samples.manifest", header = FALSE, stringsAsFactors = FALSE)
 
-## Is the data paired end?
-paired <- ncol(manifest) > 3
+#  Check number of columns in the manifest
+if (ncol(manifest) != 3 + 2 * opt$paired) {
+    stop("'samples.manifest' has an improper number of columns. For details regarding proper formatting, see http://research.libd.org/SPEAQeasy/manifest.html#what-the-manifest-should-look-like.")
+}
+    
 
 #  Nextflow passed files from the manifest to the working directory by this
 #  point, so relative paths should be used (and in fact must be used when
 #  SPEAQeasy is run with docker- absolute paths are not mounted in this
 #  container)
 manifest[, 1] <- basename(manifest[, 1])
-if (paired) manifest[, 3] <- basename(manifest[, 3])
+if (opt$paired) manifest[, 3] <- basename(manifest[, 3])
 
 ############################################################
 #  Verify file existence and extensions
@@ -39,7 +51,7 @@ print("Verifying file extensions from the manifest are valid...")
 
 #  Get the FASTQ filenames, as declared in samples.manifest
 filenames <- manifest[, 1]
-if (paired) filenames <- c(filenames, manifest[, 3])
+if (opt$paired) filenames <- c(filenames, manifest[, 3])
 
 is_zipped <- grepl(".gz", filenames, fixed = TRUE)
 
@@ -57,14 +69,27 @@ if (!all(actual_exts %in% valid_exts)) {
     stop("Unrecognized fastq filename extension. Should be fastq.gz, fq.gz, fastq or fq")
 }
 
-if (paired && any(actual_exts[1:nrow(manifest)] != actual_exts[(nrow(manifest) + 1):length(actual_exts)])) {
+if (opt$paired && any(actual_exts[1:nrow(manifest)] != actual_exts[(nrow(manifest) + 1):length(actual_exts)])) {
     stop("A given pair of reads must have the same file extensions.")
+}
+
+print("Verifying '.' characters are not used in the manifest except for file extensions...")
+
+base_filenames = ss(filenames, paste0('.', actual_exts), 1, fixed=TRUE)
+if (any(grepl("\\.", base_filenames))) {
+    stop("FASTQ filenames may not contain '.' characters other than in the extensions '.fastq.gz', '.fq.gz', '.fastq' or '.fq'.")
+}
+
+if (any(grepl("\\.", manifest[,ncol(manifest)]))) {
+    stop("Sample IDs may not contain '.' characters.")
 }
 
 print("Verifying all files exist...")
 
-stopifnot(all(file.exists(manifest[, 1])))
-if (paired) stopifnot(all(file.exists(manifest[, 3])))
+temp_error_message = "Could not find some or all FASTQ files specified in 'samples.manifest'. Please verify your 'samples.manifest' file is of the proper format; see http://research.libd.org/SPEAQeasy/manifest.html#what-the-manifest-should-look-like."
+if (any(!file.exists(manifest[, 1]))) stop(temp_error_message)
+if (opt$paired && any(!file.exists(manifest[, 3]))) stop(temp_error_message)
+
 
 ####################################################################
 #  Perform merging and renaming of files for use in the
@@ -82,7 +107,7 @@ for (i in 1:nrow(manifest)) {
 }
 indicesToCombine <- indicesToCombine[!sapply(indicesToCombine, is.null)]
 
-if (paired) {
+if (opt$paired) {
     #  Merge files that require merging
     print("Merging any files that need to be merged...")
     for (indices in indicesToCombine) {

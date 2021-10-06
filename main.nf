@@ -703,24 +703,29 @@ Channel
     .set{ raw_fastqs }
 
 process PreprocessInputs {
-  
-  publishDir "${params.output}/preprocessing", mode:'copy', pattern:'*.log'
 
-  input:
-    file original_manifest from file("${params.input}/samples.manifest")
-    file merge_script from file("${workflow.projectDir}/scripts/preprocess_inputs.R")
-    file raw_fastqs
+    publishDir "${params.output}/preprocessing", mode:'copy', pattern:'*.log'
 
-  output:
-    path "*.f*q*" into merged_inputs_flat includeInputs true
-    file "samples_processed.manifest" into strandness_manifest
-    file "preprocess_inputs.log"
-  
-  shell:
-    '''
-    !{params.Rscript} !{merge_script}
-    cp .command.log preprocess_inputs.log
-    '''
+    input:
+        file original_manifest from file("${params.input}/samples.manifest")
+        file merge_script from file("${workflow.projectDir}/scripts/preprocess_inputs.R")
+        file raw_fastqs
+
+    output:
+        path "*.f*q*" into merged_inputs_flat includeInputs true
+        file "samples_processed.manifest" into strandness_manifest
+        file "preprocess_inputs.log"
+
+    shell:
+        if (params.sample == "paired") {
+            paired_arg = "TRUE"
+        } else {
+            paired_arg = "FALSE"
+        }
+        '''
+        !{params.Rscript} !{merge_script} -p !{paired_arg}
+        cp .command.log preprocess_inputs.log
+        '''
 }
 
 //  Group both reads together for each sample, if paired-end, and assign each sample a prefix
