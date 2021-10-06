@@ -99,38 +99,40 @@ for samp in $samp_names; do
     #  Grab all unique process submissions
     proc_lines=$(grep "\[.*/.*\] process.*\>" $LOG | cut -d "[" -f 1-2 | awk '!seen[$0]++')
     
-    #  Loop through these
-    total_processes=$(($(echo "$proc_lines" | wc -l) + 1))
-    for line_num in $(seq 1 $total_processes); do
-        #  The last process submission to check is an exceptional case: determined
-        #  by the error message at the end of the log (which strangely sometimes
-        #  lacks a typical process submission line above)
-        if [ $line_num -eq $total_processes ]; then
-            is_missing
-            if [ $? -eq 1 ]; then
-                line_num_temp=$(($(grep -n "Work dir:" $LOG | head -n 1 | cut -d ":" -f 1) + 1))
+    #  Loop through these, if there are any
+    if [[ ! -z $proc_lines ]]; then
+        total_processes=$(($(echo "$proc_lines" | wc -l) + 1))
+        for line_num in $(seq 1 $total_processes); do
+            #  The last process submission to check is an exceptional case: determined
+            #  by the error message at the end of the log (which strangely sometimes
+            #  lacks a typical process submission line above)
+            if [ $line_num -eq $total_processes ]; then
+                is_missing
+                if [ $? -eq 1 ]; then
+                    line_num_temp=$(($(grep -n "Work dir:" $LOG | head -n 1 | cut -d ":" -f 1) + 1))
+                    
+                    #  Infer process working directory, name, and exit code
+                    proc_dir=$(sed -n "${line_num_temp}p" $LOG | tr -d " ")
+                    proc_name=$(grep "Error executing process" $LOG | head -n 1 | cut -d '>' -f 2 | tr -d "'| ")
+                    exit_code=$(cat $proc_dir/.exitcode)
+                    
+                    print_commands $proc_dir $proc_name $exit_code $samp $out_file $i
+                    i=$(echo $?)
+                fi
+            else
+                proc_line=$(echo "$proc_lines" | awk "NR==$line_num")
+                suffix=$(echo $proc_line | cut -d '[' -f 2 | cut -d ']' -f 1)
                 
                 #  Infer process working directory, name, and exit code
-                proc_dir=$(sed -n "${line_num_temp}p" $LOG | tr -d " ")
-                proc_name=$(grep "Error executing process" $LOG | head -n 1 | cut -d '>' -f 2 | tr -d "'| ")
+                proc_dir=$(echo $work_dir/${suffix}*)
+                proc_name=$(echo $proc_line | cut -d " " -f 4)
                 exit_code=$(cat $proc_dir/.exitcode)
                 
                 print_commands $proc_dir $proc_name $exit_code $samp $out_file $i
                 i=$(echo $?)
             fi
-        else
-            proc_line=$(echo "$proc_lines" | awk "NR==$line_num")
-            suffix=$(echo $proc_line | cut -d '[' -f 2 | cut -d ']' -f 1)
-            
-            #  Infer process working directory, name, and exit code
-            proc_dir=$(echo $work_dir/${suffix}*)
-            proc_name=$(echo $proc_line | cut -d " " -f 4)
-            exit_code=$(cat $proc_dir/.exitcode)
-            
-            print_commands $proc_dir $proc_name $exit_code $samp $out_file $i
-            i=$(echo $?)
-        fi
-    done
-    
-    echo "This was the last process submitted for sample $samp." >> $out_file
+        done
+        
+        echo "This was the last process submitted for sample $samp." >> $out_file
+    fi
 done
