@@ -334,16 +334,49 @@ if (params.custom_anno != "") {
 //    Utilities for retrieving info from filenames
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-def get_prefix(f) {
-  //  Remove these regardless of position in the string
-  blackListAny = ~/(|_[12])_(un|)trimmed_(summary|fastqc_data)|_trimmed|_untrimmed|_unpaired|_paired|_hisat_out/
-  
-  f.name.toString()
-   .replaceAll("_[12]\\.", ".")
-   .replaceAll("\\.Forward", "_Forward")
-   .replaceAll("\\.Reverse", "_Reverse")
-   .tokenize('.')[0]
-   .replaceAll(blackListAny, "")
+def get_ids(row) {
+    if (params.sample == "single") {
+        return(row.tokenize('\t')[2])
+    } else {
+        return(row.tokenize('\t')[4])
+    }
+}
+
+//  Grab the set of sample IDs from the manifest
+sample_ids = file("${params.input}/samples.manifest")
+    .readLines()
+    .collect{ get_ids(it) }
+    .flatten()
+    .unique( false )
+
+//  Deduce sample ID from a filename that includes it
+def get_prefix(f, trim_read_num=false) {
+    if (trim_read_num) {
+        //  Remove these regardless of position in the string
+        blackListAny = ~/_[12]_(un|)trimmed_(summary|fastqc_data)|_trimmed|_untrimmed|_unpaired|_paired/
+        
+        prefix = f.name.toString().replaceAll("_[12]\\.", ".")
+    } else {
+        //  Remove these regardless of position in the string
+        blackListAny = ~/_(un|)trimmed_(summary|fastqc_data)|_trimmed|_untrimmed|_unpaired|_paired/
+        
+        prefix = f.name.toString()
+    }
+    
+    prefix = prefix
+        .replaceAll("\\.Forward", "_Forward")
+        .replaceAll("\\.Reverse", "_Reverse")
+        .tokenize('.')[0]
+        .replaceAll(blackListAny, "")
+    
+    //  This function returns the sample ID associated with a filename; if the
+    //  "ID" we found is not one of the sample IDs from 'samples.manifest',
+    //  something went wrong!
+    if (! sample_ids.contains(prefix)) {
+        exit 1, "Error: deduced the sample ID '" + prefix + "' from the file '" + f.name.toString() + "', but this ID is not in 'samples.manifest'. This is likely a bug in SPEAQeasy!"
+    }
+    
+    return(prefix)
 }
 
 def get_read_type(f) {
@@ -740,7 +773,7 @@ if (params.sample == "single") {
 
     merged_inputs_flat
         .flatten()
-        .map{file -> tuple(get_prefix(file), file) }
+        .map{file -> tuple(get_prefix(file, true), file) }
         .groupTuple()
         .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
         .set{ temp_inputs }
@@ -919,7 +952,7 @@ if (params.sample == "single") {
 
     quality_reports
         .flatten()
-        .map{ file -> tuple(get_prefix(file), file) }
+        .map{ file -> tuple(get_prefix(file, true), file) }
         .groupTuple()
         .join(trimming_fqs)
         .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
@@ -1048,7 +1081,7 @@ process QualityTrimmed {
         file "${prefix}*_trimmed_fastqc_data.txt" into count_objects_quality_metrics_trimmed
 
     shell:
-        prefix = get_prefix(fastqc_trimmed_input[0])
+        prefix = get_prefix(fastqc_trimmed_input[0], params.sample == "paired")
         if (params.sample == "single") {
             copy_command = "cp ${prefix}_trimmed_fastqc/summary.txt ${prefix}_trimmed_summary.txt"
             data_command = "cp ${prefix}_trimmed_fastqc/fastqc_data.txt ${prefix}_trimmed_fastqc_data.txt"
@@ -1069,7 +1102,7 @@ process QualityTrimmed {
 
 trimming_outputs
     .flatten()
-    .map{ file -> tuple(get_prefix(file), file) }
+    .map{ file -> tuple(get_prefix(file, params.sample == "paired"), file) }
     .ifEmpty{ error "Input channel to alignment process is empty" }
     .groupTuple()
     .set{ alignment_inputs }
