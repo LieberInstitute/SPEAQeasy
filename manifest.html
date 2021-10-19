@@ -299,6 +299,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li>Input FASTQ files can have the following file extensions: <code>.fastq</code>, <code>.fq</code>, <code>.fastq.gz</code>, <code>.fq.gz</code></li>
 <li>FASTQ files must not contain “.” characters before the typical extension (e.g. sample.1.fastq), since some internal functions rely on splitting file names by “.”.</li>
+<li>Base filenames must be distinct (e.g. including both <code>/dir/one/name.fastq</code> and <code>/dir/two/name.fastq</code> at different points in the manifest is not supported)</li>
 </ul>
 </div>
 </div>
