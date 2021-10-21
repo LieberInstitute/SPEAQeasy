@@ -96,6 +96,8 @@ One of the major pipeline outputs is a comma-separated values (CSV) file where f
 | totalAssignedGene | The decimal fraction of reads assigned unambiguously to a gene, with featureCounts (Liao et al. 2014), of those in total |
 | rRNA_rate | The decimal fraction of reads assigned to a gene whose type is 'rRNA', of those assigned to any gene |
 
+The quality metrics also include metrics from FastQC, documented [here](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/). In SPEAQeasy, these metrics have names: `basic_statistics`, `per_base_sequence_quality`, `per_tile_sequence_quality`, `per_sequence_quality_scores`, `per_base_sequence_content`, `per_sequence_gc_content`, `per_base_n_content`, `sequence_length_distribution`, `sequence_duplication_levels`, `overrepresented_sequences`, `adapter_content`, `kmer_content`. The corresponding metrics from FastQC are named in uppercase with spaces, rather than lowercase with underscores.
+
 
 ## Intermediary Outputs
 
