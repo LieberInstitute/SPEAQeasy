@@ -371,7 +371,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="docker-images" class="section level2" number="9.2">
 <h2><span class="header-section-number">9.2</span> Docker Images</h2>
-<p>The following container versions are used in this pipeline. These are automatically managed by SPEAQeasy.</p>
+<p>The following docker image versions are used in this pipeline, when it is installed via the “docker” or “singularity” <a href="setup-details.html#installation">installation</a> modes. These images are automatically managed by SPEAQeasy.</p>
 <table>
 <colgroup>
 <col width="55%" />
@@ -456,7 +456,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="using-custom-software" class="section level2" number="9.3">
 <h2><span class="header-section-number">9.3</span> Using Custom Software</h2>
-<p>Some users may wish to desire to “swap out” software tools used by particular steps in the pipeline. For example, a researcher may wish to use <a href="https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/">Trim Galore!</a> instead of <a href="http://www.usadellab.org/cms/?page=trimmomatic">Trimmomatic</a> when trimming samples. SPEAQeasy doesn’t “officially support” Trim Galore currently, so this will require making some direct changes to code. We provide a guide below for researchers interested in modifying a component of SPEAQeasy to use a different software tool. Please note that a couple software alternatives are already supported (Salmon instead of Kallisto for psuedoalignment to a transcriptome via the <code>--use_salmon</code> <a href="command-opts.html#command-opts">option</a>; STAR instead of HISAT2 for alignment to a genome via the <code>--use_star</code> <a href="command-opts.html#command-opts">option</a>), and using these does not require any of the work described below. Additionally, the below guide requires “local” {installation](#installation) of SPEAQeasy (not using docker to manage software).</p>
+<p>Some users may wish to desire to “swap out” software tools used by particular steps in the pipeline. For example, a researcher may wish to use <a href="https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/">Trim Galore!</a> instead of <a href="http://www.usadellab.org/cms/?page=trimmomatic">Trimmomatic</a> when trimming samples. SPEAQeasy doesn’t “officially support” Trim Galore currently, so this will require making some direct changes to code. We provide a guide below for researchers interested in modifying a component of SPEAQeasy to use a different software tool. Please note that a couple software alternatives are already supported (Salmon instead of Kallisto for psuedoalignment to a transcriptome via the <code>--use_salmon</code> <a href="command-opts.html#command-opts">option</a>; STAR instead of HISAT2 for alignment to a genome via the <code>--use_star</code> <a href="command-opts.html#command-opts">option</a>), and using these does not require any of the work described below. Additionally, the below guide requires “local” {installation](#installation) of SPEAQeasy (not using docker/singularity to manage software).</p>
 <div id="prerequisites" class="section level3" number="9.3.1">
 <h3><span class="header-section-number">9.3.1</span> Prerequisites</h3>
 <ul>

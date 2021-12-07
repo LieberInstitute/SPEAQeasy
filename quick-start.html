@@ -279,7 +279,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ol style="list-style-type: decimal">
 <li>Clone the SPEAQeasy repository with <code>git clone git@github.com:LieberInstitute/SPEAQeasy.git</code></li>
 <li>Change directory into the repository with <code>cd SPEAQeasy</code></li>
-<li>Users of the <a href="https://jhpce.jhu.edu/">JHPCE</a> cluster should run <code>bash install_software.sh "jhpce"</code>. For all other users with access to docker, run <code>bash install_software.sh "docker"</code>. This will install nextflow and set up some test files. Otherwise, you can install everything required locally with <code>bash install_software.sh "local"</code>.</li>
+<li>Users of the <a href="https://jhpce.jhu.edu/">JHPCE</a> cluster should run <code>bash install_software.sh "jhpce"</code>. All other users are recommended to run <code>bash install_software.sh "docker"</code> or <code>bash install_software.sh "singularity"</code>, to use either docker or singularity to manage software, respectively. This will install nextflow and set up some test files. Otherwise, you can install everything required locally with <code>bash install_software.sh "local"</code>.</li>
 </ol>
 <p><strong>Note:</strong> JHPCE users must also make an edit to their <code>~/.bashrc</code> files, described <a href="setup-details.html#installation">here</a></p>
 </div>
