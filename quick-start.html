@@ -315,66 +315,36 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tbody>
 </table>
 <p><a href="command-opts.html#command-opts">Options included in the main script</a> should be modified as appropriate for the experiment. On SLURM and SGE clusters (including JHPCE), the main script should be submitted as a job (i.e. using <code>sbatch</code> or <code>qsub</code>). On local machines, the pipeline can be run interactively (i.e. <code>bash run_pipeline_local.sh</code>).</p>
-<p><em>Note</em>: Docker users must make one additional edit to their main script: prepend “docker_” to the profile flag. For example, for SLURM users, change this line to <code>-profile docker_slurm</code> as seen here:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="quick-start.html#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="va">$ORIG_DIR</span><span class="ex">/Software/nextflow</span> main.nf <span class="dt">\</span></span>
-<span id="cb7-2"><a href="quick-start.html#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">--sample</span> <span class="st">&quot;single&quot;</span> <span class="dt">\</span></span>
-<span id="cb7-3"><a href="quick-start.html#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">--reference</span> <span class="st">&quot;hg19&quot;</span> <span class="dt">\</span></span>
-<span id="cb7-4"><a href="quick-start.html#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">--strand</span> <span class="st">&quot;unstranded&quot;</span> <span class="dt">\</span></span>
-<span id="cb7-5"><a href="quick-start.html#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">--small_test</span> <span class="dt">\</span></span>
-<span id="cb7-6"><a href="quick-start.html#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">--annotation</span> <span class="st">&quot;</span><span class="va">$ORIG_DIR</span><span class="st">/Annotation&quot;</span> <span class="dt">\</span></span>
-<span id="cb7-7"><a href="quick-start.html#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">-with-report</span> execution_reports/pipeline_report.html <span class="dt">\</span></span>
-<span id="cb7-8"><a href="quick-start.html#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">-profile</span> docker_slurm <span class="co"># was &quot;-profile slurm&quot;!</span></span></code></pre></div>
 </div>
 <div id="your-config-file" class="section level3" number="1.2.2">
 <h3><span class="header-section-number">1.2.2</span> Your config file</h3>
-<p>Your combination of “executor” (SLURM cluster, SGE cluster, or local) and software management method (use docker or not use docker) determine the name of your config. Find your file under <code>SPEAQeasy/conf/</code>.</p>
+<p>Your “executor” (SLURM cluster, SGE cluster, or local) determines the name of your config, regardless of how you choose to install SPEAQeasy. Find your file under <code>SPEAQeasy/conf/</code>.</p>
 <table>
 <thead>
 <tr class="header">
 <th>Executor</th>
-<th>Using docker?</th>
 <th>Config Filename</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>SGE cluster</td>
-<td>Yes</td>
-<td>docker_sge.config</td>
-</tr>
-<tr class="even">
-<td>SGE cluster</td>
-<td>No</td>
 <td>sge.config</td>
 </tr>
-<tr class="odd">
-<td>SLURM cluster</td>
-<td>Yes</td>
-<td>docker_slurm.config</td>
-</tr>
 <tr class="even">
 <td>SLURM cluster</td>
-<td>No</td>
 <td>slurm.config</td>
 </tr>
 <tr class="odd">
 <td>local machine</td>
-<td>Yes</td>
-<td>docker_local.config</td>
-</tr>
-<tr class="even">
-<td>local machine</td>
-<td>No</td>
 <td>local.config</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>The <a href="https://jhpce.jhu.edu/">JHPCE</a> cluster</td>
-<td>No</td>
 <td>jhpce.config</td>
 </tr>
 </tbody>
 </table>
-<p>As an example, suppose you have access to a SLURM cluster, and cannot use docker. Your config file is then <code>SPEAQeasy/conf/slurm.config</code>.</p>
 
 </div>
 </div>
