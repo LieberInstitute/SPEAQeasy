@@ -1,19 +1,20 @@
 #!/bin/bash
 
-#  IMPORTANT: run this script inside the repository directory to ensure software
-#              locations are properly linked. See conf/command_path_long.config if
-#              you are interested in manually configuring different software paths.
-#
 #  Usage:  bash install_software.sh [installation_type]
 #
-#    installation_type may be "docker", "local", or "jhpce":
-#        docker:    user plans to run pipeline with docker to manage software dependencies
-#        local:     user wishes to install all dependencies locally (regardless of whether
-#                   the pipeline will be run on a cluster or with local resources) 
-#        jhpce:     user is setting up SPEAQeasy on the JHPCE cluster
+#    installation_type may be "docker", "singularity", "local", or "jhpce":
+#        docker:      user plans to run pipeline with docker to manage software
+#                     dependencies
+#        singularity: user plans to run pipeline with singularity to manage
+#                     software
+#        local:       user wishes to install all dependencies locally
+#                     (regardless of whether the pipeline will be run on a
+#                     cluster or with local resources) 
+#        jhpce:       user is setting up SPEAQeasy on the JHPCE cluster
 
 
-#  This is the docker image to be used for execution of R via docker (with docker mode)
+#  This is the docker image to be used for execution of R via docker or
+#  singularity, if applicable
 R_container="libddocker/bioc_kallisto:3.13"
 
 #  --------------------------------------------------------
@@ -52,9 +53,9 @@ error_message() {
 
 trap "error_message" ERR
 
-if [ "$1" == "docker" ]; then
+if [[ "$1" == "docker" || "$1" == "singularity" ]]; then
 
-    echo "User selected docker mode: nextflow will be installed, along with some test files."
+    echo "User selected $1 mode: nextflow will be installed, along with some test files."
     
     INSTALL_DIR=$(pwd)/Software
     mkdir -p $INSTALL_DIR
@@ -68,23 +69,56 @@ if [ "$1" == "docker" ]; then
     #  Create the samples.manifest files for test directories
     ###########################################################################
     
-    if [[ "$2" == "sudo" ]]; then
-        command="sudo docker run"
-    else
-        command="docker run"
+    if [[ "$1" == "docker" ]]; then
+        if [[ "$2" == "sudo" ]]; then
+            command="sudo docker run"
+        else
+            command="docker run"
+        fi
+        
+        $command \
+            -u $(id -u):$(id -g) \
+            -v $(pwd)/scripts:/usr/local/src/scripts/ \
+            -v $(pwd)/test:/usr/local/src/test \
+            $R_container \
+            Rscript /usr/local/src/scripts/make_test_manifests.R -d $(pwd)
+    else # using singularity
+        if [[ "$(singularity version | cut -d '.' -f 1)" -lt 3 ]]; then
+            echo "Singularity >= 3 is required."
+            exit 1
+        fi
+        
+        echo "Pulling images in advance to have them cached for the first execution..."
+        
+        #  Pull images in advance, since it seems to use very large amounts of
+        #  memory to build the '.sif' file from each docker image (we don't
+        #  want to allocate large amounts of memory in each process just for
+        #  this purpose)
+        rm -rf dockerfiles/singularity_cache
+        mkdir dockerfiles/singularity_cache
+        images=$(grep 'container = ' conf/singularity.config | tr -d " |'" | cut -d '=' -f 2 | sort -u)
+        for image in $images; do
+            image_name=$(echo $image | sed 's/[:\/]/-/g').sif
+            singularity pull dockerfiles/singularity_cache/$image_name docker://$image
+        done
+        
+        singularity exec \
+            --pwd /usr/local/src \
+            -B $(pwd)/scripts:/usr/local/src/scripts/ \
+            -B $(pwd)/test:/usr/local/src/test \
+            docker://$R_container \
+            Rscript /usr/local/src/scripts/make_test_manifests.R -d $(pwd)
+        
+        #  Set modules used correctly for JHPCE users
+        sed -i "/module = '.*\/.*'/d" conf/jhpce.config
+        sed -i "s|cache = 'lenient'|cache = 'lenient'\n    module = 'singularity/3.6.0'|" conf/jhpce.config
+        sed -i "s|module load nextflow|module load nextflow\nmodule load singularity/3.6.0|" run_pipeline_jhpce.sh
     fi
     
-    $command \
-        -u $(id -u):$(id -g) \
-        -v $(pwd)/scripts:/usr/local/src/scripts/ \
-        -v $(pwd)/test:/usr/local/src/test \
-        $R_container \
-        Rscript /usr/local/src/scripts/make_test_manifests.R -d $(pwd)
-    
-    #  Add docker configuration to each config profile in 'nextflow.config';
-    #  use short command paths instead of long
-    sed -i -r "s:includeConfig 'conf/(local|sge|slurm)\.config':includeConfig 'conf/\1.config'\n        includeConfig 'conf/$1.config':" nextflow.config
-    sed -i "s|includeConfig 'conf/command_paths_long.config|includeConfig 'conf/command_paths_short.config'|" nextflow.config
+    #  Add docker/ singularity configuration to each config profile in
+    #  'nextflow.config'; use short command paths instead of long
+    sed -i -r "s:includeConfig 'conf/(local|sge|slurm|jhpce)\.config':includeConfig 'conf/\1.config'\n        includeConfig 'conf/$1.config':" nextflow.config
+    sed -i "s|includeConfig 'conf/command_paths_long.config'|includeConfig 'conf/command_paths_short.config'|" nextflow.config
     
     #  Point to the original repository so that the "main" scripts can be
     #  trivially copied to share the pipeline
