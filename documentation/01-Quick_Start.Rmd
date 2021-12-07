@@ -6,7 +6,7 @@ A brief guide to setting up SPEAQeasy. A more detailed and thorough guide is [he
 
 1. Clone the SPEAQeasy repository with `git clone git@github.com:LieberInstitute/SPEAQeasy.git`
 2. Change directory into the repository with `cd SPEAQeasy`
-3. Users of the [JHPCE](https://jhpce.jhu.edu/) cluster should run `bash install_software.sh "jhpce"`. For all other users with access to docker, run `bash install_software.sh "docker"`. This will install nextflow and set up some test files. Otherwise, you can install everything required locally with `bash install_software.sh "local"`.
+3. Users of the [JHPCE](https://jhpce.jhu.edu/) cluster should run `bash install_software.sh "jhpce"`. All other users are recommended to run `bash install_software.sh "docker"` or `bash install_software.sh "singularity"`, to use either docker or singularity to manage software, respectively. This will install nextflow and set up some test files. Otherwise, you can install everything required locally with `bash install_software.sh "local"`.
 
 **Note:** JHPCE users must also make an edit to their `~/.bashrc` files, described [here](#installation)
 

@@ -13,9 +13,10 @@ SPEAQeasy has been tested on Linux, but it designed to run on any of a number of
 
 ## Installation
 
-SPEAQeasy makes use of a number of different additional software tools. The user is provided two options to automatically manage these dependencies.
+SPEAQeasy makes use of a number of different additional software tools. The user is provided three options to automatically manage these dependencies.
 
 - *Docker*: The recommended option is to manage software with docker, if it is available. From within the repository, perform the one-time setup by running `bash install_software.sh "docker"`. This installs nextflow and sets up some test files. When running SPEAQeasy, the required docker images are automatically pulled if not already present, and components of the pipeline run within the associated containers. A full list of the images that are used is [here](#docker-images). If root permissions are needed to run docker, one can instruct the installation script to use `sudo` in front of any docker commands by running `bash install_software.sh "docker" "sudo"`.
+- *Singularity*: An alternative recommended option is to manage software with singularity, if it is installed. From within the repository, perform the one-time setup by running `bash install_software.sh "singularity"`. In practice this configures SPEAQeasy to use singularity to run the required software as originally packaged into docker images. A full list of the images that are used is [here](#docker-images)
 - *Local install*: The alternative is to locally install all dependencies. This option is only officially supported on Linux; it is currently experimental and recommended against on other platforms. Installation is done by running `bash install_software.sh "local"` from within the repository. This installs nextflow, several bioinformatics tools, R and packages, and sets up some test files. A full list of software used is [here](#software). The script `install_software.sh` builds each software tool from source, and hence relies on some common utilities which are often pre-installed in many unix-like systems:
 
     * A C/C++ compiler, such as [GCC](https://gcc.gnu.org/) or [Clang](http://clang.llvm.org/index.html)
@@ -217,8 +218,8 @@ This involves adding some code to `nextflow.config`, as shown below.
 ```{groovy, eval=FALSE}
 profiles {
   // Here we've named the new profile "my_new_config", and pointed it to the
-  // file "conf/my_new.config". Note that docker users should have the 2nd line
-  // "includeConfig 'conf/command_paths_short.config'" instead!
+  // file "conf/my_new.config". Note that docker/ singularity users should have
+  // the 2nd line "includeConfig 'conf/command_paths_short.config'" instead!
   my_new_config {
     includeConfig 'conf/my_new.config'
     includeConfig 'conf/command_paths_long.config'
@@ -243,6 +244,5 @@ $ORIG_DIR/Software/nextflow main.nf \
     --small_test \
     --annotation "$ORIG_DIR/Annotation" \
     -with-report execution_reports/pipeline_report.html \
-    -with-dag execution_DAGs/pipeline_DAG.html \
     -profile my_new_config # this was changed from "-profile slurm"!
 ```

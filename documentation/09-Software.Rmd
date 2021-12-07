@@ -27,7 +27,7 @@ Software | Version | Command used by the pipeline |
 
 ## Docker Images {#docker-images}
 
-The following container versions are used in this pipeline. These are automatically managed by SPEAQeasy.
+The following docker image versions are used in this pipeline, when it is installed via the "docker" or "singularity" [installation](#installation) modes. These images are automatically managed by SPEAQeasy.
 
 | Image | Tag | Software |
 |:-------------:| -----:| -----: |
@@ -47,7 +47,7 @@ The following container versions are used in this pipeline. These are automatica
 
 ## Using Custom Software
 
-Some users may wish to desire to "swap out" software tools used by particular steps in the pipeline. For example, a researcher may wish to use [Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) instead of [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) when trimming samples. SPEAQeasy doesn't "officially support" Trim Galore currently, so this will require making some direct changes to code. We provide a guide below for researchers interested in modifying a component of SPEAQeasy to use a different software tool. Please note that a couple software alternatives are already supported (Salmon instead of Kallisto for psuedoalignment to a transcriptome via the `--use_salmon` [option](#command-opts); STAR instead of HISAT2 for alignment to a genome via the `--use_star` [option](#command-opts)), and using these does not require any of the work described below. Additionally, the below guide requires "local" {installation](#installation) of SPEAQeasy (not using docker to manage software).
+Some users may wish to desire to "swap out" software tools used by particular steps in the pipeline. For example, a researcher may wish to use [Trim Galore!](https://www.bioinformatics.babraham.ac.uk/projects/trim_galore/) instead of [Trimmomatic](http://www.usadellab.org/cms/?page=trimmomatic) when trimming samples. SPEAQeasy doesn't "officially support" Trim Galore currently, so this will require making some direct changes to code. We provide a guide below for researchers interested in modifying a component of SPEAQeasy to use a different software tool. Please note that a couple software alternatives are already supported (Salmon instead of Kallisto for psuedoalignment to a transcriptome via the `--use_salmon` [option](#command-opts); STAR instead of HISAT2 for alignment to a genome via the `--use_star` [option](#command-opts)), and using these does not require any of the work described below. Additionally, the below guide requires "local" {installation](#installation) of SPEAQeasy (not using docker/singularity to manage software).
 
 ### Prerequisites
 
