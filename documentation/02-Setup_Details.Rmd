@@ -89,22 +89,22 @@ The "main" script used to run the pipeline depends on the environment you will r
 
 ### Run in a SLURM environment/ cluster
 
-- (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/slurm.config*, if you have installed software dependencies locally, or *conf/docker_slurm.config* if you will use docker.
-- **Modify the main script and run**: the main script is *run_pipeline_slurm.sh*. Submit as a job to your cluster with `sbatch run_pipeline_slurm.sh`. If you are using docker, make sure to change the line `-profile slurm` to `profile docker_slurm`. See the [full list of command-line options](#command-opts) for other details about modifying the script for your use-case.
+- (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/slurm.config*.
+- **Modify the main script and run**: the main script is *run_pipeline_slurm.sh*. Submit as a job to your cluster with `sbatch run_pipeline_slurm.sh`. See the [full list of command-line options](#command-opts) for other details about modifying the script for your use-case.
 
 See [here](https://www.nextflow.io/docs/latest/executor.html#slurm) for Nextflow's documentation regarding SLURM environments.
 
 ### Run on a Sun Grid Engines (SGE) cluster
 
-- (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/sge.config*, if you have installed software dependencies locally, or *conf/docker_sge.config* if you will use docker.
-- **Modify the main script and run**: the main script is *run_pipeline_sge.sh*. Submit as a job to your cluster with `qsub run_pipeline_sge.sh`. If you are using docker, make sure to change the line `-profile sge` to `profile docker_sge`. See the [full list of command-line options](#command-opts) for other details about modifying the script for your use-case.
+- (Optional) **Adjust configuration**: hardware resource usage, software versioning, and cluster option choices are specified in *conf/sge.config*.
+- **Modify the main script and run**: the main script is *run_pipeline_sge.sh*. Submit as a job to your cluster with `qsub run_pipeline_sge.sh`. See the [full list of command-line options](#command-opts) for other details about modifying the script for your use-case.
 
 See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional information on nextflow for SGE environments.
 
 ### Run locally
 
-- (Optional) **Adjust configuration**: hardware resource usage and other configurables are located in *conf/local.config*, if you have installed software dependencies locally, or *conf/docker_local.config* if you will use docker. Note that defaults assume access to 8 CPUs and 16GB of RAM.
-- **Modify the main script and run**: the main script is *run_pipeline_local.sh*. If you are using docker, make sure to change the line `-profile local` to `profile docker_local`. After configuring options for your use-case (See the [full list of command-line options](#command-opts)), simply run on the command-line with `bash run_pipeline_local.sh`.
+- (Optional) **Adjust configuration**: hardware resource usage and other configurables are located in *conf/local.config*. Note that defaults assume access to 8 CPUs and 16GB of RAM.
+- **Modify the main script and run**: the main script is *run_pipeline_local.sh*. After configuring options for your use-case (See the [full list of command-line options](#command-opts)), simply run on the command-line with `bash run_pipeline_local.sh`.
 
 ### Run on the [JHPCE](https://jhpce.jhu.edu/) cluster
 

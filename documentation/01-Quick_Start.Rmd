@@ -25,32 +25,14 @@ The script you will use to run the pipeline depends on the system ("executor") y
 
 [Options included in the main script](#command-opts) should be modified as appropriate for the experiment. On SLURM and SGE clusters (including JHPCE), the main script should be submitted as a job (i.e. using `sbatch` or `qsub`). On local machines, the pipeline can be run interactively (i.e. `bash run_pipeline_local.sh`).
 
-*Note*: Docker users must make one additional edit to their main script: prepend "docker_" to the profile flag. For example, for SLURM users, change this line to `-profile docker_slurm` as seen here:
-
-```{bash, eval=FALSE}
-$ORIG_DIR/Software/nextflow main.nf \
-    --sample "single" \
-    --reference "hg19" \
-    --strand "unstranded" \
-    --small_test \
-    --annotation "$ORIG_DIR/Annotation" \
-    -with-report execution_reports/pipeline_report.html \
-    -profile docker_slurm # was "-profile slurm"!
-```
-
 
 ### Your config file ###
 
-Your combination of "executor" (SLURM cluster, SGE cluster, or local) and software management method (use docker or not use docker) determine the name of your config. Find your file under `SPEAQeasy/conf/`.
+Your "executor" (SLURM cluster, SGE cluster, or local) determines the name of your config, regardless of how you choose to install SPEAQeasy. Find your file under `SPEAQeasy/conf/`.
 
-| Executor | Using docker? | Config Filename |
-| -----  | --- | ----- |
-| SGE cluster | Yes | docker_sge.config |
-| SGE cluster | No | sge.config |
-| SLURM cluster | Yes | docker_slurm.config |
-| SLURM cluster | No | slurm.config |
-| local machine | Yes | docker_local.config |
-| local machine | No | local.config |
-| The [JHPCE](https://jhpce.jhu.edu/) cluster | No | jhpce.config |
-
-As an example, suppose you have access to a SLURM cluster, and cannot use docker. Your config file is then `SPEAQeasy/conf/slurm.config`.
+| Executor | Config Filename |
+| -----  | ----- |
+| SGE cluster | sge.config |
+| SLURM cluster | slurm.config |
+| local machine | local.config |
+| The [JHPCE](https://jhpce.jhu.edu/) cluster | jhpce.config |
