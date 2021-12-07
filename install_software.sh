@@ -61,6 +61,11 @@ if [ "$1" == "docker" ]; then
         $R_container \
         Rscript /usr/local/src/scripts/make_test_manifests.R -d $(pwd)
     
+    #  Add docker configuration to each config profile in 'nextflow.config';
+    #  use short command paths instead of long
+    sed -i -r "s:includeConfig 'conf/(local|sge|slurm)\.config':includeConfig 'conf/\1.config'\n        includeConfig 'conf/$1.config':" nextflow.config
+    sed -i "s|includeConfig 'conf/command_paths_long.config|includeConfig 'conf/command_paths_short.config'|" nextflow.config
+    
     #  Point to the original repository so that the "main" scripts can be
     #  trivially copied to share the pipeline
     sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(pwd)|" run_pipeline_sge.sh
