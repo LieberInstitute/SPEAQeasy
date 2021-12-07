@@ -22,6 +22,26 @@ R_container="libddocker/bioc_kallisto:3.13"
 
 set -e
 
+REPO_NAME="SPEAQeasy"
+
+if [ "$(basename $(pwd))" == "$REPO_NAME" ]; then
+
+    echo "Making sure the repository is clean and ready for installation..."
+    
+    #rm -r Software
+    rm -f test/*/*/*/samples.manifest
+    git checkout run_pipeline_*.sh
+    git checkout nextflow.config
+    git checkout conf/*.config
+    
+else
+
+    echo "Please only invoke the script from directly inside the '$REPO_NAME' directory!"
+    exit 1
+    
+fi
+
+
 error_message() {
     if [[ $(uname -s) == "Darwin" ]] && [[ "$1" == "local" ]]; then
         echo -e "\nNote that 'local' installation is not officially supported on Mac OS! Please use the 'docker' mode instead if possible."
