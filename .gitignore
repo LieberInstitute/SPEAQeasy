@@ -13,6 +13,7 @@ SPEAQeasy_output.log
 ## ignore big reference files/ files pulled with 1st execution
 Annotation/reference/*
 Annotation/RSeQC/*
+dockerfiles/singularity_cache
 
 ## backup stuff
 *.bkp
