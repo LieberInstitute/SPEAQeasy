@@ -38,7 +38,7 @@ spec <- matrix(c(
     "salmon", "n", 1, "logical", "Whether to use salmon quants rather than kallisto",
     "star", "r", 1, "logical", "Whether STAR was used for alignment",
     "output", "u", 1, "character", "Output directory for SPEAQeasy",
-    "qsva_tx", "q", 1, "character", "Filename for QSVA TX list, or the empty string if it doesn't exist"
+    "qsva_tx", "q", 1, "character", "Filename for QSVA TX list, or the empty string if it doesn't exist",
     "help", "h", 0, "logical", "Display help"
 ), byrow = TRUE, ncol = 5)
 opt <- getopt(spec)
