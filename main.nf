@@ -191,6 +191,7 @@ params.fullCov = false
 params.keep_unpaired = false
 params.output = "${workflow.projectDir}/results"
 params.prefix = ""
+params.qsva = ""
 params.reference = ""
 params.sample = ""
 params.small_test = false
@@ -237,6 +238,16 @@ if (params.keep_unpaired && params.trim_mode == "skip") {
 
 if (params.keep_unpaired && params.use_star) {
     exit 1, "STAR does not support inclusion of unpaired reads. Consider using HISAT2 (default) or remove the '--keep_unpaired' option."
+}
+
+// Trying to subset transcripts when they won't be quantified at all
+if (params.qsva != "" && params.reference == "rn6") {
+    println "Warning: ignoring '--qsva' argument, since transcripts are not quantified for rat."
+}
+
+// Passing an illegimate file name to '--qsva'
+if (params.qsva != "" && ! File(params.qsva).exists()) {
+    exit 1, "File passed via '--qsva' argument does not exist."
 }
 
 // Create a global variable to handle the situation where params.fullCov is
