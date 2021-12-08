@@ -128,6 +128,9 @@ def helpMessage() {
                        "[SPEAQeasy dir]/results". Note only full paths may be used!
     --prefix [string] <- an additional identifier (name) for the experiment
                        (e.g. date, genome)
+    --qsva [path]   <- Optional full path to a text file, containing one Ensembl
+                       transcript ID per line for each transcript desired in the
+                       final transcripts R output object (called `rse_tx`)
     --small_test	  <- use small test files as input, rather than the files
                        specified in samples.manifest in the directory given by
                        "--input [path]". Default: false.
