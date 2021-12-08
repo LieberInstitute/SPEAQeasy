@@ -1570,6 +1570,10 @@ if (params.use_salmon) {
  * Construct the Counts Objects Input Channel
  */
 
+if (params.qsva != "") {
+    Channel.fromPath(params.qsva).set{ qsva_tx_list }
+}
+
 count_objects_bam_files // this puts sorted.bams and bais into the channel
   .flatten()
   .mix(count_objects_quality_reports_untrimmed) // this puts sample_XX_summary.txt files into the channel
@@ -1581,6 +1585,7 @@ count_objects_bam_files // this puts sorted.bams and bais into the channel
   .mix(sample_counts) // this puts sample_XX_*_Exons.counts and sample_XX_*_Genes.counts into the channel
   .mix(regtools_outputs) // this puts the *_junctions_primaryOnly_regtools.count files into the channel
   .mix(tx_quants)
+  .mix(qsva_tx_list) // file containing list of transcripts, when using --qsva
   .set{counts_objects_channel_1}
 
 if (params.ercc) {
@@ -1652,7 +1657,14 @@ process CountObjects {
         } else {
             counts_strand = "-s " + params.strand
         }
+        
         '''
+        if [[ "!{params.qsva}" == "" ]]; then
+            qsva_arg=""
+        else
+            qsva_arg=$(basename !{params.qsva})
+        fi
+        
         !{params.Rscript} !{create_counts} \
             -o !{params.reference} \
             -e !{params.experiment} \
@@ -1663,7 +1675,8 @@ process CountObjects {
             !{counts_strand} \
             -n !{params.use_salmon} \
             -r !{params.use_star} \
-            -u !{params.output}
+            -u !{params.output} \
+            -q ${qsva_arg}
 
         cp .command.log counts.log
         '''

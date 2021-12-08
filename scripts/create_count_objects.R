@@ -38,6 +38,7 @@ spec <- matrix(c(
     "salmon", "n", 1, "logical", "Whether to use salmon quants rather than kallisto",
     "star", "r", 1, "logical", "Whether STAR was used for alignment",
     "output", "u", 1, "character", "Output directory for SPEAQeasy",
+    "qsva_tx", "q", 1, "character", "Filename for QSVA TX list, or the empty string if it doesn't exist"
     "help", "h", 0, "logical", "Display help"
 ), byrow = TRUE, ncol = 5)
 opt <- getopt(spec)
@@ -1070,6 +1071,18 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
         assays = list("counts" = txNumReads, "tpm" = txTpm),
         colData = metrics, rowRanges = txMap
     )
+    
+    #  This file exists when the user specifies '--qsva'. Subset to
+    #  user-specified transcripts in this case
+    if (opt$qsva_tx != "") {
+        select_tx = readLines(opt$qsva_tx)
+        if (! all(select_tx %in% rownames(rse_tx))) {
+            stop("Selected transcripts passed via the '--qsva' argument are not all present in the final R object! Please check you are using appropriate transcript names (Ensembl ID), and check your annotation settings.")
+        }
+        
+        rse_tx = rse_tx[rownames(rse_tx) %in% select_tx,]
+    }
+    
     save(rse_tx, file = paste0("rse_tx_", EXPNAME, "_n", N, ".Rdata"))
 }
 
