@@ -1,4 +1,4 @@
-# SPEAQeasy- an RNA-seq Pipeline from the Jaffe Lab at Lieber Institute #
+# SPEAQeasy- a **S**calable **P**ipeline for **E**xpression **A**nalysis and **Q**uantification that is **easy** to install and share #
 
 ## Summary ##
 
@@ -53,6 +53,22 @@ Nextflow Port
  [Israel Aguilar](mailto:iaguilaror@gmail.com),
  [Violeta Larios](mailto:siedracko@gmail.com),
  [Everardo Gutierrez](mailto:ever.gmillan@gmail.com)
+ 
+## Cite `SPEAQeasy`
+
+We hope that [`SPEAQeasy`](http://research.libd.org/SPEAQeasy/) will be useful for your research. Please use the following bibtex information to cite the software and overall approach. Thank you!
+
+```
+@article {Eagles2021,
+	author = {Eagles, Nicholas J. and Burke, Emily E. and Leonard, Jabob and Barry, Brianna K. and Stolz, Joshua M. and Huuki, Louise and Phan, BaDoi N. and Larrios Serrato, Violeta and Guti{\'e}rrez-Mill{\'a}n, Everardo and Aguilar-Ordo{\~n}ez, Israel and Jaffe, Andrew E. and Collado-Torres, Leonardo},
+	title = {SPEAQeasy: a scalable pipeline for expression analysis and quantification for R/bioconductor-powered RNA-seq analyses},
+	year = {2021},
+	doi = {10.1186/s12859-021-04142-3},
+	publisher = {Cold Spring Harbor Laboratory},
+	URL = {https://doi.org/10.1186/s12859-021-04142-3},
+	journal = {BMC Bioinformatics}
+}
+```
 
 ## Contact ##
 
