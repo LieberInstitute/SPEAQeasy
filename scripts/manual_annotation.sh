@@ -1,9 +1,8 @@
-#  This script exists for users who do not have access to an internet connection
-#  on the machine(s) where the pipeline will be executed. Run this script inside
-#  the pipeline repository directory (.../RNAsp/ by default) on a machine with
-#  internet access to prepare the pipeline for runs without internet access.
-#  The necessary annotation files are pulled/built. See configuration below.
-
+#  This script exists for users who do not have access to an internet
+#  connection on the machine(s) where the pipeline will be executed. Run this
+#  script inside the SPEAQeasy repository directory on a machine with internet
+#  access to prepare the pipeline for runs without internet access. The
+#  necessary annotation files are pulled/built. See configuration below.
 
 #############################################################
 #  User configuration
@@ -15,6 +14,12 @@ annotation_dir="$PWD/Annotation" # This should match the "--annotation" flag in 
 work_dir="$PWD/manual_annotation_work" # Location of temporary working directory
 
 
+#############################################################
+#  Version-dependent variables
+#############################################################
+
+r_container="libddocker/bioc_kallisto:3.13"
+r_version="4.1.0"
 
 #############################################################
 #  Determine links and filenames
@@ -171,19 +176,19 @@ if [ "$(echo $config | grep 'docker')" ]; then
     
     docker run \
         -v $work_dir/:/$work_dir/ \
-        libddocker/r_3.6.1_bioc Rscript /$work_dir/build_annotation_objects.R \
+        $r_container Rscript /$work_dir/build_annotation_objects.R \
             -r $reference \
             -s $anno_suffix
     
     echo "Copying objects out of the container to their destinations..."
-    docker cp libddocker/r_3.6.1_bioc:/chrom_sizes_${anno_suffix} ${annotation_dir}/junction_txdb/
-    docker cp libddocker/r_3.6.1_bioc:/junction_annotation_${anno_suffix}.rda ${annotation_dir}/junction_txdb/
+    docker cp ${r_container}:/chrom_sizes_${anno_suffix} ${annotation_dir}/junction_txdb/
+    docker cp ${r_container}:/junction_annotation_${anno_suffix}.rda ${annotation_dir}/junction_txdb/
     if [ ! $reference == "rn6" ]; then
-        docker cp libddocker/r_3.6.1_bioc:/feature_to_Tx_${anno_suffix}.rda ${annotation_dir}/junction_txdb/
+        docker cp ${r_container}:/feature_to_Tx_${anno_suffix}.rda ${annotation_dir}/junction_txdb/
     fi
 else
     echo "User is using locally installed software; building annotation objects using local R install..."
-    $origDir/Software/R-3.6.1/bin/Rscript $origDir/scripts/build_annotation_objects.R \
+    $origDir/Software/R-${r_version}/bin/Rscript $origDir/scripts/build_annotation_objects.R \
         -r $reference \
         -s $anno_suffix
     

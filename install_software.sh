@@ -98,7 +98,7 @@ if [[ "$1" == "docker" || "$1" == "singularity" ]]; then
         mkdir dockerfiles/singularity_cache
         images=$(grep 'container = ' conf/singularity.config | tr -d " |'" | cut -d '=' -f 2 | sort -u)
         for image in $images; do
-            image_name=$(echo $image | sed 's/[:\/]/-/g').sif
+            image_name=$(echo $image | sed 's/[:\/]/-/g').img
             singularity pull dockerfiles/singularity_cache/$image_name docker://$image
         done
         
