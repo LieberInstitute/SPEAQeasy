@@ -297,6 +297,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><code>--keep_unpaired</code> include this flag to keep unpaired reads output from trimming paired-end samples, for use in alignment. Default: false, as this can cause issues in downstream tools like FeatureCounts.</li>
 <li><code>--output</code> The path to the directory to store pipeline output files/ objects. Defaults to “[SPEAQeasy dir]/results”. Note only full paths may be used!</li>
 <li><code>--prefix</code> An additional label (in conjunction with “experiment”) to use for the pipeline run- affecting result file names.</li>
+<li><code>--qsva [path]</code> Optional full path to a text file, containing one Ensembl transcript ID per line for each transcript desired in the final transcripts R output object (called <code>rse_tx</code>)</li>
 <li><code>--small_test</code> Uses sample files located in the test folder as input. Overrides the “–input” option.</li>
 <li><code>--strand_mode [mode]</code> &lt;- Determines how to handle disagreement between user-asserted and SPEAQeasy-inferred strandness:<br />
 “accept”: warn about disagreement but continue, using SPEAQeasy-inferred strandness downstream<br />
