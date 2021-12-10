@@ -249,7 +249,8 @@ if (params.qsva != "" && params.reference == "rn6") {
 }
 
 // Passing an illegimate file name to '--qsva'
-if (params.qsva != "" && ! File(params.qsva).exists()) {
+File qsva_file = new File(params.qsva)
+if (params.qsva != "" && ! qsva_file.exists()) {
     exit 1, "File passed via '--qsva' argument does not exist."
 }
 
@@ -1584,7 +1585,9 @@ if (params.use_salmon) {
  * Construct the Counts Objects Input Channel
  */
 
-if (params.qsva != "") {
+if (params.qsva == "") {
+    qsva_tx_list = Channel.empty()
+} else {
     Channel.fromPath(params.qsva).set{ qsva_tx_list }
 }
 
@@ -1676,7 +1679,7 @@ process CountObjects {
         if [[ "!{params.qsva}" == "" ]]; then
             qsva_arg=""
         else
-            qsva_arg=$(basename !{params.qsva})
+            qsva_arg="-q $(basename !{params.qsva})"
         fi
         
         !{params.Rscript} !{create_counts} \
@@ -1690,7 +1693,7 @@ process CountObjects {
             -n !{params.use_salmon} \
             -r !{params.use_star} \
             -u !{params.output} \
-            -q ${qsva_arg}
+            ${qsva_arg}
 
         cp .command.log counts.log
         '''
