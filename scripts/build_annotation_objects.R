@@ -59,16 +59,12 @@ if (opt$reference == "hg19" || opt$reference == "hg38") {
 
 ## chromosome info
 chrInfo <- getChromInfoFromUCSC(opt$reference)
-chrInfo$chrom <- as.character(chrInfo$chrom)
+chrInfo$isCircular <- chrInfo$circular
 
 if (opt$type == "main") {
     chrInfo <- chrInfo[chrInfo$chrom %in% chrom_names, ]
-    chrInfo$isCircular <- c(rep(FALSE, length(chrom_names) - 1), TRUE)
-} else {
-    isCircular <- rep(FALSE, length(unique(chrInfo$chrom)))
-    isCircular[length(chrom_names)] <- TRUE
-    chrInfo$isCircular <- isCircular
 }
+
 si <- with(chrInfo, Seqinfo(as.character(chrom), size, isCircular, genome = opt$reference))
 
 ## read in GTF as GRanges
