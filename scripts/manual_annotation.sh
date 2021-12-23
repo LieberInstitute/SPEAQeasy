@@ -13,6 +13,9 @@ config="slurm.config"
 annotation_dir="$PWD/Annotation" # This should match the "--annotation" flag in your main script
 work_dir="$PWD/manual_annotation_work" # Location of temporary working directory
 
+#  This should be "docker", "singularity", or "local"
+installation_method="singularity"
+
 
 #############################################################
 #  Version-dependent variables
@@ -24,6 +27,12 @@ r_version="4.1.0"
 #############################################################
 #  Determine links and filenames
 #############################################################
+
+#  Verify validity of installation method
+if [[ ! ("$installation_method" == "docker" || "$installation_method" == "singularity" || "$installation_method" == "local") ]]; then
+    echo "The 'installation_method' variable must either be 'docker', 'singularity', or 'local'."
+    exit 1
+fi
 
 #  Grab the annotation versions specified at the above config
 gencode_version_human=$(cat conf/$config | grep "gencode_version_human" | cut -d "=" -f 2 | tr -d ' |"')
@@ -129,6 +138,8 @@ first_bad_line=$(grep -n ">" $primaryFile | cut -d : -f 1 | paste -s | cut -f $(
 #  Make a new file out of all the lines up and not including that
 sed -n "1,$(($first_bad_line - 1))p;${first_bad_line}q" $primaryFile > $mainFile
 
+cp $out_fasta $work_dir/
+
 
 #############################################################
 #  Download the gtf
@@ -170,7 +181,7 @@ gunzip ${baseFile}.gz
 
 cd $work_dir
 
-if [ "$(echo $config | grep 'docker')" ]; then
+if [[ "$installation_method" == "docker" ]; then
     echo "User wants to use docker; building annotation objects inside the R container..."
     cp $origDir/scripts/build_annotation_objects.R $work_dir/
     
@@ -185,6 +196,27 @@ if [ "$(echo $config | grep 'docker')" ]; then
     docker cp ${r_container}:/junction_annotation_${anno_suffix}.rda ${annotation_dir}/junction_txdb/
     if [ ! $reference == "rn6" ]; then
         docker cp ${r_container}:/feature_to_Tx_${anno_suffix}.rda ${annotation_dir}/junction_txdb/
+    fi
+elif [[ "$installation_method" == "singularity" ]; then
+    echo "Building annotation objects inside the singularity R container..."
+    cp $origDir/scripts/build_annotation_objects.R $work_dir/
+    
+    #  Grab the filename for the R docker image as it exists in the cache
+    #  (it is placed in the cache during installation w/ 'singularity' mode
+    image_name=$(echo $r_container | sed 's/[:\/]/-/g').img
+    
+    singularity exec \
+        --pwd $PWD \
+        -B $work_dir/:/$work_dir/ \
+        $origDir/dockerfiles/singularity_cache/$image_name Rscript /$work_dir/build_annotation_objects.R \
+            -r $reference \
+            -s $anno_suffix
+    
+    #  Move the generated annotation files to their final destinations
+    mv chrom_sizes_${anno_suffix} ${annotation_dir}/junction_txdb/
+    mv junction_annotation_${anno_suffix}.rda ${annotation_dir}/junction_txdb/
+    if [ ! $reference == "rn6" ]; then
+        mv feature_to_Tx_${anno_suffix}.rda ${annotation_dir}/junction_txdb/
     fi
 else
     echo "User is using locally installed software; building annotation objects using local R install..."
