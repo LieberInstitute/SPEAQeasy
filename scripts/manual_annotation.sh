@@ -122,7 +122,7 @@ out_fasta="assembly_${anno_suffix}.fa"
 #  Pull primary assembly fasta
 #  ----------------------------
 echo "Pulling and unzipping assembly fasta..."
-wget $fa_link
+curl -O $fa_link
 gunzip ${baseFile}.gz
 mv $baseFile $primaryFile # rename for consistency with pipeline naming conventions
 
@@ -155,7 +155,7 @@ out_gtf="transcripts_${anno_suffix}.gtf"
 
 #  Pull, unzip, and rename gtf
 echo "Pulling and unzipping the gtf file..."
-wget $gtf_link
+curl -O $gtf_link
 gunzip ${baseFile}.gz
 mv $baseFile $out_gtf
 
@@ -174,7 +174,7 @@ cd $destDir
 baseFile=$(basename $(echo $tx_fa_link | rev | cut -d "." -f 2- | rev))
 
 echo "Pulling and unzipping the transcripts fasta..."
-wget $tx_fa_link
+curl -O $tx_fa_link
 gunzip ${baseFile}.gz
 
 #############################################################

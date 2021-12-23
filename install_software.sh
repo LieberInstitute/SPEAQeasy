@@ -62,7 +62,7 @@ if [[ "$1" == "docker" || "$1" == "singularity" ]]; then
     cd $INSTALL_DIR
     
     #  Install nextflow (latest)
-    wget -qO- https://get.nextflow.io | bash
+    curl -s https://get.nextflow.io | bash
     cd ..
         
     ###########################################################################
@@ -139,10 +139,10 @@ elif [ "$1" == "local" ]; then
         cd $INSTALL_DIR
         
         #  Install nextflow (latest)
-        wget -qO- https://get.nextflow.io | bash 
+        curl -s https://get.nextflow.io | bash
     
         #  bc (1.06.95)
-        wget ftp://alpha.gnu.org/gnu/bc/bc-1.06.95.tar.bz2
+        curl -O ftp://alpha.gnu.org/gnu/bc/bc-1.06.95.tar.bz2
         tar -xjf bc-1.06.95.tar.bz2
         cd bc-1.06.95
         ./configure --prefix=$INSTALL_DIR
@@ -152,7 +152,7 @@ elif [ "$1" == "local" ]; then
         
         #  bcftools (1.10.2)  -------------------------------------------------------------
     
-        wget https://github.com/samtools/bcftools/releases/download/1.10.2/bcftools-1.10.2.tar.bz2 -O bcftools.tar.bz2
+        curl -o bcftools.tar.bz2 https://github.com/samtools/bcftools/releases/download/1.10.2/bcftools-1.10.2.tar.bz2
         tar -xjf bcftools.tar.bz2
         cd bcftools-1.10.2
         ./configure prefix=$INSTALL_DIR
@@ -170,13 +170,13 @@ elif [ "$1" == "local" ]; then
         
         #  fastqc (0.11.8)  -------------------------------------------------------------
     
-        wget https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.8.zip
+        curl -O https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.8.zip
         unzip fastqc_v0.11.8.zip
         chmod -R 775 FastQC
       
         #  hisat2 (2.2.1)  -------------------------------------------------------------
     
-        wget https://github.com/DaehwanKimLab/hisat2/archive/v2.2.1.tar.gz
+        curl -O https://github.com/DaehwanKimLab/hisat2/archive/v2.2.1.tar.gz
         tar -xzf v2.2.1.tar.gz
         cd hisat2-2.2.1
         make
@@ -184,7 +184,7 @@ elif [ "$1" == "local" ]; then
         
         #  htslib (1.10.2)  -------------------------------------------------------------
     
-        wget https://github.com/samtools/htslib/releases/download/1.10.2/htslib-1.10.2.tar.bz2 -O htslib.tar.bz2
+        curl -o htslib.tar.bz2 https://github.com/samtools/htslib/releases/download/1.10.2/htslib-1.10.2.tar.bz2
         tar -xjf htslib.tar.bz2
         cd htslib-1.10.2
         ./configure prefix=$INSTALL_DIR
@@ -195,7 +195,7 @@ elif [ "$1" == "local" ]; then
             
         #  HDF5 (1.10.5), needed for build of kallisto -------------------------------
         
-        wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.5.tar.gz
+        curl -O https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.5.tar.gz
         tar -xzf hdf5-1.10.5.tar.gz
         cd hdf5-1.10.5
         ./configure --disable-parallel --without-szlib --without-pthread --prefix=$INSTALL_DIR
@@ -205,7 +205,7 @@ elif [ "$1" == "local" ]; then
     
         #  kallisto (0.46.1)  -------------------------------------------------------------
                 
-        wget https://github.com/pachterlab/kallisto/archive/v0.46.1.tar.gz
+        curl -O https://github.com/pachterlab/kallisto/archive/v0.46.1.tar.gz
         tar -xzf v0.46.1.tar.gz
         cd kallisto-0.46.1
         mkdir build
@@ -218,7 +218,7 @@ elif [ "$1" == "local" ]; then
         #  R (4.1.0) ---------------------------------------------------------------------
         
         #  Install R
-        wget http://cran.rstudio.com/src/base/R-4/R-4.1.0.tar.gz
+        curl -O http://cran.rstudio.com/src/base/R-4/R-4.1.0.tar.gz
         tar -xzf R-4.1.0.tar.gz
         cd R-4.1.0
         ./configure --prefix=$INSTALL_DIR --with-x=no
@@ -236,7 +236,7 @@ elif [ "$1" == "local" ]; then
     
         #  regtools (0.5.1)  -------------------------------------------------------------
     
-        wget https://github.com/griffithlab/regtools/archive/0.5.1.tar.gz -O regtools-0.5.1.tar.gz
+        curl -o regtools-0.5.1.tar.gz https://github.com/griffithlab/regtools/archive/0.5.1.tar.gz 
         tar -xf regtools-0.5.1.tar.gz
         cd regtools-0.5.1
         mkdir build
@@ -253,7 +253,7 @@ elif [ "$1" == "local" ]; then
         
         #  salmon (1.2.1)  -------------------------------------------------------------
             
-        wget -O salmon_v1.2.1.tar.gz https://github.com/COMBINE-lab/salmon/archive/v1.2.1.tar.gz
+        curl -o salmon_v1.2.1.tar.gz https://github.com/COMBINE-lab/salmon/archive/v1.2.1.tar.gz
         tar -xzf salmon_v1.2.1.tar.gz
         cd salmon-1.2.1
         mkdir build
@@ -265,7 +265,7 @@ elif [ "$1" == "local" ]; then
       
         #  samtools (1.10)  -------------------------------------------------------------
     
-        wget https://github.com/samtools/samtools/releases/download/1.10/samtools-1.10.tar.bz2 -O samtools.tar.bz2
+        curl -o samtools.tar.bz2 https://github.com/samtools/samtools/releases/download/1.10/samtools-1.10.tar.bz2
         tar -xjf samtools.tar.bz2
         cd samtools-1.10
         ./configure prefix=$INSTALL_DIR
@@ -275,7 +275,7 @@ elif [ "$1" == "local" ]; then
         
         #  STAR (2.7.8a)  ---------------------------------------------------------------
             
-        wget https://github.com/alexdobin/STAR/archive/2.7.8a.tar.gz
+        curl -O https://github.com/alexdobin/STAR/archive/2.7.8a.tar.gz
         tar -xzf 2.7.8a.tar.gz
         cd STAR-2.7.8a/source
         make STAR
@@ -303,7 +303,7 @@ elif [ "$1" == "local" ]; then
             makefile_name="Makefile.FreeBSD"
         fi
         
-        wget https://sourceforge.net/projects/subread/files/subread-2.0.0/subread-2.0.0-source.tar.gz/download
+        curl -O https://sourceforge.net/projects/subread/files/subread-2.0.0/subread-2.0.0-source.tar.gz/download
         tar -zxf download
         cd subread-2.0.0-source/src
         make -f $makefile_name
@@ -311,14 +311,14 @@ elif [ "$1" == "local" ]; then
           
         #  trimmomatic (0.39)  -------------------------------------------------------------
         
-        wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip
+        curl -O http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip
         unzip Trimmomatic-0.39.zip
         chmod -R 775 Trimmomatic-0.39
           
         #  wiggletools (1.2.1)  -------------------------------------------------------------
         
         ## Install gsl
-        wget https://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz
+        curl -O https://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz
         tar -xf gsl-2.6.tar.gz
         cd gsl-2.6
         ./configure --prefix=$INSTALL_DIR
@@ -328,7 +328,7 @@ elif [ "$1" == "local" ]; then
         mv gsl-2.6 gsl # wiggletools expects a "plain" name from gsl
             
         ## Install libBigWig
-        wget https://github.com/dpryan79/libBigWig/archive/refs/tags/0.4.6.tar.gz
+        curl -O https://github.com/dpryan79/libBigWig/archive/refs/tags/0.4.6.tar.gz
         tar -xzf 0.4.6.tar.gz
         mv libBigWig-0.4.6 libBigWig
         cd libBigWig
@@ -336,7 +336,7 @@ elif [ "$1" == "local" ]; then
         cd $INSTALL_DIR
         
         # wiggletools itself (note the modified Makefile)
-        wget https://github.com/Ensembl/WiggleTools/archive/refs/tags/v1.2.1.tar.gz
+        curl -O https://github.com/Ensembl/WiggleTools/archive/refs/tags/v1.2.1.tar.gz
         tar -xzf v1.2.1.tar.gz
         mv WiggleTools-1.2.1 WiggleTools
         ./R-3.6.1/bin/Rscript ../scripts/fix_makefile.R
@@ -347,14 +347,14 @@ elif [ "$1" == "local" ]; then
         #  wigToBigWig -----------------------------------------------------------
         
         if [ $(uname -s) == "Linux" ]; then
-            wget http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/wigToBigWig
+            curl -O http://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64/wigToBigWig
             mv wigToBigWig bin/
         elif [ $(uname -s) == "Darwin" ]; then
-            wget http://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/wigToBigWig
+            curl -O http://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/wigToBigWig
             mv wigToBigWig bin/
         else
             #  Attempt to build from source without assuming the OS
-            wget http://hgdownload.cse.ucsc.edu/admin/exe/userApps.src.tgz
+            curl -O http://hgdownload.cse.ucsc.edu/admin/exe/userApps.src.tgz
             tar -xzf userApps.src.tgz
             cd userApps
             make

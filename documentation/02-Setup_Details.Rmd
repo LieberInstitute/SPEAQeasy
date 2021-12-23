@@ -46,18 +46,14 @@ SPEAQeasy has been tested on:
 
 This is particularly common issue for MacOS users, or Linux users trying to get SPEAQeasy running on a local machine (like a laptop). In either case, we will assume the user has root privileges for the solutions suggested below. 
 
-```{bash, eval=FALSE}
-install_software.sh: line 99: wget: command not found
-```
-
-Mac OS users in particular may be missing the utility `wget` (and others), required for the SPEAQeasy installation. A solution on Mac is to install [brew](https://brew.sh/), and install the required utilities through `brew`:
+Mac OS users may be missing utilities required for the SPEAQeasy installation. A solution on Mac is to install [brew](https://brew.sh/), and install the required utilities through `brew`:
 
 ```{bash, eval=FALSE}
 #  Install brew, if you don't already have it
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 #  Install most required utilities
-brew install wget autoconf automake make gcc zlib bzip2 xz pcre openssl texinfo llvm libomp
+brew install autoconf automake make gcc zlib bzip2 xz pcre openssl texinfo llvm libomp
 
 #  Install openJDK8 (Java)
 brew install --cask homebrew/cask-versions/adoptopenjdk8
