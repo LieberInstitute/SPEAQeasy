@@ -234,11 +234,11 @@ elif [ "$1" == "local" ]; then
         Software/R-4.1.0/bin/Rscript scripts/make_test_manifests.R -d $(pwd)
         cd $INSTALL_DIR
     
-        #  regtools (0.5.1)  -------------------------------------------------------------
-    
-        curl -o regtools-0.5.1.tar.gz https://github.com/griffithlab/regtools/archive/0.5.1.tar.gz 
-        tar -xf regtools-0.5.1.tar.gz
-        cd regtools-0.5.1
+        #  regtools (gpertea fork: 0.5.33g)  ----------------------------------
+        
+        curl -O https://github.com/gpertea/regtools/archive/refs/tags/0.5.33g.tar.gz
+        tar -xf 0.5.33g.tar.gz
+        cd regtools-0.5.33g
         mkdir build
         cd build
         $INSTALL_DIR/bin/cmake ..
