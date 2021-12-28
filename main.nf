@@ -1428,16 +1428,13 @@ process Junctions {
     publishDir "${params.output}/counts/junction",'mode':'copy'
 
     input:
-        file bed_to_juncs_script from file("${workflow.projectDir}/scripts/bed_to_juncs.py")
         set val(prefix), file(alignment_bam), file(alignment_index) from primary_alignments
         file complete_manifest_junctions
 
     output:
-        file "*.bed"
         file "*.count" into regtools_outputs
 
     shell:
-        outjxn = "${prefix}_junctions_primaryOnly_regtools.bed"
         outcount = "${prefix}_junctions_primaryOnly_regtools.count"
         '''
         ( set -o posix ; set ) > bash_vars.txt
@@ -1452,8 +1449,7 @@ process Junctions {
             strand_integer=0
         fi
         
-        !{params.regtools} junctions extract !{params.regtools_args} -s ${strand_integer} -o !{outjxn} !{alignment_bam}
-        python3 !{bed_to_juncs_script} < !{outjxn} > !{outcount}
+        !{params.regtools} junctions extract !{params.regtools_args} -s ${strand_integer} -c !{outcount} !{alignment_bam}
         
         temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
         echo "$temp" > bash_vars.txt
