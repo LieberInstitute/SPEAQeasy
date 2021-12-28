@@ -16,7 +16,7 @@ Software | Version | Command used by the pipeline |
 |[kallisto](https://pachterlab.github.io/kallisto/source) | 0.46.1 | `kallisto` |
 |[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 20.01.0) | `nextflow` |
 |[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 4.1 | `Rscript` |
-|[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.1 | `regtools` |
+|[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.33g (`gpertea` fork) | `regtools` |
 |[RSeQC](http://rseqc.sourceforge.net/#installation) | 3.0.1 | `bam2wig.py`|
 |[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 1.2.1 | `salmon` |
 |[samtools](http://www.htslib.org/download/) | 1.10 | `samtools` |
@@ -31,7 +31,7 @@ The following docker image versions are used in this pipeline, when it is instal
 
 | Image | Tag | Software |
 |:-------------:| -----:| -----: |
-| libddocker/bioc_kallisto | 3.13 | R 4.1, Bioconductor 3.13, and Kallisto 0.46.1 |
+    | libddocker/bioc_kallisto | 3.13 | R 4.1, Bioconductor 3.13, and Kallisto 0.46.1 |
 | libddocker/ubuntu16.04_base | 1_v3 | Ubuntu Base |
 | libddocker/kallisto | 0.46.1 | Kallisto |
 | libddocker/fastqc | 0.11.8  | FastQC |
@@ -40,7 +40,7 @@ The following docker image versions are used in this pipeline, when it is instal
 | libddocker/rseqc | 3.0.1 | RSeQC |
 | libddocker/samtools | 1.10 | Samtools |
 | libddocker/salmon | 1.2.1 | Salmon |
-| libddocker/regtools | 0.5.1 | Regtools |
+| libddocker/regtools | 0.5.33g | Regtools (`gpertea` fork) |
 | libddocker/subread | 2.0.0 | SubRead/FeatureCounts |
 | libddocker/wiggletools-1.2 | 1_v3 | Wiggletools |
 | libddocker/variant_calling | 1.10.2 | Samtools, BCFTools |
