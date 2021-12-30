@@ -71,12 +71,19 @@ if [[ "$1" == "docker" || "$1" == "singularity" ]]; then
     
     if [[ "$1" == "docker" ]]; then
         if [[ "$2" == "sudo" ]]; then
-            command="sudo docker run"
+            command="sudo docker"
         else
-            command="docker run"
+            command="docker"
         fi
         
-        $command \
+        #  Pull images prior to executing SPEAQeasy. This prevents problems
+        #  like https://github.com/LieberInstitute/SPEAQeasy/issues/86
+        images=$(grep 'container = ' conf/docker.config | tr -d " |'" | cut -d '=' -f 2 | sort -u)
+        for image in $images; do
+            $command pull $image
+        done
+        
+        $command run \
             -u $(id -u):$(id -g) \
             -v $(pwd)/scripts:/usr/local/src/scripts/ \
             -v $(pwd)/test:/usr/local/src/test \
