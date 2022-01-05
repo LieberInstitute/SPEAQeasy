@@ -510,7 +510,7 @@ if (params.custom_anno != "") {
             ( set -o posix ; set ) > bash_vars.txt
             
             #  Pull and unzip primary assembly fasta
-            wget "!{params.fa_link}"
+            curl -O "!{params.fa_link}"
             gunzip "!{baseName}.gz"
             mv !{baseName} !{primaryName} # rename for consistency with pipeline naming conventions
             
@@ -567,7 +567,7 @@ if (params.custom_anno != "") {
             out_gtf = "transcripts_${params.anno_suffix}.gtf"
             '''
             #  Pull, unzip, and rename transcript gtf
-            wget "!{params.gtf_link}"
+            curl -O "!{params.gtf_link}"
             gunzip "!{baseName}.gz"
             mv !{baseName} !{out_gtf}
             '''
@@ -671,7 +671,7 @@ if (params.custom_anno != "") {
         shell:
             baseName = file("${params.tx_fa_link}").getName() - ".gz"
             '''
-            wget !{params.tx_fa_link}
+            curl -O !{params.tx_fa_link}
             gunzip !{baseName}.gz
             '''
     }
