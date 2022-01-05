@@ -222,23 +222,23 @@ elif [ "$1" == "local" ]; then
         make prefix=$INSTALL_DIR install
         cd $INSTALL_DIR
     
-        #  R (4.1.0) ---------------------------------------------------------------------
+        #  R (4.1.2) ---------------------------------------------------------------------
         
         #  Install R
-        curl -O http://cran.rstudio.com/src/base/R-4/R-4.1.0.tar.gz
-        tar -xzf R-4.1.0.tar.gz
-        cd R-4.1.0
+        curl -O http://cran.rstudio.com/src/base/R-4/R-4.1.2.tar.gz
+        tar -xzf R-4.1.2.tar.gz
+        cd R-4.1.2
         ./configure --prefix=$INSTALL_DIR --with-x=no
         make
         make install
         cd $INSTALL_DIR
       
         #  Install packages that will be used by the pipeline
-        ./R-4.1.0/bin/Rscript ../scripts/check_R_packages.R
+        ./R-4.1.2/bin/Rscript ../scripts/check_R_packages.R
     
         #  Create the test samples.manifest files
         cd ..
-        Software/R-4.1.0/bin/Rscript scripts/make_test_manifests.R -d $(pwd)
+        Software/R-4.1.2/bin/Rscript scripts/make_test_manifests.R -d $(pwd)
         cd $INSTALL_DIR
     
         #  regtools (gpertea fork: 0.5.33g)  ----------------------------------

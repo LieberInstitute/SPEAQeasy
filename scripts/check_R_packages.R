@@ -3,7 +3,7 @@
 
 print("Checking R packages...")
 
-lib_path <- paste0(getwd(), "/R-4.1.0/library")
+lib_path <- paste0(getwd(), "/R-4.1.2/library")
 
 for (package in c("checkpoint", "here")) {
     if (!requireNamespace(package, quietly = TRUE)) {
@@ -14,12 +14,12 @@ for (package in c("checkpoint", "here")) {
 library("here")
 library("checkpoint")
 
-#  Automatically install ordinary packages as they existed when R 4.1.0 was
-#  released
-dir.create(here("Software", "R-4.1.0", ".checkpoint"))
-checkpoint("2021-09-01",
+#  Automatically install ordinary packages as they existed a bit after R 4.1.2
+#  was released
+dir.create(here("Software", "R-4.1.2", ".checkpoint"))
+checkpoint("2021-12-01",
     project_dir = here("scripts", "r_packages"),
-    checkpoint_location = here("Software", "R-4.1.0")
+    checkpoint_location = here("Software", "R-4.1.2")
 )
 
 #  These are Bioconductor packages to install
