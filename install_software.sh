@@ -235,9 +235,14 @@ elif [ "$1" == "local" ]; then
       
         #  Install packages that will be used by the pipeline
         ./R-4.1.2/bin/Rscript ../scripts/check_R_packages.R
+        
+        BASE_DIR=$(dirname $INSTALL_DIR)
+        cd $BASE_DIR
+        
+        #  Signal to load ordinary R packages with 'checkpoint' in each R script
+        sed -i "1i #  Added during installation\nlibrary('checkpoint')\ncheckpoint('2021-12-01',\n    project_dir = '$BASE_DIR/scripts/r_packages',\n    checkpoint_location = '$BASE_DIR/Software'\n)\n" scripts/*.R
     
         #  Create the test samples.manifest files
-        cd ..
         Software/R-4.1.2/bin/Rscript scripts/make_test_manifests.R -d $(pwd)
         cd $INSTALL_DIR
     

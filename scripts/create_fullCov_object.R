@@ -1,14 +1,3 @@
-library("here")
-
-#  If R was installed locally, use packages associated with that installation
-if (.libPaths()[1] == here("Software", "R-4.1.0", "library")) {
-    library("checkpoint")
-    checkpoint("2021-09-01",
-        project_dir = here("scripts", "r_packages"),
-        checkpoint_location = here("Software", "R-4.1.0")
-    )
-}
-
 ## Required libraries
 library("derfinder")
 library("BiocParallel")
