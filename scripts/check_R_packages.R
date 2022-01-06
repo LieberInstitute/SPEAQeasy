@@ -14,10 +14,11 @@ for (package in c("checkpoint", "here")) {
 library("here")
 library("checkpoint")
 
-#  Automatically install ordinary packages as they existed a bit after R 4.1.2
-#  was released
+#  Automatically install ordinary packages as they existed October 2021. This
+#  is a bit before R 4.1.2 was released (2021-11-01), but checkpoint does not
+#  have more recent snapshots of the required packages.
 dir.create(here("Software", "R-4.1.2", ".checkpoint"))
-checkpoint("2021-12-01",
+checkpoint("2021-10-01",
     project_dir = here("scripts", "r_packages"),
     checkpoint_location = here("Software", "R-4.1.2")
 )

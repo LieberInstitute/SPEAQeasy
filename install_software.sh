@@ -240,7 +240,7 @@ elif [ "$1" == "local" ]; then
         cd $BASE_DIR
         
         #  Signal to load ordinary R packages with 'checkpoint' in each R script
-        sed -i "1i #  Added during installation\nlibrary('checkpoint')\ncheckpoint('2021-12-01',\n    project_dir = '$BASE_DIR/scripts/r_packages',\n    checkpoint_location = '$BASE_DIR/Software'\n)\n" scripts/*.R
+        sed -i "1i #  Added during installation\nlibrary('checkpoint')\ncheckpoint('2021-10-01',\n    project_dir = '$BASE_DIR/scripts/r_packages',\n    checkpoint_location = '$BASE_DIR/Software'\n)\n" scripts/*.R
     
         #  Create the test samples.manifest files
         Software/R-4.1.2/bin/Rscript scripts/make_test_manifests.R -d $(pwd)
