@@ -9,9 +9,9 @@ REPO=$(pwd)
 ########################################################
 
 #  Note that this docker image is deprecated in place of
-#  "libddocker: bioc_kallisto:3.13", which works for R 4.1 + Bioc 3.13, and
+#  "libddocker: bioc_kallisto:3.14", which works for R 4.1.2 + Bioc 3.14, and
 #  includes a few additional R packages. The replacement image is produced
-#  here: https://github.com/LieberInstitute/WGBS-Pipeline rather than through
+#  here: https://github.com/LieberInstitute/BiocMAP rather than through
 #  SPEAQeasy.
 mkdir $REPO/r_3.6.1_bioc
 cp $REPO/scripts/check_R_packages.R $REPO/r_3.6.1_bioc/
@@ -24,9 +24,9 @@ docker push libddocker/r_3.6.1_bioc
 ########################################################
 
 #  Note that this docker image is deprecated in place of
-#  "libddocker: bioc_kallisto:3.13", which works for R 4.1 + Bioc 3.13, and
+#  "libddocker: bioc_kallisto:3.14", which works for R 4.1.2 + Bioc 3.14, and
 #  includes a few additional R packages. The replacement image is produced
-#  here: https://github.com/LieberInstitute/WGBS-Pipeline rather than through
+#  here: https://github.com/LieberInstitute/BiocMAP rather than through
 #  SPEAQeasy.
 mkdir $REPO/infer_strandness
 #  produce $REPO/infer_strandness/Dockerfile

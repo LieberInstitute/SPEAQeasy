@@ -15,7 +15,7 @@
 
 #  This is the docker image to be used for execution of R via docker or
 #  singularity, if applicable
-R_container="libddocker/bioc_kallisto:3.13"
+R_container="libddocker/bioc_kallisto:3.14"
 
 #  --------------------------------------------------------
 #  Users should not need to alter code below this point
