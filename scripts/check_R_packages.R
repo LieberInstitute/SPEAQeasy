@@ -20,7 +20,8 @@ library("checkpoint")
 dir.create(here("Software", "R-4.1.2", ".checkpoint"))
 checkpoint("2021-10-01",
     project_dir = here("scripts", "r_packages"),
-    checkpoint_location = here("Software", "R-4.1.2")
+    checkpoint_location = here("Software", "R-4.1.2"),
+    log = FALSE
 )
 
 #  These are Bioconductor packages to install
