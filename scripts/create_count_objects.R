@@ -612,10 +612,13 @@ if (opt$organism %in% c("hg19", "hg38")) {
 }
 
 ## counts
-geneCountList <- mclapply(geneFn, function(x) {
-    cat(".")
-    read.delim(pipe(paste("cut -f7", x)), as.is = TRUE, skip = 1)[, 1]
-}, mc.cores = opt$cores)
+geneCountList <- bplapply(geneFn,
+    function(x) {
+        cat(".")
+        read.delim(pipe(paste("cut -f7", x)), as.is = TRUE, skip = 1)[, 1]
+    },
+    BPPARAM = MulticoreParam(opt$cores)
+)
 geneCounts <- do.call("cbind", geneCountList)
 rownames(geneCounts) <- rownames(geneMap)
 geneCounts <- geneCounts[, metrics$SAMPLE_ID] # put in order
@@ -702,10 +705,13 @@ if (opt$organism %in% c("hg19", "hg38")) {
 exonMap <- join(exonMap, gencodeEXONS, type = "left", match = "first")
 
 ## counts
-exonCountList <- mclapply(exonFn, function(x) {
-    cat(".")
-    read.delim(pipe(paste("cut -f7", x)), as.is = TRUE, skip = 1)[, 1]
-}, mc.cores = opt$cores)
+exonCountList <- bplapply(exonFn,
+    function(x) {
+        cat(".")
+        read.delim(pipe(paste("cut -f7", x)), as.is = TRUE, skip = 1)[, 1]
+    },
+    BPPARAM = MulticoreParam(opt$cores)
+)
 exonCounts <- do.call("cbind", exonCountList)
 rownames(exonCounts) <- rownames(exonMap)
 exonCounts <- exonCounts[, metrics$SAMPLE_ID] # put in order
