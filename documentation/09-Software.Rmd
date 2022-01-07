@@ -15,7 +15,7 @@ Software | Version | Command used by the pipeline |
 |[java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) | 8+ | `java` |
 |[kallisto](https://pachterlab.github.io/kallisto/source) | 0.46.1 | `kallisto` |
 |[nextflow](https://www.nextflow.io/docs/latest/getstarted.html) | >=0.27.0 (tested with 20.01.0) | `nextflow` |
-|[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 4.1 | `Rscript` |
+|[R](https://cran.r-project.org/bin/linux/ubuntu/README.html#installation) | 4.1.2 | `Rscript` |
 |[regtools](https://github.com/griffithlab/regtools#installation) | 0.5.33g (`gpertea` fork) | `regtools` |
 |[RSeQC](http://rseqc.sourceforge.net/#installation) | 3.0.1 | `bam2wig.py`|
 |[salmon](http://salmon.readthedocs.io/en/latest/building.html) | 1.2.1 | `salmon` |
@@ -31,7 +31,7 @@ The following docker image versions are used in this pipeline, when it is instal
 
 | Image | Tag | Software |
 |:-------------:| -----:| -----: |
-    | libddocker/bioc_kallisto | 3.13 | R 4.1, Bioconductor 3.13, and Kallisto 0.46.1 |
+    | libddocker/bioc_kallisto | 3.14 | R 4.1.2, Bioconductor 3.14, and Kallisto 0.46.1 |
 | libddocker/ubuntu16.04_base | 1_v3 | Ubuntu Base |
 | libddocker/kallisto | 0.46.1 | Kallisto |
 | libddocker/fastqc | 0.11.8  | FastQC |
