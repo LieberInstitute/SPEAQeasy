@@ -365,7 +365,7 @@ sample_ids = file("${params.input}/samples.manifest")
     .unique( false )
 
 //  Deduce sample ID from a filename that includes it
-def get_prefix(f, trim_read_num=false) {
+def get_prefix(f, trim_read_num=false, check_ids=true) {
     if (trim_read_num) {
         //  Remove these regardless of position in the string
         blackListAny = ~/_[12]_(un|)trimmed_(summary|fastqc_data)|_trimmed|_untrimmed|_unpaired|_paired/
@@ -384,10 +384,10 @@ def get_prefix(f, trim_read_num=false) {
         .tokenize('.')[0]
         .replaceAll(blackListAny, "")
     
-    //  This function returns the sample ID associated with a filename; if the
-    //  "ID" we found is not one of the sample IDs from 'samples.manifest',
-    //  something went wrong!
-    if (! sample_ids.contains(prefix)) {
+    //  This function returns the sample ID associated with a filename with
+    //  typical usage; if the "ID" we found is not one of the sample IDs from
+    //  'samples.manifest', something went wrong!
+    if (check_ids && ! sample_ids.contains(prefix)) {
         exit 1, "Error: deduced the sample ID '" + prefix + "' from the file '" + f.name.toString() + "', but this ID is not in 'samples.manifest'. This is likely a bug in SPEAQeasy!"
     }
     
@@ -1823,7 +1823,7 @@ if (do_coverage) {
     
     wig_files_temp
         .flatten()
-        .map{ file -> tuple(get_prefix(file), file) }
+        .map{ file -> tuple(get_prefix(file, check_ids = false), file) }
         .set{ wig_files }
     
     process WigToBigWig {
