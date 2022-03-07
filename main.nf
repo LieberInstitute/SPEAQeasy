@@ -894,7 +894,7 @@ if (params.ercc) {
       ( set -o posix ; set ) > bash_vars.txt
       
       #  Find this sample's strandness and determine kallisto flags to set
-      strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+      strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
       if [ $strand == 'forward' ]; then
           kallisto_strand=" --fr-stranded"
       elif [ $strand == 'reverse' ]; then
@@ -1214,7 +1214,7 @@ if (params.use_star) {
                 ( set -o posix ; set ) > bash_vars.txt
                 
                 #  Find this sample's strandness and determine strand flag
-                strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+                strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
                 if [ ${strand} == "unstranded" ]; then
                     hisat_strand=""
                 elif [ ${strand} == "forward" ]; then
@@ -1264,7 +1264,7 @@ if (params.use_star) {
                 ( set -o posix ; set ) > bash_vars.txt
                 
                 #  Find this sample's strandness and determine strand flag
-                strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+                strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
                 if [ ${strand} == "unstranded" ]; then
                     hisat_strand=""
                 elif [ ${strand} == "forward" ]; then
@@ -1360,7 +1360,7 @@ process FeatureCounts {
         ( set -o posix ; set ) > bash_vars.txt
         
         #  Find this sample's strandness and determine strand flag
-        strand=\$(cat samples_complete.manifest | grep ${feature_prefix} | awk -F ' ' '{print \$NF}')
+        strand=\$(cat samples_complete.manifest | grep " ${feature_prefix} " | awk -F ' ' '{print \$NF}')
         if [ \$strand == 'forward' ]; then
             feature_strand=1
         elif [ \$strand == 'reverse' ]; then
@@ -1440,7 +1440,7 @@ process Junctions {
         ( set -o posix ; set ) > bash_vars.txt
         
         #  Find this sample's strandness and determine strand flag
-        strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+        strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
         if [ $strand == 'forward' ]; then
             strand_integer=2
         elif [ $strand == 'reverse' ]; then
@@ -1482,7 +1482,7 @@ if (params.use_salmon) {
             ( set -o posix ; set ) > bash_vars.txt
             
             #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+            strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
             if [ $strand == 'forward' ]; then
                 strand_flag="SF"
             elif [ $strand == 'reverse' ]; then
@@ -1535,7 +1535,7 @@ if (params.use_salmon) {
             ( set -o posix ; set ) > bash_vars.txt
             
             #  Find this sample's strandness
-            strand=$(cat samples_complete.manifest | grep !{prefix} | awk -F ' ' '{print $NF}')
+            strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
             if [ $strand == 'forward' ]; then
                 strand_flag="--fr-stranded"
             elif [ $strand == 'reverse' ]; then
@@ -1788,7 +1788,7 @@ if (do_coverage) {
             ( set -o posix ; set ) > bash_vars.txt
             
             #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep !{coverage_prefix} | awk -F ' ' '{print $NF}')
+            strand=$(cat samples_complete.manifest | grep " !{coverage_prefix} " | awk -F ' ' '{print $NF}')
             if [ $strand == 'forward' ]; then
                 if [ !{params.sample} == "paired" ]; then
                     strand_flag='-d 1++,1--,2+-,2-+'
@@ -1823,7 +1823,7 @@ if (do_coverage) {
     
     wig_files_temp
         .flatten()
-        .map{ file -> tuple(get_prefix(file, check_ids = false), file) }
+        .map{ file -> tuple(get_prefix(file, false, false), file) }
         .set{ wig_files }
     
     process WigToBigWig {
