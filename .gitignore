@@ -13,6 +13,9 @@ SPEAQeasy_output.log
 ## ignore big reference files/ files pulled with 1st execution
 Annotation/reference/*
 Annotation/RSeQC/*
+Annotation/junction_txdb/chrom_sizes_*
+Annotation/junction_txdb/feature_to_Tx_*
+Annotation/junction_txdb/junction_annotation_*
 dockerfiles/singularity_cache
 
 ## backup stuff
