@@ -571,10 +571,11 @@ if (opt$organism %in% c("hg19", "hg38")) {
 #  Get filenames for gene counts in sample order present in manifest
 geneFn <- rep("", length(metrics$SAMPLE_ID))
 for (i in 1:length(metrics$SAMPLE_ID)) {
-    geneFn[i] <- list.files(pattern = paste0(
-        metrics$SAMPLE_ID[i], "_",
-        opt$organism, "_.*_Genes\\.counts$"
-    ))
+    geneFn[i] <- list.files(
+        pattern = paste0(
+            "^", metrics$SAMPLE_ID[i], "_.*_Genes\\.counts$"
+        )
+    )
 }
 names(geneFn) <- metrics$SAMPLE_ID
 
@@ -668,10 +669,11 @@ write.csv(
 #  Get filenames for exon counts in sample order present in manifest
 exonFn <- rep("", length(metrics$SAMPLE_ID))
 for (i in 1:length(metrics$SAMPLE_ID)) {
-    exonFn[i] <- list.files(pattern = paste0(
-        "^", metrics$SAMPLE_ID[i], "_",
-        opt$organism, "_.*_Exons\\.counts$"
-    ))
+    exonFn[i] <- list.files(
+        pattern = paste0(
+            "^", metrics$SAMPLE_ID[i], "_.*_Exons\\.counts$"
+        )
+    )
 }
 names(exonFn) <- metrics$SAMPLE_ID
 
