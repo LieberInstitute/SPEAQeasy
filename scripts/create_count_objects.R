@@ -1054,8 +1054,12 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     ## transcript
     tx <- gencodeGTF[which(gencodeGTF$type == "transcript")]
     names(tx) <- tx$transcript_id
-
-    txTpm <- txTpm[which(rownames(txTpm) %in% names(tx)), ]
+    
+    #   Check that GTF contains observed transcripts
+    if (!all((rownames(txTpm) %in% names(tx)))) {
+        stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
+    }
+    
     txMap <- tx[rownames(txTpm)]
 
     rse_tx <- SummarizedExperiment(
