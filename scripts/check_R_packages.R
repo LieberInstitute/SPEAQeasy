@@ -3,40 +3,27 @@
 
 print("Checking R packages...")
 
-lib_path <- paste0(getwd(), "/R-4.1.2/library")
-
-for (package in c("checkpoint", "here")) {
-    if (!requireNamespace(package, quietly = TRUE)) {
-        install.packages(package, repos = "http://cran.us.r-project.org", lib = lib_path)
-    }
+# base R packages:
+plist <- c("tidyverse", "data.table", "devtools", "sqldf", "remotes", "stringr", 
+   "stringi", "usethis", "here", "reshape2")
+for (p in plist){
+ if(! p %in% installed.packages()) install.packages(p, dependencies = TRUE, type = "both")
 }
 
-library("here")
-library("checkpoint")
 
-#  Automatically install ordinary packages as they existed October 2021. This
-#  is a bit before R 4.1.2 was released (2021-11-01), but checkpoint does not
-#  have more recent snapshots of the required packages.
-dir.create(here("Software", "R-4.1.2", ".checkpoint"))
-checkpoint("2021-10-01",
-    project_dir = here("scripts", "r_packages"),
-    checkpoint_location = here("Software", "R-4.1.2"),
-    log = FALSE
-)
+if (!requireNamespace("BiocManager", quietly = TRUE))
+   install.packages("BiocManager")
 
 #  These are Bioconductor packages to install
 packages <- c(
-    "BiocParallel", "biomaRt", "Biostrings",
-    "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38",
+    "BiocParallel", "biomaRt", "Biostrings", "BSgenome.Hsapiens.UCSC.hg38",
     "BSgenome.Mmusculus.UCSC.mm10", "BSgenome.Rnorvegicus.UCSC.rn6",
-    "DelayedArray", "derfinder", "GenomicFeatures", "GenomicRanges",
-    "org.Hs.eg.db", "org.Mm.eg.db", "org.Rn.eg.db", "rtracklayer",
+    "Matrix", "DelayedArray", "derfinder", "GenomicFeatures", "GenomicRanges",
+    "org.Hs.eg.db", "org.Mm.eg.db", "org.Rn.eg.db", "rtracklayer", "limma",
     "SummarizedExperiment"
 )
 
 #  Install the Bioc packages and the GitHub package "jaffelab"
-BiocManager::install(packages, lib = lib_path, update = FALSE)
-remotes::install_github("LieberInstitute/jaffelab", lib = lib_path)
-
-library("sessioninfo")
-session_info()
+BiocManager::install(packages, update = FALSE)
+if(! 'jaffelab' %in% installed.packages())
+     devtools::install_github('LieberInstitute/jaffelab')
