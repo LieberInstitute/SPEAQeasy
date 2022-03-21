@@ -44,8 +44,8 @@ export PATH=$SW:$SW/bin:$SW/Trimmomatic-0.39:$SW/FastQC:$PATH
 $SPQZ/Software/nextflow -Dnxf.pool.type=sync run $SPQZ/main.nf \
     --sample $STYPE \
     --reference $REF \
-    --strand $STRAND --force_strand \
-    --trim_mode auto \
+    --strand $STRAND \
+    --trim_mode adaptive \
     --annotation "$SPQZ/Annotation" \
     --input  "$INDIR" \
          -w  "$WRKDIR" \

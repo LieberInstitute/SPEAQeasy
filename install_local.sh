@@ -29,8 +29,8 @@ for prog in "${coreProgs[@]}" ; do
   fi
 done
 
-
-INSTALL_DIR=$(pwd -P)/Software
+SEdir=$(pwd -P)
+INSTALL_DIR=$SEdir/Software
 mkdir -p $INSTALL_DIR
 cd $INSTALL_DIR
 export PATH=${INSTALL_DIR}:${INSTALL_DIR}/bin:${INSTALL_DIR}/FastQC:$PATH
@@ -260,8 +260,7 @@ chmod 775 -R $INSTALL_DIR
 
 #  Point to the original repository so that the "main" scripts can be
 #  trivially copied to share the pipeline
-odir=$(dirname $(pwd -P))
-sed -i "s|ORIG_DIR=\$PWD|ORIG_DIR=$odir|" ../run_local.sh
-sed -i "s|ORIG_DIR=\$PWD|ORIG_DIR=$odir|" ../run_pipeline_sge.sh
-sed -i "s|ORIG_DIR=\$PWD|ORIG_DIR=$odir|" ../run_pipeline_local.sh
-sed -i "s|ORIG_DIR=\$PWD|ORIG_DIR=$odir|" ../run_pipeline_slurm.sh
+sed -i "s|ORIG_DIR=\$PWD|ORIG_DIR=$SEdir|" ../run_local.sh
+sed -i "s|ORIG_DIR=\$PWD|ORIG_DIR=$SEdir|" ../run_pipeline_sge.sh
+sed -i "s|ORIG_DIR=\$PWD|ORIG_DIR=$SEdir|" ../run_pipeline_local.sh
+sed -i "s|ORIG_DIR=\$PWD|ORIG_DIR=$SEdir|" ../run_pipeline_slurm.sh
