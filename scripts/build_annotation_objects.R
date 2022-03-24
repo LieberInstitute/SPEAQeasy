@@ -16,6 +16,11 @@ spec <- matrix(c(
 ), byrow = TRUE, ncol = 5)
 opt <- getopt(spec)
 
+## - only for testing
+#opt$reference <- 'hg38'
+#opt$suffix <- 'hg38_gencode_v25_main'
+## ---
+
 suffix <- paste0("_", opt$suffix)
 temp <- strsplit(suffix, "_")[[1]]
 opt$type <- temp[length(temp)] # "main", "primary", or "custom"
@@ -62,6 +67,32 @@ seqlevelsStyle(gencode_gtf) <- "UCSC"
 
 seqlevels(gencode_gtf, pruning.mode = "coarse") <- seqlevels(si)
 seqinfo(gencode_gtf) <- si
+
+## calculate gene (coverage) length, tx length and save rds annotation objects
+gtfexons <- subset(gencode_gtf, type=="exon")
+exglist <- multisplit(gtfexons, as.list(gtfexons$gene_id))
+exglen <- sum(width(reduce(exglist)))
+gtfgenes <- subset(gencode_gtf, type=="gene")
+mcols(gtfgenes)$Length <- exglen[match(gtfgenes$gene_id, names(exglen))]
+message("saving genes RDS..")
+saveRDS(gtfgenes, file = paste0("genes", suffix, ".rds"))
+message(" ! saved.")
+mcols(gtfexons)$Length <- width(gtfexons)
+message("saving exons RDS..")
+saveRDS(gtfexons, file = paste0("exons", suffix, ".rds"))
+message("  !saved.")
+
+gtftx <- subset(gencode_gtf, type=="transcript")
+extxlist <- multisplit(gtfexons, as.list(gtfexons$transcript_id))
+extxlen <- sum(width(reduce(extxlist)))
+extxecount <- lengths(extxlist)
+mcols(gtftx)$Length <- extxlen[match(gtftx$transcript_id, names(extxlen))]
+mcols(gtftx)$exonCount <- extxecount[match(gtftx$transcript_id, names(extxecount))]
+message("saving tx RDS..")
+saveRDS(gtftx, file = paste0("transcripts", suffix, ".rds"))
+message(" !saved.")
+
+
 
 # get map
 if (opt$reference == "rn6") {

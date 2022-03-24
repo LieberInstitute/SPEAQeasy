@@ -4,8 +4,8 @@
 print("Checking R packages...")
 
 # base R packages:
-plist <- c("tidyverse", "data.table", "devtools", "sqldf", "remotes", "stringr", 
-   "stringi", "usethis", "here", "reshape2")
+plist <- c("tidyverse", "data.table", "devtools", "sqldf",
+    "remotes", "stringr",  "stringi", "usethis", "here", "reshape2")
 for (p in plist){
  if(! p %in% installed.packages()) install.packages(p, dependencies = TRUE, type = "both")
 }
