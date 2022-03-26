@@ -1725,12 +1725,11 @@ if (params.step8) {
         
         shell:
             '''
-            !{params.bcftools} mpileup \
-                !{params.samtools_args} \
-                -f !{variant_assembly_file} \
-                !{variant_calls_bam_file} -Oz \
-                -o !{variant_bams_prefix}_tmp.vcf.gz
-            
+            !{params.samtools} view -u -o /dev/null -L !{snv_bed} \
+             -U - !{variant_calls_bam_file} | \
+            !{params.bcftools} mpileup !{params.samtools_args} \
+             -f !{variant_assembly_file} \
+             -Oz -o !{variant_bams_prefix}_tmp.vcf.gz -
             !{params.bcftools} call \
                 !{params.bcftools_args} \
                 !{variant_bams_prefix}_tmp.vcf.gz \
