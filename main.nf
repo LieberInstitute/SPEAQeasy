@@ -1525,7 +1525,6 @@ if (params.use_salmon) {
             set val(prefix), file(fastqs) from tx_quant_inputs
     
         output:
-            file "abundance.h5"
             file "run_info.json"
             file "tx_quant_${prefix}.log"
             file "${prefix}_abundance.tsv" into tx_quants
@@ -1726,17 +1725,15 @@ if (params.step8) {
         
         shell:
             '''
-            !{params.samtools} mpileup \
-                -l !{snv_bed} \
+            !{params.bcftools} mpileup \
                 !{params.samtools_args} \
-                -u \
                 -f !{variant_assembly_file} \
-                !{variant_calls_bam_file} \
-                -o !{variant_bams_prefix}_tmp.vcf
+                !{variant_calls_bam_file} -Oz \
+                -o !{variant_bams_prefix}_tmp.vcf.gz
             
             !{params.bcftools} call \
                 !{params.bcftools_args} \
-                !{variant_bams_prefix}_tmp.vcf \
+                !{variant_bams_prefix}_tmp.vcf.gz \
                 > !{variant_bams_prefix}.vcf.gz
             
             !{params.tabix} -p vcf !{variant_bams_prefix}.vcf.gz
