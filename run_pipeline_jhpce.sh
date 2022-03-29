@@ -20,6 +20,9 @@ nextflow $ORIG_DIR/main.nf \
     -with-report execution_reports/JHPCE_run.html \
     -profile jhpce
 
+#   Log complete runs on non-test samples
+bash $ORIG_DIR/scripts/track_runs.sh
+
 #  Produces a report for each sample tracing the pipeline steps
 #  performed (can be helpful for debugging).
 #
