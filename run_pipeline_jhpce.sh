@@ -20,8 +20,9 @@ nextflow $ORIG_DIR/main.nf \
     -with-report execution_reports/JHPCE_run.html \
     -profile jhpce
 
-#   Log complete runs on non-test samples
-bash $ORIG_DIR/scripts/track_runs.sh
+#   Log successful runs on non-test data in a central location. Please adjust
+#   the log path here if it is changed at the top!
+bash $ORIG_DIR/scripts/track_runs.sh $PWD/SPEAQeasy_output.log
 
 #  Produces a report for each sample tracing the pipeline steps
 #  performed (can be helpful for debugging).
