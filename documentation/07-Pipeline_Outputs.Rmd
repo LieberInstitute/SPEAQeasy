@@ -19,9 +19,9 @@ For the `rse_tx` object, all columns of its `rowRanges` are directly pulled from
 
 | Column Name | Description | Species | RSE object(s) |
 | --- | ----- | --- | --- |
-| `seqnames` | directly pulled | human, mouse, rat | `rse_gene`, `rse_exon`, `rse_jx` |
-| ranges | directly pulled | human, mouse, rat | `rse_gene`, `rse_exon`, `rse_jx` |
-| `strand` | directly pulled | human, mouse, rat | `rse_gene`, `rse_exon`, `rse_jx` |
+| `seqnames` | directly pulled | human, mouse, rat | `rse_exon`, `rse_jx` |
+| ranges | directly pulled | human, mouse, rat | `rse_exon`, `rse_jx` |
+| `strand` | directly pulled | human, mouse, rat | `rse_exon`, `rse_jx` |
 | `Length` | directly pulled | human, mouse, rat | `rse_gene`, `rse_exon`, `rse_jx` |
 | `ensemblID` | truncated from `Geneid` (genes, exons) or `gencodeID` (junctions) | human, mouse | `rse_gene`, `rse_exon`, `rse_jx` |
 | `gencodeID` | is `Geneid` | human, mouse | `rse_gene`, `rse_exon` |
@@ -37,6 +37,9 @@ In addition, the `rownames` for `rse_gene` are `Geneid` from `featureCounts`.
 
 | Column Name | Description | Species | RSE object(s) |
 | --- | ----- | --- | --- |
+| `seqnames` | directly pulled | human, mouse, rat | `rse_gene` |
+| ranges | directly pulled | human, mouse, rat | `rse_gene` |
+| `strand` | directly pulled | human, mouse, rat | `rse_gene` |
 | `gene_type` | directly pulled | human, mouse | `rse_gene`, `rse_exon` |
 | `gencodeGeneID` | is `gencodeID` | human, mouse | `rse_jx` |
 | `gencodeStrand` | is strand | human, mouse | `rse_jx` |
