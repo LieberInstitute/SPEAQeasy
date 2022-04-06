@@ -538,12 +538,8 @@ metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped + metrics$totalMapp
 
 gencodeGTF <- import(con = list.files(pattern = ".*\\.gtf"), format = "gtf")
 
-if (opt$organism == "rn6") {
-    gencodeGENES <- mcols(gencodeGTF)[which(gencodeGTF$type == "gene"), c("gene_id", "type", "gene_name")]
-} else {
-    gencodeGENES <- mcols(gencodeGTF)[which(gencodeGTF$type == "gene"), c("gene_id", "type", "gene_type", "gene_name")]
-}
-rownames(gencodeGENES) <- gencodeGENES$gene_id
+gencodeGENES <- gencodeGTF[gencodeGTF$type == "gene", ]
+names(gencodeGENES) <- gencodeGENES$gene_id
 
 if (opt$organism == "mm10") {
     gencodeEXONS <- as.data.frame(gencodeGTF)[which(gencodeGTF$type == "exon"), c("seqnames", "start", "end", "exon_id")]
@@ -580,14 +576,21 @@ for (i in 1:length(metrics$SAMPLE_ID)) {
 names(geneFn) <- metrics$SAMPLE_ID
 
 ### read in annotation ##
-geneMap <- read.delim(geneFn[1], skip = 1, as.is = TRUE)[, 1:6]
+geneMap <- read.delim(geneFn[1], skip = 1, as.is = TRUE)[
+    , c("Geneid", "Length")
+]
 
 ## organize gene map
-geneMap$Chr <- ss(geneMap$Chr, ";")
-geneMap$Start <- as.numeric(ss(geneMap$Start, ";"))
-tmp <- strsplit(geneMap$End, ";")
-geneMap$End <- as.numeric(sapply(tmp, function(x) x[length(x)]))
-geneMap$Strand <- ss(geneMap$Strand, ";")
+indices <- match(geneMap$Geneid, gencodeGENES$gene_id)
+if (any(is.na(indices))) {
+    stop("Not all genes observed in FeatureCounts output are in GTF.")
+}
+
+#   Read in gene coordinates and strand from GTF
+geneMap$Chr <- as.character(seqnames(gencodeGENES)[indices])
+geneMap$Start <- start(gencodeGENES)[indices]
+geneMap$End <- end(gencodeGENES)[indices]
+geneMap$Strand <- as.character(strand(gencodeGENES)[indices])
 rownames(geneMap) <- geneMap$Geneid
 
 if (opt$organism == "rn6") {
@@ -595,20 +598,20 @@ if (opt$organism == "rn6") {
 } else {
     geneMap$gencodeID <- geneMap$Geneid
     geneMap$ensemblID <- ss(geneMap$Geneid, "\\.")
-    geneMap$gene_type <- gencodeGENES[geneMap$gencodeID, "gene_type"]
+    geneMap$gene_type <- gencodeGENES$gene_type[indices]
 }
 geneMap$Geneid <- NULL
 
 #  Get the 'Symbol' and 'EntrezID' columns
 if (opt$organism %in% c("hg19", "hg38")) {
-    geneMap$Symbol <- gencodeGENES[geneMap$gencodeID, "gene_name"]
+    geneMap$Symbol <- gencodeGENES$gene_name[indices]
     geneMap$EntrezID <- mapIds(org.Hs.eg.db, geneMap$Symbol, "ENTREZID", "SYMBOL")
 } else if (opt$organism == "mm10") {
-    temp <- gencodeGENES[geneMap$gencodeID, "gene_name"]
+    temp <- gencodeGENES$gene_name[indices]
     geneMap$EntrezID <- mapIds(org.Mm.eg.db, temp, "ENTREZID", "SYMBOL")
     geneMap$Symbol <- mapIds(org.Mm.eg.db, temp, "MGI", "SYMBOL")
 } else { # 'rn6'
-    geneMap$Symbol <- gencodeGENES[geneMap$ensemblID, "gene_name"]
+    geneMap$Symbol <- gencodeGENES$gene_name[indices]
     geneMap$EntrezID <- mapIds(org.Rn.eg.db, geneMap$Symbol, "ENTREZID", "SYMBOL")
 }
 
@@ -681,25 +684,30 @@ names(exonFn) <- metrics$SAMPLE_ID
 exonMap <- read.delim(exonFn[1], skip = 1, as.is = TRUE)[, 1:6]
 rownames(exonMap) <- paste0("e", rownames(exonMap))
 
+indices <- match(exonMap$Geneid, gencodeGENES$gene_id)
+if (any(is.na(indices))) {
+    stop("Not all genes of exons observed in FeatureCounts output are in GTF.")
+}
+
 if (opt$organism == "rn6") {
     exonMap$ensemblID <- exonMap$Geneid
 } else {
     exonMap$gencodeID <- exonMap$Geneid
     exonMap$ensemblID <- ss(exonMap$Geneid, "\\.")
-    exonMap$gene_type <- gencodeGENES[exonMap$gencodeID, "gene_type"]
+    exonMap$gene_type <- gencodeGENES$gene_type[indices]
 }
 exonMap$Geneid <- NULL
 
 #  Get the 'Symbol' and 'EntrezID' columns
 if (opt$organism %in% c("hg19", "hg38")) {
-    exonMap$Symbol <- gencodeGENES[exonMap$gencodeID, "gene_name"]
+    exonMap$Symbol <- gencodeGENES$gene_name[indices]
     exonMap$EntrezID <- mapIds(org.Hs.eg.db, exonMap$Symbol, "ENTREZID", "SYMBOL")
 } else if (opt$organism == "mm10") {
-    temp <- gencodeGENES[exonMap$gencodeID, "gene_name"]
+    temp <- gencodeGENES$gene_name[indices]
     exonMap$EntrezID <- mapIds(org.Mm.eg.db, temp, "ENTREZID", "SYMBOL")
     exonMap$Symbol <- mapIds(org.Mm.eg.db, temp, "MGI", "SYMBOL")
 } else { # 'rn6'
-    exonMap$Symbol <- gencodeGENES[exonMap$ensemblID, "gene_name"]
+    exonMap$Symbol <- gencodeGENES$gene_name[indices]
     exonMap$EntrezID <- mapIds(org.Rn.eg.db, exonMap$Symbol, "ENTREZID", "SYMBOL")
 }
 
@@ -1054,30 +1062,30 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     ## transcript
     tx <- gencodeGTF[which(gencodeGTF$type == "transcript")]
     names(tx) <- tx$transcript_id
-    
+
     #   Check that GTF contains observed transcripts
     if (!all((rownames(txTpm) %in% names(tx)))) {
         stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
     }
-    
+
     txMap <- tx[rownames(txTpm)]
 
     rse_tx <- SummarizedExperiment(
         assays = list("counts" = txNumReads, "tpm" = txTpm),
         colData = metrics, rowRanges = txMap
     )
-    
+
     #  This file exists when the user specifies '--qsva'. Subset to
     #  user-specified transcripts in this case
     if (!is.null(opt$qsva_tx)) {
-        select_tx = readLines(opt$qsva_tx)
-        if (! all(select_tx %in% rownames(rse_tx))) {
+        select_tx <- readLines(opt$qsva_tx)
+        if (!all(select_tx %in% rownames(rse_tx))) {
             stop("Selected transcripts passed via the '--qsva' argument are not all present in the final R object! Please check you are using appropriate transcript names (Ensembl ID), and check your annotation settings.")
         }
-        
-        rse_tx = rse_tx[rownames(rse_tx) %in% select_tx,]
+
+        rse_tx <- rse_tx[rownames(rse_tx) %in% select_tx, ]
     }
-    
+
     save(rse_tx, file = paste0("rse_tx_", EXPNAME, "_n", N, ".Rdata"))
 }
 
