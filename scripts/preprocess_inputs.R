@@ -23,7 +23,7 @@ manifest <- read.table("samples.manifest", header = FALSE, stringsAsFactors = FA
 if (ncol(manifest) != 3 + 2 * opt$paired) {
     stop("'samples.manifest' has an improper number of columns. For details regarding proper formatting, see http://research.libd.org/SPEAQeasy/manifest.html#what-the-manifest-should-look-like.")
 }
-    
+
 
 #  Nextflow passed files from the manifest to the working directory by this
 #  point, so relative paths should be used (and in fact must be used when
@@ -64,18 +64,18 @@ if (opt$paired && any(actual_exts[1:nrow(manifest)] != actual_exts[(nrow(manifes
 
 print("Verifying '.' characters are not used in the manifest except for file extensions...")
 
-base_filenames = ss(filenames, paste0('.', actual_exts), 1, fixed=TRUE)
+base_filenames <- ss(filenames, paste0(".", actual_exts), 1, fixed = TRUE)
 if (any(grepl("\\.", base_filenames))) {
     stop("FASTQ filenames may not contain '.' characters other than in the extensions '.fastq.gz', '.fq.gz', '.fastq' or '.fq'.")
 }
 
-if (any(grepl("\\.", manifest[,ncol(manifest)]))) {
+if (any(grepl("\\.", manifest[, ncol(manifest)]))) {
     stop("Sample IDs may not contain '.' characters.")
 }
 
 print("Verifying all files exist...")
 
-temp_error_message = "Could not find some or all FASTQ files specified in 'samples.manifest'. Please verify your 'samples.manifest' file is of the proper format; see http://research.libd.org/SPEAQeasy/manifest.html#what-the-manifest-should-look-like."
+temp_error_message <- "Could not find some or all FASTQ files specified in 'samples.manifest'. Please verify your 'samples.manifest' file is of the proper format; see http://research.libd.org/SPEAQeasy/manifest.html#what-the-manifest-should-look-like."
 if (any(!file.exists(manifest[, 1]))) stop(temp_error_message)
 if (opt$paired && any(!file.exists(manifest[, 3]))) stop(temp_error_message)
 
