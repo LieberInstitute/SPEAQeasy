@@ -10,6 +10,8 @@ SPEAQeasy can be run with hg38, hg19, mm10, or rn6 references. The pipeline has 
 
 SPEAQeasy uses annotation files provided by [GENCODE](ftp://ftp.ebi.ac.uk/pub/databases/gencode/) where possible- which is for references hg38, hg19, and mm10. For rn6, files are pulled directly from [Ensembl](ftp://ftp.ensembl.org/pub/).
 
+At [LIBD](https://www.libd.org/), **most human data after 2017 has been processed with GENCODE v25, which is the default in SPEAQeasy at JHPCE**. Note that considerably newer versions are available, with frequent updates as visible from [GENCODE's website](https://www.gencodegenes.org/human/). The older default of v25 promotes compatibility across time at the potential expense of being up to date.
+
 ### Choosing a release ###
 
 With genome and transcript annotation constantly being updated, the user may want to use a particular GENCODE release or Ensembl version. For each species, there is a corresponding [configuration](#configuration) variable you may set to control the versions used. The variables `gencode_version_human` and `gencode_version_mouse` refer to the GENCODE release number. Similarly, the variable `ensembl_version_rat` specifies the Ensembl version for "rn6" reference.
