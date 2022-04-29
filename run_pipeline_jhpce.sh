@@ -8,7 +8,7 @@
 #  where SPEAQeasy was installed, and not say "$PWD"
 ORIG_DIR=$PWD
 
-module load nextflow
+module load nextflow/20.01.0
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
 nextflow $ORIG_DIR/main.nf \
