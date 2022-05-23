@@ -20,6 +20,12 @@ if [[ "$is_small_test" == "true" ]]; then
     exit 0
 fi
 
+#   Get the output directory for the run
+out_dir=$(
+    grep -E "^Output dir *: /.*$" $SPEAQeasy_log |
+    tail -n 1 | cut -d ":" -f 2 | tr -d " "
+)
+
 #   Grab the manifest path from the SPEAQeasy output log, then count the number
 #   of samples
 man_path=$(
@@ -41,8 +47,8 @@ else
 fi
 
 #   Tab-separated list:
-#   [work dir] [date] [number of samples] [user]
+#   [output dir] [date] [number of samples] [user]
 
 log_path=$(mktemp -p $log_dir -t run_XXXXXXX.log)
-echo -e "$PWD\t$(date +%Y-%m-%d,%H:%M)\t${num_samples}\t$(whoami)" > $log_path
+echo -e "${out_dir}\t$(date +%Y-%m-%d,%H:%M)\t${num_samples}\t$(whoami)" > $log_path
 chmod 755 $log_path
