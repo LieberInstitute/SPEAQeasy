@@ -43,5 +43,6 @@ fi
 #   Tab-separated list:
 #   [work dir] [date] [number of samples] [user]
 
-log_path=$(mktemp -p $log_dir)
+log_path=$(mktemp -p $log_dir -t run_XXXXXXX.log)
 echo -e "$PWD\t$(date +%Y-%m-%d,%H:%M)\t${num_samples}\t$(whoami)" > $log_path
+chmod 755 $log_path
