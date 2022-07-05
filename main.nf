@@ -434,38 +434,66 @@ def get_fastq_names(row) {
 params.commitId = "git --git-dir=${workflow.projectDir}/.git rev-parse HEAD".execute().text.trim()
 
 // Header log info
-log.info "==============================================================================="
+def summary_main = [:]
+summary_main['SPEAQeasy version'] = params.commitId
+summary_main['Working dir']      = workflow.workDir
+summary_main['Current home']        = "$HOME"
+summary_main['Current user']        = "$USER"
+summary_main['Current path']        = "$PWD"
+summary_main['Annotation build'] = params.anno_build
+summary_main['Annotation dir']       = params.annotation
+summary_main['Annotation release'] = params.anno_version
+summary_main['Compute coverage'] = do_coverage
+summary_main['Custom anno label'] = params.custom_anno
+summary_main['ERCC spike-in'] = params.ercc
+summary_main['Experiment name'] = params.experiment
+summary_main['Full coverage'] = params.fullCov
+summary_main['Input dir']              = params.input
+summary_main['Keep unpaired'] = params.keep_unpaired
+summary_main['Output dir']        = params.output
+summary_main['Prefix'] = params.prefix
+summary_main['Reference']          = params.reference
+summary_main['Sample']            = params.sample
+summary_main['Small test']  = params.small_test
+summary_main['Strand']            = params.strand
+summary_main['Strand mode'] = params.strand_mode
+summary_main['Trim mode'] = params.trim_mode
+summary_main['Keep discordant'] = params.unalign
+summary_main['Use salmon'] = params.use_salmon
+summary_main['Use STAR'] = params.use_star
+
+def summary_args = [:]
+summary_args['Num reads for strand inference'] = params.num_reads_infer_strand
+summary_args['Wiggletools threads'] = params.wiggletools_max_threads
+summary_args['bam2wig arguments'] = params.bam2wig_args
+summary_args['bcftools arguments'] = params.bcftools_args
+summary_args['FastQC arguments'] = params.fastqc_args
+summary_args['featureCounts gene arguments'] = params.feat_counts_gene_args
+summary_args['featureCounts exon arguments'] = params.feat_counts_exon_args
+summary_args['HISAT2 arguments'] = params.hisat2_args
+summary_args['kallisto quant single arguments'] = params.kallisto_quant_single_args
+summary_args['kallisto quant paired arguments'] = params.kallisto_quant_paired_args
+summary_args['kallisto quant ERCC single arguments'] = params.kallisto_quant_ercc_single_args
+summary_args['kallisto quant ERCC paired arguments'] = params.kallisto_quant_ercc_paired_args
+summary_args['kallisto index arguments'] = params.kallisto_index_args
+summary_args['salmon index arguments'] = params.salmon_index_args
+summary_args['salmon quant arguments'] = params.salmon_quant_args
+summary_args['samtools arguments'] = params.samtools_args
+summary_args['STAR arguments'] = params.star_args
+summary_args['Adapter trimming single arguments'] = params.trim_adapter_args_single
+summary_args['Adapter trimming paired arguments'] = params.trim_adapter_args_paired
+summary_args['Quality trimming arguments'] = params.trim_quality_args
+summary_args['RegTools arguments'] = params.regtools_args
+summary_args['wigToBigWig arguments'] = params.wigToBigWig_args
+
+log.info "================================================================================"
 log.info "    SPEAQeasy: an RNA-seq analysis pipeline from LIBD"
-log.info "==============================================================================="
-def summary = [:]
-summary['SPEAQeasy version'] = params.commitId
-summary['Working dir']		 = workflow.workDir
-summary['Current home']		= "$HOME"
-summary['Current user']		= "$USER"
-summary['Current path']		= "$PWD"
-summary['Annotation build'] = params.anno_build
-summary['Annotation dir']		 = params.annotation
-summary['Annotation release'] = params.anno_version
-summary['Compute coverage'] = do_coverage
-summary['Custom anno label'] = params.custom_anno
-summary['ERCC spike-in'] = params.ercc
-summary['Experiment name'] = params.experiment
-summary['Full coverage'] = params.fullCov
-summary['Input dir']			   = params.input
-summary['Keep unpaired'] = params.keep_unpaired
-summary['Output dir']		  = params.output
-summary['Prefix'] = params.prefix
-summary['Reference']		   = params.reference
-summary['Sample']			  = params.sample
-summary['Small test']	= params.small_test
-summary['Strand']			  = params.strand
-summary['Strand mode'] = params.strand_mode
-summary['Trim mode'] = params.trim_mode
-summary['Keep discordant'] = params.unalign
-summary['Use salmon'] = params.use_salmon
-summary['Use STAR'] = params.use_star
-log.info summary.collect { k,v -> "${k.padRight(18)}: $v" }.join("\n")
-log.info "==============================================================================="
+log.info "================================================================================"
+log.info "---- Main options:"
+log.info summary_main.collect { k,v -> "${k.padRight(18)}: $v" }.join("\n")
+log.info "---- Software arguments:"
+log.info summary_args.collect { k,v -> "${k.padRight(36)}: $v" }.join("\n")
+log.info "================================================================================"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // BEGIN PIPELINE
