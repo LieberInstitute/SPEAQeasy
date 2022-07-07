@@ -931,13 +931,15 @@ if (params.ercc) {
           kallisto_strand=""
       fi
       
+      #  Quantify ERCC, and don't throw an error if 0 counts are found
       !{params.kallisto} quant \
           -i !{erccidx} \
           -t !{task.cpus} \
           !{kallisto_flags} \
           -o . \
           $kallisto_strand \
-          !{ercc_input}
+          !{ercc_input} \
+          || true
       
       cp abundance.tsv !{prefix}_ercc_abundance.tsv
       cp .command.log ercc_!{prefix}.log
