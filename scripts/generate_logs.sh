@@ -5,7 +5,13 @@ LOG=$1
 
 #  Infer working directory and sample names from the main output log
 work_dir=$(grep "^Working dir" $LOG | head -n 1 | tr -d [:blank:] | cut -d ":" -f 2)
-man=$(grep "^Input" $LOG | head -n 1 | tr -d [:blank:] | cut -d ":" -f 2)/samples.manifest
+
+in_dir=$(grep "^Input" $LOG | head -n 1 | tr -d [:blank:] | cut -d ":" -f 2)
+if [[ -z $in_dir ]]; then
+    echo "Incomplete SPEAQeasy log: not generating sample-specific logs."
+    exit 1
+fi
+man=$in_dir/samples.manifest
 samp_names=$(awk '{print $NF}' $man | uniq)
 
 #  Place command logs in the output directory
@@ -126,7 +132,12 @@ for samp in $samp_names; do
                 #  Infer process working directory, name, and exit code
                 proc_dir=$(echo $work_dir/${suffix}*)
                 proc_name=$(echo $proc_line | cut -d " " -f 4)
-                exit_code=$(cat $proc_dir/.exitcode)
+
+                if [[ -f $proc_dir/.exitcode ]]; then
+                    exit_code=$(cat $proc_dir/.exitcode)
+                else
+                    exit_code=NA
+                fi
                 
                 print_commands $proc_dir $proc_name $exit_code $samp $out_file $i
                 i=$(echo $?)
