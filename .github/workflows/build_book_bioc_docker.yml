@@ -207,7 +207,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages # The branch the action should deploy to.
-          folder: _book # The folder the action should deploy.
+          folder: documentation/_book # The folder the action should deploy.
 
 
 
