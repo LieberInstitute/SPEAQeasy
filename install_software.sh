@@ -23,8 +23,8 @@ R_container="libddocker/bioc_kallisto:3.14"
 
 set -e
 
-REPO_NAME="SPEAQeasy"
-
+#REPO_NAME="SPEAQeasy"
+REPO_NAME="spqz"
 if [ "$(basename $(pwd))" == "$REPO_NAME" ]; then
 
     echo "Making sure the repository is clean and ready for installation..."

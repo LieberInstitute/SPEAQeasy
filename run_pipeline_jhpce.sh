@@ -6,7 +6,7 @@
 
 #  After running 'install_software.sh', this should point to the directory
 #  where SPEAQeasy was installed, and not say "$PWD"
-ORIG_DIR=$PWD
+ORIG_DIR=/users/gpertea1/work/spqz
 
 module load nextflow/20.01.0
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
