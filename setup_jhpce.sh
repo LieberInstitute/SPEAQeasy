@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
  module load conda_R/4.1.x
+ cd /dcl02/lieber/ajaffe/gpertea/spqz
  Rscript scripts/check_R_packages_JHPCE.R
   
  #echo "Setting up test files..."
