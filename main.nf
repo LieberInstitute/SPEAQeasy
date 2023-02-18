@@ -1569,7 +1569,6 @@ if (params.use_salmon) {
             set val(prefix), file(fastqs) from tx_quant_inputs
     
         output:
-            file "abundance.h5"
             file "run_info.json"
             file "tx_quant_${prefix}.log"
             file "${prefix}_abundance.tsv" into tx_quants
