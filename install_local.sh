@@ -158,11 +158,11 @@ trap "error_message" ERR
         
         #  salmon (1.2.1)  -------------------------------------------------------------
             
-        if ! command -v salmon &> /dev/null ; then
-          #wget https://github.com/COMBINE-lab/salmon/releases/download/v1.5.2/salmon-1.5.2_linux_x86_64.tar.gz
-          echo "Please install salmon!"
-          exit 1
-        fi
+        #if ! command -v salmon &> /dev/null ; then
+        #  #wget https://github.com/COMBINE-lab/salmon/releases/download/v1.5.2/salmon-1.5.2_linux_x86_64.tar.gz
+        #  echo "Please install salmon!"
+        #  exit 1
+        #fi
         #  samtools (1.10)  -------------------------------------------------------------
     
 #         curl -o samtools.tar.bz2 https://github.com/samtools/samtools/releases/download/1.10/samtools-1.10.tar.bz2
