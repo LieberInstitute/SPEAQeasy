@@ -40,6 +40,7 @@ nextflow -Dnxf.pool.type=sync run $SPQZ/main.nf \
     --sample $STYPE \
     --annotation "$ANN" \
     --custom_anno "$REF" \
+    --reference "$REF" \
     --strand $STRAND \
     --trim_mode adaptive \
     --input  "$INDIR" \
