@@ -11,7 +11,7 @@ library("getopt")
 #  The working directory should have the annotation .gtf file
 
 spec <- matrix(c(
-    "reference", "r", 1, "character", "hg38, hg19, mm10, or rn6",
+    "reference", "r", 1, "character", "hg38, hg19, mm10, rn6 or custom",
     "suffix", "s", 1, "character", "suffix for filenames based on anno version"
 ), byrow = TRUE, ncol = 5)
 opt <- getopt(spec)
@@ -37,34 +37,39 @@ write.table(fa_df,
 ########################################################
 #  Create junction annotation object from gencode gtf
 ########################################################
-
+chrom_names <- NULL
 if (opt$reference == "hg19" || opt$reference == "hg38") {
     chrom_names <- paste0("chr", c(1:22, "X", "Y", "M"))
 } else if (opt$reference == "mm10") {
     chrom_names <- paste0("chr", c(1:19, "X", "Y", "M"))
-} else { # rat/ rn6
+} else if (opt$reference == "rn6") { # rat/ rn6
     chrom_names <- paste0("chr", c(1:20, "X", "Y", "M"))
 }
-
+isCustomAnn = is.null(chrom_names)
 ## chromosome info
-chrInfo <- getChromInfoFromUCSC(opt$reference)
-chrInfo$isCircular <- chrInfo$circular
+if (!isCustomAnn) {
+  chrInfo <- getChromInfoFromUCSC(opt$reference)
+  chrInfo$isCircular <- chrInfo$circular
 
-if (opt$type == "main") {
+  if (opt$type == "main") {
     chrInfo <- chrInfo[chrInfo$chrom %in% chrom_names, ]
-}
+  }
 
-si <- with(chrInfo, Seqinfo(as.character(chrom), size, isCircular, genome = opt$reference))
+   si <- with(chrInfo, Seqinfo(as.character(chrom), size, isCircular, genome = opt$reference))
+}
 
 ## read in GTF as GRanges
 gencode_gtf <- import(con = list.files(pattern = ".*\\.gtf"), format = "gtf")
-seqlevelsStyle(gencode_gtf) <- "UCSC"
 
-seqlevels(gencode_gtf, pruning.mode = "coarse") <- seqlevels(si)
-seqinfo(gencode_gtf) <- si
+if (!isCustomAnn) {
+  seqlevelsStyle(gencode_gtf) <- "UCSC"
+  seqlevels(gencode_gtf, pruning.mode = "coarse") <- seqlevels(si)
+  seqinfo(gencode_gtf) <- si
+}
+
 
 # get map
-if (opt$reference == "rn6") {
+if (opt$reference == "rn6" | isCustomAnn) {
     cols_to_select <- c("gene_id", "gene_name", "transcript_id")
 } else {
     cols_to_select <- c("gene_id", "gene_name", "transcript_id", "gene_type")
@@ -79,7 +84,7 @@ gencode_txdb <- makeTxDbFromGRanges(gencode_gtf)
 introns <- intronsByTranscript(gencode_txdb, use.names = TRUE)
 introns <- unlist(introns)
 introns$TranscriptID <- names(introns)
-if (opt$reference == "rn6") {
+if (opt$reference == "rn6" | isCustomAnn) {
     introns$ensemblID <- ensMap$gene_id[match(introns$TranscriptID, ensMap$transcript_id)]
 } else {
     introns$gencodeID <- ensMap$gene_id[match(introns$TranscriptID, ensMap$transcript_id)]
@@ -101,7 +106,7 @@ save(theJunctions, file = paste0("junction_annotation", suffix, ".rda"))
 #  Create feature-to-Tx object from gtf and junction annotation
 #####################################################################
 
-if (opt$reference != "rn6") {
+if (opt$reference != "rn6" & !isCustomAnn) {
     # get exons
     ensExons <- exonsBy(gencode_txdb)
     map <- select(gencode_txdb,

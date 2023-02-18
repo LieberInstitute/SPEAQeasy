@@ -189,7 +189,7 @@ params.annotation = "${workflow.projectDir}/Annotation"
 params.coverage = false
 params.custom_anno = ""
 params.ercc = false
-params.experiment = "Jlab_experiment"
+params.experiment = "spqz_exp"
 params.fullCov = false
 params.keep_unpaired = false
 params.output = "${workflow.projectDir}/results"
@@ -220,8 +220,13 @@ if (params.strand != "forward" && params.strand != "reverse" && params.strand !=
 }
 
 // Reference Selection Validation
-if (params.reference != "hg19" && params.reference != "hg38" && params.reference != "mm10" && params.reference != "rn6") {
-    exit 1, "Error: enter hg19 or hg38 for human, mm10 for mouse, or rn6 for rat as the reference."
+if (params.custom_anno == "") {
+    if (params.reference != "hg19" && params.reference != "hg38" && params.reference != "mm10" && params.reference != "rn6") {
+      exit 1, "Error: enter hg19 or hg38 for human, mm10 for mouse, or rn6 for rat as the reference."
+    }
+} else {
+  params.reference = "custom"
+  params.reference_type = "custom"
 }
 
 // Trim mode
@@ -259,14 +264,18 @@ if (params.qsva != "" && ! qsva_file.exists()) {
 do_coverage = params.coverage || params.fullCov
 
 // Get species name from genome build name
-if (params.reference == "hg19" || params.reference == "hg38") {
-    params.reference_type = "human"
-} else if (params.reference == "mm10") {
-    params.reference_type = "mouse"
+if (params.custom_anno != "") {
+  params.reference = "custom"
+  params.reference_type = "custom"
 } else {
-    params.reference_type = "rat"
+  if (params.reference == "hg19" || params.reference == "hg38") {
+      params.reference_type = "human"
+  } else if (params.reference == "mm10") {
+      params.reference_type = "mouse"
+  } else {
+      params.reference_type = "rat"
+  }
 }
-
 //  Path to small test files
 if (params.small_test) {
     params.input = "${workflow.projectDir}/test/$params.reference_type/${params.sample}/${params.strand}"
@@ -286,11 +295,16 @@ if (params.reference_type == "human") {
     params.step8 = false
 }
 
+params.anno_ref = params.reference
+
 if (params.custom_anno != "") {
     params.anno_suffix = params.custom_anno + "_custom_build"
+    params.anno_ref = params.custom_anno
     params.anno_version = "custom"
+    params.reference_type = "custom"
 } else if (params.reference == "hg38") {
     params.anno_version = params.gencode_version_human
+
     params.anno_suffix = params.reference + '_gencode_v' + params.anno_version + '_' + params.anno_build
 
     // Reference assembly fasta, gtf, and transcript fasta
@@ -452,7 +466,7 @@ summary_main['Input dir']              = params.input
 summary_main['Keep unpaired'] = params.keep_unpaired
 summary_main['Output dir']        = params.output
 summary_main['Prefix'] = params.prefix
-summary_main['Reference']          = params.reference
+summary_main['Reference']          = params.anno_ref
 summary_main['Sample']            = params.sample
 summary_main['Small test']  = params.small_test
 summary_main['Strand']            = params.strand
@@ -517,7 +531,7 @@ if (params.custom_anno != "") {
     process PullAssemblyFasta {
     
         tag "Downloading Assembly FA File: ${baseName}"
-        storeDir "${params.annotation}/reference/${params.reference}/assembly/fa"
+        storeDir "${params.annotation}/reference/${params.anno_ref}/assembly/fa"
             
         output:
             file "${out_fasta}" into reference_fasta, variant_assembly, annotation_assembly
@@ -609,7 +623,7 @@ if (params.custom_anno != "") {
 
 if (params.use_star) {
     process BuildStarIndex {
-        storeDir "${params.annotation}/reference/${params.reference}/assembly/index/star_${params.anno_suffix}"
+        storeDir "${params.annotation}/reference/${params.anno_ref}/assembly/index/star_${params.anno_suffix}"
         
         input:
             file reference_fasta
@@ -635,7 +649,7 @@ if (params.use_star) {
     // files if they do already exist
     process buildHISATindex {	
         tag "Building HISAT2 Index: ${hisat_prefix}"
-        storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
+        storeDir "${params.annotation}/reference/${params.anno_ref}/assembly/index"
     
         input:
             file reference_fasta
@@ -672,7 +686,7 @@ process BuildAnnotationObjects {
       
   shell:
       '''
-      !{params.Rscript} !{build_ann_script} -r !{params.reference} -s !{params.anno_suffix}
+      !{params.Rscript} !{build_ann_script} -r !{params.anno_ref} -s !{params.anno_suffix}
       '''
 }
 
@@ -715,7 +729,7 @@ if (params.use_salmon) {
     process buildSALMONindex {
     
         tag "Building Salmon Index: salmon_index_${params.anno_suffix}"
-        storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon2/${params.anno_suffix}"
+        storeDir "${params.annotation}/reference/${params.anno_ref}/transcripts/salmon2/${params.anno_suffix}"
     
         input:
             file transcript_fa
@@ -744,7 +758,7 @@ if (params.use_salmon) {
 
 process BuildKallistoIndex {
 
-    storeDir "${params.annotation}/reference/${params.reference}/transcripts/kallisto"
+    storeDir "${params.annotation}/reference/${params.anno_ref}/transcripts/kallisto"
     
     input:
         file transcript_fa
@@ -1256,7 +1270,7 @@ if (params.use_star) {
                 #  Run Hisat2
                 !{params.hisat2} \
                     -p !{task.cpus} \
-                    -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
+                    -x !{params.annotation}/reference/!{params.anno_ref}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
                     -U !{single_hisat_input} \
                     ${hisat_strand} \
                     !{params.hisat2_args} \
@@ -1313,7 +1327,7 @@ if (params.use_star) {
                 #  Run Hisat2
                 !{params.hisat2} \
                     -p !{task.cpus} \
-                    -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
+                    -x !{params.annotation}/reference/!{params.anno_ref}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
                     -1 !{prefix}*trimmed*_1.f*q* \
                     -2 !{prefix}*trimmed*_2.f*q* \
                     ${unpaired_opt} \
@@ -1662,7 +1676,7 @@ if(params.reference == "hg19" || params.reference == "mm10" || (params.reference
         .mix(exon_maps_by_coord_hg38)
         .toList()
         .set{counts_annotations}
-} else { // rat
+} else { // rat or custom
     junction_annotation
         .set{counts_annotations}
 }
@@ -1709,7 +1723,7 @@ process CountObjects {
         fi
         
         !{params.Rscript} !{create_counts} \
-            -o !{params.reference} \
+            -o !{params.anno_ref} \
             -e !{params.experiment} \
             -p "!{params.prefix}" \
             -l !{counts_pe} \
@@ -1987,7 +2001,7 @@ if (do_coverage) {
             shell:
                 '''
                 !{params.Rscript} !{fullCov_script} \
-                    -o !{params.reference} \
+                    -o !{params.anno_ref} \
                     -e !{params.experiment} \
                     -c !{task.cpus} \
                     -s !{read_type}

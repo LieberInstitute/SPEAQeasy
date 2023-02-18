@@ -3,7 +3,7 @@
 
 print("Checking R packages...")
 
-for (package in c("checkpoint", "here")) {
+for (package in c("checkpoint", "here", "getopt")) {
     if (!requireNamespace(package, quietly = TRUE)) {
         install.packages(package, repos = "http://cran.us.r-project.org")
     }
