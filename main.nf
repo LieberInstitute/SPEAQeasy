@@ -1675,7 +1675,7 @@ if(params.reference == "hg19" || params.reference == "mm10" || (params.reference
         .mix(exon_maps_by_coord_hg38)
         .toList()
         .set{counts_annotations}
-} else { // rat or custom
+} else { // rat or custom : add chromosomes list
     junction_annotation
         .set{counts_annotations}
 }
@@ -1691,6 +1691,7 @@ process CountObjects {
     input:
         file counts_inputs
         file counts_annotations
+        file chr_sizes
         file create_counts from file("${workflow.projectDir}/scripts/create_count_objects.R")
         file ercc_actual_conc from file("${params.annotation}/ERCC/ercc_actual_conc.txt")
         file complete_manifest_counts

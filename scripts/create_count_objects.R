@@ -1,4 +1,9 @@
 ## Required libraries
+
+## add data.table for faster reading
+library("data.table")
+setDTthreads(2)
+##
 library("derfinder")
 library("BiocParallel")
 library("Biostrings")
@@ -14,6 +19,8 @@ library("DelayedArray")
 library("matrixStats")
 library("plyr")
 
+### NOTE: hidden (but required) inputs are the annotation related files and count data, expected in the working directory
+##        see all list.files() calls 
 
 ## Specify parameters
 spec <- matrix(c(
@@ -32,6 +39,11 @@ spec <- matrix(c(
 ), byrow = TRUE, ncol = 5)
 opt <- getopt(spec)
 
+## DEBUG:
+#-o humanRat -e spqz_exp -p "" -l TRUE -c false -t 4 -s reverse -n false  -r false -u /dbdata/cdb/rnaseq/stemcell_pipeline/test3/spqz_1/results
+#opt <- list(organism="humanRat", experiment="spqz_exp", prefix="", paired=T, cores=2, star=F, stranded='reverse', ercc=F,
+#            salmon=F, output='/dbdata/cdb/rnaseq/stemcell_pipeline/test3/spqz_1/results')
+
 ## if help was asked for print a friendly message
 ## and exit with a non-zero error code
 if (!is.null(opt$help)) {
@@ -39,6 +51,10 @@ if (!is.null(opt$help)) {
     q(status = 1)
 }
 
+
+chr_names <- NULL
+
+chr_sizes <- fread(list.files(pattern='^chrom_sizes_.+'), header = F, col.names = c('chr','size'), data.table=F)
 #  Reference-specific libraries and sequence names
 if (opt$organism == "hg38") {
     library("org.Hs.eg.db")
@@ -58,12 +74,15 @@ if (opt$organism == "hg38") {
 
     chr_names <- paste0("chr", c(1:19, "X", "Y"))
     mito_chr <- "chrM"
-} else { # 'rn6'
+} else if (opt$organism == "rn6") { # 'rn6'
     library("org.Rn.eg.db")
     library("BSgenome.Rnorvegicus.UCSC.rn6")
 
     chr_names <- c(1:20, "X", "Y")
     mito_chr <- "MT"
+} else { # custom
+ chr_names <- chr_sizes$chr
+ mito_chr <- grep('chrM', chr_names, value=T) # could be multiple! e.g. "human_chrM" "rat_chrM"  
 }
 
 
@@ -286,11 +305,28 @@ if (opt$paired) {
 
 sampIDs <- as.vector(metrics$SAMPLE_ID)
 
+
 ###############################################################################
-#  Read in transcript pseudo-alignment stats, except for rat
+#  Read in GTF to get reference data regarding genes and exons
 ###############################################################################
 
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
+gencodeGTF <- rtracklayer::import(con = list.files(pattern = ".*\\.gtf"), format = "gtf")
+## mix human+rat : rat has gene_biotpype instead of gene_type
+if (!is.null(gencodeGTF$gene_type) & !is.null(gencodeGTF$gene_biotype)) {
+  gupd <- is.na(gencodeGTF$gene_type) & !is.na(gencodeGTF$gene_biotype)
+  if (sum(gupd)>0) {
+     gencodeGTF[gupd]$gene_type <- gencodeGTF[gupd]$gene_biotype
+  }
+  gencodeGTF$gene_biotype <- NULL
+}
+
+#############################################
+#  Read in transcript pseudo-alignment stats 
+#############################################
+txMap <- NULL
+txRR <- gencodeGTF[which(gencodeGTF$type == "transcript")]
+names(txRR) <- txRR$transcript_id
+##if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     if (opt$salmon) {
         #----------------------------------------------------------------------
         #  Salmon quantification
@@ -322,10 +358,8 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
         #----------------------------------------------------------------------
 
         txMatrices <- bplapply(sampIDs, function(x) {
-            read.table(paste0(x, "_abundance.tsv"), header = TRUE)
-        },
-        BPPARAM = MulticoreParam(opt$cores)
-        )
+            fread(paste0(x, "_abundance.tsv"), header = T, data.table=F)
+           }, BPPARAM = MulticoreParam(opt$cores) )
 
         txTpm <- do.call(cbind, lapply(txMatrices, function(x) x$tpm))
         txNumReads <- do.call(cbind, lapply(txMatrices, function(x) x$est_counts))
@@ -334,15 +368,33 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     }
 
     colnames(txTpm) <- colnames(txNumReads) <- sampIDs
-
-    txMap <- t(ss(txNames, "\\|", c(1, 7, 2, 6, 8)))
-    txMap <- as.data.frame(txMap)
+    
+    txRR <- txRR[txNames]
+      
+    if  (opt$organism %in% c("hg19", "hg38", "mm10"))  { ##Gencode transcripts fasta downloaded from Gencode
+      ## expected format of transcripts fasta header (and thus txMatrices and txNames):
+      # ENST00000456328.2|ENSG00000223972.5|OTTHUMG00000000961.2|OTTHUMT00000362751.1|DDX11L1-202|DDX11L1|1657|lncRNA|
+      #       1                  2                3                   4                  5           6      7    8
+      #      t_id             gene_id           o_g_id              o_t_id              t_name     gsym   tlen  biotype
+      txMap <- t(ss(txNames, "\\|", c(1, 7, 2, 6, 8)))
+      txMap <- as.data.frame(txMap)
+      colnames(txMap) <- c("gencodeTx", "txLength", "gencodeID", "Symbol", "gene_type")
+    } else { # rat or custom; just transcript ID in txNames, e.g. ENST00000456328.2
+      stopifnot(identical(names(txRR), txNames))
+      ## get transcript length from genomic ranges, summing up exon lengths
+      dtex <- as.data.table(subset(gencodeGTF, type=='exon'))
+      setkey(dtex, transcript_id, start)
+      dtx <- dtex[, .(numexons=.N,  tlen=sum(end-start+1)), by=transcript_id]
+      setkey(dtx, transcript_id)
+      #stopifnot(identical(names(txRR), dtx[txNames]$transcript_id))
+      txMap <- data.frame(gencodeTx=txRR$transcript_id, txLength=dtx[txNames]$tlen, 
+                             gencodeID=txRR$gene_id, Symbol=txRR$gene_name, 
+                             gene_type=txRR$gene_type)
+      rm(dtx)
+    }
     rm(txNames)
-
-    colnames(txMap) <- c("gencodeTx", "txLength", "gencodeID", "Symbol", "gene_type")
     rownames(txMap) <- rownames(txTpm) <- rownames(txNumReads) <- txMap$gencodeTx
-}
-
+##}
 
 ###############################################################################
 #  ERCC plots
@@ -532,11 +584,6 @@ metrics$mitoMapped <- unlist(bplapply(bamFile, getTotalMapped,
 ))
 metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped + metrics$totalMapped)
 
-###############################################################################
-#  Read in GTF to get reference data regarding genes and exons
-###############################################################################
-
-gencodeGTF <- import(con = list.files(pattern = ".*\\.gtf"), format = "gtf")
 
 gencodeGENES <- gencodeGTF[gencodeGTF$type == "gene", ]
 names(gencodeGENES) <- gencodeGENES$gene_id
@@ -603,15 +650,14 @@ if (opt$organism == "rn6") {
 geneMap$Geneid <- NULL
 
 #  Get the 'Symbol' and 'EntrezID' columns
+geneMap$Symbol <- gencodeGENES$gene_name[indices]
 if (opt$organism %in% c("hg19", "hg38")) {
-    geneMap$Symbol <- gencodeGENES$gene_name[indices]
     geneMap$EntrezID <- mapIds(org.Hs.eg.db, geneMap$Symbol, "ENTREZID", "SYMBOL")
 } else if (opt$organism == "mm10") {
     temp <- gencodeGENES$gene_name[indices]
     geneMap$EntrezID <- mapIds(org.Mm.eg.db, temp, "ENTREZID", "SYMBOL")
     geneMap$Symbol <- mapIds(org.Mm.eg.db, temp, "MGI", "SYMBOL")
-} else { # 'rn6'
-    geneMap$Symbol <- gencodeGENES$gene_name[indices]
+} else if (opt$organism == "rn6") { # 'rn6'
     geneMap$EntrezID <- mapIds(org.Rn.eg.db, geneMap$Symbol, "ENTREZID", "SYMBOL")
 }
 
@@ -699,15 +745,15 @@ if (opt$organism == "rn6") {
 exonMap$Geneid <- NULL
 
 #  Get the 'Symbol' and 'EntrezID' columns
+exonMap$Symbol <- gencodeGENES$gene_name[indices]
+
 if (opt$organism %in% c("hg19", "hg38")) {
-    exonMap$Symbol <- gencodeGENES$gene_name[indices]
     exonMap$EntrezID <- mapIds(org.Hs.eg.db, exonMap$Symbol, "ENTREZID", "SYMBOL")
 } else if (opt$organism == "mm10") {
     temp <- gencodeGENES$gene_name[indices]
     exonMap$EntrezID <- mapIds(org.Mm.eg.db, temp, "ENTREZID", "SYMBOL")
     exonMap$Symbol <- mapIds(org.Mm.eg.db, temp, "MGI", "SYMBOL")
-} else { # 'rn6'
-    exonMap$Symbol <- gencodeGENES$gene_name[indices]
+} else if (opt$organism == "rn6") { # 'rn6'
     exonMap$EntrezID <- mapIds(org.Rn.eg.db, exonMap$Symbol, "ENTREZID", "SYMBOL")
 }
 
@@ -813,7 +859,7 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
         tx[!is.na(mmTx)] <- coordToTX[mmTx[!is.na(mmTx)]]
         exonMap$NumTx <- elementNROWS(tx)
         exonMap$gencodeTx <- sapply(tx, paste0, collapse = ";")
-    } else {
+    } else { 
         #  hg19 or hg38 without additional exon annotation for gencode release
         #  25, or mm10
         mmTx <- match(exonMap$gencodeID, names(allTx))
@@ -908,9 +954,9 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
             ifelse(anno$inGencodeStart | anno$inGencodeEnd, "AltStartEnd", "Novel")
         )
     )
-} else { # 'rn6'
-    #  Rename to "UCSC"-style seq names
-    seqlevelsStyle(anno) <- "UCSC"
+} else  { # rn6 or custom
+    #  for rn6 Rename to "UCSC"-style seq names
+  if (opt$organism=='rn6') { seqlevelsStyle(anno) <- "UCSC" }
 
     ## add additional annotation
     anno$inEnsembl <- countOverlaps(anno, theJunctions, type = "equal") > 0
@@ -958,7 +1004,7 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
         rightGeneSym = exonMap$Symbol[anno$endExon],
         stringsAsFactors = FALSE
     )
-} else { # 'rn6'
+} else { # 'rn6' or custom
     g <- data.frame(
         leftGene = exonMap$ensemblID[anno$startExon],
         rightGene = exonMap$ensemblID[anno$endExon],
@@ -1027,15 +1073,14 @@ colnames(jRpkm) <- metrics$SAMPLE_ID
 jMap$meanExprs <- rowMeans(jRpkm)
 
 ### save counts
-
 tosaveCounts <- c("metrics", "geneCounts", "geneMap", "exonCounts", "exonMap", "jCounts", "jMap")
 tosaveRpkm <- c("metrics", "geneRpkm", "geneMap", "exonRpkm", "exonMap", "jRpkm", "jMap")
+#  Also save transcript data
+#if (opt$organism %in% c("hg19", "hg38", "mm10")) {
+tosaveCounts <- c(tosaveCounts, "txNumReads", "txMap")
+tosaveRpkm <- c(tosaveRpkm, "txNumReads", "txMap")
+#}
 
-#  Also save transcript data, except for rat
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
-    tosaveCounts <- c(tosaveCounts, "txNumReads", "txMap")
-    tosaveRpkm <- c(tosaveRpkm, "txNumReads", "txMap")
-}
 
 if (exists("erccTPM")) {
     tosaveCounts <- c("erccTPM", tosaveCounts)
@@ -1058,22 +1103,20 @@ rse_jx <- SummarizedExperiment(
 
 save(rse_jx, file = paste0("rse_jx_", EXPNAME, "_n", N, ".Rdata"))
 
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
+#if (opt$organism %in% c("hg19", "hg38", "mm10")) { ## why ?
     ## transcript
-    tx <- gencodeGTF[which(gencodeGTF$type == "transcript")]
-    names(tx) <- tx$transcript_id
+#   Check that GTF contains observed transcripts
+   #if (!all((rownames(txTpm) %in% names(txRR)))) {
+   if (!identical(rownames(txTpm), names(txRR))) {
+     stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
+   }
+  
+   ##txRowRanges <- txRR[rownames(txTpm)] ## basic txTpm does not have length etc. info
 
-    #   Check that GTF contains observed transcripts
-    if (!all((rownames(txTpm) %in% names(tx)))) {
-        stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
-    }
-
-    txMap <- tx[rownames(txTpm)]
-
-    rse_tx <- SummarizedExperiment(
+   rse_tx <- SummarizedExperiment(
         assays = list("counts" = txNumReads, "tpm" = txTpm),
-        colData = metrics, rowRanges = txMap
-    )
+        colData = metrics, rowRanges = txRR
+   )
 
     #  This file exists when the user specifies '--qsva'. Subset to
     #  user-specified transcripts in this case
@@ -1087,7 +1130,7 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     }
 
     save(rse_tx, file = paste0("rse_tx_", EXPNAME, "_n", N, ".Rdata"))
-}
+#}
 
 ## Reproducibility information
 print("Reproducibility information:")
