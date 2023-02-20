@@ -32,11 +32,10 @@ optResume=""
 if [[ $RESUME == 1 || $RESUME == yes ]]; then
  optResume="-resume"
 fi
-## custom annotation
-#ANN=$SPQZ/Annotation
+## running locally with custom annotation example
 ANN=/dbdata/cdb/rnaseq/stemcell_pipeline/spqz_ref
 REF="humanRat"
-nextflow -Dnxf.pool.type=sync run $SPQZ/main.nf \
+nextflow -bg -Dnxf.pool.type=sync run $SPQZ/main.nf \
     --sample $STYPE \
     --annotation "$ANN" \
     --custom_anno "$REF" \
