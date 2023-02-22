@@ -33,7 +33,7 @@ We hope that [`SPEAQeasy`](http://research.libd.org/SPEAQeasy/) will be useful f
 	title = {SPEAQeasy: a scalable pipeline for expression analysis and quantification for R/bioconductor-powered RNA-seq analyses},
 	year = {2021},
 	doi = {10.1186/s12859-021-04142-3},
-	publisher = {Cold Spring Harbor Laboratory},
+	publisher = {Springer Science and Business Media LLC},
 	URL = {https://doi.org/10.1186/s12859-021-04142-3},
 	journal = {BMC Bioinformatics}
 }
