@@ -66,7 +66,7 @@ A number of variables in your [config file](#your-config-file) exist to control 
 
 * *gencode_version_human*: the GENCODE release to use for default (non-custom) annotation, when "hg38" or "hg19" references are used. A string, such as "32".
 * *gencode_version_mouse*: the GENCODE release to use for default (non-custom) annotation, when "mm10" reference is used. A string, such as "M23".
-* *ensembl_version_rat*: the Ensembl version to use for default (non-custom) annotation, when "rn6" reference is used. A string, such as "98".
+* *ensembl_version_rat*: the Ensembl version to use for default (non-custom) annotation, when "rat" reference is used. A string, such as "98". Note that `Rnor_6.0` is used for `ensembl_version_rat` < 105, and `mRatBN7.2` is used for releases after and including 105.
 * *anno_build*: controls which sequences are used in analysis with default (non-custom) annotation. "main" indicates only canonical reference sequences; "primary" includes additional scaffolds.
 
 ### Software settings

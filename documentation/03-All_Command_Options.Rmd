@@ -6,7 +6,7 @@
 
 * `--sample`        "single" or "paired": the orientation of your reads
 * `--strand`        "unstranded", "forward", or "reverse": the strandness of your reads. Since strandness is inferred by sample in the pipeline, this option informs the pipeline to generate appropriate warnings if unexpected strandness is inferred.
-* `--reference`        "hg38", "hg19", "mm10", or "rn6": the reference genome to which reads are aligned
+* `--reference`        "hg38", "hg19", "mm10", or "rat": the reference genome to which reads are aligned, where "rat" refers to either "Rnor_6.0" or "mRatBN7.2", depending on the choice of [ensembl_version_rat](http://research.libd.org/SPEAQeasy/annotation.html#choosing-a-release)
 
 ### Optional Parameters
 

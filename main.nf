@@ -87,7 +87,9 @@ def helpMessage() {
       hg38 <- uses human reference hg38
       hg19 <- uses human reference hg19
       mm10 <- uses mouse reference mm10
-      rn6  <- uses rat reference rn6
+      rat  <- uses rattus norvegicus reference Rnor_6.0 for annotation release
+              < 105, and mRatBN7.2 for annotation release >= 105
+      rn6  <- (deprecated) equivalent to "rat"
     --strand "forward"/"reverse"/"unstranded"
       forward    <- asserts reads are forward stranded
       reverse    <- asserts reverse strandness
@@ -205,6 +207,11 @@ params.unalign = false
 params.use_salmon = false
 params.use_star = false
 
+// Re-assign the deprecated rat reference of "rn6" to "rat"
+if (params.reference == "rn6") {
+    params.reference = "rat"
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Validate Inputs
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,8 +227,8 @@ if (params.strand != "forward" && params.strand != "reverse" && params.strand !=
 }
 
 // Reference Selection Validation
-if (params.reference != "hg19" && params.reference != "hg38" && params.reference != "mm10" && params.reference != "rn6") {
-    exit 1, "Error: enter hg19 or hg38 for human, mm10 for mouse, or rn6 for rat as the reference."
+if (! (params.reference in ["hg19", "hg38", "mm10", "rat"])) {
+    exit 1, "Error: enter 'hg19' or 'hg38' for human, 'mm10' for mouse, or 'rat' for rat as the reference."
 }
 
 // Trim mode
@@ -244,7 +251,7 @@ if (params.keep_unpaired && params.use_star) {
 }
 
 // Trying to subset transcripts when they won't be quantified at all
-if (params.qsva != "" && params.reference == "rn6") {
+if (params.qsva != "" && params.reference == "rat") {
     println "Warning: ignoring '--qsva' argument, since transcripts are not quantified for rat."
 }
 
@@ -732,7 +739,7 @@ if (params.use_salmon) {
             file("build_salmon_index_${params.anno_suffix}.log")
     
         script:
-          if (params.reference == "rn6") {
+          if (params.reference == "rat") {
               gencode_flag = ""
           } else {
               gencode_flag = "--gencode"
