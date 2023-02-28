@@ -335,14 +335,21 @@ if (params.custom_anno != "") {
     params.anno_version = params.ensembl_version_rat
     params.anno_suffix = params.reference + '_ensembl_' + params.anno_version + '_' + params.anno_build
 
-    // Reference assembly fasta, gtf, and transcript fasta
-    params.fa_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/fasta/rattus_norvegicus/dna/Rattus_norvegicus.Rnor_6.0.dna.toplevel.fa.gz"
-    if (params.anno_build == "primary") {
-        params.gtf_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.${params.anno_version}.gtf.gz"
+    // At Ensembl, the rat genome switches from "Rnor_6.0" to "mRatBN7.2" at and
+    // after release 105
+    if (params.anno_version >= 105) {
+        rat_genome_name = "mRatBN7.2" 
     } else {
-        params.gtf_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.${params.anno_version}.chr.gtf.gz"
+        rat_genome_name = "Rnor_6.0" 
     }
-    params.tx_fa_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/fasta/rattus_norvegicus/cdna/Rattus_norvegicus.Rnor_6.0.cdna.all.fa.gz"
+    // Reference assembly fasta, gtf, and transcript fasta
+    params.fa_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/fasta/rattus_norvegicus/dna/Rattus_norvegicus.${rat_genome_name}.dna.toplevel.fa.gz"
+    if (params.anno_build == "primary") {
+        params.gtf_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/gtf/rattus_norvegicus/Rattus_norvegicus.${rat_genome_name}.${params.anno_version}.gtf.gz"
+    } else {
+        params.gtf_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/gtf/rattus_norvegicus/Rattus_norvegicus.${rat_genome_name}.${params.anno_version}.chr.gtf.gz"
+    }
+    params.tx_fa_link = "ftp://ftp.ensembl.org/pub/release-${params.anno_version}/fasta/rattus_norvegicus/cdna/Rattus_norvegicus.${rat_genome_name}.cdna.all.fa.gz"
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
