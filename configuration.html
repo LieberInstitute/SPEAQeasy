@@ -326,7 +326,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li><em>gencode_version_human</em>: the GENCODE release to use for default (non-custom) annotation, when “hg38” or “hg19” references are used. A string, such as “32”.</li>
 <li><em>gencode_version_mouse</em>: the GENCODE release to use for default (non-custom) annotation, when “mm10” reference is used. A string, such as “M23”.</li>
-<li><em>ensembl_version_rat</em>: the Ensembl version to use for default (non-custom) annotation, when “rn6” reference is used. A string, such as “98”.</li>
+<li><em>ensembl_version_rat</em>: the Ensembl version to use for default (non-custom) annotation, when “rat” reference is used. A string, such as “98”. Note that <code>Rnor_6.0</code> is used for <code>ensembl_version_rat</code> &lt; 105, and <code>mRatBN7.2</code> is used for releases after and including 105.</li>
 <li><em>anno_build</em>: controls which sequences are used in analysis with default (non-custom) annotation. “main” indicates only canonical reference sequences; “primary” includes additional scaffolds.</li>
 </ul>
 </div>
