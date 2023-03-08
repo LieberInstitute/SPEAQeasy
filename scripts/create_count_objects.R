@@ -16,7 +16,7 @@ library("plyr")
 
 ## Specify parameters
 spec <- matrix(c(
-    "organism", "o", 2, "character", "'hg38', 'hg19', 'mm10', or 'rn6'",
+    "organism", "o", 2, "character", "'hg38', 'hg19', 'mm10', or 'rat'",
     "experiment", "e", 1, "character", "Experiment",
     "prefix", "p", 1, "character", "Prefix",
     "paired", "l", 1, "logical", "Whether the reads are paired-end or not",
@@ -54,7 +54,7 @@ if (opt$organism == "hg38") {
 
     chr_names <- paste0("chr", c(1:19, "X", "Y"))
     mito_chr <- "chrM"
-} else { # 'rn6'
+} else { # 'rat'
     library("org.Rn.eg.db")
 
     chr_names <- c(1:20, "X", "Y")
@@ -539,7 +539,7 @@ names(gencodeGENES) <- gencodeGENES$gene_id
 if (opt$organism == "mm10") {
     gencodeEXONS <- as.data.frame(gencodeGTF)[which(gencodeGTF$type == "exon"), c("seqnames", "start", "end", "exon_id")]
     names(gencodeEXONS) <- c("Chr", "Start", "End", "exon_gencodeID")
-} else if (opt$organism == "rn6") {
+} else if (opt$organism == "rat") {
     gencodeEXONS <- as.data.frame(gencodeGTF)[which(gencodeGTF$type == "exon"), c("seqnames", "start", "end", "exon_id")]
     names(gencodeEXONS) <- c("Chr", "Start", "End", "exon_ensemblID")
 } else { # human
@@ -588,7 +588,7 @@ geneMap$End <- end(gencodeGENES)[indices]
 geneMap$Strand <- as.character(strand(gencodeGENES)[indices])
 rownames(geneMap) <- geneMap$Geneid
 
-if (opt$organism == "rn6") {
+if (opt$organism == "rat") {
     geneMap$ensemblID <- geneMap$Geneid
 } else {
     geneMap$gencodeID <- geneMap$Geneid
@@ -605,7 +605,7 @@ if (opt$organism %in% c("hg19", "hg38")) {
     temp <- gencodeGENES$gene_name[indices]
     geneMap$EntrezID <- mapIds(org.Mm.eg.db, temp, "ENTREZID", "SYMBOL")
     geneMap$Symbol <- mapIds(org.Mm.eg.db, temp, "MGI", "SYMBOL")
-} else { # 'rn6'
+} else { # 'rat'
     geneMap$Symbol <- gencodeGENES$gene_name[indices]
     geneMap$EntrezID <- mapIds(org.Rn.eg.db, geneMap$Symbol, "ENTREZID", "SYMBOL")
 }
@@ -684,7 +684,7 @@ if (any(is.na(indices))) {
     stop("Not all genes of exons observed in FeatureCounts output are in GTF.")
 }
 
-if (opt$organism == "rn6") {
+if (opt$organism == "rat") {
     exonMap$ensemblID <- exonMap$Geneid
 } else {
     exonMap$gencodeID <- exonMap$Geneid
@@ -701,7 +701,7 @@ if (opt$organism %in% c("hg19", "hg38")) {
     temp <- gencodeGENES$gene_name[indices]
     exonMap$EntrezID <- mapIds(org.Mm.eg.db, temp, "ENTREZID", "SYMBOL")
     exonMap$Symbol <- mapIds(org.Mm.eg.db, temp, "MGI", "SYMBOL")
-} else { # 'rn6'
+} else { # 'rat'
     exonMap$Symbol <- gencodeGENES$gene_name[indices]
     exonMap$EntrezID <- mapIds(org.Rn.eg.db, exonMap$Symbol, "ENTREZID", "SYMBOL")
 }
@@ -910,7 +910,7 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
             ifelse(anno$inGencodeStart | anno$inGencodeEnd, "AltStartEnd", "Novel")
         )
     )
-} else { # 'rn6'
+} else { # 'rat'
     #  Rename to "UCSC"-style seq names
     seqlevelsStyle(anno) <- "UCSC"
 
@@ -960,7 +960,7 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
         rightGeneSym = exonMap$Symbol[anno$endExon],
         stringsAsFactors = FALSE
     )
-} else { # 'rn6'
+} else { # 'rat'
     g <- data.frame(
         leftGene = exonMap$ensemblID[anno$startExon],
         rightGene = exonMap$ensemblID[anno$endExon],

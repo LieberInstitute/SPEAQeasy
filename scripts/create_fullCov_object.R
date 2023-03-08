@@ -7,7 +7,7 @@ library("devtools")
 
 ## Specify parameters
 spec <- matrix(c(
-    "organism", "o", 1, "character", "Either rn6, mm10 or human",
+    "organism", "o", 1, "character", "Either rat, mm10 or human",
     "experiment", "e", 1, "character", "Experiment",
     "cores", "c", 1, "integer", "Number of cores to use",
     "strand", "s", 1, "character", "Strand of all bigwig files",
@@ -37,7 +37,7 @@ stopifnot(length(bigwigs) == length(ids)) # one file per id is expected
 
 ## Chrs to use, mitocondrial chromosome has to be the last one for the code
 ## to work later on
-if (opt$organism == "rn6") {
+if (opt$organism == "rat") {
     CHR <- c(1:20, "X", "Y", "MT")
 } else if (opt$organism == "mm10") {
     CHR <- paste0("chr", c(1:19, "X", "Y", "M"))
