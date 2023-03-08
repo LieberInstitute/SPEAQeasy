@@ -344,7 +344,7 @@ if (params.custom_anno != "") {
 
     // At Ensembl, the rat genome switches from "Rnor_6.0" to "mRatBN7.2" at and
     // after release 105
-    if (params.anno_version >= 105) {
+    if (Integer.parseInt(params.anno_version) >= 105) {
         rat_genome_name = "mRatBN7.2" 
     } else {
         rat_genome_name = "Rnor_6.0" 
