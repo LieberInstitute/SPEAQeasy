@@ -4,8 +4,6 @@
 
 packages <- c(
     "BiocParallel", "biocthis", "biomaRt", "Biostrings",
-    "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38",
-    "BSgenome.Mmusculus.UCSC.mm10", "BSgenome.Rnorvegicus.UCSC.rn6",
     "checkpoint", "DelayedArray", "derfinder", "devtools", "GenomicFeatures",
     "GenomicRanges", "getopt", "here", "matrixStats", "org.Hs.eg.db",
     "org.Mm.eg.db", "org.Rn.eg.db", "plyr", "rafalib", "RColorBrewer",

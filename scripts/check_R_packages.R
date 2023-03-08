@@ -27,8 +27,6 @@ checkpoint("2021-10-01",
 #  These are Bioconductor packages to install
 packages <- c(
     "BiocParallel", "biomaRt", "Biostrings",
-    "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38",
-    "BSgenome.Mmusculus.UCSC.mm10", "BSgenome.Rnorvegicus.UCSC.rn6",
     "DelayedArray", "derfinder", "GenomicFeatures", "GenomicRanges",
     "org.Hs.eg.db", "org.Mm.eg.db", "org.Rn.eg.db", "rtracklayer",
     "SummarizedExperiment"

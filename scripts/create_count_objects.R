@@ -4,7 +4,6 @@ library("BiocParallel")
 library("Biostrings")
 library("GenomicRanges")
 library("GenomicFeatures")
-library("org.Hs.eg.db")
 library("jaffelab")
 library("getopt")
 library("rafalib")
@@ -42,25 +41,21 @@ if (!is.null(opt$help)) {
 #  Reference-specific libraries and sequence names
 if (opt$organism == "hg38") {
     library("org.Hs.eg.db")
-    library("BSgenome.Hsapiens.UCSC.hg38")
 
     chr_names <- paste0("chr", c(1:22, "X", "Y"))
     mito_chr <- "chrM"
 } else if (opt$organism == "hg19") {
     library("org.Hs.eg.db")
-    library("BSgenome.Hsapiens.UCSC.hg19")
 
     chr_names <- paste0("chr", c(1:22, "X", "Y"))
     mito_chr <- "chrM"
 } else if (opt$organism == "mm10") {
     library("org.Mm.eg.db")
-    library("BSgenome.Mmusculus.UCSC.mm10")
 
     chr_names <- paste0("chr", c(1:19, "X", "Y"))
     mito_chr <- "chrM"
 } else { # 'rn6'
     library("org.Rn.eg.db")
-    library("BSgenome.Rnorvegicus.UCSC.rn6")
 
     chr_names <- c(1:20, "X", "Y")
     mito_chr <- "MT"
