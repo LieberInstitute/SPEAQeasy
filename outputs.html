@@ -208,9 +208,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="7.1" data-path="outputs.html"><a href="outputs.html#main-outputs"><i class="fa fa-check"></i><b>7.1</b> Main Outputs</a>
 <ul>
-<li class="chapter" data-level="7.1.1" data-path="outputs.html"><a href="outputs.html#rowranges-of-rse-objects"><i class="fa fa-check"></i><b>7.1.1</b> <code>rowRanges</code> of RSE objects</a></li>
-<li class="chapter" data-level="7.1.2" data-path="outputs.html"><a href="outputs.html#coldata-of-rse-objects"><i class="fa fa-check"></i><b>7.1.2</b> <code>colData</code> of RSE objects</a></li>
-<li class="chapter" data-level="7.1.3" data-path="outputs.html"><a href="outputs.html#quality-metrics"><i class="fa fa-check"></i><b>7.1.3</b> Quality Metrics</a></li>
+<li class="chapter" data-level="7.1.1" data-path="outputs.html"><a href="outputs.html#metadata-of-rse-objects"><i class="fa fa-check"></i><b>7.1.1</b> <code>metadata</code> of RSE objects</a></li>
+<li class="chapter" data-level="7.1.2" data-path="outputs.html"><a href="outputs.html#rowranges-of-rse-objects"><i class="fa fa-check"></i><b>7.1.2</b> <code>rowRanges</code> of RSE objects</a></li>
+<li class="chapter" data-level="7.1.3" data-path="outputs.html"><a href="outputs.html#coldata-of-rse-objects"><i class="fa fa-check"></i><b>7.1.3</b> <code>colData</code> of RSE objects</a></li>
+<li class="chapter" data-level="7.1.4" data-path="outputs.html"><a href="outputs.html#quality-metrics"><i class="fa fa-check"></i><b>7.1.4</b> Quality Metrics</a></li>
 </ul></li>
 <li class="chapter" data-level="7.2" data-path="outputs.html"><a href="outputs.html#intermediary-outputs"><i class="fa fa-check"></i><b>7.2</b> Intermediary Outputs</a></li>
 </ul></li>
@@ -281,11 +282,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Most importantly, SPEAQeasy generates <a href="https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html"><code>RangedSummarizedExperiment</code></a> objects storing counts at several features (genes, exons, and exon-exon junctions). A number of <a href="https://bioconductor.org/">Bioconductor</a> packages can be trivially utilized to perform desired differential expression analyses from counts in the widespread <code>SummarizedExperiment</code> format, and we provide a <a href="http://research.libd.org/SPEAQeasy-example">vignette</a> demonstrating an example analysis.</p>
 <p>For human samples, variants are called at a list of common missense single nucleotide variants (SNVs), and SPEAQeasy ultimately a single VCF file to store genotype calls at these sites for all samples in the experiment. We provide a <a href="http://research.libd.org/SPEAQeasy-example">guide</a> walking through how this genotype data can be used to resolve identity issues that arise during sequencing, salvaging samples which otherwise might be dropped from further analysis.</p>
 <p>Finally, expressed regions data is optionally generated (with the <code>--coverage</code> <a href="command-opts.html#command-opts">option</a>). The <code>RData</code> files provide a starting point for finding differentially expressed regions (DERs), for analyses involving this end goal.</p>
-<div id="rowranges-of-rse-objects" class="section level3 hasAnchor" number="7.1.1">
-<h3><span class="header-section-number">7.1.1</span> <code>rowRanges</code> of RSE objects<a href="outputs.html#rowranges-of-rse-objects" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="metadata-of-rse-objects" class="section level3 hasAnchor" number="7.1.1">
+<h3><span class="header-section-number">7.1.1</span> <code>metadata</code> of RSE objects<a href="outputs.html#metadata-of-rse-objects" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>The metadata of each object (e.g. <code>metadata(rse_gene)</code>) is a <code>list</code> with one element (<code>SPEAQeasy_settings</code>) containing every setting SPEAQeasy was run with.</p>
+</div>
+<div id="rowranges-of-rse-objects" class="section level3 hasAnchor" number="7.1.2">
+<h3><span class="header-section-number">7.1.2</span> <code>rowRanges</code> of RSE objects<a href="outputs.html#rowranges-of-rse-objects" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>For the <code>rse_tx</code> object, all columns of its <code>rowRanges</code> are directly pulled from the annotation GTF, and thus will not be described below. The remaining objects have columns extracted or computed from several different sources.</p>
-<div id="pulled-from-featurecounts-outputs" class="section level4 hasAnchor" number="7.1.1.1">
-<h4><span class="header-section-number">7.1.1.1</span> Pulled from <code>featureCounts</code> outputs<a href="outputs.html#pulled-from-featurecounts-outputs" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<div id="pulled-from-featurecounts-outputs" class="section level4 hasAnchor" number="7.1.2.1">
+<h4><span class="header-section-number">7.1.2.1</span> Pulled from <code>featureCounts</code> outputs<a href="outputs.html#pulled-from-featurecounts-outputs" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <table>
 <colgroup>
 <col width="21%" />
@@ -366,8 +371,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </table>
 <p>In addition, the <code>rownames</code> for <code>rse_gene</code> are <code>Geneid</code> from <code>featureCounts</code>.</p>
 </div>
-<div id="pulled-directly-from-gtf" class="section level4 hasAnchor" number="7.1.1.2">
-<h4><span class="header-section-number">7.1.1.2</span> Pulled directly from GTF<a href="outputs.html#pulled-directly-from-gtf" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<div id="pulled-directly-from-gtf" class="section level4 hasAnchor" number="7.1.2.2">
+<h4><span class="header-section-number">7.1.2.2</span> Pulled directly from GTF<a href="outputs.html#pulled-directly-from-gtf" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <table>
 <colgroup>
 <col width="21%" />
@@ -447,8 +452,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tbody>
 </table>
 </div>
-<div id="mapped-using-org..eg.db-r-packages" class="section level4 hasAnchor" number="7.1.1.3">
-<h4><span class="header-section-number">7.1.1.3</span> Mapped using <code>org.*.eg.db</code> R packages<a href="outputs.html#mapped-using-org..eg.db-r-packages" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<div id="mapped-using-org..eg.db-r-packages" class="section level4 hasAnchor" number="7.1.2.3">
+<h4><span class="header-section-number">7.1.2.3</span> Mapped using <code>org.*.eg.db</code> R packages<a href="outputs.html#mapped-using-org..eg.db-r-packages" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <table>
 <colgroup>
 <col width="21%" />
@@ -480,8 +485,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </tbody>
 </table>
 </div>
-<div id="computed-by-speaqeasy" class="section level4 hasAnchor" number="7.1.1.4">
-<h4><span class="header-section-number">7.1.1.4</span> Computed by SPEAQeasy<a href="outputs.html#computed-by-speaqeasy" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<div id="computed-by-speaqeasy" class="section level4 hasAnchor" number="7.1.2.4">
+<h4><span class="header-section-number">7.1.2.4</span> Computed by SPEAQeasy<a href="outputs.html#computed-by-speaqeasy" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <table>
 <colgroup>
 <col width="17%" />
@@ -568,12 +573,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </table>
 </div>
 </div>
-<div id="coldata-of-rse-objects" class="section level3 hasAnchor" number="7.1.2">
-<h3><span class="header-section-number">7.1.2</span> <code>colData</code> of RSE objects<a href="outputs.html#coldata-of-rse-objects" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="coldata-of-rse-objects" class="section level3 hasAnchor" number="7.1.3">
+<h3><span class="header-section-number">7.1.3</span> <code>colData</code> of RSE objects<a href="outputs.html#coldata-of-rse-objects" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Many of the columns in the <code>colData</code> of each RSE object are considered “quality metrics”, which are documented in the <a href="outputs.html#quality-metrics">next section</a> and also contained in a standalone CSV output. The remaining columns in the <code>colData</code> of each object have names of the form: <code>gene_Assigned</code> and <code>geneUnassigned_*</code>, and are pulled directly from the <code>featureCounts</code> summary outputs. Note that all objects (<code>rse_gene</code>, <code>rse_exon</code>, <code>rse_jx</code>, and <code>rse_tx) share identical</code>colData`.</p>
 </div>
-<div id="quality-metrics" class="section level3 hasAnchor" number="7.1.3">
-<h3><span class="header-section-number">7.1.3</span> Quality Metrics<a href="outputs.html#quality-metrics" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="quality-metrics" class="section level3 hasAnchor" number="7.1.4">
+<h3><span class="header-section-number">7.1.4</span> Quality Metrics<a href="outputs.html#quality-metrics" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>One of the major pipeline outputs is a comma-separated values (CSV) file where fields (columns) are different quality metrics, and each line (row) is associated with one sample. A list of the exact field names and their descriptions is given below.</p>
 <table>
 <colgroup>

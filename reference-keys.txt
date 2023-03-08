@@ -41,6 +41,7 @@ more-details-regarding-inputs
 creating-a-manifest-file
 outputs
 main-outputs
+metadata-of-rse-objects
 rowranges-of-rse-objects
 pulled-from-featurecounts-outputs
 pulled-directly-from-gtf
