@@ -76,6 +76,7 @@ manifest <- read.table("samples_complete.manifest",
 )
 metrics <- data.frame(
     "SAMPLE_ID" = manifest[, ncol(manifest) - 1],
+    "strandness" = manifest[, ncol(manifest)],
     stringsAsFactors = FALSE
 )
 metrics$SAMPLE_ID <- as.character(metrics$SAMPLE_ID)
