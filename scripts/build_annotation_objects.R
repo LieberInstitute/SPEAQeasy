@@ -11,7 +11,7 @@ library("getopt")
 #  The working directory should have the annotation .gtf file
 
 spec <- matrix(c(
-    "reference", "r", 1, "character", "hg38, hg19, mm10, or rn6",
+    "reference", "r", 1, "character", "hg38, hg19, mm10, or rat",
     "suffix", "s", 1, "character", "suffix for filenames based on anno version"
 ), byrow = TRUE, ncol = 5)
 opt <- getopt(spec)
@@ -19,6 +19,7 @@ opt <- getopt(spec)
 suffix <- paste0("_", opt$suffix)
 temp <- strsplit(suffix, "_")[[1]]
 opt$type <- temp[length(temp)] # "main", "primary", or "custom"
+opt$genome_version <- as.numeric(temp[4])
 
 ########################################################
 #  Create chrom sizes file from assembly fasta
@@ -42,8 +43,17 @@ if (opt$reference == "hg19" || opt$reference == "hg38") {
     chrom_names <- paste0("chr", c(1:22, "X", "Y", "M"))
 } else if (opt$reference == "mm10") {
     chrom_names <- paste0("chr", c(1:19, "X", "Y", "M"))
-} else { # rat/ rn6
+} else if (opt$reference == "rat") { # rat/ rn6
     chrom_names <- paste0("chr", c(1:20, "X", "Y", "M"))
+    
+    #   Update opt$reference with the actual genome name
+    if (opt$genome_version >= 105) {
+        opt$reference = "rn7"
+    } else {
+        opt$reference = "rn6"
+    }
+} else {
+    stop(paste0("Unexpected reference '", opt$reference, "'."))
 }
 
 ## chromosome info
@@ -64,7 +74,7 @@ seqlevels(gencode_gtf, pruning.mode = "coarse") <- seqlevels(si)
 seqinfo(gencode_gtf) <- si
 
 # get map
-if (opt$reference == "rn6") {
+if (opt$reference %in% c("rn6", "rn7")) {
     cols_to_select <- c("gene_id", "gene_name", "transcript_id")
 } else {
     cols_to_select <- c("gene_id", "gene_name", "transcript_id", "gene_type")
@@ -79,7 +89,7 @@ gencode_txdb <- makeTxDbFromGRanges(gencode_gtf)
 introns <- intronsByTranscript(gencode_txdb, use.names = TRUE)
 introns <- unlist(introns)
 introns$TranscriptID <- names(introns)
-if (opt$reference == "rn6") {
+if (opt$reference %in% c("rn6", "rn7")) {
     introns$ensemblID <- ensMap$gene_id[match(introns$TranscriptID, ensMap$transcript_id)]
 } else {
     introns$gencodeID <- ensMap$gene_id[match(introns$TranscriptID, ensMap$transcript_id)]
@@ -101,7 +111,7 @@ save(theJunctions, file = paste0("junction_annotation", suffix, ".rda"))
 #  Create feature-to-Tx object from gtf and junction annotation
 #####################################################################
 
-if (opt$reference != "rn6") {
+if (!(opt$reference %in% c("rn6", "rn7"))) {
     # get exons
     ensExons <- exonsBy(gencode_txdb)
     map <- select(gencode_txdb,
