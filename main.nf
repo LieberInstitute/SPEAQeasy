@@ -288,9 +288,9 @@ if (params.small_test) {
 
 // Variant calling is only enabled for human
 if (params.reference_type == "human") {
-    params.step8 = true
+    perform_variant_calling = true
 } else {
-    params.step8 = false
+    perform_variant_calling = false
 }
 
 if (params.custom_anno != "") {
@@ -1698,7 +1698,7 @@ process CountObjects {
 
     output:
         file "*.pdf" optional true
-        file "*.csv"
+        file "read_and_alignment_metrics_*.csv"
         file "*.Rdata"
         file "*.rda"
         file "counts.log"
@@ -1716,6 +1716,10 @@ process CountObjects {
         }
         
         '''
+        # Write 'params' to CSV, where it can be read in (in R) and used to
+        # record SPEAQeasy settings in each RSE's metadata
+        echo "!{params}" | sed 's|, |\\n|g' | tr -d '[]' | sed 's|:|,|' > params.csv
+        
         if [[ "!{params.qsva}" == "" ]]; then
             qsva_arg=""
         else
@@ -1740,7 +1744,7 @@ process CountObjects {
 }
 
 
-if (params.step8) {
+if (perform_variant_calling) {
 
     /*
      * Step 8: Call Variants

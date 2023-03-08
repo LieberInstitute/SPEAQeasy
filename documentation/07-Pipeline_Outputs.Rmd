@@ -11,6 +11,10 @@ For human samples, variants are called at a list of common missense single nucle
 
 Finally, expressed regions data is optionally generated (with the `--coverage` [option](#command-opts)). The `RData` files provide a starting point for finding differentially expressed regions (DERs), for analyses involving this end goal.
 
+### `metadata` of RSE objects
+
+The metadata of each object (e.g. `metadata(rse_gene)`) is a `list` with one element (`SPEAQeasy_settings`) containing every setting SPEAQeasy was run with.
+
 ### `rowRanges` of RSE objects
 
 For the `rse_tx` object, all columns of its `rowRanges` are directly pulled from the annotation GTF, and thus will not be described below. The remaining objects have columns extracted or computed from several different sources.

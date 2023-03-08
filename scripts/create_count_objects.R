@@ -828,6 +828,13 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
 #  Create gene,exon RangedSummarizedExperiment objects
 ###############################################################################
 
+#   SPEAQeasy settings were written to a CSV, which will be read in here and
+#   used to populate the metadata of each RSE
+meta_csv = read.csv('params.csv', header = FALSE)
+rse_meta = meta_csv[,2]
+names(rse_meta) = meta_csv[,1]
+rse_meta = list('SPEAQeasy_settings' = as.list(rse_meta))
+
 gr_genes <- GRanges(
     seqnames = geneMap$Chr,
     IRanges(geneMap$Start, geneMap$End), strand = geneMap$Strand
@@ -838,7 +845,7 @@ mcols(gr_genes) <- DataFrame(geneMap[, -which(colnames(geneMap) %in%
 
 rse_gene <- SummarizedExperiment(
     assays = list("counts" = geneCounts),
-    rowRanges = gr_genes, colData = metrics
+    rowRanges = gr_genes, colData = metrics, metadata = rse_meta
 )
 save(rse_gene, file = paste0("rse_gene_", EXPNAME, "_n", N, ".Rdata"))
 
@@ -852,7 +859,7 @@ mcols(gr_exons) <- DataFrame(exonMap[, -which(colnames(exonMap) %in%
 
 rse_exon <- SummarizedExperiment(
     assays = list("counts" = exonCounts),
-    rowRanges = gr_exons, colData = metrics
+    rowRanges = gr_exons, colData = metrics, metadata = rse_meta
 )
 save(rse_exon, file = paste0("rse_exon_", EXPNAME, "_n", N, ".Rdata"))
 
@@ -1052,8 +1059,8 @@ save(
 )
 
 rse_jx <- SummarizedExperiment(
-    assays = list("counts" = jCounts),
-    rowRanges = jMap, colData = metrics
+    assays = list("counts" = jCounts), rowRanges = jMap, colData = metrics,
+    metadata = rse_meta
 )
 
 save(rse_jx, file = paste0("rse_jx_", EXPNAME, "_n", N, ".Rdata"))
@@ -1072,7 +1079,7 @@ if (opt$organism %in% c("hg19", "hg38", "mm10")) {
 
     rse_tx <- SummarizedExperiment(
         assays = list("counts" = txNumReads, "tpm" = txTpm),
-        colData = metrics, rowRanges = txMap
+        colData = metrics, rowRanges = txMap, metadata = rse_meta
     )
 
     #  This file exists when the user specifies '--qsva'. Subset to
