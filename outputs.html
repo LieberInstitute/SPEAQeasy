@@ -597,50 +597,54 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <td>The name of the sample, as specified in the last column of samples.manifest</td>
 </tr>
 <tr class="even">
+<td>strandness</td>
+<td>The strandness of the sample. When using <code>--strand_mode declare</code>, this is simply the user-passed value to <code>--strand</code>; otherwise, it is the inferred strandness from pseudoalignment.</td>
+</tr>
+<tr class="odd">
 <td>ERCCsumLogErr</td>
 <td>If applicable, a summary statistic quantifying overall difference of expected and actual ERCC concentrations for one sample</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>trimmed</td>
 <td>A boolean value (“TRUE” or “FALSE”), indicating whether the given sample underwent trimming</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>numReads</td>
 <td>The number of reads present in any FASTQ files associated with the sample (after any trimming)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>numMapped</td>
 <td>The number of reads which successfully mapped to the reference genome during alignment</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>numUnmapped</td>
 <td>The number of reads which did not successfully map to the reference genome during alignment</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>overallMapRate</td>
 <td>The decimal fraction of reads which successfully mapped to the reference genome (i.e. <em>numMapped / numReads</em>)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>concordMapRate</td>
 <td>The decimal fraction of reads which aligned concordantly to the reference genome</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>totalMapped</td>
 <td>The number of reads which successfully mapped to the canonical sequences in the reference genome (excluding mitochondrial chromosomes)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>mitoMapped</td>
 <td>The number of reads which successfully mapped to the mitochondrial chromosome</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>mitoRate</td>
 <td>The decimal fraction of reads which mapped to the mitochondrial chromosome, of those which map at all (i.e. <em>mitoMapped / (totalMapped + mitoMapped))</em></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>totalAssignedGene</td>
 <td>The decimal fraction of reads assigned unambiguously to a gene, with featureCounts (Liao et al. 2014), of those in total</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>rRNA_rate</td>
 <td>The decimal fraction of reads assigned to a gene whose type is ‘rRNA’, of those assigned to any gene</td>
 </tr>
