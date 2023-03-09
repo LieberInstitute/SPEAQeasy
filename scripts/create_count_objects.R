@@ -12,7 +12,7 @@ library("SummarizedExperiment")
 library("DelayedArray")
 library("matrixStats")
 library("plyr")
-
+library("rtracklayer")
 
 ## Specify parameters
 spec <- matrix(c(
