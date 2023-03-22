@@ -41,8 +41,9 @@ opt <- getopt(spec)
 
 ## DEBUG:
 #-o humanRat -e spqz_exp -p "" -l TRUE -c false -t 4 -s reverse -n false  -r false -u /dbdata/cdb/rnaseq/stemcell_pipeline/test3/spqz_1/results
-#opt <- list(organism="humanRat", experiment="spqz_exp", prefix="", paired=T, cores=2, star=F, stranded='reverse', ercc=F,
-#            salmon=F, output='/dbdata/cdb/rnaseq/stemcell_pipeline/test3/spqz_1/results')
+opt <- list(organism="hg38", experiment="spqz_exp", prefix="", paired=T, cores=2, star=F, 
+            stranded='reverse', ercc=F,   salmon=F, 
+            output='/dcl02/lieber/jhshin/SNVTA/LCMseq/results')
 
 ## if help was asked for print a friendly message
 ## and exit with a non-zero error code
@@ -369,8 +370,6 @@ names(txRR) <- txRR$transcript_id
 
     colnames(txTpm) <- colnames(txNumReads) <- sampIDs
     
-    txRR <- txRR[txNames]
-      
     if  (opt$organism %in% c("hg19", "hg38", "mm10"))  { ##Gencode transcripts fasta downloaded from Gencode
       ## expected format of transcripts fasta header (and thus txMatrices and txNames):
       # ENST00000456328.2|ENSG00000223972.5|OTTHUMG00000000961.2|OTTHUMT00000362751.1|DDX11L1-202|DDX11L1|1657|lncRNA|
@@ -379,7 +378,9 @@ names(txRR) <- txRR$transcript_id
       txMap <- t(ss(txNames, "\\|", c(1, 7, 2, 6, 8)))
       txMap <- as.data.frame(txMap)
       colnames(txMap) <- c("gencodeTx", "txLength", "gencodeID", "Symbol", "gene_type")
+      txRR <- txRR[txMap$gencodeTx]
     } else { # rat or custom; just transcript ID in txNames, e.g. ENST00000456328.2
+      txRR <- txRR[txNames]
       stopifnot(identical(names(txRR), txNames))
       ## get transcript length from genomic ranges, summing up exon lengths
       dtex <- as.data.table(subset(gencodeGTF, type=='exon'))
