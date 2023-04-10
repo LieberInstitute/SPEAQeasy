@@ -27,6 +27,7 @@ spec <- matrix(c(
     "star", "r", 1, "logical", "Whether STAR was used for alignment",
     "output", "u", 1, "character", "Output directory for SPEAQeasy",
     "qsva_tx", "q", 2, "character", "Filename for QSVA TX list",
+    "anno_suffix", "a", 1, "character", "Annotation suffix",
     "help", "h", 0, "logical", "Display help"
 ), byrow = TRUE, ncol = 5)
 opt <- getopt(spec)
@@ -560,18 +561,10 @@ if (opt$organism %in% c("hg19", "hg38")) {
 #  Read in gene counts
 ###############################################################################
 
-#  Get filenames for gene counts in sample order present in manifest
-geneFn <- rep("", length(metrics$SAMPLE_ID))
-for (i in 1:length(metrics$SAMPLE_ID)) {
-    geneFn[i] <- list.files(
-        pattern = paste0(
-            "^", metrics$SAMPLE_ID[i], "_.*_Genes\\.counts$"
-        )
-    )
-}
+### read in annotation ##
+geneFn <- paste0(metrics$SAMPLE_ID, "_", opt$anno_suffix, "_Genes.counts")
 names(geneFn) <- metrics$SAMPLE_ID
 
-### read in annotation ##
 geneMap <- read.delim(geneFn[1], skip = 1, as.is = TRUE)[
     , c("Geneid", "Length")
 ]
@@ -665,18 +658,10 @@ write.csv(
 #  Read in exon counts
 ###############################################################################
 
-#  Get filenames for exon counts in sample order present in manifest
-exonFn <- rep("", length(metrics$SAMPLE_ID))
-for (i in 1:length(metrics$SAMPLE_ID)) {
-    exonFn[i] <- list.files(
-        pattern = paste0(
-            "^", metrics$SAMPLE_ID[i], "_.*_Exons\\.counts$"
-        )
-    )
-}
+### read in annotation ##
+exonFn <- paste0(metrics$SAMPLE_ID, "_", opt$anno_suffix, "_Exons.counts")
 names(exonFn) <- metrics$SAMPLE_ID
 
-### read in annotation ##
 exonMap <- read.delim(exonFn[1], skip = 1, as.is = TRUE)[, 1:6]
 rownames(exonMap) <- paste0("e", rownames(exonMap))
 

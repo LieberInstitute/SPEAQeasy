@@ -1737,6 +1737,7 @@ process CountObjects {
             -n !{params.use_salmon} \
             -r !{params.use_star} \
             -u !{params.output} \
+            -a !{params.anno_suffix} \
             ${qsva_arg}
 
         cp .command.log counts.log
