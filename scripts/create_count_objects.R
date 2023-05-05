@@ -284,62 +284,112 @@ if (opt$paired) {
 sampIDs <- as.vector(metrics$SAMPLE_ID)
 
 ###############################################################################
-#  Read in transcript pseudo-alignment stats, except for rat
+#  Read in transcript pseudo-alignment stats
 ###############################################################################
 
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
-    if (opt$salmon) {
-        #----------------------------------------------------------------------
-        #  Salmon quantification
-        #----------------------------------------------------------------------
+gencodeGTF <- import(con = list.files(pattern = ".*\\.gtf"), format = "gtf")
 
-        ## observed tpm and number of reads
-        txTpm <- bplapply(sampIDs, function(x) {
-            read.table(file.path(".", paste0(x, "_quant.sf")), header = TRUE)$TPM
-        },
-        BPPARAM = MulticoreParam(opt$cores)
-        )
-        txTpm <- do.call(cbind, txTpm)
+txMap <- NULL
+txRR <- gencodeGTF[which(gencodeGTF$type == "transcript")]
+names(txRR) <- txRR$transcript_id
 
-        txNumReads <- bplapply(sampIDs, function(x) {
-            read.table(file.path(".", paste0(x, "_quant.sf")), header = TRUE)$NumReads
-        },
-        BPPARAM = MulticoreParam(opt$cores)
-        )
-        txNumReads <- do.call(cbind, txNumReads)
-
-        ## get names of transcripts
-        txNames <- read.table(file.path(".", paste0(sampIDs[1], "_quant.sf")),
-            header = TRUE
+if (opt$salmon) {
+    #----------------------------------------------------------------------
+    #  Salmon quantification
+    #----------------------------------------------------------------------
+    
+    ## observed tpm and number of reads
+    txTpm <- bplapply(sampIDs, function(x) {
+        read.table(file.path(".", paste0(x, "_quant.sf")), header = TRUE)$TPM
+    },
+    BPPARAM = MulticoreParam(opt$cores)
+    )
+    txTpm <- do.call(cbind, txTpm)
+    
+    txNumReads <- bplapply(sampIDs, function(x) {
+        read.table(file.path(".", paste0(x, "_quant.sf")), header = TRUE)$NumReads
+    },
+    BPPARAM = MulticoreParam(opt$cores)
+    )
+    txNumReads <- do.call(cbind, txNumReads)
+    
+    ## get names of transcripts
+    txNames <- read.table(
+            file.path(".", paste0(sampIDs[1], "_quant.sf")), header = TRUE
         )$Name
-        txNames <- as.character(txNames)
-    } else {
-        #----------------------------------------------------------------------
-        #  Kallisto quantification
-        #----------------------------------------------------------------------
-
-        txMatrices <- bplapply(sampIDs, function(x) {
+    txNames <- as.character(txNames)
+} else {
+    #----------------------------------------------------------------------
+    #  Kallisto quantification
+    #----------------------------------------------------------------------
+    
+    txMatrices <- bplapply(
+        sampIDs,
+        function(x) {
+            # fread(
+            #     paste0(x, "_abundance.tsv"), header = TRUE, data.table = FALSE
+            # )
             read.table(paste0(x, "_abundance.tsv"), header = TRUE)
         },
         BPPARAM = MulticoreParam(opt$cores)
-        )
-
-        txTpm <- do.call(cbind, lapply(txMatrices, function(x) x$tpm))
-        txNumReads <- do.call(cbind, lapply(txMatrices, function(x) x$est_counts))
-        txNames <- as.character(txMatrices[[1]]$target_id)
-        rm(txMatrices)
-    }
-
-    colnames(txTpm) <- colnames(txNumReads) <- sampIDs
-
-    txMap <- t(ss(txNames, "\\|", c(1, 7, 2, 6, 8)))
-    txMap <- as.data.frame(txMap)
-    rm(txNames)
-
-    colnames(txMap) <- c("gencodeTx", "txLength", "gencodeID", "Symbol", "gene_type")
-    rownames(txMap) <- rownames(txTpm) <- rownames(txNumReads) <- txMap$gencodeTx
+    )
+    
+    txTpm <- do.call(cbind, lapply(txMatrices, function(x) x$tpm))
+    txNumReads <- do.call(cbind, lapply(txMatrices, function(x) x$est_counts))
+    txNames <- as.character(txMatrices[[1]]$target_id)
+    rm(txMatrices)
 }
 
+colnames(txTpm) <- colnames(txNumReads) <- sampIDs
+
+#   These organisms use a FASTA downloaded from Gencode
+if (opt$organism %in% c("hg19", "hg38", "mm10"))  {
+    ## expected format of transcripts fasta header (and thus txMatrices and txNames):
+    # ENST00000456328.2|ENSG00000223972.5|OTTHUMG00000000961.2|OTTHUMT00000362751.1|DDX11L1-202|DDX11L1|1657|lncRNA|
+    #       1                  2                3                   4                  5           6      7    8
+    #      t_id             gene_id           o_g_id              o_t_id              t_name     gsym   tlen  biotype
+    txMap <- t(ss(txNames, "\\|", c(1, 7, 2, 6, 8)))
+    txMap <- as.data.frame(txMap)
+    colnames(txMap) <- c(
+        "gencodeTx", "txLength", "gencodeID", "Symbol", "gene_type"
+    )
+    
+    if (!all(txMap$gencodeTx %in% names(txRR))) {
+        stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
+    }
+    txRR <- txRR[txMap$gencodeTx]
+} else { # rat; just take transcript ID from txNames, e.g. ENST00000456328.2
+    #   Temporary (for testing). Figure out the right way to do this. Why do we
+    #   need to clip the FASTA transcript names to agree with the GTF, and why
+    #   even after doing that are we left with a handful of transcripts not in
+    #   the GTF?
+    txNames = ss(txNames, '\\.')
+    
+    # if (!all(txNames %in% names(txRR))) {
+    #     stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
+    # }
+    in_gtf = txNames %in% names(txRR)
+    txNames = txNames[in_gtf]
+    txTpm = txTpm[in_gtf,]
+    txNumReads = txNumReads[in_gtf,]
+    
+    txRR <- txRR[txNames]
+    
+    ## get transcript length from genomic ranges, summing up exon lengths
+    dtex <- as.data.table(subset(gencodeGTF, type=='exon'))
+    setkey(dtex, transcript_id, start)
+    dtx <- dtex[, .(numexons=.N, tlen=sum(end-start+1)), by=transcript_id]
+    setkey(dtx, transcript_id)
+    stopifnot(identical(names(txRR), dtx[txNames]$transcript_id))
+    txMap <- data.frame(
+        gencodeTx=txRR$transcript_id, txLength=dtx[txNames]$tlen, 
+        gencodeID=txRR$gene_id, Symbol=txRR$gene_name
+    )
+    rm(dtx)
+}
+
+rm(txNames)
+rownames(txMap) <- rownames(txTpm) <- rownames(txNumReads) <- txMap$gencodeTx
 
 ###############################################################################
 #  ERCC plots
@@ -530,10 +580,8 @@ metrics$mitoMapped <- unlist(bplapply(bamFile, getTotalMapped,
 metrics$mitoRate <- metrics$mitoMapped / (metrics$mitoMapped + metrics$totalMapped)
 
 ###############################################################################
-#  Read in GTF to get reference data regarding genes and exons
+#  Get reference data regarding genes and exons from GTF
 ###############################################################################
-
-gencodeGTF <- import(con = list.files(pattern = ".*\\.gtf"), format = "gtf")
 
 gencodeGENES <- gencodeGTF[gencodeGTF$type == "gene", ]
 names(gencodeGENES) <- gencodeGENES$gene_id
@@ -1019,11 +1067,9 @@ jMap$meanExprs <- rowMeans(jRpkm)
 tosaveCounts <- c("metrics", "geneCounts", "geneMap", "exonCounts", "exonMap", "jCounts", "jMap")
 tosaveRpkm <- c("metrics", "geneRpkm", "geneMap", "exonRpkm", "exonMap", "jRpkm", "jMap")
 
-#  Also save transcript data, except for rat
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
-    tosaveCounts <- c(tosaveCounts, "txNumReads", "txMap")
-    tosaveRpkm <- c(tosaveRpkm, "txNumReads", "txMap")
-}
+#  Also save transcript data
+tosaveCounts <- c(tosaveCounts, "txNumReads", "txMap")
+tosaveRpkm <- c(tosaveRpkm, "txNumReads", "txMap")
 
 if (exists("erccTPM")) {
     tosaveCounts <- c("erccTPM", tosaveCounts)
@@ -1046,36 +1092,23 @@ rse_jx <- SummarizedExperiment(
 
 save(rse_jx, file = paste0("rse_jx_", EXPNAME, "_n", N, ".Rdata"))
 
-if (opt$organism %in% c("hg19", "hg38", "mm10")) {
-    ## transcript
-    tx <- gencodeGTF[which(gencodeGTF$type == "transcript")]
-    names(tx) <- tx$transcript_id
+rse_tx <- SummarizedExperiment(
+    assays = list("counts" = txNumReads, "tpm" = txTpm),
+    colData = metrics, rowRanges = txRR, metadata = rse_meta
+)
 
-    #   Check that GTF contains observed transcripts
-    if (!all((rownames(txTpm) %in% names(tx)))) {
-        stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
+#  This file exists when the user specifies '--qsva'. Subset to
+#  user-specified transcripts in this case
+if (!is.null(opt$qsva_tx)) {
+    select_tx <- readLines(opt$qsva_tx)
+    if (!all(select_tx %in% rownames(rse_tx))) {
+        stop("Selected transcripts passed via the '--qsva' argument are not all present in the final R object! Please check you are using appropriate transcript names (Ensembl ID), and check your annotation settings.")
     }
-
-    txMap <- tx[rownames(txTpm)]
-
-    rse_tx <- SummarizedExperiment(
-        assays = list("counts" = txNumReads, "tpm" = txTpm),
-        colData = metrics, rowRanges = txMap, metadata = rse_meta
-    )
-
-    #  This file exists when the user specifies '--qsva'. Subset to
-    #  user-specified transcripts in this case
-    if (!is.null(opt$qsva_tx)) {
-        select_tx <- readLines(opt$qsva_tx)
-        if (!all(select_tx %in% rownames(rse_tx))) {
-            stop("Selected transcripts passed via the '--qsva' argument are not all present in the final R object! Please check you are using appropriate transcript names (Ensembl ID), and check your annotation settings.")
-        }
-
-        rse_tx <- rse_tx[rownames(rse_tx) %in% select_tx, ]
-    }
-
-    save(rse_tx, file = paste0("rse_tx_", EXPNAME, "_n", N, ".Rdata"))
+    
+    rse_tx <- rse_tx[rownames(rse_tx) %in% select_tx, ]
 }
+
+save(rse_tx, file = paste0("rse_tx_", EXPNAME, "_n", N, ".Rdata"))
 
 ## Reproducibility information
 print("Reproducibility information:")
