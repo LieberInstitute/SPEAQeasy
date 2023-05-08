@@ -325,12 +325,7 @@ if (opt$salmon) {
     
     txMatrices <- bplapply(
         sampIDs,
-        function(x) {
-            # fread(
-            #     paste0(x, "_abundance.tsv"), header = TRUE, data.table = FALSE
-            # )
-            read.table(paste0(x, "_abundance.tsv"), header = TRUE)
-        },
+        function(x) read.table(paste0(x, "_abundance.tsv"), header = TRUE),
         BPPARAM = MulticoreParam(opt$cores)
     )
     
@@ -358,6 +353,8 @@ if (opt$organism %in% c("hg19", "hg38", "mm10"))  {
         stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
     }
     txRR <- txRR[txMap$gencodeTx]
+    
+    rownames(txMap) <- rownames(txTpm) <- rownames(txNumReads) <- txMap$gencodeTx
 } else { # rat; just take transcript ID from txNames, e.g. ENST00000456328.2
     #   Temporary (for testing). Figure out the right way to do this. Why do we
     #   need to clip the FASTA transcript names to agree with the GTF, and why
@@ -376,20 +373,20 @@ if (opt$organism %in% c("hg19", "hg38", "mm10"))  {
     txRR <- txRR[txNames]
     
     ## get transcript length from genomic ranges, summing up exon lengths
-    dtex <- as.data.table(subset(gencodeGTF, type=='exon'))
-    setkey(dtex, transcript_id, start)
-    dtx <- dtex[, .(numexons=.N, tlen=sum(end-start+1)), by=transcript_id]
-    setkey(dtx, transcript_id)
-    stopifnot(identical(names(txRR), dtx[txNames]$transcript_id))
-    txMap <- data.frame(
-        gencodeTx=txRR$transcript_id, txLength=dtx[txNames]$tlen, 
-        gencodeID=txRR$gene_id, Symbol=txRR$gene_name
-    )
-    rm(dtx)
+    # dtex <- as.data.table(subset(gencodeGTF, type=='exon'))
+    # setkey(dtex, transcript_id, start)
+    # dtx <- dtex[, .(numexons=.N, tlen=sum(end-start+1)), by=transcript_id]
+    # setkey(dtx, transcript_id)
+    # stopifnot(identical(names(txRR), dtx[txNames]$transcript_id))
+    # txMap <- data.frame(
+    #     gencodeTx=txRR$transcript_id, txLength=dtx[txNames]$tlen, 
+    #     gencodeID=txRR$gene_id, Symbol=txRR$gene_name
+    # )
+
+    rownames(txTpm) <- rownames(txNumReads) <- txRR$transcript_id
 }
 
 rm(txNames)
-rownames(txMap) <- rownames(txTpm) <- rownames(txNumReads) <- txMap$gencodeTx
 
 ###############################################################################
 #  ERCC plots
