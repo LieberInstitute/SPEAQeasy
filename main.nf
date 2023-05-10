@@ -681,7 +681,7 @@ process BuildAnnotationObjects {
       
   output:
       file "junction_annotation_${params.anno_suffix}.rda" into junction_annotation
-      file "feature_to_Tx_${params.anno_suffix}.rda" optional true into feature_to_tx_gencode
+      file "feature_to_Tx_${params.anno_suffix}.rda" into feature_to_tx_gencode
       file "chrom_sizes_${params.anno_suffix}" into chr_sizes
       
   shell:
@@ -1665,19 +1665,16 @@ if (params.ercc) {
  */
 
 //  Mix with reference-dependent annotation info
-if(params.reference == "hg19" || params.reference == "mm10" || (params.reference == "hg38" && params.anno_version != "25")) {
-    junction_annotation
-        .mix(feature_to_tx_gencode)
-        .toList()
-        .set{counts_annotations}
-} else if (params.reference == "hg38" && params.anno_version == "25") {
+if (params.reference == "hg38" && params.anno_version == "25") {
     junction_annotation
         .mix(feature_to_tx_gencode)
         .mix(exon_maps_by_coord_hg38)
         .toList()
         .set{counts_annotations}
-} else { // rat
+} else {
     junction_annotation
+        .mix(feature_to_tx_gencode)
+        .toList()
         .set{counts_annotations}
 }
 
