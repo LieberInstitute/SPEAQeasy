@@ -19,7 +19,7 @@ opt <- getopt(spec)
 suffix <- paste0("_", opt$suffix)
 temp <- strsplit(suffix, "_")[[1]]
 opt$type <- temp[length(temp)] # "main", "primary", or "custom"
-opt$genome_version <- as.numeric(temp[4])
+opt$genome_version <- as.numeric(sub('v', '', temp[4]))
 
 ########################################################
 #  Create chrom sizes file from assembly fasta
@@ -111,71 +111,75 @@ save(theJunctions, file = paste0("junction_annotation", suffix, ".rda"))
 #  Create feature-to-Tx object from gtf and junction annotation
 #####################################################################
 
-if (!(opt$reference %in% c("rn6", "rn7"))) {
-    # get exons
-    ensExons <- exonsBy(gencode_txdb)
-    map <- select(gencode_txdb,
-        keys = names(ensExons), keytype = "TXID",
-        columns = c("TXID", "TXNAME", "GENEID")
-    )
-    ensExons <- unlist(ensExons)
-    ensExons$TxID <- map$TXNAME[match(names(ensExons), map$TXID)]
+# get exons
+ensExons <- exonsBy(gencode_txdb)
+map <- select(
+    gencode_txdb, keys = names(ensExons), keytype = "TXID",
+    columns = c("TXID", "TXNAME", "GENEID")
+)
+ensExons <- unlist(ensExons)
+ensExons$TxID <- map$TXNAME[match(names(ensExons), map$TXID)]
 
-    gtf_colnames <- c(
-        "seqnames", "start", "end", "width", "strand", "gene_id",
-        "gene_name"
-    )
-    geneMap <- data.frame(gencode_gtf)
-    geneMap <- geneMap[geneMap$type == "gene", gtf_colnames]
+gtf_colnames <- c(
+    "seqnames", "start", "end", "width", "strand", "gene_id",
+    "gene_name"
+)
+geneMap <- data.frame(gencode_gtf)
+geneMap <- geneMap[geneMap$type == "gene", gtf_colnames]
+
+if (! (opt$reference %in% c("rn6", "rn7"))) {
     geneMap$ensemblID <- ss(geneMap$gene_id, "\\.")
-    rownames(geneMap) <- geneMap$gene_id
-
-    ## add gene
-    geneToTx <- CharacterList(split(map$TXNAME, map$GENEID))
-    geneMapGR <- makeGRangesFromDataFrame(geneMap, keep = TRUE)
-    geneMapGR$GenTx <- CharacterList(vector("list", length(geneMapGR)))
-    mmGene <- match(geneMapGR$gene_id, names(geneToTx))
-    geneMapGR$GenTx[!is.na(mmGene)] <- geneToTx[mmGene[!is.na(mmGene)]]
-
-    exonMap <- data.frame(gencode_gtf)
-    exonMap <- exonMap[exonMap$type == "exon", gtf_colnames]
-    exonMap$ensemblID <- ss(exonMap$gene_id, "\\.")
-    eMap <- GRanges(exonMap$seqnames, IRanges(exonMap$start, exonMap$end))
-    keepIndex <- which(!duplicated(eMap))
-    exonMap <- exonMap[keepIndex, ]
-
-    ## add exon
-    exonMapGR <- makeGRangesFromDataFrame(exonMap, keep = TRUE)
-    ooExon <- findOverlaps(exonMapGR, ensExons, type = "equal")
-    exonToTx <- CharacterList(split(
-        ensExons$TxID[subjectHits(ooExon)],
-        names(exonMapGR[queryHits(ooExon)])
-    ))
-    exonMapGR$GenTx <- CharacterList(vector("list", length(exonMapGR)))
-    mm <- match(names(exonMapGR), names(exonToTx))
-    exonMapGR$GenTx[!is.na(mm)] <- exonToTx[mm[!is.na(mm)]]
-
-    ## and junction:
-    names(theJunctions) <- paste0(
-        seqnames(theJunctions),
-        ":", start(theJunctions), "-", end(theJunctions), "(",
-        strand(theJunctions), ")"
-    )
-    theJunctions$nonStrandName <- paste0(
-        seqnames(theJunctions),
-        ":", start(theJunctions), "-", end(theJunctions), "(*)"
-    )
-
-    ############################
-    #### features to tx ########
-    gn <- geneMapGR$GenTx
-    names(gn) <- names(geneMapGR)
-    exn <- exonMapGR$GenTx
-    names(exn) <- names(exonMapGR)
-    jxn <- jxn2 <- theJunctions$tx
-    names(jxn) <- names(theJunctions)
-    names(jxn2) <- theJunctions$nonStrandName
-    allTx <- c(gn, exn, jxn, jxn2)
-
-    save(allTx, file = paste0("feature_to_Tx", suffix, ".rda"))
 }
+rownames(geneMap) <- geneMap$gene_id
+
+## add gene
+geneToTx <- CharacterList(split(map$TXNAME, map$GENEID))
+geneMapGR <- makeGRangesFromDataFrame(geneMap, keep = TRUE)
+geneMapGR$GenTx <- CharacterList(vector("list", length(geneMapGR)))
+mmGene <- match(geneMapGR$gene_id, names(geneToTx))
+geneMapGR$GenTx[!is.na(mmGene)] <- geneToTx[mmGene[!is.na(mmGene)]]
+
+exonMap <- data.frame(gencode_gtf)
+exonMap <- exonMap[exonMap$type == "exon", gtf_colnames]
+
+if (! (opt$reference %in% c("rn6", "rn7"))) {
+    exonMap$ensemblID <- ss(exonMap$gene_id, "\\.")
+}
+eMap <- GRanges(exonMap$seqnames, IRanges(exonMap$start, exonMap$end))
+keepIndex <- which(!duplicated(eMap))
+exonMap <- exonMap[keepIndex, ]
+
+## add exon
+exonMapGR <- makeGRangesFromDataFrame(exonMap, keep = TRUE)
+ooExon <- findOverlaps(exonMapGR, ensExons, type = "equal")
+exonToTx <- CharacterList(split(
+    ensExons$TxID[subjectHits(ooExon)],
+    names(exonMapGR[queryHits(ooExon)])
+))
+exonMapGR$GenTx <- CharacterList(vector("list", length(exonMapGR)))
+mm <- match(names(exonMapGR), names(exonToTx))
+exonMapGR$GenTx[!is.na(mm)] <- exonToTx[mm[!is.na(mm)]]
+
+## and junction:
+names(theJunctions) <- paste0(
+    seqnames(theJunctions),
+    ":", start(theJunctions), "-", end(theJunctions), "(",
+    strand(theJunctions), ")"
+)
+theJunctions$nonStrandName <- paste0(
+    seqnames(theJunctions),
+    ":", start(theJunctions), "-", end(theJunctions), "(*)"
+)
+
+############################
+#### features to tx ########
+gn <- geneMapGR$GenTx
+names(gn) <- names(geneMapGR)
+exn <- exonMapGR$GenTx
+names(exn) <- names(exonMapGR)
+jxn <- jxn2 <- theJunctions$tx
+names(jxn) <- names(theJunctions)
+names(jxn2) <- theJunctions$nonStrandName
+allTx <- c(gn, exn, jxn, jxn2)
+
+save(allTx, file = paste0("feature_to_Tx", suffix, ".rda"))
