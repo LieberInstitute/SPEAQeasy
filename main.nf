@@ -711,9 +711,16 @@ if (params.custom_anno != "") {
             file baseName into transcript_fa
     
         shell:
-            baseName = file("${params.tx_fa_link}").getName() - ".gz"
+            //  For rat, the annotation version isn't included in the file name,
+            //  so we add it
+            if (params.reference == 'rat') {
+                baseName = file("${params.tx_fa_link}").getName() - ".fa.gz" + "_${params.anno_version}.fa"
+            } else {
+                baseName = file("${params.tx_fa_link}").getName() - ".gz"
+            }
+
             '''
-            curl -O !{params.tx_fa_link}
+            curl -o !{baseName}.gz !{params.tx_fa_link}
             gunzip !{baseName}.gz
             '''
     }
@@ -728,31 +735,39 @@ if (params.custom_anno != "") {
 if (params.use_salmon) {
     process buildSALMONindex {
     
-        tag "Building Salmon Index: salmon_index_${params.anno_suffix}"
-        storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon2/${params.anno_suffix}"
+        tag "Building Salmon Index: salmon_index_${anno_suffix}"
+        storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon/${anno_suffix}"
     
         input:
             file transcript_fa
     
         output:
-            file("salmon_index_${params.anno_suffix}/*") into salmon_index
-            file("build_salmon_index_${params.anno_suffix}.log")
+            file("salmon_index_${anno_suffix}/*") into salmon_index
+            file("build_salmon_index_${anno_suffix}.log")
     
         script:
           if (params.reference == "rat") {
               gencode_flag = ""
           } else {
               gencode_flag = "--gencode"
-          } 
-          """
-          ${params.salmon} index \
-              -t $transcript_fa \
-              -i salmon_index_${params.anno_suffix} \
+          }
+
+          // Use of main/primary doesn't affect transcripts
+          if (params.custom_anno == "") {
+              anno_suffix = params.anno_suffix - "_${params.anno_build}"
+          } else {
+              anno_suffix = params.anno_suffix
+          }
+          '''
+          !{params.salmon} index \
+              -t !{transcript_fa} \
+              -i salmon_index_!{anno_suffix} \
               -p $task.cpus \
-              $gencode_flag \
-              ${params.salmon_index_args}
-          cp .command.log build_salmon_index_${params.anno_suffix}.log
-          """
+              !{gencode_flag} \
+              !{params.salmon_index_args}
+          
+          cp .command.log build_salmon_index_!{anno_suffix}.log
+          '''
     }
 }
 
@@ -764,16 +779,23 @@ process BuildKallistoIndex {
         file transcript_fa
 
     output:
-        file "kallisto_index_${params.anno_suffix}" into kallisto_index
-        file "build_kallisto_index_${params.anno_suffix}.log"
+        file "kallisto_index_${anno_suffix}" into kallisto_index
+        file "build_kallisto_index_${anno_suffix}.log"
 
     shell:
+        // Use of main/primary doesn't affect transcripts
+        if (params.custom_anno == "") {
+            anno_suffix = params.anno_suffix - "_${params.anno_build}"
+        } else {
+            anno_suffix = params.anno_suffix
+        }
+
         '''
         !{params.kallisto} index \
-            -i kallisto_index_!{params.anno_suffix} \
+            -i kallisto_index_!{anno_suffix} \
             !{params.kallisto_index_args} \
             !{transcript_fa}
-        cp .command.log build_kallisto_index_!{params.anno_suffix}.log
+        cp .command.log build_kallisto_index_!{anno_suffix}.log
         '''
 }
 
