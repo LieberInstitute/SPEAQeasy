@@ -19,7 +19,7 @@ opt <- getopt(spec)
 suffix <- paste0("_", opt$suffix)
 temp <- strsplit(suffix, "_")[[1]]
 opt$type <- temp[length(temp)] # "main", "primary", or "custom"
-opt$genome_version <- as.numeric(sub('v', '', temp[4]))
+opt$genome_version <- as.numeric(sub("v", "", temp[4]))
 
 ########################################################
 #  Create chrom sizes file from assembly fasta
@@ -45,12 +45,12 @@ if (opt$reference == "hg19" || opt$reference == "hg38") {
     chrom_names <- paste0("chr", c(1:19, "X", "Y", "M"))
 } else if (opt$reference == "rat") { # rat/ rn6
     chrom_names <- paste0("chr", c(1:20, "X", "Y", "M"))
-    
+
     #   Update opt$reference with the actual genome name
     if (opt$genome_version >= 105) {
-        opt$reference = "rn7"
+        opt$reference <- "rn7"
     } else {
-        opt$reference = "rn6"
+        opt$reference <- "rn6"
     }
 } else {
     stop(paste0("Unexpected reference '", opt$reference, "'."))
@@ -114,7 +114,8 @@ save(theJunctions, file = paste0("junction_annotation", suffix, ".rda"))
 # get exons
 ensExons <- exonsBy(gencode_txdb)
 map <- select(
-    gencode_txdb, keys = names(ensExons), keytype = "TXID",
+    gencode_txdb,
+    keys = names(ensExons), keytype = "TXID",
     columns = c("TXID", "TXNAME", "GENEID")
 )
 ensExons <- unlist(ensExons)
@@ -127,7 +128,7 @@ gtf_colnames <- c(
 geneMap <- data.frame(gencode_gtf)
 geneMap <- geneMap[geneMap$type == "gene", gtf_colnames]
 
-if (! (opt$reference %in% c("rn6", "rn7"))) {
+if (!(opt$reference %in% c("rn6", "rn7"))) {
     geneMap$ensemblID <- ss(geneMap$gene_id, "\\.")
 }
 rownames(geneMap) <- geneMap$gene_id
@@ -142,7 +143,7 @@ geneMapGR$GenTx[!is.na(mmGene)] <- geneToTx[mmGene[!is.na(mmGene)]]
 exonMap <- data.frame(gencode_gtf)
 exonMap <- exonMap[exonMap$type == "exon", gtf_colnames]
 
-if (! (opt$reference %in% c("rn6", "rn7"))) {
+if (!(opt$reference %in% c("rn6", "rn7"))) {
     exonMap$ensemblID <- ss(exonMap$gene_id, "\\.")
 }
 eMap <- GRanges(exonMap$seqnames, IRanges(exonMap$start, exonMap$end))

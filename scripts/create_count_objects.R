@@ -297,7 +297,7 @@ if (opt$salmon) {
     #----------------------------------------------------------------------
     #  Salmon quantification
     #----------------------------------------------------------------------
-    
+
     ## observed tpm and number of reads
     txTpm <- bplapply(sampIDs, function(x) {
         read.table(file.path(".", paste0(x, "_quant.sf")), header = TRUE)$TPM
@@ -305,30 +305,31 @@ if (opt$salmon) {
     BPPARAM = MulticoreParam(opt$cores)
     )
     txTpm <- do.call(cbind, txTpm)
-    
+
     txNumReads <- bplapply(sampIDs, function(x) {
         read.table(file.path(".", paste0(x, "_quant.sf")), header = TRUE)$NumReads
     },
     BPPARAM = MulticoreParam(opt$cores)
     )
     txNumReads <- do.call(cbind, txNumReads)
-    
+
     ## get names of transcripts
     txNames <- read.table(
-            file.path(".", paste0(sampIDs[1], "_quant.sf")), header = TRUE
-        )$Name
+        file.path(".", paste0(sampIDs[1], "_quant.sf")),
+        header = TRUE
+    )$Name
     txNames <- as.character(txNames)
 } else {
     #----------------------------------------------------------------------
     #  Kallisto quantification
     #----------------------------------------------------------------------
-    
+
     txMatrices <- bplapply(
         sampIDs,
         function(x) read.table(paste0(x, "_abundance.tsv"), header = TRUE),
         BPPARAM = MulticoreParam(opt$cores)
     )
-    
+
     txTpm <- do.call(cbind, lapply(txMatrices, function(x) x$tpm))
     txNumReads <- do.call(cbind, lapply(txMatrices, function(x) x$est_counts))
     txNames <- as.character(txMatrices[[1]]$target_id)
@@ -338,7 +339,7 @@ if (opt$salmon) {
 colnames(txTpm) <- colnames(txNumReads) <- sampIDs
 
 #   These organisms use a FASTA downloaded from Gencode
-if (opt$organism %in% c("hg19", "hg38", "mm10"))  {
+if (opt$organism %in% c("hg19", "hg38", "mm10")) {
     ## expected format of transcripts fasta header (and thus txMatrices and txNames):
     # ENST00000456328.2|ENSG00000223972.5|OTTHUMG00000000961.2|OTTHUMT00000362751.1|DDX11L1-202|DDX11L1|1657|lncRNA|
     #       1                  2                3                   4                  5           6      7    8
@@ -348,25 +349,25 @@ if (opt$organism %in% c("hg19", "hg38", "mm10"))  {
     colnames(txMap) <- c(
         "gencodeTx", "txLength", "gencodeID", "Symbol", "gene_type"
     )
-    
+
     if (!all(txMap$gencodeTx %in% names(txRR))) {
         stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
     }
     txRR <- txRR[txMap$gencodeTx]
-    
+
     rownames(txMap) <- rownames(txTpm) <- rownames(txNumReads) <- txMap$gencodeTx
 } else { # rat; just take transcript ID from txNames, e.g. ENST00000456328.2
     #   Transcript names in the GTF exclude the transcript version suffix, which
     #   is part of the names from the transcripts FASTA. Use the GTF's
     #   convention
-    txNames = ss(txNames, '\\.')
-    
+    txNames <- ss(txNames, "\\.")
+
     if (!all(txNames %in% names(txRR))) {
         stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
     }
-    
+
     txRR <- txRR[txNames]
-    
+
     ## get transcript length from genomic ranges, summing up exon lengths
     # dtex <- as.data.table(subset(gencodeGTF, type=='exon'))
     # setkey(dtex, transcript_id, start)
@@ -374,7 +375,7 @@ if (opt$organism %in% c("hg19", "hg38", "mm10"))  {
     # setkey(dtx, transcript_id)
     # stopifnot(identical(names(txRR), dtx[txNames]$transcript_id))
     # txMap <- data.frame(
-    #     gencodeTx=txRR$transcript_id, txLength=dtx[txNames]$tlen, 
+    #     gencodeTx=txRR$transcript_id, txLength=dtx[txNames]$tlen,
     #     gencodeID=txRR$gene_id, Symbol=txRR$gene_name
     # )
 
@@ -795,7 +796,7 @@ exonMap$meanExprs <- rowMeans(exonRpkm)
 #  Add transcript maps
 ###############################################################################
 
-load(paste0('feature_to_Tx_', opt$anno_suffix, ".rda"))
+load(paste0("feature_to_Tx_", opt$anno_suffix, ".rda"))
 
 #   For hg38 gencode version 25 (the pipeline default), we have additional
 #   exon annotation
@@ -804,41 +805,41 @@ if (file.exists("exonMaps_by_coord_hg38_gencode_v25.rda")) {
 }
 
 #   Some variable names differ between rat and the other references, because
-#   rat reference files come from Ensembl and the others come from GENCODE 
+#   rat reference files come from Ensembl and the others come from GENCODE
 if (opt$organism %in% c("hg19", "hg38", "mm10")) {
-    anno_source = 'gencode'
+    anno_source <- "gencode"
     geneMap$Class <- "InGen"
     exonMap$Class <- "InGen"
 } else {
-    anno_source = 'ensembl'
+    anno_source <- "ensembl"
     geneMap$Class <- "InEns"
     exonMap$Class <- "InEns"
 }
 
 ## gene annotation
-mmTx <- match(geneMap[[paste0(anno_source, 'ID')]], names(allTx))
+mmTx <- match(geneMap[[paste0(anno_source, "ID")]], names(allTx))
 tx <- CharacterList(vector("list", nrow(geneMap)))
 tx[!is.na(mmTx)] <- allTx[mmTx[!is.na(mmTx)]]
 geneMap$NumTx <- elementNROWS(tx)
-geneMap[[paste0(anno_source, 'Tx')]] <- sapply(tx, paste0, collapse = ";")
+geneMap[[paste0(anno_source, "Tx")]] <- sapply(tx, paste0, collapse = ";")
 
 ## exon annotation
 exonMap$coord <- paste0(exonMap$Chr, ":", exonMap$Start, "-", exonMap$End, "(", exonMap$Strand, ")")
 if (file.exists("exonMaps_by_coord_hg38_gencode_v25.rda")) {
     exonMap <- exonMap[, -which(colnames(exonMap) %in% c("exon_gencodeID", "exon_libdID"))]
-    
+
     mmENSE <- match(exonMap$coord, names(coordToENSE))
     ENSE <- CharacterList(vector("list", nrow(exonMap)))
     ENSE[!is.na(mmENSE)] <- coordToENSE[mmENSE[!is.na(mmENSE)]]
     exonMap$NumENSE <- elementNROWS(ENSE)
     exonMap$exon_gencodeID <- sapply(ENSE, paste0, collapse = ";")
-    
+
     mmLIBD <- match(exonMap$coord, names(coordToEid))
     libdID <- CharacterList(vector("list", nrow(exonMap)))
     libdID[!is.na(mmLIBD)] <- coordToEid[mmLIBD[!is.na(mmLIBD)]]
     exonMap$NumLIBD <- elementNROWS(libdID)
     exonMap$exon_libdID <- sapply(libdID, paste0, collapse = ";")
-    
+
     mmTx <- match(exonMap$coord, names(coordToTX))
     tx <- CharacterList(vector("list", nrow(exonMap)))
     tx[!is.na(mmTx)] <- coordToTX[mmTx[!is.na(mmTx)]]
@@ -847,11 +848,11 @@ if (file.exists("exonMaps_by_coord_hg38_gencode_v25.rda")) {
 } else {
     #   mm10, rat, hg19 or hg38 without additional exon annotation for
     #   gencode release 25
-    mmTx <- match(exonMap[[paste0(anno_source, 'ID')]], names(allTx))
+    mmTx <- match(exonMap[[paste0(anno_source, "ID")]], names(allTx))
     tx <- CharacterList(vector("list", nrow(exonMap)))
     tx[!is.na(mmTx)] <- allTx[mmTx[!is.na(mmTx)]]
     exonMap$NumTx <- elementNROWS(tx)
-    exonMap[[paste0(anno_source, 'Tx')]] <- sapply(tx, paste0, collapse = ";")
+    exonMap[[paste0(anno_source, "Tx")]] <- sapply(tx, paste0, collapse = ";")
 }
 
 ###############################################################################
@@ -860,10 +861,10 @@ if (file.exists("exonMaps_by_coord_hg38_gencode_v25.rda")) {
 
 #   SPEAQeasy settings were written to a CSV, which will be read in here and
 #   used to populate the metadata of each RSE
-meta_csv = read.csv('params.csv', header = FALSE)
-rse_meta = meta_csv[,2]
-names(rse_meta) = meta_csv[,1]
-rse_meta = list('SPEAQeasy_settings' = as.list(rse_meta))
+meta_csv <- read.csv("params.csv", header = FALSE)
+rse_meta <- meta_csv[, 2]
+names(rse_meta) <- meta_csv[, 1]
+rse_meta <- list("SPEAQeasy_settings" = as.list(rse_meta))
 
 gr_genes <- GRanges(
     seqnames = geneMap$Chr,
@@ -1105,7 +1106,7 @@ if (!is.null(opt$qsva_tx)) {
     if (!all(select_tx %in% rownames(rse_tx))) {
         stop("Selected transcripts passed via the '--qsva' argument are not all present in the final R object! Please check you are using appropriate transcript names (Ensembl ID), and check your annotation settings.")
     }
-    
+
     rse_tx <- rse_tx[rownames(rse_tx) %in% select_tx, ]
 }
 

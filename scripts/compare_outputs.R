@@ -75,13 +75,13 @@ for (ref in c("hg38", "mm10", "rn6")) {
                         stopifnot(all(colnames(rowData(obj_list2[[j]])) %in% colnames(rowData(obj_list1[[j]]))))
 
                         rowData(obj_list1[[j]]) <- rowData(obj_list1[[j]])[, colnames(rowData(obj_list2[[j]]))]
-                        
+
                         #  Assume that we're comparing outputs for the sake of
                         #  testing, and that during testing SPEAQeasy might be
                         #  run with slightly different settings (which we don't
                         #  care about)
-                        metadata(obj_list1[[j]])$SPEAQeasy_settings = NULL
-                        metadata(obj_list2[[j]])$SPEAQeasy_settings = NULL
+                        metadata(obj_list1[[j]])$SPEAQeasy_settings <- NULL
+                        metadata(obj_list2[[j]])$SPEAQeasy_settings <- NULL
                     }
                     if (identical(obj_list1[[j]], obj_list2[[j]])) {
                         print("Removed the 'bamFile' columns and SPEAQeasy settings from two RSEs, after which point the objects were equivalent.")
