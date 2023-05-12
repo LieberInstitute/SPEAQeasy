@@ -283,7 +283,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <img src="images/7_main_outputs.png" alt="" />
 <p class="caption">Main Outputs</p>
 </div>
-<p>Most importantly, SPEAQeasy generates <a href="https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html"><code>RangedSummarizedExperiment</code></a> objects storing counts at several features (genes, exons, and exon-exon junctions). A number of <a href="https://bioconductor.org/">Bioconductor</a> packages can be trivially utilized to perform desired differential expression analyses from counts in the widespread <code>SummarizedExperiment</code> format, and we provide a <a href="http://research.libd.org/SPEAQeasy-example">vignette</a> demonstrating an example analysis.</p>
+<p>Most importantly, SPEAQeasy generates <a href="https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html"><code>RangedSummarizedExperiment</code></a> objects storing counts at several features (genes, exons, exon-exon junctions, and transcripts). A number of <a href="https://bioconductor.org/">Bioconductor</a> packages can be trivially utilized to perform desired differential expression analyses from counts in the widespread <code>SummarizedExperiment</code> format, and we provide a <a href="http://research.libd.org/SPEAQeasy-example">vignette</a> demonstrating an example analysis.</p>
 <p>For human samples, variants are called at a list of common missense single nucleotide variants (SNVs), and SPEAQeasy ultimately a single VCF file to store genotype calls at these sites for all samples in the experiment. We provide a <a href="http://research.libd.org/SPEAQeasy-example">guide</a> walking through how this genotype data can be used to resolve identity issues that arise during sequencing, salvaging samples which otherwise might be dropped from further analysis.</p>
 <p>Finally, expressed regions data is optionally generated (with the <code>--coverage</code> <a href="command-opts.html#command-opts">option</a>). The <code>RData</code> files provide a starting point for finding differentially expressed regions (DERs), for analyses involving this end goal.</p>
 <div id="metadata-of-rse-objects" class="section level3 hasAnchor" number="7.1.1">
@@ -318,7 +318,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <td><code>rse_exon</code>, <code>rse_jx</code></td>
 </tr>
 <tr class="even">
-<td>ranges</td>
+<td><code>ranges</code></td>
 <td>directly pulled</td>
 <td>human, mouse, rat</td>
 <td><code>rse_exon</code>, <code>rse_jx</code></td>
@@ -400,7 +400,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <td><code>rse_gene</code></td>
 </tr>
 <tr class="even">
-<td>ranges</td>
+<td><code>ranges</code></td>
 <td>directly pulled</td>
 <td>human, mouse, rat</td>
 <td><code>rse_gene</code></td>
@@ -579,7 +579,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="coldata-of-rse-objects" class="section level3 hasAnchor" number="7.1.3">
 <h3><span class="header-section-number">7.1.3</span> <code>colData</code> of RSE objects<a href="outputs.html#coldata-of-rse-objects" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>Many of the columns in the <code>colData</code> of each RSE object are considered “quality metrics”, which are documented in the <a href="outputs.html#quality-metrics">next section</a> and also contained in a standalone CSV output. The remaining columns in the <code>colData</code> of each object have names of the form: <code>gene_Assigned</code> and <code>geneUnassigned_*</code>, and are pulled directly from the <code>featureCounts</code> summary outputs. Note that all objects (<code>rse_gene</code>, <code>rse_exon</code>, <code>rse_jx</code>, and <code>rse_tx) share identical</code>colData`.</p>
+<p>Many of the columns in the <code>colData</code> of each RSE object are considered “quality metrics”, which are documented in the <a href="outputs.html#quality-metrics">next section</a> and also contained in a standalone CSV output. The remaining columns in the <code>colData</code> of each object have names of the form: <code>gene_Assigned</code> and <code>geneUnassigned_*</code>, and are pulled directly from the <code>featureCounts</code> summary outputs. Note that all objects (<code>rse_gene</code>, <code>rse_exon</code>, <code>rse_jx</code>, and <code>rse_tx</code>) share identical <code>colData</code>.</p>
 </div>
 <div id="quality-metrics" class="section level3 hasAnchor" number="7.1.4">
 <h3><span class="header-section-number">7.1.4</span> Quality Metrics<a href="outputs.html#quality-metrics" class="anchor-section" aria-label="Anchor link to header"></a></h3>
