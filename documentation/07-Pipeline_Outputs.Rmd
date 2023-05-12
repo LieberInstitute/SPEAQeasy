@@ -5,7 +5,7 @@
 
 ![Main Outputs](images/7_main_outputs.png)
 
-Most importantly, SPEAQeasy generates [`RangedSummarizedExperiment`](https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html) objects storing counts at several features (genes, exons, and exon-exon junctions). A number of [Bioconductor](https://bioconductor.org/) packages can be trivially utilized to perform desired differential expression analyses from counts in the widespread `SummarizedExperiment` format, and we provide a [vignette](http://research.libd.org/SPEAQeasy-example) demonstrating an example analysis.
+Most importantly, SPEAQeasy generates [`RangedSummarizedExperiment`](https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html) objects storing counts at several features (genes, exons, exon-exon junctions, and transcripts). A number of [Bioconductor](https://bioconductor.org/) packages can be trivially utilized to perform desired differential expression analyses from counts in the widespread `SummarizedExperiment` format, and we provide a [vignette](http://research.libd.org/SPEAQeasy-example) demonstrating an example analysis.
 
 For human samples, variants are called at a list of common missense single nucleotide variants (SNVs), and SPEAQeasy ultimately a single VCF file to store genotype calls at these sites for all samples in the experiment. We provide a [guide](http://research.libd.org/SPEAQeasy-example) walking through how this genotype data can be used to resolve identity issues that arise during sequencing, salvaging samples which otherwise might be dropped from further analysis.
 
@@ -24,7 +24,7 @@ For the `rse_tx` object, all columns of its `rowRanges` are directly pulled from
 | Column Name | Description | Species | RSE object(s) |
 | --- | ----- | --- | --- |
 | `seqnames` | directly pulled | human, mouse, rat | `rse_exon`, `rse_jx` |
-| ranges | directly pulled | human, mouse, rat | `rse_exon`, `rse_jx` |
+| `ranges` | directly pulled | human, mouse, rat | `rse_exon`, `rse_jx` |
 | `strand` | directly pulled | human, mouse, rat | `rse_exon`, `rse_jx` |
 | `Length` | directly pulled | human, mouse, rat | `rse_gene`, `rse_exon`, `rse_jx` |
 | `ensemblID` | truncated from `Geneid` (genes, exons) or `gencodeID` (junctions) | human, mouse | `rse_gene`, `rse_exon`, `rse_jx` |
@@ -42,7 +42,7 @@ In addition, the `rownames` for `rse_gene` are `Geneid` from `featureCounts`.
 | Column Name | Description | Species | RSE object(s) |
 | --- | ----- | --- | --- |
 | `seqnames` | directly pulled | human, mouse, rat | `rse_gene` |
-| ranges | directly pulled | human, mouse, rat | `rse_gene` |
+| `ranges` | directly pulled | human, mouse, rat | `rse_gene` |
 | `strand` | directly pulled | human, mouse, rat | `rse_gene` |
 | `gene_type` | directly pulled | human, mouse | `rse_gene`, `rse_exon` |
 | `gencodeGeneID` | is `gencodeID` | human, mouse | `rse_jx` |
@@ -80,7 +80,7 @@ In addition, the `rownames` for `rse_gene` are `Geneid` from `featureCounts`.
 
 ### `colData` of RSE objects
 
-Many of the columns in the `colData` of each RSE object are considered "quality metrics", which are documented in the [next section](#quality-metrics) and also contained in a standalone CSV output. The remaining columns in the `colData` of each object have names of the form: `gene_Assigned` and `geneUnassigned_*`, and are pulled directly from the `featureCounts` summary outputs. Note that all objects (`rse_gene`, `rse_exon`, `rse_jx`, and `rse_tx) share identical `colData`.
+Many of the columns in the `colData` of each RSE object are considered "quality metrics", which are documented in the [next section](#quality-metrics) and also contained in a standalone CSV output. The remaining columns in the `colData` of each object have names of the form: `gene_Assigned` and `geneUnassigned_*`, and are pulled directly from the `featureCounts` summary outputs. Note that all objects (`rse_gene`, `rse_exon`, `rse_jx`, and `rse_tx`) share identical `colData`.
 
 
 ### Quality Metrics {#quality-metrics}

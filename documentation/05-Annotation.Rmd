@@ -39,7 +39,7 @@ Depending on the analysis you are doing, you may wish to only consider the refer
 * The "main" build consists of only the canonical "reference" sequences for each species
 * The "primary" build consists of the canonical "reference" sequences and additional scaffolds, as a genome [primary assembly fasta from GENCODE](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_35/GRCh38.primary_assembly.genome.fa.gz) would contain.
 
-See the variable `annotation_build` in your [configuration](#configuration) file for making this selection for your pipeline run.
+See the variable `annotation_build` in your [configuration](#configuration) file for making this selection for your pipeline run. Please note that GENCODE does not provide transcript annotation for additional scaffolds for human and mouse, and so only the "main" transcripts are quantified, even when "primary" is selected (choice of "primary" does still affect alignment though, as expected)
 
 ### Additional Annotation files ###
 
@@ -53,6 +53,8 @@ You may wish to provide specific reference files in place of the automatically m
 * A genome assembly fasta (the reference genome to align reads to), such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/GRCh38.primary_assembly.genome.fa.gz). Make sure the file has the string "assembly" in the filename, to specify to the pipeline that it is the genome reference fasta.
 * Gene annotation gtf, such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.annotation.gtf.gz)- but not gzipped. This file can have any name, so long as it ends in ".gtf".
 * A transcripts fasta, such as the file [here](ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_32/gencode.v32.transcripts.fa.gz)- but not gzipped. Make sure to include "transcripts" anywhere in the filename (provided the file ends in ".fa") to differentiate this file from the reference genome.
+
+When using custom annotation, the configuration variables related to GENCODE/Enesmbl settings are ignored (i.e. `gencode_version_human`, `gencode_version_mouse`, `ensembl_version_rat`, and `anno_build`).
 
 ### Optional files to include depending on your use-case ###
 
