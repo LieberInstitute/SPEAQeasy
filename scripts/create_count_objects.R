@@ -356,19 +356,14 @@ if (opt$organism %in% c("hg19", "hg38", "mm10"))  {
     
     rownames(txMap) <- rownames(txTpm) <- rownames(txNumReads) <- txMap$gencodeTx
 } else { # rat; just take transcript ID from txNames, e.g. ENST00000456328.2
-    #   Temporary (for testing). Figure out the right way to do this. Why do we
-    #   need to clip the FASTA transcript names to agree with the GTF, and why
-    #   even after doing that are we left with a handful of transcripts not in
-    #   the GTF?
+    #   Transcript names in the GTF exclude the transcript version suffix, which
+    #   is part of the names from the transcripts FASTA. Use the GTF's
+    #   convention
     txNames = ss(txNames, '\\.')
     
-    # if (!all(txNames %in% names(txRR))) {
-    #     stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
-    # }
-    in_gtf = txNames %in% names(txRR)
-    txNames = txNames[in_gtf]
-    txTpm = txTpm[in_gtf,]
-    txNumReads = txNumReads[in_gtf,]
+    if (!all(txNames %in% names(txRR))) {
+        stop("Some transcripts do not appear to have corresponding annotation. If using custom annotation, please ensure the GTF has all transcripts present in the FASTA")
+    }
     
     txRR <- txRR[txNames]
     

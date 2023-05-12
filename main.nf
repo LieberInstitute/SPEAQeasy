@@ -706,15 +706,20 @@ if (params.custom_anno != "") {
     			
         tag "Downloading TX FA File: ${baseName}"
         storeDir "${params.annotation}/reference/${params.reference}/transcripts/fa"
-    
+        
+        input:
+            file subset_script from file("${workflow.projectDir}/scripts/subset_rat_fasta.R")
+
         output:
             file baseName into transcript_fa
     
         shell:
-            //  For rat, the annotation version isn't included in the file name,
-            //  so we add it
+            //  For human and mouse, only the "main" transcripts FASTA is
+            //  available. These means the output FASTA won't differ between
+            //  "main" and "primary" runs for these species. For rat, only a
+            //  "primary" FASTA is available, so the output will differ
             if (params.reference == 'rat') {
-                baseName = file("${params.tx_fa_link}").getName() - ".fa.gz" + "_${params.anno_version}.fa"
+                baseName = "transcripts_${params.anno_suffix}.fa"
             } else {
                 baseName = file("${params.tx_fa_link}").getName() - ".gz"
             }
@@ -722,6 +727,12 @@ if (params.custom_anno != "") {
             '''
             curl -o !{baseName}.gz !{params.tx_fa_link}
             gunzip !{baseName}.gz
+
+            #   For rat, the only transcripts FASTA available includes "primary"
+            #   transcripts. Subset if the user selects "main" build
+            if [[ (!{params.reference} == 'rat') && (!{params.anno_build} == "main") ]]; then
+                !{params.Rscript} !{subset_script}
+            fi
             '''
     }
 }
@@ -752,8 +763,8 @@ if (params.use_salmon) {
               gencode_flag = "--gencode"
           }
 
-          // Use of main/primary doesn't affect transcripts
-          if (params.custom_anno == "") {
+          // Use of main/primary doesn't affect transcripts for human and mouse
+          if ((params.custom_anno == "") || (params.reference == "rat")) {
               anno_suffix = params.anno_suffix - "_${params.anno_build}"
           } else {
               anno_suffix = params.anno_suffix
@@ -783,8 +794,8 @@ process BuildKallistoIndex {
         file "build_kallisto_index_${anno_suffix}.log"
 
     shell:
-        // Use of main/primary doesn't affect transcripts
-        if (params.custom_anno == "") {
+        // Use of main/primary doesn't affect transcripts for human and mouse
+        if ((params.custom_anno == "") || (params.reference == "rat")) {
             anno_suffix = params.anno_suffix - "_${params.anno_build}"
         } else {
             anno_suffix = params.anno_suffix
