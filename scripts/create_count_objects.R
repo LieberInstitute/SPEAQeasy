@@ -41,9 +41,9 @@ opt <- getopt(spec)
 
 ## DEBUG:
 #-o humanRat -e spqz_exp -p "" -l TRUE -c false -t 4 -s reverse -n false  -r false -u /dbdata/cdb/rnaseq/stemcell_pipeline/test3/spqz_1/results
-opt <- list(organism="hg38", experiment="spqz_exp", prefix="", paired=T, cores=2, star=F, 
-            stranded='reverse', ercc=F,   salmon=F, 
-            output='/dcl02/lieber/jhshin/SNVTA/LCMseq/results')
+#opt <- list(organism="hg38", experiment="spqz_exp", prefix="", paired=T, cores=2, star=F, 
+#            stranded='reverse', ercc=F,   salmon=F, 
+#            output='/dcl02/lieber/jhshin/SNVTA/LCMseq/results')
 
 ## if help was asked for print a friendly message
 ## and exit with a non-zero error code
@@ -604,7 +604,8 @@ if (opt$organism %in% c("hg19", "hg38")) {
     ### exons in PAR regions
     par_y <- grep("PAR_Y", gencodeEXONS$gene_id)
     gencodeEXONS$exon_gencodeID[par_y] <- paste0(gencodeEXONS$exon_gencodeID[par_y], "_PAR_Y")
-    gencodeEXONS[, -match("gene_id", colnames(gencodeEXONS))]
+    ## what is this about? certainly we don't want this output in the logs
+    #gencodeEXONS[, -match("gene_id", colnames(gencodeEXONS))]
 }
 
 
