@@ -15,7 +15,7 @@
 
 #  This is the docker image to be used for execution of R via docker or
 #  singularity, if applicable
-R_container="libddocker/bioc_kallisto:3.14"
+R_container="libddocker/bioc_kallisto:3.17"
 
 #  --------------------------------------------------------
 #  Users should not need to alter code below this point
@@ -222,28 +222,25 @@ elif [ "$1" == "local" ]; then
         make prefix=$INSTALL_DIR install
         cd $INSTALL_DIR
     
-        #  R (4.1.2) ---------------------------------------------------------------------
+        #  R (4.3.0) -----------------------------------------------------------
         
         #  Install R
-        curl -O http://cran.rstudio.com/src/base/R-4/R-4.1.2.tar.gz
-        tar -xzf R-4.1.2.tar.gz
-        cd R-4.1.2
+        curl -O http://cran.rstudio.com/src/base/R-4/R-4.3.0.tar.gz
+        tar -xzf R-4.3.0.tar.gz
+        cd R-4.3.0
         ./configure --prefix=$INSTALL_DIR --with-x=no
         make
         make install
         cd $INSTALL_DIR
       
         #  Install packages that will be used by the pipeline
-        ./R-4.1.2/bin/Rscript ../scripts/check_R_packages.R
+        ./R-4.3.0/bin/Rscript ../scripts/check_R_packages.R
         
         BASE_DIR=$(dirname $INSTALL_DIR)
         cd $BASE_DIR
-        
-        #  Signal to load ordinary R packages with 'checkpoint' in each R script
-        sed -i "1i #  Added during installation\nlibrary('checkpoint')\ncheckpoint('2021-10-01',\n    project_dir = '$BASE_DIR/scripts/r_packages',\n    checkpoint_location = '$BASE_DIR/Software'\n)\n" scripts/*.R
     
         #  Create the test samples.manifest files
-        Software/R-4.1.2/bin/Rscript scripts/make_test_manifests.R -d $(pwd)
+        Software/R-4.3.0/bin/Rscript scripts/make_test_manifests.R -d $(pwd)
         cd $INSTALL_DIR
     
         #  regtools (gpertea fork: 0.5.33g)  ----------------------------------
@@ -408,8 +405,8 @@ elif [ "$1" == "local" ]; then
     fi
 elif [ "$1" == "jhpce" ]; then
     echo "User selected set-up at JHPCE. Installing any missing R packages..."
-    module load conda_R/4.1.x
-    Rscript scripts/check_R_packages_JHPCE.R
+    module load conda_R/4.3
+    Rscript scripts/check_R_packages.R
     
     echo "Setting up test files..."
     Rscript scripts/make_test_manifests.R -d $(pwd)

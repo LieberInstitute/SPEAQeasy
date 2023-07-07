@@ -42,6 +42,18 @@ SPEAQeasy has been tested on:
 - CentOS 7 (Linux)
 - Ubuntu 20.04.2 LTS (Linux)
 
+#### Singularity cannot create thread
+
+On some high-performance-computing clusters, `singularity` tends to use an [unexpectedly large amount of memory](https://github.com/apptainer/singularity/issues/5434#issuecomment-659696967) during installation (when converting from the `Docker` images we host). This can lead to error messages like the following when performing a singularity-based installation (i.e. `bash install_software.sh singularity`):
+
+```{bash, eval = FALSE}
+Storing signatures
+INFO:    Creating SIF file...
+FATAL:   While making image from oci registry: while building SIF from layers: While running mksquashfs: exit status 1: FATAL ERROR:Failed to create thread
+```
+
+Sometimes, requesting a potentially extraordinary amount of memory (e.g. > 64GB) while performing the installation is an effective workaround. If not, it may be appropriate to talk to your system administrator about configuring `Singularity` (properly editing `singularity.conf`) appropriately for a computing-cluster setting.
+
 #### Required utilities are missing
 
 This is particularly common issue for MacOS users, or Linux users trying to get SPEAQeasy running on a local machine (like a laptop). In either case, we will assume the user has root privileges for the solutions suggested below. 
