@@ -1,40 +1,33 @@
-#  This script is not intended to be run except from 'install_software.sh',
-#  where the working directory is [SPEAQeasy path]/Software
+#  Install any missing R packages needed by SPEAQeasy
 
-print("Checking R packages...")
+packages <- c(
+    "BiocParallel", "biocthis", "biomaRt", "Biostrings",
+    "checkpoint", "DelayedArray", "derfinder", "devtools", "GenomicFeatures",
+    "GenomicRanges", "getopt", "here", "matrixStats", "org.Hs.eg.db",
+    "org.Mm.eg.db", "org.Rn.eg.db", "plyr", "rafalib", "RColorBrewer",
+    "rtracklayer", "sessioninfo", "styler", "SummarizedExperiment"
+)
 
-lib_path <- paste0(getwd(), "/R-4.1.2/library")
-
-for (package in c("checkpoint", "here")) {
-    if (!requireNamespace(package, quietly = TRUE)) {
-        install.packages(package, repos = "http://cran.us.r-project.org", lib = lib_path)
-    }
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+    install.packages("BiocManager")
 }
 
-library("here")
-library("checkpoint")
+installed <- sapply(packages, requireNamespace, quietly = TRUE)
 
-#  Automatically install ordinary packages as they existed October 2021. This
-#  is a bit before R 4.1.2 was released (2021-11-01), but checkpoint does not
-#  have more recent snapshots of the required packages.
-dir.create(here("Software", "R-4.1.2", ".checkpoint"))
-checkpoint("2021-10-01",
-    project_dir = here("scripts", "r_packages"),
-    checkpoint_location = here("Software", "R-4.1.2"),
-    log = FALSE
-)
+if (any(!installed)) {
+    print(paste0("Missing the package ", names(which(!installed))))
 
-#  These are Bioconductor packages to install
-packages <- c(
-    "BiocParallel", "biomaRt", "Biostrings",
-    "DelayedArray", "derfinder", "GenomicFeatures", "GenomicRanges",
-    "org.Hs.eg.db", "org.Mm.eg.db", "org.Rn.eg.db", "rtracklayer",
-    "SummarizedExperiment"
-)
+    BiocManager::install(packages[!installed], update = FALSE)
+} else {
+    print("All ordinary packages are already installed.")
+}
 
-#  Install the Bioc packages and the GitHub package "jaffelab"
-BiocManager::install(packages, lib = lib_path, update = FALSE)
-remotes::install_github("LieberInstitute/jaffelab", lib = lib_path)
+#  Jaffelab is a special case since it is a package from GitHub
+if (!requireNamespace("jaffelab", quietly = TRUE)) {
+    print("Missing the GitHub package 'jaffelab'.")
+    remotes::install_github("LieberInstitute/jaffelab")
+}
 
-library("sessioninfo")
-session_info()
+print("Done checking/installing packages.")
+
+devtools::session_info()
