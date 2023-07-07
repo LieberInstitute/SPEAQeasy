@@ -283,41 +283,41 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li><em>A job/ process is not given enough memory or time</em>: pipeline runs on large samples or datasets may require more memory or a higher time limit. When reported correctly, the pipeline will indicate an error status of 140 (for SGE or SLURM environments); however, memory issues can take many forms, and related error messages are not always clear. In this example case, the process PairedEndHISAT failed due to insufficient memory, but indicated a general error status (1):</li>
 </ul>
-<div class="figure">
-<img src="images/10.1_error.png" alt="" />
-<p class="caption">How Nextflow may report memory-related errors</p>
+<div class="float">
+<img src="images/10.1_error.png" alt="How Nextflow may report memory-related errors" />
+<div class="figcaption">How Nextflow may report memory-related errors</div>
 </div>
 <p>Attempt to provide the process more memory in your config. In this case the configuration for PairedEndHISAT looks like this (for SGE users):</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb31-1"><a href="help.html#cb31-1" aria-hidden="true" tabindex="-1"></a>withName<span class="op">:</span> PairedEndHISAT <span class="op">{</span></span>
-<span id="cb31-2"><a href="help.html#cb31-2" aria-hidden="true" tabindex="-1"></a>    cpus <span class="op">=</span> <span class="dv">4</span></span>
-<span id="cb31-3"><a href="help.html#cb31-3" aria-hidden="true" tabindex="-1"></a>    memory <span class="op">=</span> <span class="st">&#39;20.GB&#39;</span></span>
-<span id="cb31-4"><a href="help.html#cb31-4" aria-hidden="true" tabindex="-1"></a>    clusterOptions <span class="op">=</span> <span class="st">&#39;-l h_fsize=500G -R y&#39;</span></span>
-<span id="cb31-5"><a href="help.html#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb32-1"><a href="help.html#cb32-1" tabindex="-1"></a>withName<span class="op">:</span> PairedEndHISAT <span class="op">{</span></span>
+<span id="cb32-2"><a href="help.html#cb32-2" tabindex="-1"></a>    cpus <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb32-3"><a href="help.html#cb32-3" tabindex="-1"></a>    memory <span class="op">=</span> <span class="st">&#39;20.GB&#39;</span></span>
+<span id="cb32-4"><a href="help.html#cb32-4" tabindex="-1"></a>    clusterOptions <span class="op">=</span> <span class="st">&#39;-l h_fsize=500G -R y&#39;</span></span>
+<span id="cb32-5"><a href="help.html#cb32-5" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Note that disk space may also be the limitation (particularly for SGE users). See the <a href="configuration.html#configuration">configuration</a> section for more info.</p>
 <ul>
 <li><p><em>Strandness for at least one sample disagrees with the asserted value</em>: all samples for a particular pipeline run are expected to have the same “strandness”, specified by the <code>--strand</code> <a href="command-opts.html#command-opts">command option</a> in your <a href="quick-start.html#your-main-script">main script</a>. SPEAQeasy infers the strandness for each sample to verify your data has its expected structure; by default, when any sample is determined to have a strandness different than what is specified, the pipeline halts with an error. This is designed to catch faulty data quickly before analysis, but also consider using the <code>--strand_mode "accept"</code> or <code>--strand_mode "declare"</code> <a href="command-opts.html#command-opts">command options</a> rather than the error-inducing default of <code>--strand_mode "strict"</code>. In a typical case, <code>--strand_mode "declare"</code> is preferable to <code>--strand_mode "accept"</code> when choosing to bypass strandness errors. This is because <code>--strand_mode "declare"</code> ensures all samples are treated with the same strandness, which will be the case in typical experiments where all samples share the same library preparation kit. However, if samples prepared with different kits are to be processed with SPEAQeasy, <code>--strand_mode "accept"</code> should be used.</p></li>
 <li><p><em>A backslash is missing in the main script</em>: in each <a href="quick-start.html#your-main-script">main script</a>, options passed to nextflow are by default split across several lines for clarity. When changing around options in this script, it is easy to omit a backslash (<code>\</code>), which is required for the script to interpret a series of lines of options as a single command. In many cases, the pipeline will run successfully– at least for a large fraction of the workflow– but many desired options may be completely ignored. Here is an example of the mistake in a modified version of the <code>run_pipeline_sge.sh</code> script:</p></li>
 </ul>
-<div class="sourceCode" id="cb32"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb32-1"><a href="help.html#cb32-1" aria-hidden="true" tabindex="-1"></a>#  The <span class="st">&quot;--output&quot;</span> line has no <span class="st">&quot;</span><span class="sc">\&quot;</span><span class="st"> at the end, and both the &quot;</span><span class="op">--</span>input<span class="st">&quot; and</span></span>
-<span id="cb32-2"><a href="help.html#cb32-2" aria-hidden="true" tabindex="-1"></a>#  <span class="st">&quot;-profile&quot;</span> options will be ignored<span class="op">!</span></span>
-<span id="cb32-3"><a href="help.html#cb32-3" aria-hidden="true" tabindex="-1"></a>$ORIG_DIR<span class="op">/</span>Software<span class="op">/</span>nextflow $ORIG_DIR<span class="op">/</span>main<span class="op">.</span>nf \</span>
-<span id="cb32-4"><a href="help.html#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>sample <span class="st">&quot;single&quot;</span> \</span>
-<span id="cb32-5"><a href="help.html#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>reference <span class="st">&quot;hg38&quot;</span> \</span>
-<span id="cb32-6"><a href="help.html#cb32-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>strand <span class="st">&quot;unstranded&quot;</span> \</span>
-<span id="cb32-7"><a href="help.html#cb32-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>annotation <span class="st">&quot;</span><span class="ss">$ORIG_DIR</span><span class="st">/Annotation&quot;</span> \</span>
-<span id="cb32-8"><a href="help.html#cb32-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span>with<span class="op">-</span>report execution_reports<span class="op">/</span>pipeline_report<span class="op">.</span>html \</span>
-<span id="cb32-9"><a href="help.html#cb32-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>output <span class="st">&quot;/work/SPEAQeasy/outputs&quot;</span></span>
-<span id="cb32-10"><a href="help.html#cb32-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">--</span>input <span class="st">&quot;/work/SPEAQeasy&quot;</span> \</span>
-<span id="cb32-11"><a href="help.html#cb32-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">-</span>profile sge</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb33-1"><a href="help.html#cb33-1" tabindex="-1"></a>#  The <span class="st">&quot;--output&quot;</span> line has no <span class="st">&quot;</span><span class="sc">\&quot;</span><span class="st"> at the end, and both the &quot;</span><span class="op">--</span>input<span class="st">&quot; and</span></span>
+<span id="cb33-2"><a href="help.html#cb33-2" tabindex="-1"></a>#  <span class="st">&quot;-profile&quot;</span> options will be ignored<span class="op">!</span></span>
+<span id="cb33-3"><a href="help.html#cb33-3" tabindex="-1"></a>$ORIG_DIR<span class="op">/</span>Software<span class="op">/</span>nextflow $ORIG_DIR<span class="op">/</span>main<span class="op">.</span>nf \</span>
+<span id="cb33-4"><a href="help.html#cb33-4" tabindex="-1"></a>    <span class="op">--</span>sample <span class="st">&quot;single&quot;</span> \</span>
+<span id="cb33-5"><a href="help.html#cb33-5" tabindex="-1"></a>    <span class="op">--</span>reference <span class="st">&quot;hg38&quot;</span> \</span>
+<span id="cb33-6"><a href="help.html#cb33-6" tabindex="-1"></a>    <span class="op">--</span>strand <span class="st">&quot;unstranded&quot;</span> \</span>
+<span id="cb33-7"><a href="help.html#cb33-7" tabindex="-1"></a>    <span class="op">--</span>annotation <span class="st">&quot;</span><span class="ss">$ORIG_DIR</span><span class="st">/Annotation&quot;</span> \</span>
+<span id="cb33-8"><a href="help.html#cb33-8" tabindex="-1"></a>    <span class="op">-</span>with<span class="op">-</span>report execution_reports<span class="op">/</span>pipeline_report<span class="op">.</span>html \</span>
+<span id="cb33-9"><a href="help.html#cb33-9" tabindex="-1"></a>    <span class="op">--</span>output <span class="st">&quot;/work/SPEAQeasy/outputs&quot;</span></span>
+<span id="cb33-10"><a href="help.html#cb33-10" tabindex="-1"></a>    <span class="op">--</span>input <span class="st">&quot;/work/SPEAQeasy&quot;</span> \</span>
+<span id="cb33-11"><a href="help.html#cb33-11" tabindex="-1"></a>    <span class="op">-</span>profile sge</span></code></pre></div>
 <ul>
 <li><em>Nextflow has trouble communicating with your cluster</em>: a less common issue can occur on slower clusters, related to nextflow failing to poll your grid scheduler (like SGE or SLURM) for information it needs about the jobs that are running. This can show up in an error message like: <code>Process</code>PairedEndHISAT (Prefix: Sample_FE2P1_blood)<code>terminated for an unknown reason -- Likely it has been terminated by the external system</code>. We have found that raising the <code>exitReadTimeout</code> to a large value (such as 30 minutes) solves this issue, but consider raising it further if needed.</li>
 </ul>
-<div class="sourceCode" id="cb33"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb33-1"><a href="help.html#cb33-1" aria-hidden="true" tabindex="-1"></a>executor <span class="op">{</span></span>
-<span id="cb33-2"><a href="help.html#cb33-2" aria-hidden="true" tabindex="-1"></a>    name <span class="op">=</span> <span class="st">&#39;sge&#39;</span></span>
-<span id="cb33-3"><a href="help.html#cb33-3" aria-hidden="true" tabindex="-1"></a>    queueSize <span class="op">=</span> <span class="dv">40</span></span>
-<span id="cb33-4"><a href="help.html#cb33-4" aria-hidden="true" tabindex="-1"></a>    submitRateLimit <span class="op">=</span> <span class="st">&#39;1 sec&#39;</span></span>
-<span id="cb33-5"><a href="help.html#cb33-5" aria-hidden="true" tabindex="-1"></a>    exitReadTimeout <span class="op">=</span> <span class="st">&#39;30 min&#39;</span></span>
-<span id="cb33-6"><a href="help.html#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb34-1"><a href="help.html#cb34-1" tabindex="-1"></a>executor <span class="op">{</span></span>
+<span id="cb34-2"><a href="help.html#cb34-2" tabindex="-1"></a>    name <span class="op">=</span> <span class="st">&#39;sge&#39;</span></span>
+<span id="cb34-3"><a href="help.html#cb34-3" tabindex="-1"></a>    queueSize <span class="op">=</span> <span class="dv">40</span></span>
+<span id="cb34-4"><a href="help.html#cb34-4" tabindex="-1"></a>    submitRateLimit <span class="op">=</span> <span class="st">&#39;1 sec&#39;</span></span>
+<span id="cb34-5"><a href="help.html#cb34-5" tabindex="-1"></a>    exitReadTimeout <span class="op">=</span> <span class="st">&#39;30 min&#39;</span></span>
+<span id="cb34-6"><a href="help.html#cb34-6" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </div>
 <div id="deeper-investigation" class="section level2 hasAnchor" number="10.2">
 <h2><span class="header-section-number">10.2</span> Deeper Investigation<a href="help.html#deeper-investigation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
@@ -328,21 +328,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ol style="list-style-type: decimal">
 <li><em>Identify the failing process and sample name</em>: the main output log from nextflow will be called “SPEAQeasy_output.log” by default (it is generally a very long text file). SPEAQeasy automatically compiles the most typically relevant information in this log; however, the error message (if applicable) at the bottom of the log is typically helpful for pinpointing the process and sample where the error occurred. <em>Note</em>: if a sample name is not given with the process name, the process involves all samples. Look for a message similar to the following:</li>
 </ol>
-<div class="figure">
-<img src="images/10.2_error_mess.png" alt="" />
-<p class="caption">Main error message in SPEAQeasy_output.log</p>
+<div class="float">
+<img src="images/10.2_error_mess.png" alt="Main error message in SPEAQeasy_output.log" />
+<div class="figcaption">Main error message in SPEAQeasy_output.log</div>
 </div>
 <ol start="2" style="list-style-type: decimal">
 <li><p><em>Find the SPEAQeasy-generated log for the failing sample</em>: logs are located under the output folder specified by the <code>--output</code> <a href="command-opts.html#command-opts">command flag</a>- by default, this will be <code>SPEAQeasy/results/logs/</code>. Simply find the sample name given by step 1 (or pick any sample if no name was provided).</p></li>
 <li><p><em>Locate the process from step 1 in the log from step 2</em>: because the processes are in order of reported submission, the failed process will typically be near the bottom of the log. The most immediately informative portion to look for is usually the logged output from executing that process. This is at the bottom between the dashed lines labelled <em>BEGIN LOG</em> and <em>END LOG</em>.</p></li>
 </ol>
-<div class="figure">
-<img src="images/10.2_process_name.png" alt="" />
-<p class="caption">Locating the appropriate process in your log</p>
+<div class="float">
+<img src="images/10.2_process_name.png" alt="Locating the appropriate process in your log" />
+<div class="figcaption">Locating the appropriate process in your log</div>
 </div>
-<div class="figure">
-<img src="images/10.2_log.png" alt="" />
-<p class="caption">Locating the output for the process</p>
+<div class="float">
+<img src="images/10.2_log.png" alt="Locating the output for the process" />
+<div class="figcaption">Locating the output for the process</div>
 </div>
 <p>If the log output does not make it clear what wrong, explore the following:</p>
 <ul>
@@ -357,20 +357,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="trouble-resuming" class="section level3 hasAnchor" number="10.3.1">
 <h3><span class="header-section-number">10.3.1</span> Trouble resuming?<a href="help.html#trouble-resuming" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>In some cases, nextflow will improperly determine which processes have finished, when a pipeline run halts with an error. This can be related to how your filesystem communicates with nextflow. We have found that specifying <code>cache = 'lenient'</code> in the process section of the config fixes issues with resuming (such as re-running a process which had actually completed). See <a href="https://www.nextflow.io/docs/latest/process.html#cache">nextflow’s documentation on this</a>. In your config, this could look like:</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb34-1"><a href="help.html#cb34-1" aria-hidden="true" tabindex="-1"></a>process <span class="op">{</span></span>
-<span id="cb34-2"><a href="help.html#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-3"><a href="help.html#cb34-3" aria-hidden="true" tabindex="-1"></a>  time <span class="op">=</span> <span class="op">{</span> <span class="fl">10.</span>hour <span class="op">*</span> task<span class="op">.</span>attempt <span class="op">}</span></span>
-<span id="cb34-4"><a href="help.html#cb34-4" aria-hidden="true" tabindex="-1"></a>  errorStrategy <span class="op">=</span> <span class="op">{</span> task<span class="op">.</span>exitStatus <span class="op">==</span> <span class="dv">140</span> <span class="op">?</span> <span class="st">&#39;retry&#39;</span> <span class="op">:</span> <span class="st">&#39;terminate&#39;</span> <span class="op">}</span></span>
-<span id="cb34-5"><a href="help.html#cb34-5" aria-hidden="true" tabindex="-1"></a>  maxRetries <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb34-6"><a href="help.html#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-7"><a href="help.html#cb34-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// this can be placed here or anywhere inside the &#39;process&#39; brackets starting</span></span>
-<span id="cb34-8"><a href="help.html#cb34-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// at the top of this code chunk</span></span>
-<span id="cb34-9"><a href="help.html#cb34-9" aria-hidden="true" tabindex="-1"></a>  cache <span class="op">=</span> <span class="st">&#39;lenient&#39;</span></span>
-<span id="cb34-10"><a href="help.html#cb34-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-11"><a href="help.html#cb34-11" aria-hidden="true" tabindex="-1"></a>  withName<span class="op">:</span> PullAssemblyFasta <span class="op">{</span></span>
-<span id="cb34-12"><a href="help.html#cb34-12" aria-hidden="true" tabindex="-1"></a>    cpus <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb34-13"><a href="help.html#cb34-13" aria-hidden="true" tabindex="-1"></a>    clusterOptions <span class="op">=</span> <span class="st">&#39;-l mf=2G,h_vmem=2G&#39;</span></span>
-<span id="cb34-14"><a href="help.html#cb34-14" aria-hidden="true" tabindex="-1"></a>  <span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb35-1"><a href="help.html#cb35-1" tabindex="-1"></a>process <span class="op">{</span></span>
+<span id="cb35-2"><a href="help.html#cb35-2" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="help.html#cb35-3" tabindex="-1"></a>  time <span class="op">=</span> <span class="op">{</span> <span class="fl">10.</span>hour <span class="op">*</span> task<span class="op">.</span>attempt <span class="op">}</span></span>
+<span id="cb35-4"><a href="help.html#cb35-4" tabindex="-1"></a>  errorStrategy <span class="op">=</span> <span class="op">{</span> task<span class="op">.</span>exitStatus <span class="op">==</span> <span class="dv">140</span> <span class="op">?</span> <span class="st">&#39;retry&#39;</span> <span class="op">:</span> <span class="st">&#39;terminate&#39;</span> <span class="op">}</span></span>
+<span id="cb35-5"><a href="help.html#cb35-5" tabindex="-1"></a>  maxRetries <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb35-6"><a href="help.html#cb35-6" tabindex="-1"></a></span>
+<span id="cb35-7"><a href="help.html#cb35-7" tabindex="-1"></a>  <span class="co">// this can be placed here or anywhere inside the &#39;process&#39; brackets starting</span></span>
+<span id="cb35-8"><a href="help.html#cb35-8" tabindex="-1"></a>  <span class="co">// at the top of this code chunk</span></span>
+<span id="cb35-9"><a href="help.html#cb35-9" tabindex="-1"></a>  cache <span class="op">=</span> <span class="st">&#39;lenient&#39;</span></span>
+<span id="cb35-10"><a href="help.html#cb35-10" tabindex="-1"></a></span>
+<span id="cb35-11"><a href="help.html#cb35-11" tabindex="-1"></a>  withName<span class="op">:</span> PullAssemblyFasta <span class="op">{</span></span>
+<span id="cb35-12"><a href="help.html#cb35-12" tabindex="-1"></a>    cpus <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb35-13"><a href="help.html#cb35-13" tabindex="-1"></a>    clusterOptions <span class="op">=</span> <span class="st">&#39;-l mf=2G,h_vmem=2G&#39;</span></span>
+<span id="cb35-14"><a href="help.html#cb35-14" tabindex="-1"></a>  <span class="op">}</span></span></code></pre></div>
 <p>This is the default in <code>jhpce.config</code>, <code>sge.config</code>, and <code>docker_sge.config</code>, but may be needed on other cluster types as well.</p>
 </div>
 </div>
@@ -390,17 +390,17 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ol start="2" style="list-style-type: decimal">
 <li><strong>Create a docker group</strong></li>
 </ol>
-<div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="help.html#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> addgroup docker</span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="help.html#cb36-1" tabindex="-1"></a><span class="fu">sudo</span> addgroup docker</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li><strong>Add user to docker group</strong></li>
 </ol>
-<div class="sourceCode" id="cb36"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="help.html#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> usermod <span class="at">-aG</span> docker <span class="op">&lt;</span>your_user<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="help.html#cb37-1" tabindex="-1"></a><span class="fu">sudo</span> usermod <span class="at">-aG</span> docker <span class="op">&lt;</span>your_user<span class="op">&gt;</span></span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li><strong>Checking installation</strong></li>
 </ol>
 <p>Log out and log back in to ensure your user is running with the correct permissions.</p>
 <p><a href="https://docs.docker.com/get-started/#test-docker-installation">Test Docker installation</a> by running:</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="help.html#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="ex">docker</span> run hello-world</span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="help.html#cb38-1" tabindex="-1"></a><span class="ex">docker</span> run hello-world</span></code></pre></div>
 
 </div>
 </div>

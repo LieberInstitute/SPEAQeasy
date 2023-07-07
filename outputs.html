@@ -279,9 +279,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h1><span class="header-section-number">7</span> Pipeline Outputs<a href="outputs.html#outputs" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <div id="main-outputs" class="section level2 hasAnchor" number="7.1">
 <h2><span class="header-section-number">7.1</span> Main Outputs<a href="outputs.html#main-outputs" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<div class="figure">
-<img src="images/7_main_outputs.png" alt="" />
-<p class="caption">Main Outputs</p>
+<div class="float">
+<img src="images/7_main_outputs.png" alt="Main Outputs" />
+<div class="figcaption">Main Outputs</div>
 </div>
 <p>Most importantly, SPEAQeasy generates <a href="https://bioconductor.org/packages/release/bioc/html/SummarizedExperiment.html"><code>RangedSummarizedExperiment</code></a> objects storing counts at several features (genes, exons, exon-exon junctions, and transcripts). A number of <a href="https://bioconductor.org/">Bioconductor</a> packages can be trivially utilized to perform desired differential expression analyses from counts in the widespread <code>SummarizedExperiment</code> format, and we provide a <a href="http://research.libd.org/SPEAQeasy-example">vignette</a> demonstrating an example analysis.</p>
 <p>For human samples, variants are called at a list of common missense single nucleotide variants (SNVs), and SPEAQeasy ultimately a single VCF file to store genotype calls at these sites for all samples in the experiment. We provide a <a href="http://research.libd.org/SPEAQeasy-example">guide</a> walking through how this genotype data can be used to resolve identity issues that arise during sequencing, salvaging samples which otherwise might be dropped from further analysis.</p>
