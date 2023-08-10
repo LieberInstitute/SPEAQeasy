@@ -6,7 +6,7 @@
 
 #  After running 'install_software.sh', this should point to the directory
 #  where SPEAQeasy was installed, and not say "$PWD"
-ORIG_DIR=/dcs05/lieber/lcolladotor/living_brain_LIBD001/living_brain_reanalysis/code/02_SPEAQeasy/SPEAQeasy
+ORIG_DIR=$PWD
 
 module load nextflow/20.01.0
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
