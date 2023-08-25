@@ -256,6 +256,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="10.4" data-path="help.html"><a href="help.html#no-internet-access"><i class="fa fa-check"></i><b>10.4</b> No Internet Access?</a></li>
 <li class="chapter" data-level="10.5" data-path="help.html"><a href="help.html#docker-help"><i class="fa fa-check"></i><b>10.5</b> Docker help</a></li>
+<li class="chapter" data-level="10.6" data-path="help.html"><a href="help.html#misc-tips"><i class="fa fa-check"></i><b>10.6</b> Misc Tips</a>
+<ul>
+<li class="chapter" data-level="10.6.1" data-path="help.html"><a href="help.html#strand"><i class="fa fa-check"></i><b>10.6.1</b> Specifying <code>strand</code> and <code>strand_mode</code></a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="11" data-path="glossary.html"><a href="glossary.html"><i class="fa fa-check"></i><b>11</b> Glossary</a></li>
 </ul>
@@ -283,7 +287,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3><span class="header-section-number">3.1.1</span> Mandatory Parameters<a href="command-opts.html#mandatory-parameters" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <ul>
 <li><code>--sample</code> “single” or “paired”: the orientation of your reads</li>
-<li><code>--strand</code> “unstranded”, “forward”, or “reverse”: the strandness of your reads. Since strandness is inferred by sample in the pipeline, this option informs the pipeline to generate appropriate warnings if unexpected strandness is inferred.</li>
+<li><code>--strand</code> “unstranded”, “forward”, or “reverse”: the strandness of your reads. Since strandness is inferred by sample in the pipeline, this option informs the pipeline to generate appropriate warnings if unexpected strandness is inferred. See <a href="help.html#strand">here</a> for recommendations about choosing this parameter.</li>
 <li><code>--reference</code> “hg38”, “hg19”, “mm10”, or “rat”: the reference genome to which reads are aligned, where “rat” refers to either “Rnor_6.0” or “mRatBN7.2”, depending on the choice of <a href="http://research.libd.org/SPEAQeasy/annotation.html#choosing-a-release">ensembl_version_rat</a></li>
 </ul>
 </div>
@@ -303,10 +307,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><code>--prefix</code> An additional label (in conjunction with “experiment”) to use for the pipeline run- affecting result file names.</li>
 <li><code>--qsva [path]</code> Optional full path to a text file, containing one Ensembl transcript ID per line for each transcript desired in the final transcripts R output object (called <code>rse_tx</code>)</li>
 <li><code>--small_test</code> Uses sample files located in the test folder as input. Overrides the “–input” option.</li>
-<li><code>--strand_mode [mode]</code> &lt;- Determines how to handle disagreement between user-asserted and SPEAQeasy-inferred strandness:<br />
+<li><code>--strand_mode [mode]</code> Determines how to handle disagreement between user-asserted and SPEAQeasy-inferred strandness:<br />
 “accept”: warn about disagreement but continue, using SPEAQeasy-inferred strandness downstream<br />
 “declare”: warn about disagreement but continue, using user-asserted strandness downstream<br />
-“strict”: (default) halt with an error if any disagreement occurs (since this often indicates problems in the input data)</li>
+“strict”: (default) halt with an error if any disagreement occurs (since this often indicates problems in the input data)
+See <a href="help.html#strand">here</a> for recommendations about choosing this parameter.</li>
 <li><code>--trim_mode [mode]</code> Determines the conditions under which trimming occurs:<br />
 “skip”: do not perform trimming on samples<br />
 “adaptive”: [default] perform trimming on samples that have failed the FastQC “Adapter content” metric<br />

@@ -256,6 +256,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="10.4" data-path="help.html"><a href="help.html#no-internet-access"><i class="fa fa-check"></i><b>10.4</b> No Internet Access?</a></li>
 <li class="chapter" data-level="10.5" data-path="help.html"><a href="help.html#docker-help"><i class="fa fa-check"></i><b>10.5</b> Docker help</a></li>
+<li class="chapter" data-level="10.6" data-path="help.html"><a href="help.html#misc-tips"><i class="fa fa-check"></i><b>10.6</b> Misc Tips</a>
+<ul>
+<li class="chapter" data-level="10.6.1" data-path="help.html"><a href="help.html#strand"><i class="fa fa-check"></i><b>10.6.1</b> Specifying <code>strand</code> and <code>strand_mode</code></a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="11" data-path="glossary.html"><a href="glossary.html"><i class="fa fa-check"></i><b>11</b> Glossary</a></li>
 </ul>
@@ -401,7 +405,30 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Log out and log back in to ensure your user is running with the correct permissions.</p>
 <p><a href="https://docs.docker.com/get-started/#test-docker-installation">Test Docker installation</a> by running:</p>
 <div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="help.html#cb38-1" tabindex="-1"></a><span class="ex">docker</span> run hello-world</span></code></pre></div>
+</div>
+<div id="misc-tips" class="section level2 hasAnchor" number="10.6">
+<h2><span class="header-section-number">10.6</span> Misc Tips<a href="help.html#misc-tips" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="strand" class="section level3 hasAnchor" number="10.6.1">
+<h3><span class="header-section-number">10.6.1</span> Specifying <code>strand</code> and <code>strand_mode</code><a href="help.html#strand" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="unsure-which-strandness" class="section level4 hasAnchor" number="10.6.1.1">
+<h4><span class="header-section-number">10.6.1.1</span> Unsure which strandness?<a href="help.html#unsure-which-strandness" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>Often, one may not be certain if the strandness of an RNA-seq dataset is <code>forward</code>, <code>reverse</code>, or <code>unstranded</code>. First, it’s worth talking to those involved in the sequencing to see if they have this information. If that doesn’t clear things up, we recommend the following workflow.</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Set <code>--strand reverse</code> and <code>--strand_mode strict</code></strong>: Most often, an experiment will consist of just one strandness, and simply guessing wastes very little time. The default of <code>--strand_mode strict</code> will quickly halt upon any samples appearing to be a different strandness, if the guess is incorrect.</p></li>
+<li><p><strong>Try the suggested <code>strand</code> with <code>--strand_mode strict</code></strong>: The error message from step 1 will report an observed strandness, which can be used here when <a href="help.html#resuming">resuming the pipeline</a>. In the very worse case, this step may be run twice.</p></li>
+</ol>
+<p>If errors are still occurring at this point, either multiple strandness values are present in the data, strandness-detection thresholds are too sensitive, or there are genuine problems in the input data. For the former two cases, see below. Problems with the data may require a deeper dialogue with those who performed the sequencing to investigate anything suspicious in the experiment.</p>
+</div>
+<div id="know-the-strandness-but-still-get-errors" class="section level4 hasAnchor" number="10.6.1.2">
+<h4><span class="header-section-number">10.6.1.2</span> Know the strandness but still get errors?<a href="help.html#know-the-strandness-but-still-get-errors" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>Occasionally, the thresholds used for detecting strandness are too sensitive, and result in errors that don’t signal real problems in the input data. If the error message reports percentages very close to the threshold and you’re confident about the strandness of your data, <a href="help.html#resuming">resume</a> with <code>--strand_mode declare</code>.</p>
+</div>
+<div id="multiple-strandness-in-the-experiment" class="section level4 hasAnchor" number="10.6.1.3">
+<h4><span class="header-section-number">10.6.1.3</span> Multiple strandness in the experiment?<a href="help.html#multiple-strandness-in-the-experiment" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>If a mix of any combination of “unstranded”, “reverse”, and “forward” samples are included in the experiment (note this is uncommon!), choose any value for <code>strand</code> (it will be ignored) and set <code>strand_mode accept</code> to allow SPEAQeasy to individually infer each sample’s strandness and appropriately handle processing.</p>
 
+</div>
+</div>
 </div>
 </div>
             </section>
