@@ -5,7 +5,7 @@
 ### Mandatory Parameters
 
 * `--sample`        "single" or "paired": the orientation of your reads
-* `--strand`        "unstranded", "forward", or "reverse": the strandness of your reads. Since strandness is inferred by sample in the pipeline, this option informs the pipeline to generate appropriate warnings if unexpected strandness is inferred.
+* `--strand`        "unstranded", "forward", or "reverse": the strandness of your reads. Since strandness is inferred by sample in the pipeline, this option informs the pipeline to generate appropriate warnings if unexpected strandness is inferred. See [here](#strand) for recommendations about choosing this parameter.
 * `--reference`        "hg38", "hg19", "mm10", or "rat": the reference genome to which reads are aligned, where "rat" refers to either "Rnor_6.0" or "mRatBN7.2", depending on the choice of [ensembl_version_rat](http://research.libd.org/SPEAQeasy/annotation.html#choosing-a-release)
 
 ### Optional Parameters
@@ -23,10 +23,11 @@
 * `--prefix`    An additional label (in conjunction with "experiment") to use for the pipeline run- affecting result file names.
 * `--qsva [path]` Optional full path to a text file, containing one Ensembl transcript ID per line for each transcript desired in the final transcripts R output object (called `rse_tx`)
 * `--small_test`    Uses sample files located in the test folder as input. Overrides the "--input" option.
-* `--strand_mode [mode]` <- Determines how to handle disagreement between user-asserted and SPEAQeasy-inferred strandness:    
+* `--strand_mode [mode]` Determines how to handle disagreement between user-asserted and SPEAQeasy-inferred strandness:    
                            "accept": warn about disagreement but continue, using SPEAQeasy-inferred strandness downstream    
                            "declare": warn about disagreement but continue, using user-asserted strandness downstream    
                            "strict": (default) halt with an error if any disagreement occurs (since this often indicates problems in the input data)
+                        See [here](#strand) for recommendations about choosing this parameter.
 * `--trim_mode [mode]`  Determines the conditions under which trimming occurs:    
                     "skip": do not perform trimming on samples    
                     "adaptive": [default] perform trimming on samples that have failed the FastQC "Adapter content" metric    

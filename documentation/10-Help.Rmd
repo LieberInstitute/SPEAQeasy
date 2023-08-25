@@ -136,3 +136,25 @@ Log out and log back in to ensure your user is running with the correct permissi
 ```{bash, eval=FALSE}
 docker run hello-world
 ```
+
+## Misc Tips
+
+### Specifying `strand` and `strand_mode` {#strand}
+
+#### Unsure which strandness?
+
+Often, one may not be certain if the strandness of an RNA-seq dataset is `forward`, `reverse`, or `unstranded`. First, it's worth talking to those involved in the sequencing to see if they have this information. If that doesn't clear things up, we recommend the following workflow.
+
+1. **Set `--strand reverse` and `--strand_mode strict`**: Most often, an experiment will consist of just one strandness, and simply guessing wastes very little time. The default of `--strand_mode strict` will quickly halt upon any samples appearing to be a different strandness, if the guess is incorrect.
+
+2. **Try the suggested `strand` with `--strand_mode strict`**: The error message from step 1 will report an observed strandness, which can be used here when [resuming the pipeline](#resuming). In the very worse case, this step may be run twice.
+
+If errors are still occurring at this point, either multiple strandness values are present in the data, strandness-detection thresholds are too sensitive, or there are genuine problems in the input data. For the former two cases, see below. Problems with the data may require a deeper dialogue with those who performed the sequencing to investigate anything suspicious in the experiment.
+
+#### Know the strandness but still get errors?
+
+Occasionally, the thresholds used for detecting strandness are too sensitive, and result in errors that don't signal real problems in the input data. If the error message reports percentages very close to the threshold and you're confident about the strandness of your data, [resume](#resuming) with `--strand_mode declare`.
+
+#### Multiple strandness in the experiment?
+
+If a mix of any combination of "unstranded", "reverse", and "forward" samples are included in the experiment (note this is uncommon!), choose any value for `strand` (it will be ignored) and set `strand_mode accept` to allow SPEAQeasy to individually infer each sample's strandness and appropriately handle processing.
