@@ -15,7 +15,16 @@ if [ $num_threads == 1 ]; then
 else
     thread_opt="-t $num_threads"
 fi
-        
+
+#   For '--strand_mode declare', skip strand inference entirely
+if [ $strand_mode == "declare" ]; then
+    echo "'strand_mode' set to 'declare'; skipping strand inference and treating sample"
+    echo "as $strand."
+
+    echo $strand > "${id}_strandness_pattern.txt"
+    exit 0
+fi
+
 if [ $sample == "paired" ]; then
     fq1=$(ls *_1.f*q*)
     fq2=$(ls *_2.f*q*)
