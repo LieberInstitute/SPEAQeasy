@@ -96,6 +96,16 @@ for (i in 1:nrow(manifest)) {
 }
 indicesToCombine <- indicesToCombine[!sapply(indicesToCombine, is.null)]
 
+#   Verify file extensions match for different files (rows) with the same sample
+#   ID
+error_message <- "FASTQ file extensions must match among all files for a single sample."
+if (!all(sapply(indicesToCombine, function(x) length(unique(actual_exts[x])) == 1))) {
+    stop(error_message)
+}
+if (opt$paired && !all(sapply(indicesToCombine, function(x) length(unique(actual_exts[nrow(manifest) + x])) == 1))) {
+    stop(error_message)
+}
+
 if (opt$paired) {
     #  Merge files that require merging
     print("Merging any files that need to be merged...")

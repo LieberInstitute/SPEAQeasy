@@ -29,7 +29,7 @@ This is an example of a `samples.manifest` file for some paired-end samples. Not
 
 ### More details regarding inputs ###
 
-+ Input FASTQ files can have the following file extensions: `.fastq`, `.fq`, `.fastq.gz`, `.fq.gz`
++ Input FASTQ files can have the following file extensions: `.fastq`, `.fq`, `.fastq.gz`, `.fq.gz`. All FASTQ files associated with the same sample ID must use the same extenstion.
 + FASTQ files must not contain "." characters before the typical extension (e.g. sample.1.fastq), since some internal functions rely on splitting file names by ".".
 + Base filenames must be distinct (e.g. including both `/dir/one/name.fastq` and `/dir/two/name.fastq` at different points in the manifest is not supported)
 
