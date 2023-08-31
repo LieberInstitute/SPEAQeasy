@@ -875,64 +875,6 @@ if (params.ercc) {
 } else {
   temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs }
 }
-
-// Perform pseudoaligment by sample on a subset of reads, and see which strandness
-// assumption passed to kallisto results in the largest number of alignments. This
-// determines strandness for each sample, used by all remaining pipeline steps which
-// require this information.
-process InferStrandness {
-
-    tag "${prefix}"
-    publishDir "${params.output}/infer_strandness", mode:'copy'
-    
-    input:
-        file infer_strand_R from file("${workflow.projectDir}/scripts/infer_strand.R")
-        file infer_strand_sh from file("${workflow.projectDir}/scripts/infer_strand.sh")
-        file kallisto_index
-        set val(prefix), file(fq_file) from strandness_inputs
-        
-    output:
-        file "${prefix}_infer_strand.log"
-        file "${prefix}_strandness_pattern.txt" into strandness_patterns
-        
-    shell:
-        '''
-        bash !{infer_strand_sh} \
-            !{params.sample} \
-            !{params.num_reads_infer_strand} \
-            !{params.kallisto} \
-            !{task.cpus} \
-            !{params.kallisto_len_mean} \
-            !{params.kallisto_len_sd} \
-            !{params.strand} \
-            !{params.Rscript} \
-            !{params.strand_mode} \
-            !{prefix}
-        
-        cp .command.log !{prefix}_infer_strand.log
-        '''
-}
-
-// Attach strandness information from the InferStrandness process to a copy
-// of the user-provided samples.manifest file, for internal use by the
-// pipeline.
-process CompleteManifest {
-
-    publishDir "${params.output}/infer_strandness", mode:'copy'
-    
-    input:
-        file strandness_files from strandness_patterns.collect()
-        file strandness_manifest
-        file manifest_script from file("${workflow.projectDir}/scripts/complete_manifest.R")
-        
-    output:
-        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_hisat, complete_manifest_quant, complete_manifest_fullcov
-        
-    shell:
-        '''
-        !{params.Rscript} !{manifest_script}
-        '''
-}
     
 /*
  * Step B: Run the ERCC process if the --ercc flag is specified
@@ -1012,7 +954,7 @@ process QualityUntrimmed {
 
     output:
         file "${prefix}*_fastqc"
-        file "*_summary.txt" into quality_reports, count_objects_quality_reports_untrimmed
+        file "*_summary.txt" into fastqc_completion_token, quality_reports, count_objects_quality_reports_untrimmed
         file "*_fastqc_data.txt" into count_objects_quality_metrics_untrimmed
 
     shell:
@@ -1050,6 +992,68 @@ if (params.sample == "single") {
         .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
         .set{ trimming_inputs }
 }    
+
+// Perform pseudoaligment by sample on a subset of reads, and see which strandness
+// assumption passed to kallisto results in the largest number of alignments. This
+// determines strandness for each sample, used by all remaining pipeline steps which
+// require this information.
+process InferStrandness {
+
+    tag "${prefix}"
+    publishDir "${params.output}/infer_strandness", mode:'copy'
+    
+    input:
+        file infer_strand_R from file("${workflow.projectDir}/scripts/infer_strand.R")
+        file infer_strand_sh from file("${workflow.projectDir}/scripts/infer_strand.sh")
+        file kallisto_index
+        set val(prefix), file(fq_file) from strandness_inputs
+        // We don't want failures to infer strandness to crash the pipeline
+        // before FastQC runs, as FastQC output provides richer context to what
+        // might be problematic about specific samples
+        file fastqc_completion_token
+        
+    output:
+        file "${prefix}_infer_strand.log"
+        file "${prefix}_strandness_pattern.txt" into strandness_patterns
+        
+    shell:
+        '''
+        bash !{infer_strand_sh} \
+            !{params.sample} \
+            !{params.num_reads_infer_strand} \
+            !{params.kallisto} \
+            !{task.cpus} \
+            !{params.kallisto_len_mean} \
+            !{params.kallisto_len_sd} \
+            !{params.strand} \
+            !{params.Rscript} \
+            !{params.strand_mode} \
+            !{prefix}
+        
+        cp .command.log !{prefix}_infer_strand.log
+        '''
+}
+
+// Attach strandness information from the InferStrandness process to a copy
+// of the user-provided samples.manifest file, for internal use by the
+// pipeline.
+process CompleteManifest {
+
+    publishDir "${params.output}/infer_strandness", mode:'copy'
+    
+    input:
+        file strandness_files from strandness_patterns.collect()
+        file strandness_manifest
+        file manifest_script from file("${workflow.projectDir}/scripts/complete_manifest.R")
+        
+    output:
+        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_hisat, complete_manifest_quant, complete_manifest_fullcov
+        
+    shell:
+        '''
+        !{params.Rscript} !{manifest_script}
+        '''
+}
 
 /*
  * Step 2a: Trim samples (dependent on user-chosen settings)
