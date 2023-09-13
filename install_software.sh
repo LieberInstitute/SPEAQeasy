@@ -234,7 +234,9 @@ elif [ "$1" == "local" ]; then
         cd $INSTALL_DIR
       
         #  Install packages that will be used by the pipeline
-        ./R-4.3.0/bin/Rscript ../scripts/check_R_packages.R
+        cd ..
+        ./R-4.3.0/bin/Rscript scripts/check_R_packages.R
+        cd $INSTALL_DIR
         
         BASE_DIR=$(dirname $INSTALL_DIR)
         cd $BASE_DIR
