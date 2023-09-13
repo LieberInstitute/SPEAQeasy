@@ -348,7 +348,7 @@ elif [ "$1" == "local" ]; then
         curl -LO https://github.com/Ensembl/WiggleTools/archive/refs/tags/v1.2.1.tar.gz
         tar -xzf v1.2.1.tar.gz
         mv WiggleTools-1.2.1 WiggleTools
-        ./R-3.6.1/bin/Rscript ../scripts/fix_makefile.R
+        ./R-4.3.0/bin/Rscript ../scripts/fix_makefile.R
         cd WiggleTools
         make prefix=$INSTALL_DIR
         cd $INSTALL_DIR
