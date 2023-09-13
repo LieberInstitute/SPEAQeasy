@@ -159,7 +159,7 @@ elif [ "$1" == "local" ]; then
         
         #  bcftools (1.10.2)  -------------------------------------------------------------
     
-        curl -o bcftools.tar.bz2 https://github.com/samtools/bcftools/releases/download/1.10.2/bcftools-1.10.2.tar.bz2
+        curl -Lo bcftools.tar.bz2 https://github.com/samtools/bcftools/releases/download/1.10.2/bcftools-1.10.2.tar.bz2
         tar -xjf bcftools.tar.bz2
         cd bcftools-1.10.2
         ./configure prefix=$INSTALL_DIR
@@ -183,7 +183,7 @@ elif [ "$1" == "local" ]; then
       
         #  hisat2 (2.2.1)  -------------------------------------------------------------
     
-        curl -O https://github.com/DaehwanKimLab/hisat2/archive/v2.2.1.tar.gz
+        curl -OL https://github.com/DaehwanKimLab/hisat2/archive/v2.2.1.tar.gz
         tar -xzf v2.2.1.tar.gz
         cd hisat2-2.2.1
         make
@@ -191,7 +191,7 @@ elif [ "$1" == "local" ]; then
         
         #  htslib (1.10.2)  -------------------------------------------------------------
     
-        curl -o htslib.tar.bz2 https://github.com/samtools/htslib/releases/download/1.10.2/htslib-1.10.2.tar.bz2
+        curl -Lo htslib.tar.bz2 https://github.com/samtools/htslib/releases/download/1.10.2/htslib-1.10.2.tar.bz2
         tar -xjf htslib.tar.bz2
         cd htslib-1.10.2
         ./configure prefix=$INSTALL_DIR
@@ -212,7 +212,7 @@ elif [ "$1" == "local" ]; then
     
         #  kallisto (0.46.1)  -------------------------------------------------------------
                 
-        curl -O https://github.com/pachterlab/kallisto/archive/v0.46.1.tar.gz
+        curl -LO https://github.com/pachterlab/kallisto/archive/v0.46.1.tar.gz
         tar -xzf v0.46.1.tar.gz
         cd kallisto-0.46.1
         mkdir build
@@ -245,7 +245,7 @@ elif [ "$1" == "local" ]; then
     
         #  regtools (gpertea fork: 0.5.33g)  ----------------------------------
         
-        curl -O https://github.com/gpertea/regtools/archive/refs/tags/0.5.33g.tar.gz
+        curl -LO https://github.com/gpertea/regtools/archive/refs/tags/0.5.33g.tar.gz
         tar -xf 0.5.33g.tar.gz
         cd regtools-0.5.33g
         mkdir build
@@ -262,7 +262,7 @@ elif [ "$1" == "local" ]; then
         
         #  salmon (1.2.1)  -------------------------------------------------------------
             
-        curl -o salmon_v1.2.1.tar.gz https://github.com/COMBINE-lab/salmon/archive/v1.2.1.tar.gz
+        curl -Lo salmon_v1.2.1.tar.gz https://github.com/COMBINE-lab/salmon/archive/v1.2.1.tar.gz
         tar -xzf salmon_v1.2.1.tar.gz
         cd salmon-1.2.1
         mkdir build
@@ -274,7 +274,7 @@ elif [ "$1" == "local" ]; then
       
         #  samtools (1.10)  -------------------------------------------------------------
     
-        curl -o samtools.tar.bz2 https://github.com/samtools/samtools/releases/download/1.10/samtools-1.10.tar.bz2
+        curl -Lo samtools.tar.bz2 https://github.com/samtools/samtools/releases/download/1.10/samtools-1.10.tar.bz2
         tar -xjf samtools.tar.bz2
         cd samtools-1.10
         ./configure prefix=$INSTALL_DIR
@@ -284,7 +284,7 @@ elif [ "$1" == "local" ]; then
         
         #  STAR (2.7.8a)  ---------------------------------------------------------------
             
-        curl -O https://github.com/alexdobin/STAR/archive/2.7.8a.tar.gz
+        curl -LO https://github.com/alexdobin/STAR/archive/2.7.8a.tar.gz
         tar -xzf 2.7.8a.tar.gz
         cd STAR-2.7.8a/source
         make STAR
@@ -337,7 +337,7 @@ elif [ "$1" == "local" ]; then
         mv gsl-2.6 gsl # wiggletools expects a "plain" name from gsl
             
         ## Install libBigWig
-        curl -O https://github.com/dpryan79/libBigWig/archive/refs/tags/0.4.6.tar.gz
+        curl -LO https://github.com/dpryan79/libBigWig/archive/refs/tags/0.4.6.tar.gz
         tar -xzf 0.4.6.tar.gz
         mv libBigWig-0.4.6 libBigWig
         cd libBigWig
@@ -345,7 +345,7 @@ elif [ "$1" == "local" ]; then
         cd $INSTALL_DIR
         
         # wiggletools itself (note the modified Makefile)
-        curl -O https://github.com/Ensembl/WiggleTools/archive/refs/tags/v1.2.1.tar.gz
+        curl -LO https://github.com/Ensembl/WiggleTools/archive/refs/tags/v1.2.1.tar.gz
         tar -xzf v1.2.1.tar.gz
         mv WiggleTools-1.2.1 WiggleTools
         ./R-3.6.1/bin/Rscript ../scripts/fix_makefile.R
