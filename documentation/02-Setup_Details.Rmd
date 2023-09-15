@@ -25,13 +25,7 @@ SPEAQeasy makes use of a number of different additional software tools. The user
     * [git](https://git-scm.com/), for downloading some software from their GitHub repositories
     * The `unzip` utility
     
-**Note:** users at the JHPCE cluster do not need to worry about managing software via the above methods (required software is automatically available through modules). Simply run `bash install_software.sh "jhpce"` to install any missing R packages and set up some test files. Next, make sure you have the following lines added to your `~/.bashrc` file:
-
-```{bash, eval=FALSE}
-if [[ $HOSTNAME == compute-* ]]; then
-    module use /jhpce/shared/jhpce/modulefiles/libd
-fi
-```
+**Note:** users at the JHPCE cluster do not need to worry about managing software via the above methods (required software is automatically available through modules). Simply run `bash install_software.sh "jhpce"` to install any missing R packages and set up some test files.
 
 ### Troubleshooting
 
@@ -118,13 +112,13 @@ See [here](https://www.nextflow.io/docs/latest/executor.html#sge) for additional
 ### Run on the [JHPCE](https://jhpce.jhu.edu/) cluster
 
 - (Optional) **Adjust configuration**: default configuration with thoroughly testing hardware resource specification is described within `conf/jhpce.config`. [Other settings](#speaqeasy-parameters), such as annotation release/version, can also be tweaked via this file. 
-- **Modify the main script and run**: the "main" script is `run_pipeline_jhpce_qsub.sh`. The pipeline run is submitted as a job to the cluster by executing `qsub run_pipeline_jhpce.sh`. See the [full list of command-line options](#command-opts) for other details about modifying the script for your use-case.
+- **Modify the main script and run**: the "main" script is `run_pipeline_jhpce.sh`. The pipeline run is submitted as a job to the cluster by executing `sbatch run_pipeline_jhpce.sh`. See the [full list of command-line options](#command-opts) for other details about modifying the script for your use-case.
 
 ### Example main script
 
 Below is a full example of a typical main script, modified from the `run_pipeline_jhpce.sh` script. At the top are some cluster-specific options, recognized by SGE, the grid scheduler at the JHPCE cluster. These are optional, and you may consider adding appropriate options similarly, if you plan to use SPEAQeasy on a computing cluster.
 
-After the main call, `nextflow /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf`, each command option can be described line by line:
+After the main call, `nextflow $ORIG_DIR/main.nf`, each command option can be described line by line:
 
 - `--sample "paired"`: input samples are paired-end
 - `--reference "mm10"`: these are mouse samples, to be aligned to the mm10 genome
@@ -139,16 +133,21 @@ After the main call, `nextflow /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf`, eac
 
 ```{bash, eval=FALSE}
 #!/bin/bash
-#$ -l bluejay,mem_free=40G,h_vmem=40G,h_fsize=150G
-#$ -o ./run_brain_subset.log
-#$ -e ./run_brain_subset.log
-#$ -cwd
 
-module use /jhpce/shared/jhpce/modulefiles/libd
-module load nextflow
+#SBATCH -q shared
+#SBATCH --mem=40G
+#SBATCH --job-name=SPEAQeasy
+#SBATCH -o ./SPEAQeasy_output.log
+#SBATCH -e ./SPEAQeasy_output.log
+
+#  After running 'install_software.sh', this should point to the directory
+#  where SPEAQeasy was installed, and not say "$PWD"
+ORIG_DIR=/dcl01/lieber/ajaffe/Nick/SPEAQeasy
+
+module load nextflow/20.01.0
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
-nextflow /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf \
+nextflow $ORIG_DIR/main.nf \
     --sample "paired" \
     --reference "mm10" \
     --strand "reverse" \
@@ -160,6 +159,10 @@ nextflow /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf \
     -w "/scratch/nextflow_runs" \
     --output "/users/neagles/RNA_output"
     
+#   Log successful runs on non-test data in a central location. Please adjust
+#   the log path here if it is changed at the top!
+bash $ORIG_DIR/scripts/track_runs.sh $PWD/SPEAQeasy_output.log
+
 #  Produces a report for each sample tracing the pipeline steps
 #  performed (can be helpful for debugging).
 #
@@ -167,7 +170,7 @@ nextflow /dcl01/lieber/ajaffe/Nick/SPEAQeasy/main.nf \
 #  section, and so if you rename the log, you must also pass replace the filename
 #  in the bash call below.
 echo "Generating per-sample logs for debugging..."
-bash /dcl01/lieber/ajaffe/Nick/SPEAQeasy/scripts/generate_logs.sh $PWD/run_brain_subset.log
+bash $ORIG_DIR/scripts/generate_logs.sh $PWD/SPEAQeasy_output.log
 ```
 
 ### Advanced info regarding installation

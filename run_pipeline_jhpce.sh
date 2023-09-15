@@ -1,8 +1,10 @@
 #!/bin/bash
-#$ -l mem_free=40G,h_vmem=40G,h_fsize=800G
-#$ -o ./SPEAQeasy_output.log
-#$ -e ./SPEAQeasy_output.log
-#$ -cwd
+
+#SBATCH -q shared
+#SBATCH --mem=40G
+#SBATCH --job-name=SPEAQeasy
+#SBATCH -o ./SPEAQeasy_output.log
+#SBATCH -e ./SPEAQeasy_output.log
 
 #  After running 'install_software.sh', this should point to the directory
 #  where SPEAQeasy was installed, and not say "$PWD"
