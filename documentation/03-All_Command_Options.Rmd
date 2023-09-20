@@ -2,6 +2,8 @@
 
 ## SPEAQeasy Options
 
+On the command line inside the `SPEAQeasy` repository, one can run `Software/nextflow run main.nf --help` (at JHPCE, `nextflow run main.nf --help`) to display the full list of SPEAQeasy options.
+
 ### Mandatory Parameters
 
 * `--sample`        "single" or "paired": the orientation of your reads
