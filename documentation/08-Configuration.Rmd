@@ -48,7 +48,7 @@ withName: Trimming {
 In some cases, you may find it simpler to directly specify options accepted by your cluster. For example, SGE users with a default limit on the maximum file size they may write might specify the following:
 
 ```{groovy, eval=FALSE}
-withName: PairedEndHISAT {
+withName: PairedEndHisat {
     cpus = 4
     memory = '20.GB'
     penv = 'local'

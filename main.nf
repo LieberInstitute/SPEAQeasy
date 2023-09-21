@@ -647,7 +647,7 @@ if (params.use_star) {
 } else { // HISAT2 is used as the aligner
     // Uses "storeDir" to build HISAT2 index only when it doesn't exist, and output the cached
     // files if they do already exist
-    process buildHISATindex {	
+    process BuildHisatIndex {	
         tag "Building HISAT2 Index: ${hisat_prefix}"
         storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
     
@@ -744,7 +744,7 @@ if (params.custom_anno != "") {
 // Uses "storeDir" to build the index only if the built file is not present; outputs
 // this cached file otherwise
 if (params.use_salmon) {
-    process buildSALMONindex {
+    process BuildSalmonIndex {
     
         tag "Building Salmon Index: salmon_index_${anno_suffix}"
         storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon/${anno_suffix}"
@@ -1276,7 +1276,7 @@ if (params.use_star) {
             
     if (params.sample == "single") {
         
-        process SingleEndHISAT {
+        process SingleEndHisat {
     
             tag "$prefix"
             publishDir "${params.output}/alignment",mode:'copy'
@@ -1320,7 +1320,7 @@ if (params.use_star) {
         }
     } else { // sample is paired-end
     
-        process PairedEndHISAT {
+        process PairedEndHisat {
     
             tag "$prefix"
             publishDir "${params.output}/alignment",'mode':'copy'
@@ -1543,7 +1543,7 @@ process Junctions {
  */
 
 if (params.use_salmon) {
-    process TXQuantSalmon {
+    process TxQuantSalmon {
     
         tag "$prefix"
         publishDir "${params.output}/salmon_tx/${prefix}",mode:'copy'
@@ -1595,7 +1595,7 @@ if (params.use_salmon) {
             '''
     }
 } else {
-    process TXQuantKallisto {
+    process TxQuantKallisto {
     
         tag "$prefix"
         publishDir "${params.output}/kallisto_tx/${prefix}", mode:'copy'

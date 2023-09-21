@@ -4,14 +4,14 @@
 
 SPEAQeasy should be configured so that fundamental issues related to pipeline function do not arise. If you encounter an error and believe it to be a design flaw in SPEAQeasy, you can always [submit a github issue](https://github.com/LieberInstitute/SPEAQeasy/issues). However, please take a look at the following common issues:
 
-* *A job/ process is not given enough memory or time*: pipeline runs on large samples or datasets may require more memory or a higher time limit. When reported correctly, the pipeline will indicate an error status of 140 (for SGE or SLURM environments); however, memory issues can take many forms, and related error messages are not always clear. In this example case, the process PairedEndHISAT failed due to insufficient memory, but indicated a general error status (1):
+* *A job/ process is not given enough memory or time*: pipeline runs on large samples or datasets may require more memory or a higher time limit. When reported correctly, the pipeline will indicate an error status of 140 (for SGE or SLURM environments); however, memory issues can take many forms, and related error messages are not always clear. In this example case, the process PairedEndHisat failed due to insufficient memory, but indicated a general error status (1):
 
 ![How Nextflow may report memory-related errors](images/10.1_error.png)
 
-Attempt to provide the process more memory in your config. In this case the configuration for PairedEndHISAT looks like this (for SGE users):
+Attempt to provide the process more memory in your config. In this case the configuration for PairedEndHisat looks like this (for SGE users):
 
 ```{groovy, eval=FALSE}
-withName: PairedEndHISAT {
+withName: PairedEndHisat {
     cpus = 4
     memory = '20.GB'
     clusterOptions = '-l h_fsize=500G -R y'
@@ -38,7 +38,7 @@ $ORIG_DIR/Software/nextflow $ORIG_DIR/main.nf \
     -profile sge
 ```
 
-* *Nextflow has trouble communicating with your cluster*: a less common issue can occur on slower clusters, related to nextflow failing to poll your grid scheduler (like SGE or SLURM) for information it needs about the jobs that are running. This can show up in an error message like: `Process `PairedEndHISAT (Prefix: Sample_FE2P1_blood)` terminated for an unknown reason -- Likely it has been terminated by the external system`. We have found that raising the `exitReadTimeout` to a large value (such as 30 minutes) solves this issue, but consider raising it further if needed.
+* *Nextflow has trouble communicating with your cluster*: a less common issue can occur on slower clusters, related to nextflow failing to poll your grid scheduler (like SGE or SLURM) for information it needs about the jobs that are running. This can show up in an error message like: `Process `PairedEndHisat (Prefix: Sample_FE2P1_blood)` terminated for an unknown reason -- Likely it has been terminated by the external system`. We have found that raising the `exitReadTimeout` to a large value (such as 30 minutes) solves this issue, but consider raising it further if needed.
 
 ```{groovy, eval=FALSE}
 executor {
@@ -73,7 +73,7 @@ If the log output does not make it clear what wrong, explore the following:
 
 - *Check the exit code*: this is near the top for a given process. An exit code of 1 is often not very informative by itself (a generic error status), but other values can sometimes inform you of the exact issue. For example, the common exit status of 140 indicates that a process failed due to exceeding memory, disk, CPU, or time constraints (for SGE or SLURM clusters). Most frequently, memory is the limiting factor; consider raising the memory allocated for the process in the relevant [configuration file](#your-config-file).
 
-- *Check the content of the working directory*: the path to the relevant working directory is given on the first line of the log for a given process. One immediate "red flag" could be a core dump (a file named something like `core.[numbers]`). These files are produced when a process unexpectedly terminates, which often can indicate the process needs more memory or disk space (see [configuration](#configuration)). It is also worth checking for other log files (certain processes, like *SingleEndHISAT* and *PairedEndHISAT*, have output which is not printed between the *BEGIN LOG* and *END LOG* per-sample log sections).
+- *Check the content of the working directory*: the path to the relevant working directory is given on the first line of the log for a given process. One immediate "red flag" could be a core dump (a file named something like `core.[numbers]`). These files are produced when a process unexpectedly terminates, which often can indicate the process needs more memory or disk space (see [configuration](#configuration)). It is also worth checking for other log files (certain processes, like *SingleEndHisat* and *PairedEndHisat*, have output which is not printed between the *BEGIN LOG* and *END LOG* per-sample log sections).
 
 ## Resuming {#resuming}
 
