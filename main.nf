@@ -1847,7 +1847,7 @@ if (perform_variant_calling) {
 
 		shell:
 		'''
-        file_regex='.*\.vcf\.gz$'
+        file_regex='.*\\.vcf\\.gz$'
         command="!{params.bcftools} merge [files] | !{params.bgzip} -c > temp[index].vcf.gz"
 
         #   Break the 'bcftools merge' command into chunks (necessary for large
@@ -1967,6 +1967,7 @@ if (do_coverage) {
         input:
             set val(read_type), file(mean_coverage_bigwig) from mean_coverage_bigwigs
             file chr_sizes from chr_sizes
+            file chunk_apply_script from file("${workflow.projectDir}/scripts/chunk_apply.sh")
     
         output:
             file "mean*.bw" into mean_bigwigs, expressed_regions_mean_bigwigs
@@ -1984,48 +1985,25 @@ if (do_coverage) {
                 outwig="mean.reverse"
             fi
             
-            batch_size=!{params.wiggletools_batch_size}
             precision=8
             
-            file_list=$(ls -1 | grep -E ".*\\.(bw|wig)$")
-            num_files=$(echo "$file_list" | wc -l)
-            num_batches=$(($num_files / $batch_size))
-            iter_num=0
-            
+            file_regex='.*\\.(bw|wig)$'
+            command="!{params.wiggletools} write temp_wig[index].wig sum [files]"
+
+            #   To compute a mean, we'll sum all files then multiply by the
+            #   scale factor (reciprocal of number of files)
+            num_files=$(ls -1 | grep -E "$file_regex" | wc -l)
             scale_factor=$(!{params.bc} <<< "scale=${precision};1/$num_files")
             echo "Scale factor is $scale_factor."
             
-            while [ $num_files -gt $batch_size ]; do
-                echo "Dividing existing files into batches of size ${batch_size}, which involves ${num_batches} batches..."
-                for i in $(seq 1 $num_batches); do
-                    #  Form the batch of files
-                    start_index=$((($i - 1) * $batch_size + 1))
-                    end_index=$(($i * $batch_size))
-                    temp_files=$(echo "$file_list" | sed -n "${start_index},${end_index}p")
-                    
-                    #  Sum over the batch and replace it with a unique temporary file
-                    !{params.wiggletools} write temp_wig${iter_num}_$i.wig sum $temp_files
-                    rm $temp_files
-                done
-                
-                #  If the remaining piece exists and involves more than one file
-                if [ $num_files -gt $(($num_batches * $batch_size + 1)) ]; then
-                    echo "On remaining piece..."
-                    start_index=$(($num_batches * $batch_size + 1))
-                    temp_files=$(echo "$file_list" | sed -n "${start_index},${num_files}p")
-                    
-                    #  Sum over the remaining piece and replace it with a unique temporary file
-                    !{params.wiggletools} write temp_wig${iter_num}_$(($num_batches + 1)).wig sum $temp_files
-                    rm $temp_files
-                fi
-                
-                file_list=$(ls -1 | grep -E ".*\\.(bw|wig)$")
-                num_files=$(echo "$file_list" | wc -l)
-                num_batches=$(($num_files / $batch_size))
-                iter_num=$(($iter_num + 1))
-            done
-            
-            echo "Computing the mean..."
+            #   Break the summation command into chunks (necessary for large
+            #   datasets where the number of open file handles may be exceeded)
+            !{chunk_apply_script} !{params.wiggletools_batch_size} "$file_regex" "$command"
+
+            #   Note that even if one file is left, this command is necessary
+            #   because of the scaling (mean instead of sum)
+            echo "Computing a mean from the final files..."
+            file_list=$(ls -1 | grep -E "$file_regex")
             !{params.wiggletools} write $outwig.wig scale $scale_factor sum $file_list
             echo "Done."
             
