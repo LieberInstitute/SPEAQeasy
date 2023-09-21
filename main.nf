@@ -1847,13 +1847,12 @@ if (perform_variant_calling) {
 
 		shell:
 		'''
-        batch_size=2
         file_regex='.*\.vcf\.gz$'
         command="!{params.bcftools} merge [files] | !{params.bgzip} -c > temp[index].vcf.gz"
 
         #   Break the 'bcftools merge' command into chunks (necessary for large
         #   datasets where the number of open file handles may be exceeded)
-		!{chunk_apply_script} $batch_size "$file_regex" "$command"
+		!{chunk_apply_script} !{variants_merge_batch_size} "$file_regex" "$command"
         
         file_list=$(ls -1 | grep -E "$file_regex")
         num_files=$(echo "$file_list" | wc -l)
