@@ -1984,7 +1984,7 @@ if (do_coverage) {
                 outwig="mean.reverse"
             fi
             
-            batch_size=!{params.wiggletools_max_threads}
+            batch_size=!{params.wiggletools_batch_size}
             precision=8
             
             file_list=$(ls -1 | grep -E ".*\\.(bw|wig)$")

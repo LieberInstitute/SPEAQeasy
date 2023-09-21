@@ -96,4 +96,5 @@ Command-line parameters can be directly passed to most software tools used in th
 A couple configuration variables control functionality specific to SPEAQeasy (i.e. not external software tools called by SPEAQeasy). These are documented below.
 
 * *num_reads_infer_strand*: The number of lines in each FASTQ file to subset when determining strandness for a sample.
-* *wiggletools_max_threads*: The maximum number of files to handle simultaneously when producing wig coverage files. We have encountered issues with `wiggletools` starting too many threads (one is used per sample handled), and so this can be lowered if similar issues occur for other users in large experiments.
+* *wiggletools_batch_size*: The maximum number of files to handle simultaneously when producing wig coverage files. We have encountered issues with `wiggletools` starting too many threads (one is used per sample handled), and so this can be lowered if similar issues occur for other users in large experiments.
+* *variants_merge_batch_size*: The maximum number of files to merge at once when merging variant calls. A sufficiently low value may prevent issues with `bcftools merge` hitting system limits on number of open file handles with large experiments.
