@@ -1837,15 +1837,37 @@ if (perform_variant_calling) {
 		publishDir "${params.output}/merged_variants",'mode':'copy'
 
 		input:
+        file chunk_apply_script from file("${workflow.projectDir}/scripts/chunk_apply.sh")
 		file collected_variants from compressed_variant_calls.collect()
 		file collected_variants_tbi from compressed_variant_calls_tbi.collect()
 
 		output:
-		file "*"
+		file "mergedVariants.vcf.gz"
+        file "variants_merge.log"
 
 		shell:
 		'''
-		!{params.bcftools} merge !{collected_variants} | !{params.bgzip} -c > mergedVariants.vcf.gz
+        batch_size=2
+        file_regex='.*\.vcf\.gz$'
+        command="!{params.bcftools} merge [files] | !{params.bgzip} -c > temp[index].vcf.gz"
+
+        #   Break the 'bcftools merge' command into chunks (necessary for large
+        #   datasets where the number of open file handles may be exceeded)
+		!{chunk_apply_script} $batch_size "$file_regex" "$command"
+        
+        file_list=$(ls -1 | grep -E "$file_regex")
+        num_files=$(echo "$file_list" | wc -l)
+        if [[ $num_files -gt 1 ]]; then
+            #   If more than one file is left, merge everything to produce the
+            #   final output
+            echo "Performing a final merge of all VCF files..."
+            !{params.bcftools} merge $file_list | !{params.bgzip} -c > mergedVariants.vcf.gz
+        else
+            #   There's only one file, so rename it
+            mv $file_list mergedVariants.vcf.gz
+        fi
+
+        cp .command.log variants_merge.log
 		'''
 	}
 }
