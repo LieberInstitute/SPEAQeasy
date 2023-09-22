@@ -478,7 +478,8 @@ summary_main['Use STAR'] = params.use_star
 
 def summary_args = [:]
 summary_args['Num reads for strand inference'] = params.num_reads_infer_strand
-summary_args['Wiggletools threads'] = params.wiggletools_max_threads
+summary_args['Wiggletools batch size'] = params.wiggletools_batch_size
+summary_args['Variants merge batch size'] = params.variants_merge_batch_size
 summary_args['bam2wig arguments'] = params.bam2wig_args
 summary_args['bcftools arguments'] = params.bcftools_args
 summary_args['FastQC arguments'] = params.fastqc_args
@@ -1852,7 +1853,7 @@ if (perform_variant_calling) {
 
         #   Break the 'bcftools merge' command into chunks (necessary for large
         #   datasets where the number of open file handles may be exceeded)
-		!{chunk_apply_script} !{variants_merge_batch_size} "$file_regex" "$command"
+		bash !{chunk_apply_script} !{params.variants_merge_batch_size} "$file_regex" "$command"
         
         file_list=$(ls -1 | grep -E "$file_regex")
         num_files=$(echo "$file_list" | wc -l)
@@ -1998,7 +1999,7 @@ if (do_coverage) {
             
             #   Break the summation command into chunks (necessary for large
             #   datasets where the number of open file handles may be exceeded)
-            !{chunk_apply_script} !{params.wiggletools_batch_size} "$file_regex" "$command"
+            bash !{chunk_apply_script} !{params.wiggletools_batch_size} "$file_regex" "$command"
 
             #   Note that even if one file is left, this command is necessary
             #   because of the scaling (mean instead of sum)
