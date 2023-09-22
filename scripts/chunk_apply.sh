@@ -34,7 +34,7 @@ while [ $num_files -gt $batch_size ]; do
         #  Note that the use of 'eval' here is fairly safe, and can only have
         #  harmful results if params.bcftools, params.wiggletools, or
         #  params.bgzip are intentionally set to something crazy
-        eval $(echo $command | sed "s%\[index\]%${iter_num}_$i%" | sed "s%\[files\]%${temp_files}%")
+        eval $(echo $command | sed "s%\[index\]%${iter_num}_$i%g" | sed "s%\[files\]%${temp_files}%")
         rm $temp_files
     done
     
@@ -46,7 +46,7 @@ while [ $num_files -gt $batch_size ]; do
         
         #  Apply the command to the remaining piece and replace it with a unique
         #  temporary file
-        eval $(echo $command | sed "s%\[index\]%${iter_num}_$(($num_batches + 1))%" | sed "s%\[files\]%${temp_files}%")
+        eval $(echo $command | sed "s%\[index\]%${iter_num}_$(($num_batches + 1))%g" | sed "s%\[files\]%${temp_files}%")
         rm $temp_files
     fi
     

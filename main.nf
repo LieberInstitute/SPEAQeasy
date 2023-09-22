@@ -1849,7 +1849,7 @@ if (perform_variant_calling) {
 		shell:
 		'''
         file_regex='.*\\.vcf\\.gz$'
-        command="!{params.bcftools} merge [files] | !{params.bgzip} -c > temp[index].vcf.gz"
+        command="!{params.bcftools} merge [files] | !{params.bgzip} -c > temp[index].vcf.gz; !{params.tabix} -p vcf temp[index].vcf.gz"
 
         #   Break the 'bcftools merge' command into chunks (necessary for large
         #   datasets where the number of open file handles may be exceeded)
