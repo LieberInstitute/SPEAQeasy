@@ -318,7 +318,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="cluster-specific-options" class="section level3 hasAnchor" number="8.1.2">
 <h3><span class="header-section-number">8.1.2</span> Cluster-specific options<a href="configuration.html#cluster-specific-options" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>In some cases, you may find it simpler to directly specify options accepted by your cluster. For example, SGE users with a default limit on the maximum file size they may write might specify the following:</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb23-1"><a href="configuration.html#cb23-1" tabindex="-1"></a>withName<span class="op">:</span> PairedEndHISAT <span class="op">{</span></span>
+<div class="sourceCode" id="cb23"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb23-1"><a href="configuration.html#cb23-1" tabindex="-1"></a>withName<span class="op">:</span> PairedEndHisat <span class="op">{</span></span>
 <span id="cb23-2"><a href="configuration.html#cb23-2" tabindex="-1"></a>    cpus <span class="op">=</span> <span class="dv">4</span></span>
 <span id="cb23-3"><a href="configuration.html#cb23-3" tabindex="-1"></a>    memory <span class="op">=</span> <span class="st">&#39;20.GB&#39;</span></span>
 <span id="cb23-4"><a href="configuration.html#cb23-4" tabindex="-1"></a>    penv <span class="op">=</span> <span class="st">&#39;local&#39;</span></span>
@@ -367,7 +367,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>A couple configuration variables control functionality specific to SPEAQeasy (i.e. not external software tools called by SPEAQeasy). These are documented below.</p>
 <ul>
 <li><em>num_reads_infer_strand</em>: The number of lines in each FASTQ file to subset when determining strandness for a sample.</li>
-<li><em>wiggletools_max_threads</em>: The maximum number of files to handle simultaneously when producing wig coverage files. We have encountered issues with <code>wiggletools</code> starting too many threads (one is used per sample handled), and so this can be lowered if similar issues occur for other users in large experiments.</li>
+<li><em>wiggletools_batch_size</em>: The maximum number of files to handle simultaneously when producing wig coverage files. We have encountered issues with <code>wiggletools</code> starting too many threads (one is used per sample handled), and so this can be lowered if similar issues occur for other users in large experiments.</li>
+<li><em>variants_merge_batch_size</em>: The maximum number of files to merge at once when merging variant calls. A sufficiently low value may prevent issues with <code>bcftools merge</code> hitting system limits on number of open file handles with large experiments.</li>
 </ul>
 
 </div>
