@@ -876,70 +876,6 @@ if (params.ercc) {
 } else {
   temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs }
 }
-    
-/*
- * Step B: Run the ERCC process if the --ercc flag is specified
- */
- 
-if (params.ercc) {
-    if (params.custom_anno != "") {
-        erccidx = Channel.fromPath("${params.annotation}/*.idx")
-    } else {
-        erccidx = Channel.fromPath("${params.annotation}/ERCC/ERCC92.idx")
-    }
-
-  process ERCC {
-		
-    tag "$prefix"
-    publishDir "${params.output}/ERCC/${prefix}",'mode':'copy'
-
-    input:
-      file erccidx from file("${params.annotation}/ERCC/ERCC92.idx")
-      set val(prefix), file(ercc_input) from ercc_inputs
-      file complete_manifest_ercc
-
-    output:
-      file "${prefix}_ercc_abundance.tsv" into ercc_abundances
-      file "ercc_${prefix}.log"
-
-    shell:
-      if (params.sample == "single") {
-          kallisto_flags = params.kallisto_quant_ercc_single_args
-      } else {
-          kallisto_flags = params.kallisto_quant_ercc_paired_args
-      }
-      '''
-      ( set -o posix ; set ) > bash_vars.txt
-      
-      #  Find this sample's strandness and determine kallisto flags to set
-      strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
-      if [ $strand == 'forward' ]; then
-          kallisto_strand=" --fr-stranded"
-      elif [ $strand == 'reverse' ]; then
-          kallisto_strand=" --rf-stranded"
-      else
-          kallisto_strand=""
-      fi
-      
-      #  Quantify ERCC, and don't throw an error if 0 counts are found
-      !{params.kallisto} quant \
-          -i !{erccidx} \
-          -t !{task.cpus} \
-          !{kallisto_flags} \
-          -o . \
-          $kallisto_strand \
-          !{ercc_input} \
-          || true
-      
-      cp abundance.tsv !{prefix}_ercc_abundance.tsv
-      cp .command.log ercc_!{prefix}.log
-      
-      temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep '>' | cut -d ' ' -f 2- || true)
-      echo "$temp" > bash_vars.txt
-      '''
-  }
-}
-
 
 /*
  * Step 1: Perform FastQC on the untrimmed reads, as an initial quality gauge 
@@ -1054,6 +990,69 @@ process CompleteManifest {
         '''
         !{params.Rscript} !{manifest_script}
         '''
+}
+
+/*
+ * Step B: Run the ERCC process if the --ercc flag is specified
+ */
+ 
+if (params.ercc) {
+    if (params.custom_anno != "") {
+        erccidx = Channel.fromPath("${params.annotation}/*.idx")
+    } else {
+        erccidx = Channel.fromPath("${params.annotation}/ERCC/ERCC92.idx")
+    }
+
+  process ERCC {
+		
+    tag "$prefix"
+    publishDir "${params.output}/ERCC/${prefix}",'mode':'copy'
+
+    input:
+      file erccidx from file("${params.annotation}/ERCC/ERCC92.idx")
+      set val(prefix), file(ercc_input) from ercc_inputs
+      file complete_manifest_ercc
+
+    output:
+      file "${prefix}_ercc_abundance.tsv" into ercc_abundances
+      file "ercc_${prefix}.log"
+
+    shell:
+      if (params.sample == "single") {
+          kallisto_flags = params.kallisto_quant_ercc_single_args
+      } else {
+          kallisto_flags = params.kallisto_quant_ercc_paired_args
+      }
+      '''
+      ( set -o posix ; set ) > bash_vars.txt
+      
+      #  Find this sample's strandness and determine kallisto flags to set
+      strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+      if [ $strand == 'forward' ]; then
+          kallisto_strand=" --fr-stranded"
+      elif [ $strand == 'reverse' ]; then
+          kallisto_strand=" --rf-stranded"
+      else
+          kallisto_strand=""
+      fi
+      
+      #  Quantify ERCC, and don't throw an error if 0 counts are found
+      !{params.kallisto} quant \
+          -i !{erccidx} \
+          -t !{task.cpus} \
+          !{kallisto_flags} \
+          -o . \
+          $kallisto_strand \
+          !{ercc_input} \
+          || true
+      
+      cp abundance.tsv !{prefix}_ercc_abundance.tsv
+      cp .command.log ercc_!{prefix}.log
+      
+      temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep '>' | cut -d ' ' -f 2- || true)
+      echo "$temp" > bash_vars.txt
+      '''
+  }
 }
 
 /*
