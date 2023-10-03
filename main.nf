@@ -19,7 +19,7 @@ https://github.com/LieberInstitute/SPEAQeasy
     BaDoi Phan <badoi.phan@pitt.edu>
  
     ## Nextflow Version
-    Nick Eagles <nick.eagles@libd.org>
+    Nick Eagles <nickeagles77@gmail.com>
     Jacob Leonard <leonard.jacob09@gmail.com>
     Israel Aguilar <iaguilaror@gmail.com>
     Violeta Larios <siedracko@gmail.com>
@@ -30,32 +30,32 @@ https://github.com/SciLifeLab/NGI-smRNAseq
 
  Pipeline Overview:
 
-   Preprocessing:
-	-   Ia: Download Assembly FA
-	-   Ib: Build HISAT Index
-	-   II: Download GENCODE GTF File
-	- IIIa: Download Transcript Fasta
-	- IIIb: Build Salmon or Kallisto Index
-	Sample Processing:
-	-   A: Input preprocessing
-	-   B: ERCC Quality Analysis (Optional)
-	-   1: FastQC Quality Analysis
-	-  2a: File Trimming (Sample-dependent)
-	-  2b: FastQC on trimmed samples
-	-  3a: Hisat2 Alignment
-	-  3b: Convert Sam to Bam
-	-  4a: Feature Counts
-	-  4b: Primary Alignments
-	-  4c: Junctions
-	-  5a: Coverage
-	-  5b: WigtoBigWig
-	-  5c: Mean Coverage
-	-   6: Transcript Quantification (Salmon or Kallisto)
-	-  7a: Create Counts Objects
-	-  7b: Create Coverage Objects
-	-  8a: Call Variants
-	-  8b: Merge Called Variants
-	-   9: Expressed Regions
+    Preprocessing:
+        - Download Assembly FA
+	    - Build HISAT Index
+        - Download GENCODE GTF File
+        - Download Transcript Fasta
+        - Build Salmon or Kallisto Index
+    Sample Processing:
+        - Input preprocessing
+        - ERCC Quality Analysis (Optional)
+        - FastQC Quality Analysis
+        - File Trimming (Sample-dependent)
+        - FastQC on trimmed samples
+        - Hisat2 Alignment
+        - Convert Sam to Bam
+        - Feature Counts
+        - Primary Alignments
+        - Junctions
+        - Coverage
+        - WigtoBigWig
+        - Mean Coverage
+        - Transcript Quantification (Salmon or Kallisto)
+        - Create Counts Objects
+        - Create Coverage Objects
+        - Call Variants
+        - Merge Called Variants
+        - Expressed Regions
 
 ===============================================================================
 */
@@ -516,9 +516,9 @@ log.info "======================================================================
 
 
 /*
- * Step Ia: Pull assembly fasta (from GENCODE for human/ mouse, or ensembl for
- *          rat). Build a "main" fasta of only canonical sequences from the
- *          pulled "primary" fasta containing all sequences/contigs.
+ * Pull assembly fasta (from GENCODE for human/ mouse, or ensembl for rat).
+ * Build a "main" fasta of only canonical sequences from the pulled "primary"
+ * fasta containing all sequences/contigs.
  */
 
 if (params.custom_anno != "") {
@@ -692,7 +692,7 @@ process BuildAnnotationObjects {
 }
 
 /*
- * Step IIIa: Transcript FASTA download
+ * Download transcript FASTA
  */
 
 if (params.custom_anno != "") {
@@ -739,7 +739,7 @@ if (params.custom_anno != "") {
 }
 
 /*
- * Step IIIb: Build transcript index for Salmon or Kallisto
+ * Build transcript index for Salmon or Kallisto
  */
 
 // Uses "storeDir" to build the index only if the built file is not present; outputs
@@ -812,9 +812,9 @@ process BuildKallistoIndex {
 }
 
 
-//  Step A: Merge files as necessary, rename files based on sample ids provided
-//          in the manifest, and create a new manifest for internal use based
-//          on these changes
+//  Merge FASTQ files as necessary, rename files based on sample ids provided
+//  in the manifest, and create a new manifest for internal use based on these
+//  changes
 
 // Extract FASTQ file paths from the manifest and place in a channel to pass to
 // PreprocessInputs
@@ -878,7 +878,7 @@ if (params.ercc) {
 }
 
 /*
- * Step 1: Perform FastQC on the untrimmed reads, as an initial quality gauge 
+ * Perform FastQC on the untrimmed reads, as an initial quality gauge
  */
 
 process QualityUntrimmed {
@@ -993,7 +993,7 @@ process CompleteManifest {
 }
 
 /*
- * Step B: Run the ERCC process if the --ercc flag is specified
+ * Run the ERCC process if the --ercc flag is specified
  */
  
 if (params.ercc) {
@@ -1056,7 +1056,7 @@ if (params.ercc) {
 }
 
 /*
- * Step 2a: Trim samples (dependent on user-chosen settings)
+ * Trim samples (dependent on user-chosen settings)
  */
  
 process Trimming {
@@ -1160,7 +1160,7 @@ process Trimming {
 
 
 /*
- * Step 2b: Run FastQC Quality Check on Trimmed Files
+ * Run FastQC Quality Check on Trimmed Files
  */
 
 process QualityTrimmed {
@@ -1193,7 +1193,7 @@ process QualityTrimmed {
 }
 
 /*
- * Step 3a: Alignment (HISAT2 by default, or otherwise STAR)
+ * Alignment (HISAT2 by default, or otherwise STAR)
  */
 
 trimming_outputs
@@ -1387,7 +1387,7 @@ alignment_output
     .set{ bam_sort_inputs }
 
 /*
- * Step 3b: Bam sort (sort and index the BAM)
+ * Sort and index the aligned BAM
  */
 
 process BamSort {
@@ -1413,7 +1413,7 @@ feature_bam_inputs
   .set{ feature_counts_inputs }
 
 /*
- * Step 4a: Feature Counts
+ * Quantify genes and exons with FeatureCounts
  */
 
 process FeatureCounts {
@@ -1478,7 +1478,7 @@ process FeatureCounts {
 }
 
 /*
- * Step 4b: Primary Alignments
+ * Primary Alignments
  */
 
 process PrimaryAlignments {
@@ -1500,7 +1500,7 @@ process PrimaryAlignments {
 }
 
 /*
- * Step 4c: Junctions
+ * Quantify Junctions
  */
 
 process Junctions {
@@ -1539,7 +1539,7 @@ process Junctions {
 
 
 /*
- * Step 6: Transcript quantification
+ * Transcript quantification
  */
 
 if (params.use_salmon) {
@@ -1716,7 +1716,7 @@ if (params.reference == "hg38" && params.anno_version == "25") {
 }
 
 /*
- * Step 7a: Create Count Objects
+ * Create RangedSummarizedExperiment outputs
 */
 
 process CountObjects {
@@ -1782,7 +1782,7 @@ process CountObjects {
 if (perform_variant_calling) {
 
     /*
-     * Step 8: Call Variants
+     * Call Variants
      */
       
     if (params.custom_anno != "") {
@@ -1828,7 +1828,7 @@ if (perform_variant_calling) {
 
 
 	/*
-	 * Step 8b: Merge Variant Calls
+	 * Merge Variant Calls
 	 */
 
 	process VariantsMerge {
@@ -2020,7 +2020,7 @@ if (do_coverage) {
     if (params.fullCov) {
       
     	/*
-    	 * Step 7b: Create Full Coverage Objects
+    	 * Create Full Coverage Objects
     	 */
     
         process CoverageObjects {
@@ -2051,7 +2051,7 @@ if (do_coverage) {
 
 
     /*
-     * Step 9: Expressed Regions
+     * Expressed Regions
      */
     
     process ExpressedRegions {
@@ -2060,7 +2060,7 @@ if (do_coverage) {
         publishDir "${params.output}/expressed_regions", mode:'copy'
         
         input:
-            file expressed_regions_script from file("${workflow.projectDir}/scripts/step9-find_expressed_regions.R")
+            file expressed_regions_script from file("${workflow.projectDir}/scripts/find_expressed_regions.R")
             file chr_sizes
             file expressed_regions_mean_bigwigs
         
