@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH -q shared
+#SBATCH -p shared
 #SBATCH --mem=40G
 #SBATCH --job-name=SPEAQeasy
 #SBATCH -o ./SPEAQeasy_output.log
