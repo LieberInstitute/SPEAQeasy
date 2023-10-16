@@ -2,12 +2,9 @@
 
 ## Requirements
 
-SPEAQeasy requires that the following be installed:
+SPEAQeasy requires Java 8 or later. If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer. Python 3 and pip (automatically installed with typical installations of python) are required as well. These installations are typically done by an administrator (they require root access/ use of "sudo").
 
-- Java 8 or later
-- Python 3 (tested with 3.7.3), with pip
-
-If java is not installed, you can install it on linux with `apt install default-jre`, or with a different package manager you prefer. Python 3 and pip (automatically installed with typical installations of python) are required as well. These installations are typically done by an administrator (they require root access/ use of "sudo").
+When installing with the "local" mode (not typically recommended), Python 3 (tested with 3.7.3) and pip are required.
 
 SPEAQeasy has been tested on Linux, but it designed to run on any of a number of POSIX-compliant systems, including MacOS and FreeBSD.
 
