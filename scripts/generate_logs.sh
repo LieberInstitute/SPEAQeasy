@@ -54,7 +54,8 @@ print_commands () {
         echo -e "    Command run:\n" >> $out_file
         echo "--------------------------------- BEGIN COMMANDS -------------" >> $out_file
         cd $proc_dir
-        for j in `seq 1 $(cat .command.sh | wc -l)`; do
+        if [[ -f .command.sh ]]; then
+          for j in `seq 1 $(cat .command.sh | wc -l)`; do
             #  Grab one line of the commands
             temp_line=$(awk "NR == $j" .command.sh)
                 
@@ -75,7 +76,8 @@ print_commands () {
                 
             #  The result is what is printed for the user in the log
             echo $temp_line >> $out_file
-        done
+          done
+        fi
         echo -e "--------------------------------- END COMMANDS ---------------\n" >> $out_file
             
         #  Link to log if process had exit code 0, otherwise warn and print log output
@@ -120,10 +122,11 @@ for samp in $samp_names; do
                     #  Infer process working directory, name, and exit code
                     proc_dir=$(sed -n "${line_num_temp}p" $LOG | tr -d " ")
                     proc_name=$(grep "Error executing process" $LOG | head -n 1 | cut -d '>' -f 2 | tr -d "'| ")
-                    exit_code=$(cat $proc_dir/.exitcode)
-                    
-                    print_commands $proc_dir $proc_name $exit_code $samp $out_file $i
-                    i=$(echo $?)
+                    if [[ -f $proc_dir/.exitcode ]]; then
+                      exit_code=$(cat $proc_dir/.exitcode)
+                      print_commands $proc_dir $proc_name $exit_code $samp $out_file $i
+                      i=$(echo $?)
+                    endif
                 fi
             else
                 proc_line=$(echo "$proc_lines" | awk "NR==$line_num")
