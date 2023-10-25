@@ -1068,7 +1068,7 @@ process Trimming {
         set val(fq_prefix), file(fq_summary), file(fq_file) from trimming_inputs
 
     output:
-        file "${fq_prefix}_trimmed*.f*q{.gz,}" optional true into trimmed_fastqc_inputs
+        file "${fq_prefix}_trimmed*.f*q{.gz,}" optional true into trimmed_fastqc_inputs_raw
         file "${fq_prefix}*.f*q{.gz,}" into trimming_outputs
 
     shell:
@@ -1158,6 +1158,11 @@ process Trimming {
         '''
 }
 
+trimmed_fastqc_inputs_raw
+    .flatten()
+    .map{ file -> tuple(get_prefix(file, params.sample == "paired"), file) }
+    .groupTuple()
+    .set{ trimmed_fastqc_inputs_grouped }
 
 /*
  * Run FastQC Quality Check on Trimmed Files
@@ -1169,7 +1174,7 @@ process QualityTrimmed {
     publishDir "${params.output}/fastQC/trimmed",'mode':'copy', pattern:'*_fastqc'
 
     input:
-        file fastqc_trimmed_input from trimmed_fastqc_inputs
+        set val(prefix), file(fastqc_trimmed_input) from trimmed_fastqc_inputs_grouped
 
     output:
         file "${prefix}*_fastqc"
@@ -1177,7 +1182,6 @@ process QualityTrimmed {
         file "${prefix}*_trimmed_fastqc_data.txt" into count_objects_quality_metrics_trimmed
 
     shell:
-        prefix = get_prefix(fastqc_trimmed_input[0], params.sample == "paired")
         if (params.sample == "single") {
             copy_command = "cp ${prefix}_trimmed_fastqc/summary.txt ${prefix}_trimmed_summary.txt"
             data_command = "cp ${prefix}_trimmed_fastqc/fastqc_data.txt ${prefix}_trimmed_fastqc_data.txt"
