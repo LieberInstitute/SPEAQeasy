@@ -126,7 +126,7 @@ for samp in $samp_names; do
                       exit_code=$(cat $proc_dir/.exitcode)
                       print_commands $proc_dir $proc_name $exit_code $samp $out_file $i
                       i=$(echo $?)
-                    endif
+                    fi
                 fi
             else
                 proc_line=$(echo "$proc_lines" | awk "NR==$line_num")
