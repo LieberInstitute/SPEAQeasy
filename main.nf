@@ -264,10 +264,13 @@ if (params.qsva != "" && ! qsva_file.exists()) {
 // included but maybe not params.coverage
 do_coverage = params.coverage || params.fullCov
 
+snv_reference="hg38"
+
 // Get species name from genome build name
 if (!params.containsKey('reference')) {
  if (params.custom_anno != "") {
     params.reference = "custom"
+    
  }
 }
 if (!params.containsKey('reference_type')) {
@@ -281,6 +284,7 @@ if (!params.containsKey('reference_type')) {
  else {
   if (params.reference == "hg19" || params.reference == "hg38") {
       params.reference_type = "human"
+      snv_reference = params.reference
   } else if (params.reference == "mm10") {
       params.reference_type = "mouse"
   } else {
@@ -1761,11 +1765,12 @@ if (params.step8) {
      * Step 8: Call Variants
      */
       
-    //if (params.custom_anno != "") {
-    //    snvbed = Channel.fromPath("${params.annotation}/*.bed")
-    //} else {
-        snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
-    //}
+    // this step is only executed if params.reference_type is "human":
+    // to use a custom snv BED under the custom annotation dir/Genotyping/:
+    //   snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
+
+    // NOTE: for now, since only human is supported anyway, let's just use built-in spqz/Annotation/Genotyping/ one   
+    snvbed = Channel.fromPath("${workflow.projectDir}/Annotation/Genotyping/common_missense_SNVs_${snv_reference}.bed")
     
     variant_calls_bam
         .combine(snvbed)
@@ -1781,24 +1786,20 @@ if (params.step8) {
         
         output:
             file "${variant_bams_prefix}.vcf.gz" into compressed_variant_calls
-            file "${variant_bams_prefix}.vcf.gz.tbi" into compressed_variant_calls_tbi
+            file "${variant_bams_prefix}.vcf.gz.csi" into compressed_variant_calls_idx
         
         shell:
             '''
-            !{params.samtools} mpileup \
-                -l !{snv_bed} \
-                !{params.samtools_args} \
-                -u \
-                -f !{variant_assembly_file} \
-                !{variant_calls_bam_file} \
-                -o !{variant_bams_prefix}_tmp.vcf
-            
+            !{params.bcftools} mpileup \
+                -R !{snv_bed} \
+                !{params.bcftools_mpileup_args} \
+                -Ou -f !{variant_assembly_file} \
+                !{variant_calls_bam_file} | \
             !{params.bcftools} call \
-                !{params.bcftools_args} \
-                !{variant_bams_prefix}_tmp.vcf \
+                !{params.bcftools_call_args} - \
                 > !{variant_bams_prefix}.vcf.gz
             
-            !{params.tabix} -p vcf !{variant_bams_prefix}.vcf.gz
+            !{params.bcftools} index !{variant_bams_prefix}.vcf.gz
             '''
     }
 
@@ -1814,7 +1815,7 @@ if (params.step8) {
 
 		input:
 		file collected_variants from compressed_variant_calls.collect()
-		file collected_variants_tbi from compressed_variant_calls_tbi.collect()
+		file collected_variants_idx from compressed_variant_calls_idx.collect()
 
 		output:
 		file "*"
