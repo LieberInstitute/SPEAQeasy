@@ -225,8 +225,9 @@ if (params.custom_anno == "") {
       exit 1, "Error: enter hg19 or hg38 for human, mm10 for mouse, or rn6 for rat as the reference."
     }
 } else {
-  params.reference = "custom"
-  params.reference_type = "custom"
+  if (!params.containsKey('reference')) {
+     params.reference = "custom"
+  }
 }
 
 // Trim mode
@@ -264,10 +265,20 @@ if (params.qsva != "" && ! qsva_file.exists()) {
 do_coverage = params.coverage || params.fullCov
 
 // Get species name from genome build name
-if (params.custom_anno != "") {
-  params.reference = "custom"
-  params.reference_type = "custom"
-} else {
+if (!params.containsKey('reference')) {
+ if (params.custom_anno != "") {
+    params.reference = "custom"
+ }
+}
+if (!params.containsKey('reference_type')) {
+ if (params.custom_anno != "") {
+    if (params.reference.startsWith("hg38")) { // special case
+      params.reference_type = "human"
+    } else {
+      params.reference_type = "custom"
+     }
+ }
+ else {
   if (params.reference == "hg19" || params.reference == "hg38") {
       params.reference_type = "human"
   } else if (params.reference == "mm10") {
@@ -275,7 +286,9 @@ if (params.custom_anno != "") {
   } else {
       params.reference_type = "rat"
   }
+ }
 }
+
 //  Path to small test files
 if (params.small_test) {
     params.input = "${workflow.projectDir}/test/$params.reference_type/${params.sample}/${params.strand}"
@@ -291,6 +304,7 @@ if (params.small_test) {
 // Variant calling is only enabled for human
 if (params.reference_type == "human") {
     params.step8 = true
+    println("NOTE: The variant file will be created [ reference type: ${params.reference_type} ]")
 } else {
     params.step8 = false
 }
@@ -467,6 +481,7 @@ summary_main['Keep unpaired'] = params.keep_unpaired
 summary_main['Output dir']        = params.output
 summary_main['Prefix'] = params.prefix
 summary_main['Reference']          = params.anno_ref
+summary_main['Reference type']     = params.reference_type
 summary_main['Sample']            = params.sample
 summary_main['Small test']  = params.small_test
 summary_main['Strand']            = params.strand
@@ -1746,11 +1761,11 @@ if (params.step8) {
      * Step 8: Call Variants
      */
       
-    if (params.custom_anno != "") {
-        snvbed = Channel.fromPath("${params.annotation}/*.bed")
-    } else {
+    //if (params.custom_anno != "") {
+    //    snvbed = Channel.fromPath("${params.annotation}/*.bed")
+    //} else {
         snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
-    }
+    //}
     
     variant_calls_bam
         .combine(snvbed)
