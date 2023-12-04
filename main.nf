@@ -2085,20 +2085,12 @@ workflow {
     PreprocessInputs(original_manifest, merge_script, raw_fastqs)
 
     // Group both reads together for each sample, if paired-end, and assign each sample a prefix
-    if (params.sample == "single") {
-        PreprocessInputs.out.merged_inputs_flat
-            .flatten()
-            .map{file -> tuple(get_prefix(file, false), file) }
-            .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
-            .set{ untrimmed_fastq_files }
-    } else {
-        PreprocessInputs.out.merged_inputs_flat
-            .flatten()
-            .map{file -> tuple(get_prefix(file, true), file) }
-            .groupTuple()
-            .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
-            .set{ untrimmed_fastq_files }
-    }
+    PreprocessInputs.out.merged_inputs_flat
+        .flatten()
+        .map{file -> tuple(get_prefix(file, params.sample == "paired"), file) }
+        .groupTuple()
+        .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
+        .set{ untrimmed_fastq_files }
 
     QualityUntrimmed(untrimmed_fastq_files)
 }
