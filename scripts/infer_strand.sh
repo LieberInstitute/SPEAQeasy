@@ -15,33 +15,33 @@ if [ $num_threads == 1 ]; then
 else
     thread_opt="-t $num_threads"
 fi
-        
+
 if [ $sample == "paired" ]; then
     fq1=$(ls *_1.f*q*)
     fq2=$(ls *_2.f*q*)
 
     #  Subset the FASTQ files by the given number of reads
     if [ $(basename $fq1 | grep ".gz" | wc -l) == 1 ]; then
-        zcat $fq1 | head -n $num_reads_infer_strand > test_1.fastq
-        zcat $fq2 | head -n $num_reads_infer_strand > test_2.fastq
+        zcat $fq1 | head -n $num_reads_infer_strand | gzip > test_1.fastq.gz
+        zcat $fq2 | head -n $num_reads_infer_strand | gzip > test_2.fastq.gz
     else
-        cat $fq1 | head -n $num_reads_infer_strand > test_1.fastq
-        cat $fq2 | head -n $num_reads_infer_strand > test_2.fastq
+        cat $fq1 | head -n $num_reads_infer_strand  | gzip > test_1.fastq.gz
+        cat $fq2 | head -n $num_reads_infer_strand | gzip > test_2.fastq.gz
     fi
         
     #  Try pseudoalignment assuming each type of strandness possible
     echo "Testing pseudoalignment assuming forward-strandness..."
-    $kallisto quant $thread_opt --fr-stranded -i kallisto_index_* -o ./forward test_1.fastq test_2.fastq
+    $kallisto quant $thread_opt --fr-stranded -i kallisto_index_* -o ./forward test_1.fastq.gz test_2.fastq.gz
     echo "Testing pseudoalignment assuming reverse-strandness..."
-    $kallisto quant $thread_opt --rf-stranded -i kallisto_index_* -o ./reverse test_1.fastq test_2.fastq
+    $kallisto quant $thread_opt --rf-stranded -i kallisto_index_* -o ./reverse test_1.fastq.gz test_2.fastq.gz
 else
     fq=$(ls *.f*q*)
             
     #  Subset the FASTQ file by the given number of reads
     if [ $(basename $fq | grep ".gz" | wc -l) == 1 ]; then
-        zcat $fq | head -n $num_reads_infer_strand > test.fastq
+        zcat $fq | head -n $num_reads_infer_strand |gzip > test.fastq.gz
     else
-        cat $fq | head -n $num_reads_infer_strand > test.fastq
+        cat $fq | head -n $num_reads_infer_strand | gzip > test.fastq.gz
     fi
             
     #  Try pseudoalignment assuming each type of strandness possible
@@ -53,7 +53,7 @@ else
         -s $kallisto_len_sd \
         --fr-stranded \
         -i kallisto_index_* \
-        -o ./forward test.fastq
+        -o ./forward test.fastq.gz
     echo "Testing pseudoalignment assuming reverse-strandness..."
     $kallisto quant \
         $thread_opt \
@@ -62,7 +62,7 @@ else
         -s $kallisto_len_sd \
         --rf-stranded \
         -i kallisto_index_* \
-        -o ./reverse test.fastq
+        -o ./reverse test.fastq.gz
 fi
         
 forward_count=$(grep "n_pseudoaligned" forward/run_info.json | cut -d ":" -f 2 | cut -d "," -f 1)
@@ -76,5 +76,6 @@ $rscript infer_strand.R -f $forward_count -r $reverse_count -p $sample -s $stran
 if [ ! "$?" == 0 ]; then
     exit 1
 else
+    /bin/rm -f test_[12].fastq.gz test.fastq.gz
     echo "Done."
 fi

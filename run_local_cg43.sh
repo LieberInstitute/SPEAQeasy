@@ -20,7 +20,7 @@ SPLOG=$PWD/SPEAQeasy_output.log
 ##REF=hg38 # reference genome - can be hg38, hg19, mm10 or rn6
 ##--- using custom gencode43 nri annotation:
 REF="hg38main_g43nri"
-ANN=/opt/sw/spqz/Annotation/custom/spqz_g43nri_main
+ANN=/opt/sw/spqz/Annotation/custom
 
 ### === only edit these if you want to change the default output/input directories
 OUTDIR=$(pwd -P)
