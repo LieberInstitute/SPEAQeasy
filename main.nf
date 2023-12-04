@@ -606,48 +606,44 @@ process PullGtf {
  * Build aligner index (HISAT2 by default, or optionally STAR)
  */
 
-if (params.use_star) {
-    process BuildStarIndex {
-        storeDir "${params.annotation}/reference/${params.reference}/assembly/index/star_${params.anno_suffix}"
+process BuildStarIndex {
+    storeDir "${params.annotation}/reference/${params.reference}/assembly/index/star_${params.anno_suffix}"
+    
+    input:
+        path reference_fasta
+        path reference_gtf
         
-        input:
-            path reference_fasta
-            path reference_gtf
-            
-        output:
-            path "index_dir/*", emit: star_index
-            
-        shell:
-            '''
-            mkdir index_dir
-            
-            !{params.star} \
-                --runMode genomeGenerate \
-                --genomeDir ./index_dir \
-                --runThreadN !{task.cpus} \
-                --genomeFastaFiles !{reference_fasta} \
-                --sjdbGTFfile !{reference_gtf}
-            '''
-    }
-} else { // HISAT2 is used as the aligner
-    // Uses "storeDir" to build HISAT2 index only when it doesn't exist, and output the cached
-    // files if they do already exist
-    process BuildHisatIndex {	
-        tag "Building HISAT2 Index: ${hisat_prefix}"
-        storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
-    
-        input:
-            path reference_fasta
-    
-        output:
-            path "${hisat_prefix}.*", emit: hisat_index
-    
-        shell:
-            hisat_prefix = "hisat2_assembly_${params.anno_suffix}"
-            '''
-            !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{hisat_prefix}
-            '''
-    }
+    output:
+        path "index_dir/*", emit: star_index
+        
+    shell:
+        '''
+        mkdir index_dir
+        
+        !{params.star} \
+            --runMode genomeGenerate \
+            --genomeDir ./index_dir \
+            --runThreadN !{task.cpus} \
+            --genomeFastaFiles !{reference_fasta} \
+            --sjdbGTFfile !{reference_gtf}
+        '''
+}
+
+process BuildHisatIndex {	
+    tag "Building HISAT2 Index: ${hisat_prefix}"
+    storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
+
+    input:
+        path reference_fasta
+
+    output:
+        path "${hisat_prefix}.*", emit: hisat_index
+
+    shell:
+        hisat_prefix = "hisat2_assembly_${params.anno_suffix}"
+        '''
+        !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{hisat_prefix}
+        '''
 }
 
 
@@ -2088,4 +2084,10 @@ workflow {
     Channel.fromPath("${workflow.projectDir}/scripts/build_annotation_objects.R")
         .set{ build_ann_script }
     BuildAnnotationObjects(reference_fasta, reference_gtf, build_ann_script)
+
+    if (params.use_star) {
+        BuildStarIndex(reference_fasta, reference_gtf)
+    } else { // HISAT2 is used as the aligner
+        BuildHisatIndex(reference_fasta)
+    }
 }
