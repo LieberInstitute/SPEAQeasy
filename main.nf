@@ -813,53 +813,37 @@ process PreprocessInputs {
         '''
 }
 
-// // Group both reads together for each sample, if paired-end, and assign each sample a prefix
-// if (params.sample == "single") {
-//     merged_inputs_flat
-//         .flatten()
-//         .map{file -> tuple(get_prefix(file, false), file) }
-//         .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
-//         .set{ untrimmed_fastq_files }
-// } else {
-//     merged_inputs_flat
-//         .flatten()
-//         .map{file -> tuple(get_prefix(file, true), file) }
-//         .groupTuple()
-//         .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
-//         .set{ untrimmed_fastq_files }
-// }
+/*
+ * Perform FastQC on the untrimmed reads, as an initial quality gauge
+ */
 
-// /*
-//  * Perform FastQC on the untrimmed reads, as an initial quality gauge
-//  */
+process QualityUntrimmed {
 
-// process QualityUntrimmed {
+    tag "$prefix"
+    publishDir "${params.output}/fastQC/untrimmed", mode:'copy', pattern:'*_fastqc'
 
-//     tag "$prefix"
-//     publishDir "${params.output}/fastQC/untrimmed", mode:'copy', pattern:'*_fastqc'
+    input:
+        tuple val(prefix), path(fastqc_untrimmed_input)
 
-//     input:
-//         set val(prefix), path(fastqc_untrimmed_input) from untrimmed_fastq_files 
+    output:
+        path "${prefix}*_fastqc"
+        path "*_summary.txt", emit: quality_reports
+        path "*_fastqc_data.txt", emit: count_objects_quality_metrics_untrimmed
 
-//     output:
-//         path "${prefix}*_fastqc"
-//         path "*_summary.txt", emit: quality_reports
-//         path "*_fastqc_data.txt", emit: count_objects_quality_metrics_untrimmed
-
-//     shell:
-//         if (params.sample == "single") {
-//             copy_command = "cp ${prefix}_fastqc/summary.txt ${prefix}_untrimmed_summary.txt"
-//             data_command = "cp ${prefix}_fastqc/fastqc_data.txt ${prefix}_untrimmed_fastqc_data.txt"
-//         } else {
-//             copy_command = "cp ${prefix}_1_fastqc/summary.txt ${prefix}_1_untrimmed_summary.txt && cp ${prefix}_2_fastqc/summary.txt ${prefix}_2_untrimmed_summary.txt"
-//             data_command = "cp ${prefix}_1_fastqc/fastqc_data.txt ${prefix}_1_untrimmed_fastqc_data.txt && cp ${prefix}_2_fastqc/fastqc_data.txt ${prefix}_2_untrimmed_fastqc_data.txt"
-//         }
-//         '''
-//         !{params.fastqc} -t !{task.cpus} --extract !{params.fastqc_args} !{fastqc_untrimmed_input}
-//         !{copy_command}
-//         !{data_command}
-//         '''
-// }
+    shell:
+        if (params.sample == "single") {
+            copy_command = "cp ${prefix}_fastqc/summary.txt ${prefix}_untrimmed_summary.txt"
+            data_command = "cp ${prefix}_fastqc/fastqc_data.txt ${prefix}_untrimmed_fastqc_data.txt"
+        } else {
+            copy_command = "cp ${prefix}_1_fastqc/summary.txt ${prefix}_1_untrimmed_summary.txt && cp ${prefix}_2_fastqc/summary.txt ${prefix}_2_untrimmed_summary.txt"
+            data_command = "cp ${prefix}_1_fastqc/fastqc_data.txt ${prefix}_1_untrimmed_fastqc_data.txt && cp ${prefix}_2_fastqc/fastqc_data.txt ${prefix}_2_untrimmed_fastqc_data.txt"
+        }
+        '''
+        !{params.fastqc} -t !{task.cpus} --extract !{params.fastqc_args} !{fastqc_untrimmed_input}
+        !{copy_command}
+        !{data_command}
+        '''
+}
 
 // //  Combine FASTQ files and FastQC result summaries for each sample, to form the input channel for Trimming
 // if (params.sample == "single") {
@@ -2099,4 +2083,22 @@ workflow {
         .collect()
         .set{ raw_fastqs }
     PreprocessInputs(original_manifest, merge_script, raw_fastqs)
+
+    // Group both reads together for each sample, if paired-end, and assign each sample a prefix
+    if (params.sample == "single") {
+        PreprocessInputs.out.merged_inputs_flat
+            .flatten()
+            .map{file -> tuple(get_prefix(file, false), file) }
+            .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
+            .set{ untrimmed_fastq_files }
+    } else {
+        PreprocessInputs.out.merged_inputs_flat
+            .flatten()
+            .map{file -> tuple(get_prefix(file, true), file) }
+            .groupTuple()
+            .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
+            .set{ untrimmed_fastq_files }
+    }
+
+    QualityUntrimmed(untrimmed_fastq_files)
 }
