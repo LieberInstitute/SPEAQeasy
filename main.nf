@@ -674,49 +674,42 @@ process BuildAnnotationObjects {
 /*
  * Download transcript FASTA
  */
-
-// if (params.custom_anno != "") {
-//     Channel.fromPath("${params.annotation}/*transcripts*.fa*")
-//         .ifEmpty{ error "Cannot find transcripts fasta in annotation directory (and --custom_anno was specified)" }
-//         .first()  // This proves to nextflow that the channel will always hold one value/file
-//         .set{ transcript_fa }
-// } else {			
-//     // Uses "storeDir" to download files only when they don't exist, and output the cached
-//     // files if they do already exist
-//     process PullTranscriptFasta {
-    			
-//         tag "Downloading TX FA File: ${baseName}"
-//         storeDir "${params.annotation}/reference/${params.reference}/transcripts/fa"
-        
-//         input:
-//             path subset_script from path("${workflow.projectDir}/scripts/subset_rat_fasta.R")
-
-//         output:
-//             path baseName, emit: transcript_fa
+			
+// Uses "storeDir" to download files only when they don't exist, and output the cached
+// files if they do already exist
+process PullTranscriptFasta {
+            
+    tag "Downloading TX FA File: ${baseName}"
+    storeDir "${params.annotation}/reference/${params.reference}/transcripts/fa"
     
-//         shell:
-//             //  For human and mouse, only the "main" transcripts FASTA is
-//             //  available. These means the output FASTA won't differ between
-//             //  "main" and "primary" runs for these species. For rat, only a
-//             //  "primary" FASTA is available, so the output will differ
-//             if (params.reference == 'rat') {
-//                 baseName = "transcripts_${params.anno_suffix}.fa"
-//             } else {
-//                 baseName = file("${params.tx_fa_link}").getName() - ".gz"
-//             }
+    input:
+        path subset_script
 
-//             '''
-//             curl -o !{baseName}.gz !{params.tx_fa_link}
-//             gunzip !{baseName}.gz
+    output:
+        path baseName, emit: transcript_fa
 
-//             #   For rat, the only transcripts FASTA available includes "primary"
-//             #   transcripts. Subset if the user selects "main" build
-//             if [[ (!{params.reference} == 'rat') && (!{params.anno_build} == "main") ]]; then
-//                 !{params.Rscript} !{subset_script}
-//             fi
-//             '''
-//     }
-// }
+    shell:
+        //  For human and mouse, only the "main" transcripts FASTA is
+        //  available. These means the output FASTA won't differ between
+        //  "main" and "primary" runs for these species. For rat, only a
+        //  "primary" FASTA is available, so the output will differ
+        if (params.reference == 'rat') {
+            baseName = "transcripts_${params.anno_suffix}.fa"
+        } else {
+            baseName = file("${params.tx_fa_link}").getName() - ".gz"
+        }
+
+        '''
+        curl -o !{baseName}.gz !{params.tx_fa_link}
+        gunzip !{baseName}.gz
+
+        #   For rat, the only transcripts FASTA available includes "primary"
+        #   transcripts. Subset if the user selects "main" build
+        if [[ (!{params.reference} == 'rat') && (!{params.anno_build} == "main") ]]; then
+            !{params.Rscript} !{subset_script}
+        fi
+        '''
+}
 
 // /*
 //  * Build transcript index for Salmon or Kallisto
@@ -2063,6 +2056,11 @@ process BuildAnnotationObjects {
 // }
 
 workflow {
+    Channel.fromPath("${workflow.projectDir}/scripts/build_annotation_objects.R")
+        .set{ build_ann_script }
+    Channel.fromPath("${workflow.projectDir}/scripts/subset_rat_fasta.R")
+        .set { subset_script }
+
     // When using custom annotation, grab the user-provided reference FASTA.
     // Otherwise, run PullAssemblyFasta to pull it from online
     if (params.custom_anno != "") {
@@ -2074,15 +2072,19 @@ workflow {
             .ifEmpty{ error "Cannot find reference gtf in annotation directory (and --custom_anno was specified)" }
             .first()  // This proves to nextflow that the channel will always hold one value/file
             .set{ reference_gtf }
+        Channel.fromPath("${params.annotation}/*transcripts*.fa*")
+            .ifEmpty{ error "Cannot find transcripts fasta in annotation directory (and --custom_anno was specified)" }
+            .first()  // This proves to nextflow that the channel will always hold one value/file
+            .set{ transcript_fa }
     } else {
         PullAssemblyFasta()
         PullGtf()
+        PullTranscriptFasta(subset_script)
         reference_fasta = PullAssemblyFasta.out.reference_fasta
         reference_gtf = PullGtf.out.reference_gtf
+        transcript_fa = PullTranscriptFasta.out.transcript_fa
     }
 
-    Channel.fromPath("${workflow.projectDir}/scripts/build_annotation_objects.R")
-        .set{ build_ann_script }
     BuildAnnotationObjects(reference_fasta, reference_gtf, build_ann_script)
 
     if (params.use_star) {
