@@ -525,7 +525,7 @@ if (params.custom_anno != "") {
     Channel.fromPath("${params.annotation}/*assembly*.fa*")
         .ifEmpty{ error "Cannot find assembly fasta in annotation directory (and --custom_anno was specified)" }
         .first()  // This proves to nextflow that the channel will always hold one value/file
-        .into{ reference_fasta; variant_assembly; annotation_assembly }
+        .set{ reference_fasta }
 } else {
     // If any files are not already downloaded/ prepared: download the primary
     // assembly fasta and create a subsetted fasta of "main" (reference) sequences only
@@ -535,8 +535,8 @@ if (params.custom_anno != "") {
         storeDir "${params.annotation}/reference/${params.reference}/assembly/fa"
             
         output:
-            file "${out_fasta}" into reference_fasta, variant_assembly, annotation_assembly
-            file "*.fa" // to store the primary and main fastas, regardless of which is used
+            path "${out_fasta}", emit: reference_fasta
+            path "*.fa" // to store the primary and main fastas, regardless of which is used
     
         shell:
             //  Name of the primary assembly fasta after being downloaded and unzipped
@@ -592,7 +592,7 @@ if (params.custom_anno != "") {
     Channel.fromPath("${params.annotation}/*.gtf")
         .ifEmpty{ error "Cannot find reference gtf in annotation directory (and --custom_anno was specified)" }
         .first()  // This proves to nextflow that the channel will always hold one value/file
-        .into{ create_counts_gtf; gencode_feature_gtf; annotation_gtf }
+        .set{ reference_gtf }
 } else {
     // Uses "storeDir" to download gtf only when it doesn't exist, and output the cached
     // file if it does already exist
@@ -602,7 +602,7 @@ if (params.custom_anno != "") {
         storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
     
         output:
-            file "${out_gtf}" into create_counts_gtf, gencode_feature_gtf, annotation_gtf
+            path "${out_gtf}", emit: reference_gtf
     
         shell:
             // Names of gtf file when downloaded + unzipped and after renamed, respectively
@@ -627,11 +627,11 @@ if (params.use_star) {
         storeDir "${params.annotation}/reference/${params.reference}/assembly/index/star_${params.anno_suffix}"
         
         input:
-            file reference_fasta
-            file annotation_gtf
+            path reference_fasta
+            path reference_gtf
             
         output:
-            file "index_dir/*" into star_index
+            path "index_dir/*", emit: star_index
             
         shell:
             '''
@@ -642,7 +642,7 @@ if (params.use_star) {
                 --genomeDir ./index_dir \
                 --runThreadN !{task.cpus} \
                 --genomeFastaFiles !{reference_fasta} \
-                --sjdbGTFfile !{annotation_gtf}
+                --sjdbGTFfile !{reference_gtf}
             '''
     }
 } else { // HISAT2 is used as the aligner
@@ -653,10 +653,10 @@ if (params.use_star) {
         storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
     
         input:
-            file reference_fasta
+            path reference_fasta
     
         output:
-            file("${hisat_prefix}.*") into hisat_index
+            path "${hisat_prefix}.*", emit: hisat_index
     
         shell:
             hisat_prefix = "hisat2_assembly_${params.anno_suffix}"
@@ -676,14 +676,14 @@ process BuildAnnotationObjects {
   storeDir "${params.annotation}/junction_txdb"
   
   input:
-      file annotation_assembly
-      file annotation_gtf
-      file build_ann_script from file("${workflow.projectDir}/scripts/build_annotation_objects.R")
+      path reference_fasta
+      path reference_gtf
+      path build_ann_script from path "${workflow.projectDir}/scripts/build_annotation_objects.R"
       
   output:
-      file "junction_annotation_${params.anno_suffix}.rda" into junction_annotation
-      file "feature_to_Tx_${params.anno_suffix}.rda" into feature_to_tx_gencode
-      file "chrom_sizes_${params.anno_suffix}" into chr_sizes
+      path "junction_annotation_${params.anno_suffix}.rda", emit: junction_annotation
+      path "feature_to_Tx_${params.anno_suffix}.rda", emit: feature_to_tx_gencode
+      path "chrom_sizes_${params.anno_suffix}", emit: chr_sizes
       
   shell:
       '''
@@ -709,10 +709,10 @@ if (params.custom_anno != "") {
         storeDir "${params.annotation}/reference/${params.reference}/transcripts/fa"
         
         input:
-            file subset_script from file("${workflow.projectDir}/scripts/subset_rat_fasta.R")
+            path subset_script from path "${workflow.projectDir}/scripts/subset_rat_fasta.R"
 
         output:
-            file baseName into transcript_fa
+            path baseName, emit: transcript_fa
     
         shell:
             //  For human and mouse, only the "main" transcripts FASTA is
@@ -751,11 +751,11 @@ if (params.use_salmon) {
         storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon/${anno_suffix}"
     
         input:
-            file transcript_fa
+            path transcript_fa
     
         output:
-            file("salmon_index_${anno_suffix}/*") into salmon_index
-            file("build_salmon_index_${anno_suffix}.log")
+            path "salmon_index_${anno_suffix}/*", emit: salmon_index
+            path "build_salmon_index_${anno_suffix}.log"
     
         script:
           if (params.reference == "rat") {
@@ -788,11 +788,11 @@ process BuildKallistoIndex {
     storeDir "${params.annotation}/reference/${params.reference}/transcripts/kallisto"
     
     input:
-        file transcript_fa
+        path transcript_fa
 
     output:
-        file "kallisto_index_${anno_suffix}" into kallisto_index
-        file "build_kallisto_index_${anno_suffix}.log"
+        path "kallisto_index_${anno_suffix}", emit: kallisto_index
+        path "build_kallisto_index_${anno_suffix}.log"
 
     shell:
         // Use of main/primary doesn't affect transcripts for human and mouse
@@ -831,14 +831,14 @@ process PreprocessInputs {
     publishDir "${params.output}/preprocessing", mode:'copy', pattern:'*.log'
 
     input:
-        file original_manifest from file("${params.input}/samples.manifest")
-        file merge_script from file("${workflow.projectDir}/scripts/preprocess_inputs.R")
-        file raw_fastqs
+        path original_manifest from path "${params.input}/samples.manifest"
+        path merge_script from path "${workflow.projectDir}/scripts/preprocess_inputs.R"
+        path raw_fastqs
 
     output:
-        path "*.f*q*" into merged_inputs_flat includeInputs true
-        file "samples_processed.manifest" into strandness_manifest
-        file "preprocess_inputs.log"
+        path "*.f*q*", emit: merged_inputs_flat includeInputs true
+        path "samples_processed.manifest", emit: strandness_manifest
+        path "preprocess_inputs.log"
 
     shell:
         if (params.sample == "paired") {
@@ -854,27 +854,18 @@ process PreprocessInputs {
 
 //  Group both reads together for each sample, if paired-end, and assign each sample a prefix
 if (params.sample == "single") {
-
     merged_inputs_flat
         .flatten()
-        .map{file -> tuple(get_prefix(file), file) }
+        .map{file -> tuple(get_prefix(file, false), file) }
         .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
-        .set{ temp_inputs }
+        .set{ untrimmed_fastq_files }
 } else {
-
     merged_inputs_flat
         .flatten()
         .map{file -> tuple(get_prefix(file, true), file) }
         .groupTuple()
         .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
-        .set{ temp_inputs }
-}
-
-//  Copy the processed input channel to channels used by dependent processes
-if (params.ercc) { 
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs; ercc_inputs }
-} else {
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs }
+        .set{ untrimmed_fastq_files }
 }
 
 /*
@@ -887,12 +878,12 @@ process QualityUntrimmed {
     publishDir "${params.output}/fastQC/untrimmed", mode:'copy', pattern:'*_fastqc'
 
     input:
-        set val(prefix), file(fastqc_untrimmed_input) from fastqc_untrimmed_inputs 
+        set val(prefix), file(fastqc_untrimmed_input) from untrimmed_fastq_files 
 
     output:
-        file "${prefix}*_fastqc"
-        file "*_summary.txt" into fastqc_completion_token, quality_reports, count_objects_quality_reports_untrimmed
-        file "*_fastqc_data.txt" into count_objects_quality_metrics_untrimmed
+        path "${prefix}*_fastqc"
+        path "*_summary.txt", emit: quality_reports
+        path "*_fastqc_data.txt", emit: count_objects_quality_metrics_untrimmed
 
     shell:
         if (params.sample == "single") {
@@ -915,7 +906,7 @@ if (params.sample == "single") {
     quality_reports
         .flatten()
         .map{ file -> tuple(get_prefix(file), file) }
-        .join(trimming_fqs)
+        .join(untrimmed_fastq_files)
         .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
         .set{ trimming_inputs }
         
@@ -925,7 +916,7 @@ if (params.sample == "single") {
         .flatten()
         .map{ file -> tuple(get_prefix(file, true), file) }
         .groupTuple()
-        .join(trimming_fqs)
+        .join(untrimmed_fastq_files)
         .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
         .set{ trimming_inputs }
 }    
@@ -940,18 +931,18 @@ process InferStrandness {
     publishDir "${params.output}/infer_strandness", mode:'copy'
     
     input:
-        file infer_strand_R from file("${workflow.projectDir}/scripts/infer_strand.R")
-        file infer_strand_sh from file("${workflow.projectDir}/scripts/infer_strand.sh")
-        file kallisto_index
-        set val(prefix), file(fq_file) from strandness_inputs
+        path infer_strand_R from path "${workflow.projectDir}/scripts/infer_strand.R"
+        path infer_strand_sh from path "${workflow.projectDir}/scripts/infer_strand.sh"
+        path kallisto_index
+        set val(prefix), file(fq_file) from untrimmed_fastq_files
         // We don't want failures to infer strandness to crash the pipeline
         // before FastQC runs, as FastQC output provides richer context to what
         // might be problematic about specific samples
-        file fastqc_completion_token
+        file quality_reports
         
     output:
-        file "${prefix}_infer_strand.log"
-        file "${prefix}_strandness_pattern.txt" into strandness_patterns
+        path "${prefix}_infer_strand.log"
+        path "${prefix}_strandness_pattern.txt", emit: strandness_patterns
         
     shell:
         '''
@@ -979,12 +970,12 @@ process CompleteManifest {
     publishDir "${params.output}/infer_strandness", mode:'copy'
     
     input:
-        file strandness_files from strandness_patterns.collect()
-        file strandness_manifest
-        file manifest_script from file("${workflow.projectDir}/scripts/complete_manifest.R")
+        path strandness_files from strandness_patterns.collect()
+        path strandness_manifest
+        path manifest_script from path "${workflow.projectDir}/scripts/complete_manifest.R"
         
     output:
-        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_hisat, complete_manifest_quant, complete_manifest_fullcov
+        path "samples_complete.manifest", emit: complete_manifest
         
     shell:
         '''
@@ -1009,13 +1000,13 @@ if (params.ercc) {
     publishDir "${params.output}/ERCC/${prefix}",'mode':'copy'
 
     input:
-      file erccidx from file("${params.annotation}/ERCC/ERCC92.idx")
-      set val(prefix), file(ercc_input) from ercc_inputs
-      file complete_manifest_ercc
+      path erccidx from path "${params.annotation}/ERCC/ERCC92.idx"
+      set val(prefix), path(ercc_input) from untrimmed_fastq_files
+      path complete_manifest
 
     output:
-      file "${prefix}_ercc_abundance.tsv" into ercc_abundances
-      file "ercc_${prefix}.log"
+      path "${prefix}_ercc_abundance.tsv", emit: ercc_abundances
+      path "ercc_${prefix}.log"
 
     shell:
       if (params.sample == "single") {
@@ -1065,11 +1056,11 @@ process Trimming {
     publishDir "${params.output}/trimming", mode:'copy', pattern:'*_trimmed*.f*q{.gz,}'
 
     input:
-        set val(fq_prefix), file(fq_summary), file(fq_file) from trimming_inputs
+        set val(fq_prefix), path(fq_summary), path(fq_file) from trimming_inputs
 
     output:
-        file "${fq_prefix}_trimmed*.f*q{.gz,}" optional true into trimmed_fastqc_inputs_raw
-        file "${fq_prefix}*.f*q{.gz,}" into trimming_outputs
+        path "${fq_prefix}_trimmed*.f*q{.gz,}", emit: trimmed_fastqc_inputs_raw optional true 
+        path "${fq_prefix}*.f*q{.gz,}", emit: trimming_outputs
 
     shell:
         file_ext = get_file_ext(fq_file[0])
@@ -1174,12 +1165,12 @@ process QualityTrimmed {
     publishDir "${params.output}/fastQC/trimmed",'mode':'copy', pattern:'*_fastqc'
 
     input:
-        set val(prefix), file(fastqc_trimmed_input) from trimmed_fastqc_inputs_grouped
+        set val(prefix), path(fastqc_trimmed_input) from trimmed_fastqc_inputs_grouped
 
     output:
-        file "${prefix}*_fastqc"
-        file "${prefix}*_trimmed_summary.txt" into count_objects_quality_reports_trimmed
-        file "${prefix}*_trimmed_fastqc_data.txt" into count_objects_quality_metrics_trimmed
+        path "${prefix}*_fastqc"
+        path "${prefix}*_trimmed_summary.txt", emit: count_objects_quality_reports_trimmed
+        path "${prefix}*_trimmed_fastqc_data.txt", emit: count_objects_quality_metrics_trimmed
 
     shell:
         if (params.sample == "single") {
@@ -1214,12 +1205,12 @@ if (params.use_star) {
         
         input:
             file star_index
-            set val(prefix), file(single_star_input) from alignment_inputs
+            set val(prefix), path(single_star_input) from alignment_inputs
             
         output:
-            file "*.bam" into alignment_output
-            file "${prefix}_unmapped_*.fastq" optional true
-            file "*_STAR_alignment.log" into alignment_summaries
+            path "*.bam", emit: alignment_output
+            path "${prefix}_unmapped_*.fastq" optional true
+            path "*_STAR_alignment.log", emit: alignment_summaries
             
         shell:            
             if (params.sample == "paired" && params.unalign) {
@@ -1286,13 +1277,13 @@ if (params.use_star) {
             publishDir "${params.output}/alignment",mode:'copy'
     
             input:
-                file hisat_index
-                file complete_manifest_hisat
-                set val(prefix), file(single_hisat_input) from alignment_inputs
+                path hisat_index
+                path complete_manifest
+                set val(prefix), path(single_hisat_input) from alignment_inputs
     
             output:
-                file "${prefix}.bam" into alignment_output
-                file "*_align_summary.txt" into alignment_summaries
+                path "${prefix}.bam", emit: alignment_output
+                path "*_align_summary.txt", emit: alignment_summaries
     
             shell:
                 '''
@@ -1330,14 +1321,14 @@ if (params.use_star) {
             publishDir "${params.output}/alignment",'mode':'copy'
     
             input:
-                file hisat_index
-                file complete_manifest_hisat
-                set val(prefix), file(fq_files) from alignment_inputs
+                path hisat_index
+                path complete_manifest
+                set val(prefix), path(fq_files) from alignment_inputs
     
             output:
-                file "${prefix}.bam" into alignment_output
-                file "*_unpaired*.fastq" optional true
-                file "*_align_summary.txt" into alignment_summaries
+                path "${prefix}.bam", emit: alignment_output
+                path "*_unpaired*.fastq" optional true
+                path "*_align_summary.txt", emit: alignment_summaries
     
             shell:
                 if (params.unalign) {
@@ -1400,10 +1391,10 @@ process BamSort {
     publishDir "${params.output}/alignment/bam_sort",'mode':'copy'
 
     input:
-        set val(prefix), file(input_bam) from bam_sort_inputs
+        set val(prefix), path(input_bam) from bam_sort_inputs
 
     output:
-        set val(prefix), file("${prefix}_sorted.bam"), file("${prefix}*_sorted.bam.bai") into feature_bam_inputs, alignment_bam_inputs, coverage_bam_inputs, full_coverage_bams, count_objects_bam_files, variant_calls_bam
+        set val(prefix), path("${prefix}_sorted.bam"), path("${prefix}*_sorted.bam.bai"), emit: sorted_bams
 
     shell:
         '''
@@ -1412,8 +1403,8 @@ process BamSort {
         '''
 }
 
-feature_bam_inputs
-  .combine(gencode_feature_gtf)
+sorted_bams
+  .combine(reference_gtf)
   .set{ feature_counts_inputs }
 
 /*
@@ -1426,12 +1417,12 @@ process FeatureCounts {
     publishDir "${params.output}/counts",'mode':'copy'
 
     input:
-        set val(feature_prefix), file(feature_bam), file(feature_index), file(gencode_gtf_feature) from feature_counts_inputs
-        file complete_manifest_feature
+        set val(feature_prefix), path(feature_bam), path(feature_index), path(gencode_gtf_feature) from feature_counts_inputs
+        path complete_manifest
 
     output:
-        file "*.{log,summary}"
-        file "*.counts*" into sample_counts
+        path "*.{log,summary}"
+        path "*.counts*", emit: sample_counts
 
     script:
         if (params.sample == "single") {
@@ -1491,10 +1482,10 @@ process PrimaryAlignments {
 	publishDir "${params.output}/counts/junction/primary_alignments",'mode':'copy'
 
 	input:
-	set val(alignment_prefix), file(alignment_bam), file(alignment_index) from alignment_bam_inputs
+	set val(alignment_prefix), path(alignment_bam), path(alignment_index) from sorted_bams
 
 	output:
-	set val("${alignment_prefix}"), file("${alignment_prefix}.bam"), file("${alignment_prefix}.bam.bai") into primary_alignments
+	set val("${alignment_prefix}"), path("${alignment_prefix}.bam"), path("${alignment_prefix}.bam.bai"), emit: primary_alignments
 
 	script:
 	"""
@@ -1513,11 +1504,11 @@ process Junctions {
     publishDir "${params.output}/counts/junction",'mode':'copy'
 
     input:
-        set val(prefix), file(alignment_bam), file(alignment_index) from primary_alignments
-        file complete_manifest_junctions
+        set val(prefix), path(alignment_bam), path(alignment_index) from primary_alignments
+        path complete_manifest
 
     output:
-        file "*.count" into regtools_outputs
+        path "*.count", emit: regtools_outputs
 
     shell:
         outcount = "${prefix}_junctions_primaryOnly_regtools.count"
@@ -1553,14 +1544,14 @@ if (params.use_salmon) {
         publishDir "${params.output}/salmon_tx/${prefix}",mode:'copy'
     
         input:
-            file salmon_index
-            file complete_manifest_quant
-            set val(prefix), file(salmon_inputs) from tx_quant_inputs
+            path salmon_index
+            path complete_manifest
+            set val(prefix), path(salmon_inputs) from untrimmed_fastq_files
     
         output:
-            file "${prefix}/*"
-            file "${prefix}_quant.sf" into tx_quants
-            file "tx_quant_${prefix}.log"
+            path "${prefix}/*"
+            path "${prefix}_quant.sf", emit: tx_quants
+            path "tx_quant_${prefix}.log"
     
         shell:
             '''
@@ -1605,15 +1596,15 @@ if (params.use_salmon) {
         publishDir "${params.output}/kallisto_tx/${prefix}", mode:'copy'
     
         input:
-            file kallisto_index
-            file complete_manifest_quant
-            set val(prefix), file(fastqs) from tx_quant_inputs
+            path kallisto_index
+            path complete_manifest
+            set val(prefix), path(fastqs) from untrimmed_fastq_files
     
         output:
-            file "abundance.h5"
-            file "run_info.json"
-            file "tx_quant_${prefix}.log"
-            file "${prefix}_abundance.tsv" into tx_quants
+            path "abundance.h5"
+            path "run_info.json"
+            path "tx_quant_${prefix}.log"
+            path "${prefix}_abundance.tsv", emit: tx_quants
             
         shell:
             '''
@@ -1672,14 +1663,14 @@ if (params.qsva == "") {
     Channel.fromPath(params.qsva).set{ qsva_tx_list }
 }
 
-count_objects_bam_files // this puts sorted.bams and bais into the channel
+sorted_bams // this puts sorted.bams and bais into the channel
   .flatten()
-  .mix(count_objects_quality_reports_untrimmed) // this puts sample_XX_summary.txt files into the channel
+  .mix(quality_reports) // this puts sample_XX_summary.txt files into the channel
   .mix(count_objects_quality_metrics_untrimmed) // this puts sample_XX_fastqc_data.txt into the channel
   .mix(count_objects_quality_reports_trimmed)
   .mix(count_objects_quality_metrics_trimmed)
   .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
-  .mix(create_counts_gtf) // this puts the transcript .gtf file into the channel
+  .mix(reference_gtf) // this puts the transcript .gtf file into the channel
   .mix(sample_counts) // this puts sample_XX_*_Exons.counts and sample_XX_*_Genes.counts into the channel
   .mix(regtools_outputs) // this puts the *_junctions_primaryOnly_regtools.count files into the channel
   .mix(tx_quants)
@@ -1728,18 +1719,18 @@ process CountObjects {
     publishDir "${params.output}/count_objects",'mode':'copy'
 
     input:
-        file counts_inputs
-        file counts_annotations
-        file create_counts from file("${workflow.projectDir}/scripts/create_count_objects.R")
-        file ercc_actual_conc from file("${params.annotation}/ERCC/ercc_actual_conc.txt")
-        file complete_manifest_counts
+        path counts_inputs
+        path counts_annotations
+        path create_counts from path "${workflow.projectDir}/scripts/create_count_objects.R"
+        path ercc_actual_conc from path "${params.annotation}/ERCC/ercc_actual_conc.txt"
+        path complete_manifest
 
     output:
-        file "*.pdf" optional true
-        file "read_and_alignment_metrics_*.csv"
-        file "*.Rdata"
-        file "*.rda"
-        file "counts.log"
+        path "*.pdf" optional true
+        path "read_and_alignment_metrics_*.csv"
+        path "*.Rdata"
+        path "*.rda"
+        path "counts.log"
 
     shell:
         if (params.sample == "paired") {
@@ -1795,9 +1786,9 @@ if (perform_variant_calling) {
         snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
     }
     
-    variant_calls_bam
+    sorted_bams
         .combine(snvbed)
-        .combine(variant_assembly)
+        .combine(reference_fasta)
         .set{ variant_calls }
 
     process VariantCalls {
@@ -1805,11 +1796,11 @@ if (perform_variant_calling) {
         publishDir "${params.output}/variant_calls",'mode':'copy'
         
         input:
-            set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai), file(snv_bed), file(variant_assembly_file) from variant_calls
+            set val(variant_bams_prefix), path(sorted_bams_file), path(variant_calls_bai), path(snv_bed), path(reference_fasta_file) from variant_calls
         
         output:
-            file "${variant_bams_prefix}.vcf.gz" into compressed_variant_calls
-            file "${variant_bams_prefix}.vcf.gz.tbi" into compressed_variant_calls_tbi
+            path "${variant_bams_prefix}.vcf.gz", emit: compressed_variant_calls
+            path "${variant_bams_prefix}.vcf.gz.tbi", emit: compressed_variant_calls_tbi
         
         shell:
             '''
@@ -1817,8 +1808,8 @@ if (perform_variant_calling) {
                 -l !{snv_bed} \
                 !{params.samtools_args} \
                 -u \
-                -f !{variant_assembly_file} \
-                !{variant_calls_bam_file} \
+                -f !{reference_fasta_file} \
+                !{sorted_bams_file} \
                 -o !{variant_bams_prefix}_tmp.vcf
             
             !{params.bcftools} call \
@@ -1841,13 +1832,13 @@ if (perform_variant_calling) {
 		publishDir "${params.output}/merged_variants",'mode':'copy'
 
 		input:
-        file chunk_apply_script from file("${workflow.projectDir}/scripts/chunk_apply.sh")
-		file collected_variants from compressed_variant_calls.collect()
-		file collected_variants_tbi from compressed_variant_calls_tbi.collect()
+        path chunk_apply_script from path "${workflow.projectDir}/scripts/chunk_apply.sh"
+		path collected_variants from compressed_variant_calls.collect()
+		path collected_variants_tbi from compressed_variant_calls_tbi.collect()
 
 		output:
-		file "mergedVariants.vcf.gz"
-        file "variants_merge.log"
+		path "mergedVariants.vcf.gz"
+        path "variants_merge.log"
 
 		shell:
 		'''
@@ -1883,13 +1874,13 @@ if (do_coverage) {
         publishDir "${params.output}/coverage/wigs",mode:'copy'
     
         input:
-            file complete_manifest_cov
-            set val(coverage_prefix), file(sorted_coverage_bam), file(sorted_bam_index) from coverage_bam_inputs
-            file chr_sizes
+            path complete_manifest
+            set val(coverage_prefix), path(sorted_coverage_bam), path(sorted_bam_index) from sorted_bams
+            path chr_sizes
     
         output:
-            file "${coverage_prefix}*.wig" into wig_files_temp
-            file "bam2wig_${coverage_prefix}.log"
+            path "${coverage_prefix}*.wig", emit: wig_files_temp
+            path "bam2wig_${coverage_prefix}.log"
     
         shell:
             '''
@@ -1940,11 +1931,11 @@ if (do_coverage) {
         publishDir "${params.output}/coverage/bigWigs",mode:'copy'
         
         input:
-            set val(wig_prefix), file(wig_file) from wig_files
-            file chr_sizes
+            set val(wig_prefix), path(wig_file) from wig_files
+            path chr_sizes
         
         output:
-            file "*.bw" into coverage_bigwigs
+            path "*.bw", emit: coverage_bigwigs
         
         shell:
             '''
@@ -1959,7 +1950,7 @@ if (do_coverage) {
     coverage_bigwigs
         .map { f -> tuple(get_read_type(f), f) }
         .groupTuple()
-        .into{ mean_coverage_bigwigs; full_coverage_bigwigs }
+        .set{ coverage_bigwigs }
     
     // Compute mean coverage across samples by strand
     
@@ -1969,13 +1960,13 @@ if (do_coverage) {
         publishDir "${params.output}/coverage/mean",'mode':'copy'
     
         input:
-            set val(read_type), file(mean_coverage_bigwig) from mean_coverage_bigwigs
-            file chr_sizes from chr_sizes
-            file chunk_apply_script from file("${workflow.projectDir}/scripts/chunk_apply.sh")
+            set val(read_type), path(mean_coverage_bigwig) from coverage_bigwigs
+            path chr_sizes
+            path chunk_apply_script from path "${workflow.projectDir}/scripts/chunk_apply.sh"
     
         output:
-            file "mean*.bw" into mean_bigwigs, expressed_regions_mean_bigwigs
-            file "mean_coverage_${read_type}.log"
+            path "mean*.bw", emit: mean_bigwigs
+            path "mean_coverage_${read_type}.log"
     
         shell:
             '''
@@ -2033,9 +2024,9 @@ if (do_coverage) {
             publishDir "${params.output}/coverage_objects",'mode':'copy'
     
             input:
-                file fullCov_script from file("${workflow.projectDir}/scripts/create_fullCov_object.R")
-                file complete_manifest_fullcov
-                set val(read_type), file(bigwigs) from full_coverage_bigwigs
+                path fullCov_script from path "${workflow.projectDir}/scripts/create_fullCov_object.R"
+                path complete_manifest
+                set val(read_type), path(bigwigs) from coverage_bigwigs
     
             output:
                 file "*"
@@ -2060,20 +2051,20 @@ if (do_coverage) {
     
     process ExpressedRegions {
         
-        tag "$expressed_regions_mean_bigwigs"
+        tag "$mean_bigwigs"
         publishDir "${params.output}/expressed_regions", mode:'copy'
         
         input:
-            file expressed_regions_script from file("${workflow.projectDir}/scripts/find_expressed_regions.R")
-            file chr_sizes
-            file expressed_regions_mean_bigwigs
+            path expressed_regions_script from path "${workflow.projectDir}/scripts/find_expressed_regions.R"
+            path chr_sizes
+            path mean_bigwigs
         
         output:
             file "*"
         
         shell:
             // "strand" is used for naming the log file for this execution of the process
-            strand = expressed_regions_mean_bigwigs.toString().replaceAll("mean.|.bw|bw", "")
+            strand = mean_bigwigs.toString().replaceAll("mean.|.bw|bw", "")
             if (strand.length() > 0) {
                 strand = '_' + strand
             }
