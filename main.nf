@@ -224,10 +224,6 @@ if (params.custom_anno == "") {
     if (params.reference != "hg19" && params.reference != "hg38" && params.reference != "mm10" && params.reference != "rn6") {
       exit 1, "Error: enter hg19 or hg38 for human, mm10 for mouse, or rn6 for rat as the reference."
     }
-} else {
-  if (!params.containsKey('reference')) {
-     params.reference = "custom"
-  }
 }
 
 // Trim mode
@@ -267,21 +263,15 @@ do_coverage = params.coverage || params.fullCov
 snv_reference="hg38"
 
 // Get species name from genome build name
-if (!params.containsKey('reference')) {
- if (params.custom_anno != "") {
-    params.reference = "custom"
-    
- }
-}
 if (!params.containsKey('reference_type')) {
- if (params.custom_anno != "") {
+ if (params.custom_anno != "") { // custom, but still hg38 compatible ?
     if (params.reference.startsWith("hg38")) { // special case
       params.reference_type = "human"
     } else {
       params.reference_type = "custom"
      }
- }
- else {
+ } // custom_anno given
+ else { // no custom annotation 
   if (params.reference == "hg19" || params.reference == "hg38") {
       params.reference_type = "human"
       snv_reference = params.reference
@@ -313,13 +303,9 @@ if (params.reference_type == "human") {
     params.step8 = false
 }
 
-params.anno_ref = params.reference
-
 if (params.custom_anno != "") {
     params.anno_suffix = params.custom_anno + "_custom_build"
-    params.anno_ref = params.custom_anno
     params.anno_version = "custom"
-    params.reference_type = "custom"
 } else if (params.reference == "hg38") {
     params.anno_version = params.gencode_version_human
 
@@ -484,7 +470,7 @@ summary_main['Input dir']              = params.input
 summary_main['Keep unpaired'] = params.keep_unpaired
 summary_main['Output dir']        = params.output
 summary_main['Prefix'] = params.prefix
-summary_main['Reference']          = params.anno_ref
+summary_main['Reference']          = params.reference
 summary_main['Reference type']     = params.reference_type
 summary_main['Sample']            = params.sample
 summary_main['Small test']  = params.small_test
@@ -499,7 +485,6 @@ def summary_args = [:]
 summary_args['Num reads for strand inference'] = params.num_reads_infer_strand
 summary_args['Wiggletools threads'] = params.wiggletools_max_threads
 summary_args['bam2wig arguments'] = params.bam2wig_args
-summary_args['bcftools arguments'] = params.bcftools_args
 summary_args['FastQC arguments'] = params.fastqc_args
 summary_args['featureCounts gene arguments'] = params.feat_counts_gene_args
 summary_args['featureCounts exon arguments'] = params.feat_counts_exon_args
@@ -511,7 +496,8 @@ summary_args['kallisto quant ERCC paired arguments'] = params.kallisto_quant_erc
 summary_args['kallisto index arguments'] = params.kallisto_index_args
 summary_args['salmon index arguments'] = params.salmon_index_args
 summary_args['salmon quant arguments'] = params.salmon_quant_args
-summary_args['samtools arguments'] = params.samtools_args
+summary_args['bcftools mpileup arguments'] = params.bcftools_mpileup_args
+summary_args['bcftools call arguments'] = params.bcftools_call_args
 summary_args['STAR arguments'] = params.star_args
 summary_args['Adapter trimming single arguments'] = params.trim_adapter_args_single
 summary_args['Adapter trimming paired arguments'] = params.trim_adapter_args_paired
@@ -550,7 +536,7 @@ if (params.custom_anno != "") {
     process PullAssemblyFasta {
     
         tag "Downloading Assembly FA File: ${baseName}"
-        storeDir "${params.annotation}/reference/${params.anno_ref}/assembly/fa"
+        storeDir "${params.annotation}/reference/${params.reference}/assembly/fa"
             
         output:
             file "${out_fasta}" into reference_fasta, variant_assembly, annotation_assembly
@@ -642,7 +628,7 @@ if (params.custom_anno != "") {
 
 if (params.use_star) {
     process BuildStarIndex {
-        storeDir "${params.annotation}/reference/${params.anno_ref}/assembly/index/star_${params.anno_suffix}"
+        storeDir "${params.annotation}/reference/${params.reference}/assembly/index/star_${params.anno_suffix}"
         
         input:
             file reference_fasta
@@ -668,7 +654,7 @@ if (params.use_star) {
     // files if they do already exist
     process buildHISATindex {	
         tag "Building HISAT2 Index: ${hisat_prefix}"
-        storeDir "${params.annotation}/reference/${params.anno_ref}/assembly/index"
+        storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
     
         input:
             file reference_fasta
@@ -705,7 +691,7 @@ process BuildAnnotationObjects {
       
   shell:
       '''
-      !{params.Rscript} !{build_ann_script} -r !{params.anno_ref} -s !{params.anno_suffix}
+      !{params.Rscript} !{build_ann_script} -r !{params.reference} -s !{params.anno_suffix}
       '''
 }
 
@@ -748,7 +734,7 @@ if (params.use_salmon) {
     process buildSALMONindex {
     
         tag "Building Salmon Index: salmon_index_${params.anno_suffix}"
-        storeDir "${params.annotation}/reference/${params.anno_ref}/transcripts/salmon2/${params.anno_suffix}"
+        storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon2/${params.anno_suffix}"
     
         input:
             file transcript_fa
@@ -777,7 +763,7 @@ if (params.use_salmon) {
 
 process BuildKallistoIndex {
 
-    storeDir "${params.annotation}/reference/${params.anno_ref}/transcripts/kallisto"
+    storeDir "${params.annotation}/reference/${params.reference}/transcripts/kallisto"
     
     input:
         file transcript_fa
@@ -1056,12 +1042,12 @@ process Trimming {
     shell:
         file_ext = get_file_ext(fq_file[0])
         if (params.sample == "single") {
-            output_option = "${fq_prefix}_trimmed.fastq"
+            output_option = "${fq_prefix}_trimmed.fastq.gz"
             trim_mode = "SE"
             adapter_fa_temp = params.adapter_fasta_single
             trim_clip = params.trim_adapter_args_single
         } else {
-            output_option = "${fq_prefix}_trimmed_paired_1.fastq ${fq_prefix}_unpaired_1.fastq ${fq_prefix}_trimmed_paired_2.fastq ${fq_prefix}_unpaired_2.fastq"
+            output_option = "${fq_prefix}_trimmed_paired_1.fastq.gz ${fq_prefix}_unpaired_1.fastq.gz ${fq_prefix}_trimmed_paired_2.fastq.gz ${fq_prefix}_unpaired_2.fastq.gz"
             trim_mode = "PE"
             adapter_fa_temp = params.adapter_fasta_paired
             trim_clip = params.trim_adapter_args_paired
@@ -1289,7 +1275,7 @@ if (params.use_star) {
                 #  Run Hisat2
                 !{params.hisat2} \
                     -p !{task.cpus} \
-                    -x !{params.annotation}/reference/!{params.anno_ref}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
+                    -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
                     -U !{single_hisat_input} \
                     ${hisat_strand} \
                     !{params.hisat2_args} \
@@ -1346,7 +1332,7 @@ if (params.use_star) {
                 #  Run Hisat2
                 !{params.hisat2} \
                     -p !{task.cpus} \
-                    -x !{params.annotation}/reference/!{params.anno_ref}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
+                    -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
                     -1 !{prefix}*trimmed*_1.f*q* \
                     -2 !{prefix}*trimmed*_2.f*q* \
                     ${unpaired_opt} \
@@ -1742,7 +1728,7 @@ process CountObjects {
         fi
         
         !{params.Rscript} !{create_counts} \
-            -o !{params.anno_ref} \
+            -o !{params.reference} \
             -e !{params.experiment} \
             -p "!{params.prefix}" \
             -l !{counts_pe} \
@@ -2017,7 +2003,7 @@ if (do_coverage) {
             shell:
                 '''
                 !{params.Rscript} !{fullCov_script} \
-                    -o !{params.anno_ref} \
+                    -o !{params.reference} \
                     -e !{params.experiment} \
                     -c !{task.cpus} \
                     -s !{read_type}
