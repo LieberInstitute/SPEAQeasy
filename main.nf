@@ -783,45 +783,35 @@ process BuildKallistoIndex {
 }
 
 
-// //  Merge FASTQ files as necessary, rename files based on sample ids provided
-// //  in the manifest, and create a new manifest for internal use based on these
-// //  changes
+//  Merge FASTQ files as necessary, rename files based on sample ids provided
+//  in the manifest, and create a new manifest for internal use based on these
+//  changes
 
-// // Extract FASTQ file paths from the manifest and place in a channel to pass to
-// // PreprocessInputs
-// Channel
-//     .fromPath(params.input + '/samples.manifest')
-//     .splitText()
-//     .map{ row -> get_fastq_names(row) }
-//     .flatten()
-//     .collect()
-//     .set{ raw_fastqs }
+process PreprocessInputs {
 
-// process PreprocessInputs {
+    publishDir "${params.output}/preprocessing", mode:'copy', pattern:'*.log'
 
-//     publishDir "${params.output}/preprocessing", mode:'copy', pattern:'*.log'
+    input:
+        path original_manifest
+        path merge_script
+        path raw_fastqs
 
-//     input:
-//         path original_manifest from path("${params.input}/samples.manifest")
-//         path merge_script from path("${workflow.projectDir}/scripts/preprocess_inputs.R")
-//         path raw_fastqs
+    output:
+        path "*.f*q*", includeInputs: true, emit: merged_inputs_flat
+        path "samples_processed.manifest", emit: strandness_manifest
+        path "preprocess_inputs.log"
 
-//     output:
-//         path "*.f*q*", emit: merged_inputs_flat includeInputs true
-//         path "samples_processed.manifest", emit: strandness_manifest
-//         path "preprocess_inputs.log"
-
-//     shell:
-//         if (params.sample == "paired") {
-//             paired_arg = "TRUE"
-//         } else {
-//             paired_arg = "FALSE"
-//         }
-//         '''
-//         !{params.Rscript} !{merge_script} -p !{paired_arg}
-//         cp .command.log preprocess_inputs.log
-//         '''
-// }
+    shell:
+        if (params.sample == "paired") {
+            paired_arg = "TRUE"
+        } else {
+            paired_arg = "FALSE"
+        }
+        '''
+        !{params.Rscript} !{merge_script} -p !{paired_arg}
+        cp .command.log preprocess_inputs.log
+        '''
+}
 
 // // Group both reads together for each sample, if paired-end, and assign each sample a prefix
 // if (params.sample == "single") {
@@ -2057,7 +2047,11 @@ workflow {
     Channel.fromPath("${workflow.projectDir}/scripts/build_annotation_objects.R")
         .set{ build_ann_script }
     Channel.fromPath("${workflow.projectDir}/scripts/subset_rat_fasta.R")
-        .set { subset_script }
+        .set{ subset_script }
+    Channel.fromPath("${workflow.projectDir}/scripts/preprocess_inputs.R")
+        .set{ merge_script }
+    Channel.fromPath("${params.input}/samples.manifest")
+        .set{ original_manifest }
 
     // When using custom annotation, grab the user-provided reference FASTA.
     // Otherwise, run PullAssemblyFasta to pull it from online
@@ -2095,4 +2089,14 @@ workflow {
         BuildSalmonIndex(transcript_fa)
     }
     BuildKallistoIndex(transcript_fa) // Needed either way, because of InferStrandness
+
+    // Extract FASTQ file paths from the manifest and place in a channel to pass to
+    // PreprocessInputs
+    original_manifest
+        .splitText()
+        .map{ row -> get_fastq_names(row) }
+        .flatten()
+        .collect()
+        .set{ raw_fastqs }
+    PreprocessInputs(original_manifest, merge_script, raw_fastqs)
 }
