@@ -885,26 +885,26 @@ process InferStrandness {
         '''
 }
 
-// // Attach strandness information from the InferStrandness process to a copy
-// // of the user-provided samples.manifest file, for internal use by the
-// // pipeline.
-// process CompleteManifest {
+// Attach strandness information from the InferStrandness process to a copy
+// of the user-provided samples.manifest file, for internal use by the
+// pipeline.
+process CompleteManifest {
 
-//     publishDir "${params.output}/infer_strandness", mode:'copy'
+    publishDir "${params.output}/infer_strandness", mode:'copy'
     
-//     input:
-//         path strandness_files from strandness_patterns.collect()
-//         path strandness_manifest
-//         path manifest_script from path "${workflow.projectDir}/scripts/complete_manifest.R"
+    input:
+        path strandness_files
+        path strandness_manifest
+        path manifest_script
         
-//     output:
-//         path "samples_complete.manifest", emit: complete_manifest
+    output:
+        path "samples_complete.manifest", emit: complete_manifest
         
-//     shell:
-//         '''
-//         !{params.Rscript} !{manifest_script}
-//         '''
-// }
+    shell:
+        '''
+        !{params.Rscript} !{manifest_script}
+        '''
+}
 
 // /*
 //  * Run the ERCC process if the --ercc flag is specified
@@ -2085,5 +2085,11 @@ workflow {
         Channel.fromPath("${workflow.projectDir}/scripts/infer_strand.sh").collect(),
         BuildKallistoIndex.out.kallisto_index.collect(),
         untrimmed_fastq_and_reports
+    )
+
+    CompleteManifest(
+        InferStrandness.out.strandness_patterns.collect(),
+        PreprocessInputs.out.strandness_manifest,
+        Channel.fromPath("${workflow.projectDir}/scripts/complete_manifest.R")
     )
 }
