@@ -1064,43 +1064,37 @@ process Trimming {
         '''
 }
 
-// trimmed_fastqc_inputs_raw
-//     .flatten()
-//     .map{ file -> tuple(get_prefix(file, params.sample == "paired"), file) }
-//     .groupTuple()
-//     .set{ trimmed_fastqc_inputs_grouped }
+/*
+ * Run FastQC Quality Check on Trimmed Files
+ */
 
-// /*
-//  * Run FastQC Quality Check on Trimmed Files
-//  */
+process QualityTrimmed {
 
-// process QualityTrimmed {
+    tag "$prefix"
+    publishDir "${params.output}/fastQC/trimmed",'mode':'copy', pattern:'*_fastqc'
 
-//     tag "$prefix"
-//     publishDir "${params.output}/fastQC/trimmed",'mode':'copy', pattern:'*_fastqc'
+    input:
+        tuple val(prefix), path(fastqc_trimmed_input)
 
-//     input:
-//         set val(prefix), path(fastqc_trimmed_input) from trimmed_fastqc_inputs_grouped
+    output:
+        path "${prefix}*_fastqc"
+        path "${prefix}*_trimmed_summary.txt", emit: count_objects_quality_reports_trimmed
+        path "${prefix}*_trimmed_fastqc_data.txt", emit: count_objects_quality_metrics_trimmed
 
-//     output:
-//         path "${prefix}*_fastqc"
-//         path "${prefix}*_trimmed_summary.txt", emit: count_objects_quality_reports_trimmed
-//         path "${prefix}*_trimmed_fastqc_data.txt", emit: count_objects_quality_metrics_trimmed
-
-//     shell:
-//         if (params.sample == "single") {
-//             copy_command = "cp ${prefix}_trimmed_fastqc/summary.txt ${prefix}_trimmed_summary.txt"
-//             data_command = "cp ${prefix}_trimmed_fastqc/fastqc_data.txt ${prefix}_trimmed_fastqc_data.txt"
-//         } else {
-//             copy_command = "cp ${prefix}_trimmed_paired_1_fastqc/summary.txt ${prefix}_1_trimmed_summary.txt && cp ${prefix}_trimmed_paired_2_fastqc/summary.txt ${prefix}_2_trimmed_summary.txt"
-//             data_command = "cp ${prefix}_trimmed_paired_1_fastqc/fastqc_data.txt ${prefix}_1_trimmed_fastqc_data.txt && cp ${prefix}_trimmed_paired_2_fastqc/fastqc_data.txt ${prefix}_2_trimmed_fastqc_data.txt"
-//         }
-//         '''
-//         !{params.fastqc} -t !{task.cpus} --extract !{params.fastqc_args} !{fastqc_trimmed_input}
-//         !{copy_command}
-//         !{data_command}
-//         '''
-// }
+    shell:
+        if (params.sample == "single") {
+            copy_command = "cp ${prefix}_trimmed_fastqc/summary.txt ${prefix}_trimmed_summary.txt"
+            data_command = "cp ${prefix}_trimmed_fastqc/fastqc_data.txt ${prefix}_trimmed_fastqc_data.txt"
+        } else {
+            copy_command = "cp ${prefix}_trimmed_paired_1_fastqc/summary.txt ${prefix}_1_trimmed_summary.txt && cp ${prefix}_trimmed_paired_2_fastqc/summary.txt ${prefix}_2_trimmed_summary.txt"
+            data_command = "cp ${prefix}_trimmed_paired_1_fastqc/fastqc_data.txt ${prefix}_1_trimmed_fastqc_data.txt && cp ${prefix}_trimmed_paired_2_fastqc/fastqc_data.txt ${prefix}_2_trimmed_fastqc_data.txt"
+        }
+        '''
+        !{params.fastqc} -t !{task.cpus} --extract !{params.fastqc_args} !{fastqc_trimmed_input}
+        !{copy_command}
+        !{data_command}
+        '''
+}
 
 // /*
 //  * Alignment (HISAT2 by default, or otherwise STAR)
@@ -2093,4 +2087,10 @@ workflow {
     }
 
     Trimming(trimming_inputs)
+    Trimming.out.trimmed_fastqc_inputs_raw
+        .flatten()
+        .map{ file -> tuple(get_prefix(file, params.sample == "paired"), file) }
+        .groupTuple()
+        .set{ trimmed_fastqc_inputs_grouped }
+    QualityTrimmed(trimmed_fastqc_inputs_grouped)
 }
