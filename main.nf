@@ -827,7 +827,7 @@ process QualityUntrimmed {
 
     output:
         path "${prefix}*_fastqc"
-        path "*_summary.txt", emit: quality_reports
+        tuple val(prefix), path("*_summary.txt"), emit: quality_reports
         path "*_fastqc_data.txt", emit: count_objects_quality_metrics_untrimmed
 
     shell:
@@ -974,8 +974,8 @@ process Trimming {
         tuple val(fq_prefix), path(fq_summary), path(fq_file)
 
     output:
-        path "${fq_prefix}_trimmed*.f*q{.gz,}", optional: true, emit: trimmed_fastqc_inputs_raw
-        path "${fq_prefix}*.f*q{.gz,}", emit: trimming_outputs
+        tuple val(fq_prefix), path("${fq_prefix}_trimmed*.f*q{.gz,}"), optional: true, emit: trimmed_fastqc_inputs_raw
+        tuple val(fq_prefix), path("${fq_prefix}*.f*q{.gz,}"), emit: trimming_outputs
 
     shell:
         file_ext = get_file_ext(fq_file[0])
@@ -2038,10 +2038,6 @@ workflow {
 
     QualityUntrimmed(untrimmed_fastq_files)
     QualityUntrimmed.out.quality_reports
-        .flatten()
-        .map{file -> tuple(get_prefix(file, params.sample == "paired"), file) }
-        .groupTuple()
-        .ifEmpty{ error "Missing pre-trimming FastQC summaries"}
         .join(untrimmed_fastq_files)
         .set{ trimming_inputs }
     
@@ -2069,24 +2065,12 @@ workflow {
     }
 
     Trimming(trimming_inputs)
-    Trimming.out.trimmed_fastqc_inputs_raw
-        .flatten()
-        .map{ file -> tuple(get_prefix(file, params.sample == "paired"), file) }
-        .groupTuple()
-        .set{ trimmed_fastqc_inputs_grouped }
-    QualityTrimmed(trimmed_fastqc_inputs_grouped)
-
-    Trimming.out.trimming_outputs
-        .flatten()
-        .map{ file -> tuple(get_prefix(file, params.sample == "paired"), file) }
-        .ifEmpty{ error "Input channel to alignment process is empty" }
-        .groupTuple()
-        .set{ alignment_inputs }
+    QualityTrimmed(Trimming.out.trimmed_fastqc_inputs_raw)
 
     if (params.use_star) {
         AlignStar(
             BuildStarIndex.out.star_index.collect(),
-            alignment_inputs
+            Trimming.out.trimming_outputs
         )
         alignment_output_temp = AlignStar.out.alignment_output
     } else {
@@ -2095,14 +2079,14 @@ workflow {
             SingleEndHisat(
                 BuildHisatIndex.out.hisat_index.collect(),
                 CompleteManifest.out.complete_manifest.collect(),
-                alignment_inputs
+                Trimming.out.trimming_outputs
             )
             alignment_output_temp = SingleEndHisat.out.alignment_output
         } else {
             PairedEndHisat(
                 BuildHisatIndex.out.hisat_index.collect(),
                 CompleteManifest.out.complete_manifest.collect(),
-                alignment_inputs
+                Trimming.out.trimming_outputs
             )
             alignment_output_temp = PairedEndHisat.out.alignment_output
         }
