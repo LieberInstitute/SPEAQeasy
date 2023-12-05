@@ -1424,121 +1424,119 @@ process Junctions {
 //  * Transcript quantification
 //  */
 
-// if (params.use_salmon) {
-//     process TxQuantSalmon {
-    
-//         tag "$prefix"
-//         publishDir "${params.output}/salmon_tx/${prefix}",mode:'copy'
-    
-//         input:
-//             path salmon_index
-//             path complete_manifest
-//             set val(prefix), path(salmon_inputs) from untrimmed_fastq_files
-    
-//         output:
-//             path "${prefix}/*"
-//             path "${prefix}_quant.sf", emit: tx_quants
-//             path "tx_quant_${prefix}.log"
-    
-//         shell:
-//             '''
-//             ( set -o posix ; set ) > bash_vars.txt
+process TxQuantSalmon {
+
+    tag "$prefix"
+    publishDir "${params.output}/salmon_tx/${prefix}",mode:'copy'
+
+    input:
+        path salmon_index
+        path complete_manifest
+        tuple val(prefix), path(salmon_inputs)
+
+    output:
+        path "${prefix}/*"
+        path "${prefix}_quant.sf", emit: tx_quants
+        path "tx_quant_${prefix}.log"
+
+    shell:
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
+        #  Find this sample's strandness and determine strand flag
+        strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+        if [ $strand == 'forward' ]; then
+            strand_flag="SF"
+        elif [ $strand == 'reverse' ]; then
+            strand_flag="SR"
+        else
+            strand_flag="U"
+        fi
+        
+        if [ !{params.sample} == "paired" ]; then
+            strand_flag="I$strand_flag"
+            sample_flag="-1 !{prefix}_1.f*q* -2 !{prefix}_2.f*q*"
+        else
+            sample_flag="-r !{prefix}.f*q*"
+        fi
+        
+        !{params.salmon} quant \
+            -i $PWD \
+            -p !{task.cpus} \
+            -l ${strand_flag} \
+            ${sample_flag} \
+            -o !{prefix} \
+            !{params.salmon_quant_args}
+
+        cp !{prefix}/quant.sf !{prefix}_quant.sf
+        cp .command.log tx_quant_!{prefix}.log
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
+}
+
+process TxQuantKallisto {
+
+    tag "$prefix"
+    publishDir "${params.output}/kallisto_tx/${prefix}", mode:'copy'
+
+    input:
+        path kallisto_index
+        path complete_manifest
+        tuple val(prefix), path(fastqs)
+
+    output:
+        path "abundance.h5"
+        path "run_info.json"
+        path "tx_quant_${prefix}.log"
+        path "${prefix}_abundance.tsv", emit: tx_quants
+        
+    shell:
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
+        #  Find this sample's strandness
+        strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+        if [ $strand == 'forward' ]; then
+            strand_flag="--fr-stranded"
+        elif [ $strand == 'reverse' ]; then
+            strand_flag="--rf-stranded"
+        else
+            strand_flag=""
+        fi
+        
+        #  Run the quantification step
+        if [ !{params.sample} == "paired" ]; then
+            fq1=$(ls *_1.f*q*)
+            fq2=$(ls *_2.f*q*)
+        
+            !{params.kallisto} quant \
+                -t !{task.cpus} \
+                $strand_flag \
+                -i !{kallisto_index} \
+                -o . \
+                !{params.kallisto_quant_paired_args} \
+                $fq1 $fq2
+        else
+            fq=$(ls *.f*q*)
             
-//             #  Find this sample's strandness and determine strand flag
-//             strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
-//             if [ $strand == 'forward' ]; then
-//                 strand_flag="SF"
-//             elif [ $strand == 'reverse' ]; then
-//                 strand_flag="SR"
-//             else
-//                 strand_flag="U"
-//             fi
-            
-//             if [ !{params.sample} == "paired" ]; then
-//                 strand_flag="I$strand_flag"
-//                 sample_flag="-1 !{prefix}_1.f*q* -2 !{prefix}_2.f*q*"
-//             else
-//                 sample_flag="-r !{prefix}.f*q*"
-//             fi
-            
-//             !{params.salmon} quant \
-//                 -i $PWD \
-//                 -p !{task.cpus} \
-//                 -l ${strand_flag} \
-//                 ${sample_flag} \
-//                 -o !{prefix} \
-//                 !{params.salmon_quant_args}
-    
-//             cp !{prefix}/quant.sf !{prefix}_quant.sf
-//             cp .command.log tx_quant_!{prefix}.log
-            
-//             temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-//             echo "$temp" > bash_vars.txt
-//             '''
-//     }
-// } else {
-//     process TxQuantKallisto {
-    
-//         tag "$prefix"
-//         publishDir "${params.output}/kallisto_tx/${prefix}", mode:'copy'
-    
-//         input:
-//             path kallisto_index
-//             path complete_manifest
-//             set val(prefix), path(fastqs) from untrimmed_fastq_files
-    
-//         output:
-//             path "abundance.h5"
-//             path "run_info.json"
-//             path "tx_quant_${prefix}.log"
-//             path "${prefix}_abundance.tsv", emit: tx_quants
-            
-//         shell:
-//             '''
-//             ( set -o posix ; set ) > bash_vars.txt
-            
-//             #  Find this sample's strandness
-//             strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
-//             if [ $strand == 'forward' ]; then
-//                 strand_flag="--fr-stranded"
-//             elif [ $strand == 'reverse' ]; then
-//                 strand_flag="--rf-stranded"
-//             else
-//                 strand_flag=""
-//             fi
-            
-//             #  Run the quantification step
-//             if [ !{params.sample} == "paired" ]; then
-//                 fq1=$(ls *_1.f*q*)
-//                 fq2=$(ls *_2.f*q*)
-            
-//                 !{params.kallisto} quant \
-//                     -t !{task.cpus} \
-//                     $strand_flag \
-//                     -i !{kallisto_index} \
-//                     -o . \
-//                     !{params.kallisto_quant_paired_args} \
-//                     $fq1 $fq2
-//             else
-//                 fq=$(ls *.f*q*)
-                
-//                 !{params.kallisto} quant \
-//                     -t !{task.cpus} \
-//                     !{params.kallisto_quant_single_args} \
-//                     $strand_flag \
-//                     -i !{kallisto_index} \
-//                     -o . \
-//                     $fq
-//             fi
-            
-//             mv abundance.tsv !{prefix}_abundance.tsv
-//             cp .command.log tx_quant_!{prefix}.log
-            
-//             temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-//             echo "$temp" > bash_vars.txt
-//             '''
-//     }
-// }
+            !{params.kallisto} quant \
+                -t !{task.cpus} \
+                !{params.kallisto_quant_single_args} \
+                $strand_flag \
+                -i !{kallisto_index} \
+                -o . \
+                $fq
+        fi
+        
+        mv abundance.tsv !{prefix}_abundance.tsv
+        cp .command.log tx_quant_!{prefix}.log
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
+}
 
 // /*
 //  * Construct the Counts Objects Input Channel
@@ -2105,4 +2103,18 @@ workflow {
         PrimaryAlignments.out.primary_alignments,
         CompleteManifest.out.complete_manifest.collect()
     )
+
+    if (params.use_salmon) {
+        TxQuantSalmon(
+            BuildSalmonIndex.out.salmon_index.collect(),
+            CompleteManifest.out.complete_manifest.collect(),
+            untrimmed_fastq_files
+        )
+    } else {
+        TxQuantKallisto(
+            BuildKallistoIndex.out.kallisto_index.collect(),
+            CompleteManifest.out.complete_manifest.collect(),
+            untrimmed_fastq_files
+        )
+    }
 }
