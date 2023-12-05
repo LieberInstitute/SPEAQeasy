@@ -906,68 +906,60 @@ process CompleteManifest {
         '''
 }
 
-// /*
-//  * Run the ERCC process if the --ercc flag is specified
-//  */
- 
-// if (params.ercc) {
-//     if (params.custom_anno != "") {
-//         erccidx = Channel.fromPath("${params.annotation}/*.idx")
-//     } else {
-//         erccidx = Channel.fromPath("${params.annotation}/ERCC/ERCC92.idx")
-//     }
+/*
+ * Run the ERCC process if the --ercc flag is specified
+ */
 
-//   process ERCC {
-		
-//     tag "$prefix"
-//     publishDir "${params.output}/ERCC/${prefix}",'mode':'copy'
+process ERCC {
+	
+    tag "$prefix"
+    publishDir "${params.output}/ERCC/${prefix}",'mode':'copy'
 
-//     input:
-//       path erccidx from path "${params.annotation}/ERCC/ERCC92.idx"
-//       set val(prefix), path(ercc_input) from untrimmed_fastq_files
-//       path complete_manifest
+    input:
+        path ercc_index
+        tuple val(prefix), path(ercc_input)
+        path complete_manifest
 
-//     output:
-//       path "${prefix}_ercc_abundance.tsv", emit: ercc_abundances
-//       path "ercc_${prefix}.log"
+    output:
+        path "${prefix}_ercc_abundance.tsv", emit: ercc_abundances
+        path "ercc_${prefix}.log"
 
-//     shell:
-//       if (params.sample == "single") {
-//           kallisto_flags = params.kallisto_quant_ercc_single_args
-//       } else {
-//           kallisto_flags = params.kallisto_quant_ercc_paired_args
-//       }
-//       '''
-//       ( set -o posix ; set ) > bash_vars.txt
-      
-//       #  Find this sample's strandness and determine kallisto flags to set
-//       strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
-//       if [ $strand == 'forward' ]; then
-//           kallisto_strand=" --fr-stranded"
-//       elif [ $strand == 'reverse' ]; then
-//           kallisto_strand=" --rf-stranded"
-//       else
-//           kallisto_strand=""
-//       fi
-      
-//       #  Quantify ERCC, and don't throw an error if 0 counts are found
-//       !{params.kallisto} quant \
-//           -i !{erccidx} \
-//           -t !{task.cpus} \
-//           !{kallisto_flags} \
-//           -o . \
-//           $kallisto_strand \
-//           !{ercc_input} \
-//           || true
-      
-//       cp abundance.tsv !{prefix}_ercc_abundance.tsv
-//       cp .command.log ercc_!{prefix}.log
-      
-//       temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep '>' | cut -d ' ' -f 2- || true)
-//       echo "$temp" > bash_vars.txt
-//       '''
-//   }
-// }
+    shell:
+        if (params.sample == "single") {
+            kallisto_flags = params.kallisto_quant_ercc_single_args
+        } else {
+            kallisto_flags = params.kallisto_quant_ercc_paired_args
+        }
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
+
+        #  Find this sample's strandness and determine kallisto flags to set
+        strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+        if [ $strand == 'forward' ]; then
+            kallisto_strand=" --fr-stranded"
+        elif [ $strand == 'reverse' ]; then
+            kallisto_strand=" --rf-stranded"
+        else
+            kallisto_strand=""
+        fi
+
+        #  Quantify ERCC, and don't throw an error if 0 counts are found
+        !{params.kallisto} quant \
+            -i !{ercc_index} \
+            -t !{task.cpus} \
+            !{kallisto_flags} \
+            -o . \
+            $kallisto_strand \
+            !{ercc_input} \
+            || true
+
+        cp abundance.tsv !{prefix}_ercc_abundance.tsv
+        cp .command.log ercc_!{prefix}.log
+
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep '>' | cut -d ' ' -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
+}
 
 // /*
 //  * Trim samples (dependent on user-chosen settings)
@@ -2018,18 +2010,16 @@ workflow {
     // When using custom annotation, grab the user-provided reference FASTA.
     // Otherwise, run PullAssemblyFasta to pull it from online
     if (params.custom_anno != "") {
-        Channel.fromPath("${params.annotation}/*assembly*.fa*")
+        reference_fasta = Channel.fromPath("${params.annotation}/*assembly*.fa*")
             .ifEmpty{ error "Cannot find assembly fasta in annotation directory (and --custom_anno was specified)" }
             .first()  // This proves to nextflow that the channel will always hold one value/file
-            .set{ reference_fasta }
-        Channel.fromPath("${params.annotation}/*.gtf")
+        reference_gtf = Channel.fromPath("${params.annotation}/*.gtf")
             .ifEmpty{ error "Cannot find reference gtf in annotation directory (and --custom_anno was specified)" }
             .first()  // This proves to nextflow that the channel will always hold one value/file
-            .set{ reference_gtf }
-        Channel.fromPath("${params.annotation}/*transcripts*.fa*")
+        transcript_fa = Channel.fromPath("${params.annotation}/*transcripts*.fa*")
             .ifEmpty{ error "Cannot find transcripts fasta in annotation directory (and --custom_anno was specified)" }
             .first()  // This proves to nextflow that the channel will always hold one value/file
-            .set{ transcript_fa }
+        ercc_index = Channel.fromPath("${params.annotation}/*.idx").collect()
     } else {
         PullAssemblyFasta()
         PullGtf()
@@ -2037,6 +2027,7 @@ workflow {
         reference_fasta = PullAssemblyFasta.out.reference_fasta
         reference_gtf = PullGtf.out.reference_gtf
         transcript_fa = PullTranscriptFasta.out.transcript_fa
+        ercc_index = Channel.fromPath("${params.annotation}/ERCC/ERCC92.idx").collect()
     }
 
     BuildAnnotationObjects(reference_fasta, reference_gtf, build_ann_script)
@@ -2092,4 +2083,12 @@ workflow {
         PreprocessInputs.out.strandness_manifest,
         Channel.fromPath("${workflow.projectDir}/scripts/complete_manifest.R")
     )
+
+    if (params.ercc) {
+        ERCC(
+            ercc_index,
+            untrimmed_fastq_files,
+            CompleteManifest.out.complete_manifest.collect()
+        )
+    }
 }
