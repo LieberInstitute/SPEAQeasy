@@ -1109,7 +1109,7 @@ process AlignStar {
         tuple val(prefix), path(single_star_input)
         
     output:
-        path "*.bam", emit: alignment_output
+        tuple val(prefix), path("*.bam"), emit: alignment_output
         path "${prefix}_unmapped_*.fastq", optional: true
         path "*_STAR_alignment.log", emit: alignment_summaries
         
@@ -1180,7 +1180,7 @@ process SingleEndHisat {
         tuple val(prefix), path(single_hisat_input)
 
     output:
-        path "${prefix}.bam", emit: alignment_output
+        tuple val(prefix), path("${prefix}.bam"), emit: alignment_output
         path "*_align_summary.txt", emit: alignment_summaries
 
     shell:
@@ -1223,7 +1223,7 @@ process PairedEndHisat {
         tuple val(prefix), path(fq_files)
 
     output:
-        path "${prefix}.bam", emit: alignment_output
+        tuple val(prefix), path("${prefix}.bam"), emit: alignment_output
         path "*_unpaired*.fastq" optional true
         path "*_align_summary.txt", emit: alignment_summaries
 
@@ -1275,88 +1275,89 @@ process PairedEndHisat {
  * Sort and index the aligned BAM
  */
 
-// process BamSort {
+process BamSort {
 	
-//     tag "$prefix"
-//     publishDir "${params.output}/alignment/bam_sort",'mode':'copy'
+    tag "$prefix"
+    publishDir "${params.output}/alignment/bam_sort",'mode':'copy'
 
-//     input:
-//         tuple val(prefix), path(input_bam)
+    input:
+        tuple val(prefix), path(input_bam)
 
-//     output:
-//         tuple val(prefix), path("${prefix}_sorted.bam"), path("${prefix}*_sorted.bam.bai"), emit: sorted_bams
+    output:
+        tuple val(prefix), path("${prefix}_sorted.bam"), path("${prefix}*_sorted.bam.bai"), emit: sorted_bams
 
-//     shell:
-//         '''
-//         !{params.samtools} sort -T temporary -l 6 --no-PG -@ !{task.cpus} !{input_bam} -o !{prefix}_sorted.bam
-//         !{params.samtools} index !{prefix}_sorted.bam
-//         '''
-// }
+    shell:
+        '''
+        !{params.samtools} sort -T temporary -l 6 --no-PG -@ !{task.cpus} !{input_bam} -o !{prefix}_sorted.bam
+        !{params.samtools} index !{prefix}_sorted.bam
+        '''
+}
 
-// /*
-//  * Quantify genes and exons with FeatureCounts
-//  */
+/*
+ * Quantify genes and exons with FeatureCounts
+ */
 
-// process FeatureCounts {
+process FeatureCounts {
 
-//     tag "$feature_prefix"
-//     publishDir "${params.output}/counts",'mode':'copy'
+    tag "$prefix"
+    publishDir "${params.output}/counts",'mode':'copy'
 
-//     input:
-//         tuple val(feature_prefix), path(feature_bam), path(feature_index), path(gencode_gtf_feature) from feature_counts_inputs
-//         path complete_manifest
+    input:
+        tuple val(prefix), path(bam), path(bam_index)
+        path complete_manifest
+        path reference_gtf
 
-//     output:
-//         path "*.{log,summary}"
-//         path "*.counts*", emit: sample_counts
+    output:
+        path "*.{log,summary}"
+        path "*.counts*", emit: sample_counts
 
-//     script:
-//         if (params.sample == "single") {
-//             sample_option = ""
-//         } else {
-//             sample_option = "-p"
-//         }
-//         feature_out = "${feature_prefix}_${params.anno_suffix}"
+    script:
+        if (params.sample == "single") {
+            sample_option = ""
+        } else {
+            sample_option = "-p"
+        }
+        feature_out = "${prefix}_${params.anno_suffix}"
  
-//         """
-//         ( set -o posix ; set ) > bash_vars.txt
+        """
+        ( set -o posix ; set ) > bash_vars.txt
         
-//         #  Find this sample's strandness and determine strand flag
-//         strand=\$(cat samples_complete.manifest | grep " ${feature_prefix} " | awk -F ' ' '{print \$NF}')
-//         if [ \$strand == 'forward' ]; then
-//             feature_strand=1
-//         elif [ \$strand == 'reverse' ]; then
-//             feature_strand=2
-//         else
-//             feature_strand=0
-//         fi
+        #  Find this sample's strandness and determine strand flag
+        strand=\$(cat samples_complete.manifest | grep " ${prefix} " | awk -F ' ' '{print \$NF}')
+        if [ \$strand == 'forward' ]; then
+            feature_strand=1
+        elif [ \$strand == 'reverse' ]; then
+            feature_strand=2
+        else
+            feature_strand=0
+        fi
         
-//         # Genes
-//         ${params.featureCounts} \
-//             -s \$feature_strand \
-//             $sample_option \
-//             ${params.feat_counts_gene_args} \
-//             -T $task.cpus \
-//             -a $gencode_gtf_feature \
-//             -o ${feature_out}_Genes.counts \
-//             $feature_bam
+        # Genes
+        ${params.featureCounts} \
+            -s \$feature_strand \
+            $sample_option \
+            ${params.feat_counts_gene_args} \
+            -T $task.cpus \
+            -a $reference_gtf \
+            -o ${feature_out}_Genes.counts \
+            $bam
         
-//         # Exons
-//         ${params.featureCounts} \
-//             -s \$feature_strand \
-//             $sample_option \
-//             ${params.feat_counts_exon_args} \
-//             -T $task.cpus \
-//             -a $gencode_gtf_feature \
-//             -o ${feature_out}_Exons.counts \
-//             $feature_bam
+        # Exons
+        ${params.featureCounts} \
+            -s \$feature_strand \
+            $sample_option \
+            ${params.feat_counts_exon_args} \
+            -T $task.cpus \
+            -a $reference_gtf \
+            -o ${feature_out}_Exons.counts \
+            $bam
 
-//         cp .command.log feature_counts_${feature_prefix}.log
+        cp .command.log feature_counts_${prefix}.log
         
-//         temp=\$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-//         echo "\$temp" > bash_vars.txt
-//         """
-// }
+        temp=\$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "\$temp" > bash_vars.txt
+        """
+}
 
 // /*
 //  * Primary Alignments
@@ -2091,4 +2092,11 @@ workflow {
             alignment_output_temp = PairedEndHisat.out.alignment_output
         }
     }
+
+    BamSort(alignment_output_temp)
+    FeatureCounts(
+        BamSort.out.sorted_bams,
+        CompleteManifest.out.complete_manifest.collect(),
+        reference_gtf
+    )
 }
