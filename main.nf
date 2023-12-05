@@ -843,69 +843,47 @@ process QualityUntrimmed {
         !{copy_command}
         !{data_command}
         '''
-}
+} 
 
-// //  Combine FASTQ files and FastQC result summaries for each sample, to form the input channel for Trimming
-// if (params.sample == "single") {
+// Perform pseudoaligment by sample on a subset of reads, and see which strandness
+// assumption passed to kallisto results in the largest number of alignments. This
+// determines strandness for each sample, used by all remaining pipeline steps which
+// require this information.
+process InferStrandness {
 
-//     quality_reports
-//         .flatten()
-//         .map{ file -> tuple(get_prefix(file), file) }
-//         .join(untrimmed_fastq_files)
-//         .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
-//         .set{ trimming_inputs }
-        
-// } else { // paired
-
-//     quality_reports
-//         .flatten()
-//         .map{ file -> tuple(get_prefix(file, true), file) }
-//         .groupTuple()
-//         .join(untrimmed_fastq_files)
-//         .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
-//         .set{ trimming_inputs }
-// }    
-
-// // Perform pseudoaligment by sample on a subset of reads, and see which strandness
-// // assumption passed to kallisto results in the largest number of alignments. This
-// // determines strandness for each sample, used by all remaining pipeline steps which
-// // require this information.
-// process InferStrandness {
-
-//     tag "${prefix}"
-//     publishDir "${params.output}/infer_strandness", mode:'copy'
+    tag "${prefix}"
+    publishDir "${params.output}/infer_strandness", mode:'copy'
     
-//     input:
-//         path infer_strand_R from path "${workflow.projectDir}/scripts/infer_strand.R"
-//         path infer_strand_sh from path "${workflow.projectDir}/scripts/infer_strand.sh"
-//         path kallisto_index
-//         set val(prefix), file(fq_file) from untrimmed_fastq_files
-//         // We don't want failures to infer strandness to crash the pipeline
-//         // before FastQC runs, as FastQC output provides richer context to what
-//         // might be problematic about specific samples
-//         file quality_reports
+    input:
+        path infer_strand_R
+        path infer_strand_sh
+        path kallisto_index
+        // The FastQC summary is input here just to ensure FastQC runs before
+        // potential strand-inference errors, where FastQC can provide useful
+        // insight about potential problems
+        tuple val(prefix), path(fastqc_summary), path(fq_file)
         
-//     output:
-//         path "${prefix}_infer_strand.log"
-//         path "${prefix}_strandness_pattern.txt", emit: strandness_patterns
+    output:
+        path "${prefix}_infer_strand.log"
+        path "${prefix}_strandness_pattern.txt", emit: strandness_patterns
         
-//     shell:
-//         '''
-//         bash !{infer_strand_sh} \
-//             !{params.sample} \
-//             !{params.num_reads_infer_strand} \
-//             !{params.kallisto} \
-//             !{task.cpus} \
-//             !{params.kallisto_len_mean} \
-//             !{params.kallisto_len_sd} \
-//             !{params.strand} \
-//             !{params.Rscript} \
-//             !{params.strand_mode} \
-//             !{prefix}
+    shell:
+        '''
+        bash !{infer_strand_sh} \
+            !{params.sample} \
+            !{params.num_reads_infer_strand} \
+            !{params.kallisto} \
+            !{task.cpus} \
+            !{params.kallisto_len_mean} \
+            !{params.kallisto_len_sd} \
+            !{params.strand} \
+            !{params.Rscript} \
+            !{params.strand_mode} \
+            !{prefix}
         
-//         cp .command.log !{prefix}_infer_strand.log
-//         '''
-// }
+        cp .command.log !{prefix}_infer_strand.log
+        '''
+}
 
 // // Attach strandness information from the InferStrandness process to a copy
 // // of the user-provided samples.manifest file, for internal use by the
@@ -2084,7 +2062,6 @@ workflow {
         .set{ raw_fastqs }
     PreprocessInputs(original_manifest, merge_script, raw_fastqs)
 
-    // Group both reads together for each sample, if paired-end, and assign each sample a prefix
     PreprocessInputs.out.merged_inputs_flat
         .flatten()
         .map{file -> tuple(get_prefix(file, params.sample == "paired"), file) }
@@ -2093,4 +2070,20 @@ workflow {
         .set{ untrimmed_fastq_files }
 
     QualityUntrimmed(untrimmed_fastq_files)
+    QualityUntrimmed.out.quality_reports
+        .flatten()
+        .map{file -> tuple(get_prefix(file, params.sample == "paired"), file) }
+        .groupTuple()
+        .ifEmpty{ error "Missing pre-trimming FastQC summaries"}
+        .join(untrimmed_fastq_files)
+        .set{ untrimmed_fastq_and_reports }
+    
+    InferStrandness(
+        // The ".collect" is a workaround to make a channel of paths become a
+        // value channel, and thus allow re-use across multiple samples
+        Channel.fromPath("${workflow.projectDir}/scripts/infer_strand.R").collect(),
+        Channel.fromPath("${workflow.projectDir}/scripts/infer_strand.sh").collect(),
+        BuildKallistoIndex.out.kallisto_index.collect(),
+        untrimmed_fastq_and_reports
+    )
 }
