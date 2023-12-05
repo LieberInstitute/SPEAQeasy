@@ -1359,65 +1359,65 @@ process FeatureCounts {
         """
 }
 
-// /*
-//  * Primary Alignments
-//  */
+/*
+ * Primary Alignments
+ */
 
-// process PrimaryAlignments {
+process PrimaryAlignments {
 
-// 	tag "$alignment_prefix"
-// 	publishDir "${params.output}/counts/junction/primary_alignments",'mode':'copy'
+    tag "$alignment_prefix"
+    publishDir "${params.output}/counts/junction/primary_alignments",'mode':'copy'
 
-// 	input:
-// 	set val(alignment_prefix), path(alignment_bam), path(alignment_index) from sorted_bams
+    input:
+        tuple val(alignment_prefix), path(alignment_bam), path(alignment_index)
 
-// 	output:
-// 	set val("${alignment_prefix}"), path("${alignment_prefix}.bam"), path("${alignment_prefix}.bam.bai"), emit: primary_alignments
+    output:
+        tuple val("${alignment_prefix}"), path("${alignment_prefix}.bam"), path("${alignment_prefix}.bam.bai"), emit: primary_alignments
 
-// 	script:
-// 	"""
-// 	${params.samtools} view -@ $task.cpus -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
-// 	${params.samtools} index ${alignment_prefix}.bam
-// 	"""
-// }
+    script:
+        """
+        ${params.samtools} view -@ $task.cpus -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
+        ${params.samtools} index ${alignment_prefix}.bam
+        """
+}
 
-// /*
-//  * Quantify Junctions
-//  */
+/*
+ * Quantify Junctions
+ */
 
-// process Junctions {
+process Junctions {
 
-//     tag "$prefix"
-//     publishDir "${params.output}/counts/junction",'mode':'copy'
+    tag "$prefix"
+    publishDir "${params.output}/counts/junction",'mode':'copy'
 
-//     input:
-//         set val(prefix), path(alignment_bam), path(alignment_index) from primary_alignments
-//         path complete_manifest
+    input:
+        tuple val(prefix), path(alignment_bam), path(alignment_index)
+        path complete_manifest
 
-//     output:
-//         path "*.count", emit: regtools_outputs
+    output:
+        path "*.count", emit: regtools_outputs
 
-//     shell:
-//         outcount = "${prefix}_junctions_primaryOnly_regtools.count"
-//         '''
-//         ( set -o posix ; set ) > bash_vars.txt
+    shell:
+        outcount = "${prefix}_junctions_primaryOnly_regtools.count"
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
         
-//         #  Find this sample's strandness and determine strand flag
-//         strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
-//         if [ $strand == 'forward' ]; then
-//             strand_integer=2
-//         elif [ $strand == 'reverse' ]; then
-//             strand_integer=1
-//         else
-//             strand_integer=0
-//         fi
+        #  Find this sample's strandness and determine strand flag
+        strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+        if [ $strand == 'forward' ]; then
+            strand_integer=2
+        elif [ $strand == 'reverse' ]; then
+            strand_integer=1
+        else
+            strand_integer=0
+        fi
         
-//         !{params.regtools} junctions extract !{params.regtools_args} -s ${strand_integer} -c !{outcount} !{alignment_bam}
+        !{params.regtools} junctions extract !{params.regtools_args} -s ${strand_integer} -c !{outcount} !{alignment_bam}
         
-//         temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-//         echo "$temp" > bash_vars.txt
-//         '''
-// }
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
+}
 
 
 // /*
@@ -2098,5 +2098,11 @@ workflow {
         BamSort.out.sorted_bams,
         CompleteManifest.out.complete_manifest.collect(),
         reference_gtf
+    )
+
+    PrimaryAlignments(BamSort.out.sorted_bams)
+    Junctions(
+        PrimaryAlignments.out.primary_alignments,
+        CompleteManifest.out.complete_manifest.collect()
     )
 }
