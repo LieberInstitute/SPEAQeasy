@@ -1271,14 +1271,9 @@ process PairedEndHisat {
         '''
 }
 
-// alignment_output
-//     .flatten()
-//     .map{ file -> tuple(get_prefix(file), file) }
-//     .set{ bam_sort_inputs }
-
-// /*
-//  * Sort and index the aligned BAM
-//  */
+/*
+ * Sort and index the aligned BAM
+ */
 
 // process BamSort {
 	
@@ -1286,10 +1281,10 @@ process PairedEndHisat {
 //     publishDir "${params.output}/alignment/bam_sort",'mode':'copy'
 
 //     input:
-//         set val(prefix), path(input_bam) from bam_sort_inputs
+//         tuple val(prefix), path(input_bam)
 
 //     output:
-//         set val(prefix), path("${prefix}_sorted.bam"), path("${prefix}*_sorted.bam.bai"), emit: sorted_bams
+//         tuple val(prefix), path("${prefix}_sorted.bam"), path("${prefix}*_sorted.bam.bai"), emit: sorted_bams
 
 //     shell:
 //         '''
@@ -1297,10 +1292,6 @@ process PairedEndHisat {
 //         !{params.samtools} index !{prefix}_sorted.bam
 //         '''
 // }
-
-// sorted_bams
-//   .combine(reference_gtf)
-//   .set{ feature_counts_inputs }
 
 // /*
 //  * Quantify genes and exons with FeatureCounts
@@ -1312,7 +1303,7 @@ process PairedEndHisat {
 //     publishDir "${params.output}/counts",'mode':'copy'
 
 //     input:
-//         set val(feature_prefix), path(feature_bam), path(feature_index), path(gencode_gtf_feature) from feature_counts_inputs
+//         tuple val(feature_prefix), path(feature_bam), path(feature_index), path(gencode_gtf_feature) from feature_counts_inputs
 //         path complete_manifest
 
 //     output:
@@ -1978,39 +1969,39 @@ process PairedEndHisat {
 // }
 
 workflow {
-    Channel.fromPath("${workflow.projectDir}/scripts/build_annotation_objects.R")
-        .set{ build_ann_script }
-    Channel.fromPath("${workflow.projectDir}/scripts/subset_rat_fasta.R")
-        .set{ subset_script }
-    Channel.fromPath("${workflow.projectDir}/scripts/preprocess_inputs.R")
-        .set{ merge_script }
-    Channel.fromPath("${params.input}/samples.manifest")
-        .set{ original_manifest }
-
     // When using custom annotation, grab the user-provided reference FASTA.
     // Otherwise, run PullAssemblyFasta to pull it from online
     if (params.custom_anno != "") {
         reference_fasta = Channel.fromPath("${params.annotation}/*assembly*.fa*")
             .ifEmpty{ error "Cannot find assembly fasta in annotation directory (and --custom_anno was specified)" }
             .first()  // This proves to nextflow that the channel will always hold one value/file
+            .collect()
         reference_gtf = Channel.fromPath("${params.annotation}/*.gtf")
             .ifEmpty{ error "Cannot find reference gtf in annotation directory (and --custom_anno was specified)" }
-            .first()  // This proves to nextflow that the channel will always hold one value/file
+            .first()
+            .collect()
         transcript_fa = Channel.fromPath("${params.annotation}/*transcripts*.fa*")
             .ifEmpty{ error "Cannot find transcripts fasta in annotation directory (and --custom_anno was specified)" }
-            .first()  // This proves to nextflow that the channel will always hold one value/file
+            .first()
+            .collect()
         ercc_index = Channel.fromPath("${params.annotation}/*.idx").collect()
     } else {
         PullAssemblyFasta()
         PullGtf()
-        PullTranscriptFasta(subset_script)
-        reference_fasta = PullAssemblyFasta.out.reference_fasta
-        reference_gtf = PullGtf.out.reference_gtf
-        transcript_fa = PullTranscriptFasta.out.transcript_fa
+        PullTranscriptFasta(
+            Channel.fromPath("${workflow.projectDir}/scripts/subset_rat_fasta.R")
+        )
+        reference_fasta = PullAssemblyFasta.out.reference_fasta.collect()
+        reference_gtf = PullGtf.out.reference_gtf.collect()
+        transcript_fa = PullTranscriptFasta.out.transcript_fa.collect()
         ercc_index = Channel.fromPath("${params.annotation}/ERCC/ERCC92.idx").collect()
     }
 
-    BuildAnnotationObjects(reference_fasta, reference_gtf, build_ann_script)
+    BuildAnnotationObjects(
+        reference_fasta,
+        reference_gtf,
+        Channel.fromPath("${workflow.projectDir}/scripts/build_annotation_objects.R")
+    )
 
     if (params.use_star) {
         BuildStarIndex(reference_fasta, reference_gtf)
@@ -2025,13 +2016,18 @@ workflow {
 
     // Extract FASTQ file paths from the manifest and place in a channel to pass to
     // PreprocessInputs
+    original_manifest = Channel.fromPath("${params.input}/samples.manifest")
     original_manifest
         .splitText()
         .map{ row -> get_fastq_names(row) }
         .flatten()
         .collect()
         .set{ raw_fastqs }
-    PreprocessInputs(original_manifest, merge_script, raw_fastqs)
+    PreprocessInputs(
+        original_manifest,
+        Channel.fromPath("${workflow.projectDir}/scripts/preprocess_inputs.R"),
+        raw_fastqs
+    )
 
     PreprocessInputs.out.merged_inputs_flat
         .flatten()
@@ -2092,6 +2088,7 @@ workflow {
             BuildStarIndex.out.star_index.collect(),
             alignment_inputs
         )
+        alignment_output_temp = AlignStar.out.alignment_output
     } else {
         // Then aligning with HISAT2
         if (params.sample == "single") {
@@ -2100,12 +2097,14 @@ workflow {
                 CompleteManifest.out.complete_manifest.collect(),
                 alignment_inputs
             )
+            alignment_output_temp = SingleEndHisat.out.alignment_output
         } else {
             PairedEndHisat(
                 BuildHisatIndex.out.hisat_index.collect(),
                 CompleteManifest.out.complete_manifest.collect(),
                 alignment_inputs
             )
+            alignment_output_temp = PairedEndHisat.out.alignment_output
         }
     }
 }
