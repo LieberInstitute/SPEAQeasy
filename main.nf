@@ -308,10 +308,6 @@ if (params.custom_anno != "") {
         params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.annotation.gtf.gz"
     }
     params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.transcripts.fa.gz"
-
-    // Our extra exon annotation if user defaults to gencode release 25
-    exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
-
 } else if (params.reference == "hg19") {
     if (params.anno_build == "primary") {
         print("Warning: use of 'primary' annotation is not supported for hg19, as GENCODE does not provide a primary .gtf file. Continuing with annotation build 'main'.")
@@ -1078,8 +1074,7 @@ process QualityTrimmed {
 
     output:
         path "${prefix}*_fastqc"
-        path "${prefix}*_trimmed_summary.txt", emit: count_objects_quality_reports_trimmed
-        path "${prefix}*_trimmed_fastqc_data.txt", emit: count_objects_quality_metrics_trimmed
+        path "${prefix}*_trimmed_*.txt", emit: trimmed_fastqc_outs
 
     shell:
         if (params.sample == "single") {
@@ -1538,125 +1533,91 @@ process TxQuantKallisto {
         '''
 }
 
-// /*
-//  * Construct the Counts Objects Input Channel
-//  */
+/*
+ * Create RangedSummarizedExperiment outputs
+*/
 
-// if (params.qsva == "") {
-//     qsva_tx_list = Channel.empty()
-// } else {
-//     Channel.fromPath(params.qsva).set{ qsva_tx_list }
-// }
+process CountObjects {
 
-// sorted_bams // this puts sorted.bams and bais into the channel
-//   .flatten()
-//   .mix(quality_reports) // this puts sample_XX_summary.txt files into the channel
-//   .mix(count_objects_quality_metrics_untrimmed) // this puts sample_XX_fastqc_data.txt into the channel
-//   .mix(count_objects_quality_reports_trimmed)
-//   .mix(count_objects_quality_metrics_trimmed)
-//   .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
-//   .mix(reference_gtf) // this puts the transcript .gtf file into the channel
-//   .mix(sample_counts) // this puts sample_XX_*_Exons.counts and sample_XX_*_Genes.counts into the channel
-//   .mix(regtools_outputs) // this puts the *_junctions_primaryOnly_regtools.count files into the channel
-//   .mix(tx_quants)
-//   .mix(qsva_tx_list) // file containing list of transcripts, when using --qsva
-//   .set{counts_objects_channel_1}
+    publishDir "${params.output}/count_objects",'mode':'copy'
 
-// if (params.ercc) {
-		
-// 	counts_objects_channel_1
-// 	  .mix(ercc_abundances)
-// 	  .flatten()
-// 	  .toList()
-// 	  .set{ counts_inputs }
-// } else {
+    input:
+        // Reference/ annotation-related files
+        path ercc_reference
+        path exon_maps_by_coord_hg38
+        path reference_gtf
+        path feature_to_tx_gencode
+        path junction_annotation
+        // FastQC summaries before and after trimming
+        path count_objects_quality_metrics_untrimmed
+        path quality_reports
+        path trimmed_fastqc_outs
+        // Summaries and BAMs from alignment
+        path alignment_summaries
+        path bams_and_indices
+        // Gene + exon counts
+        path sample_counts
+        // Junction counts
+        path regtools_outputs
+        // Transcript counts
+        path tx_quants
+        // File containing list of transcripts, when using --qsva
+        path qsva_tx_list
+        // ERCC spike-in counts (if applicable)
+        path ercc_abundances
+        // Manifest with strandness info
+        path complete_manifest
+        // R script for creating the RSE objects
+        path counts_script
 
-// 	counts_objects_channel_1
-// 	  .flatten()
-// 	  .toList()
-// 	  .set{ counts_inputs }
-// }
 
-// /*
-//  * Construct the Annotation Input Channel
-//  */
+    output:
+        path "*.pdf", optional: true
+        path "read_and_alignment_metrics_*.csv"
+        path "*.Rdata"
+        path "*.rda"
+        path "counts.log"
 
-// //  Mix with reference-dependent annotation info
-// if (params.reference == "hg38" && params.anno_version == "25") {
-//     junction_annotation
-//         .mix(feature_to_tx_gencode)
-//         .mix(exon_maps_by_coord_hg38)
-//         .toList()
-//         .set{counts_annotations}
-// } else {
-//     junction_annotation
-//         .mix(feature_to_tx_gencode)
-//         .toList()
-//         .set{counts_annotations}
-// }
-
-// /*
-//  * Create RangedSummarizedExperiment outputs
-// */
-
-// process CountObjects {
-
-//     publishDir "${params.output}/count_objects",'mode':'copy'
-
-//     input:
-//         path counts_inputs
-//         path counts_annotations
-//         path create_counts from path "${workflow.projectDir}/scripts/create_count_objects.R"
-//         path ercc_actual_conc from path "${params.annotation}/ERCC/ercc_actual_conc.txt"
-//         path complete_manifest
-
-//     output:
-//         path "*.pdf" optional true
-//         path "read_and_alignment_metrics_*.csv"
-//         path "*.Rdata"
-//         path "*.rda"
-//         path "counts.log"
-
-//     shell:
-//         if (params.sample == "paired") {
-//             counts_pe = "TRUE"
-//         } else {
-//             counts_pe = "FALSE"
-//         }
-//         if (params.strand == "unstranded") {
-//             counts_strand = "-s FALSE"
-//         } else {
-//             counts_strand = "-s " + params.strand
-//         }
+    shell:
+        if (params.sample == "paired") {
+            counts_pe = "TRUE"
+        } else {
+            counts_pe = "FALSE"
+        }
+        if (params.strand == "unstranded") {
+            counts_strand = "-s FALSE"
+        } else {
+            counts_strand = "-s " + params.strand
+        }
         
-//         '''
-//         # Write 'params' to CSV, where it can be read in (in R) and used to
-//         # record SPEAQeasy settings in each RSE's metadata
-//         echo "!{params}" | sed 's|, |\\n|g' | tr -d '[]' | sed 's|:|,|' > params.csv
+        '''
+        # Write 'params' to CSV, where it can be read in (in R) and used to
+        # record SPEAQeasy settings in each RSE's metadata
+        echo "!{params}" | sed 's|, |\\n|g' | tr -d '[]' | sed 's|:|,|' > params.csv
         
-//         if [[ "!{params.qsva}" == "" ]]; then
-//             qsva_arg=""
-//         else
-//             qsva_arg="-q $(basename !{params.qsva})"
-//         fi
+        if [[ "!{params.qsva}" == "" ]]; then
+            qsva_arg=""
+        else
+            qsva_arg="-q $(basename !{params.qsva})"
+        fi
         
-//         !{params.Rscript} !{create_counts} \
-//             -o !{params.reference} \
-//             -e !{params.experiment} \
-//             -p "!{params.prefix}" \
-//             -l !{counts_pe} \
-//             -c !{params.ercc} \
-//             -t !{task.cpus} \
-//             !{counts_strand} \
-//             -n !{params.use_salmon} \
-//             -r !{params.use_star} \
-//             -u !{params.output} \
-//             -a !{params.anno_suffix} \
-//             ${qsva_arg}
+        !{params.Rscript} !{counts_script} \
+            -o !{params.reference} \
+            -e !{params.experiment} \
+            -p "!{params.prefix}" \
+            -l !{counts_pe} \
+            -c !{params.ercc} \
+            -t !{task.cpus} \
+            !{counts_strand} \
+            -n !{params.use_salmon} \
+            -r !{params.use_star} \
+            -u !{params.output} \
+            -a !{params.anno_suffix} \
+            ${qsva_arg}
 
-//         cp .command.log counts.log
-//         '''
-// }
+        cp .command.log counts.log
+        '''
+}
 
 
 // if (perform_variant_calling) {
@@ -1968,6 +1929,14 @@ process TxQuantKallisto {
 // }
 
 workflow {
+    if (params.reference == "hg38" && params.anno_version == "25") {
+        // Our extra exon annotation if user defaults to gencode release 25
+        exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
+    } else {
+        // Nextflow requires a valid path of length 1: here we just use a random script
+        exon_maps_by_coord_hg38 = Channel.fromPath("${workflow.projectDir}/scripts/style_code.R")
+    }
+
     // When using custom annotation, grab the user-provided reference FASTA.
     // Otherwise, run PullAssemblyFasta to pull it from online
     if (params.custom_anno != "") {
@@ -2061,6 +2030,10 @@ workflow {
             untrimmed_fastq_files,
             CompleteManifest.out.complete_manifest.collect()
         )
+        ercc_abundances = ERCC.out.ercc_abundances
+    } else {
+        // Nextflow requires a valid path of length 1: here we just use a random script
+        ercc_abundances = Channel.fromPath("${workflow.projectDir}/scripts/track_runs.sh")
     }
 
     Trimming(trimming_inputs)
@@ -2072,6 +2045,7 @@ workflow {
             Trimming.out.trimming_outputs
         )
         alignment_output_temp = AlignStar.out.alignment_output
+        alignment_summaries = AlignStar.out.alignment_summaries
     } else {
         // Then aligning with HISAT2
         if (params.sample == "single") {
@@ -2081,6 +2055,7 @@ workflow {
                 Trimming.out.trimming_outputs
             )
             alignment_output_temp = SingleEndHisat.out.alignment_output
+            alignment_summaries = SingleEndHisat.out.alignment_summaries
         } else {
             PairedEndHisat(
                 BuildHisatIndex.out.hisat_index.collect(),
@@ -2088,6 +2063,7 @@ workflow {
                 Trimming.out.trimming_outputs
             )
             alignment_output_temp = PairedEndHisat.out.alignment_output
+            alignment_summaries = PairedEndHisat.out.alignment_summaries
         }
     }
 
@@ -2110,11 +2086,56 @@ workflow {
             CompleteManifest.out.complete_manifest.collect(),
             untrimmed_fastq_files
         )
+        tx_quants = TxQuantSalmon.out.tx_quants
     } else {
         TxQuantKallisto(
             BuildKallistoIndex.out.kallisto_index.collect(),
             CompleteManifest.out.complete_manifest.collect(),
             untrimmed_fastq_files
         )
+        tx_quants = TxQuantKallisto.out.tx_quants
     }
+
+    if (params.qsva == "") {
+        // Nextflow requires a valid path of length 1: here we just use a random script
+        qsva_tx_list = Channel.fromPath("${workflow.projectDir}/scripts/chunk_apply.sh")
+    } else {
+        qsva_tx_list = Channel.fromPath(params.qsva)
+    }
+
+    CountObjects(
+        // Reference/ annotation-related files
+        Channel.fromPath("${params.annotation}/ERCC/ercc_actual_conc.txt"),
+        exon_maps_by_coord_hg38,
+        reference_gtf,
+        BuildAnnotationObjects.out.feature_to_tx_gencode,
+        BuildAnnotationObjects.out.junction_annotation,
+        // FastQC summaries before and after trimming
+        QualityUntrimmed.out.count_objects_quality_metrics_untrimmed.collect(),
+        QualityUntrimmed.out.quality_reports
+            // Take just the summaries, not sample IDs
+            .map{this_tuple -> this_tuple[1] }
+            .collect(),
+        QualityTrimmed.out.trimmed_fastqc_outs.collect(),
+        // Summaries and BAMs from alignment
+        alignment_summaries.collect(),
+        BamSort.out.sorted_bams
+            // Take just the .bam and .bam.bai files (not the sample ID)
+            .map{this_tuple -> tuple(this_tuple[1], this_tuple[2]) }
+            .collect(),
+        // Gene + exon counts
+        FeatureCounts.out.sample_counts.collect(),
+        // Junction counts
+        Junctions.out.regtools_outputs.collect(),
+        // Transcript counts
+        tx_quants.collect(),
+        // File containing list of transcripts, when using --qsva
+        qsva_tx_list,
+        // ERCC spike-in counts (if applicable)
+        ercc_abundances.collect(),
+        // Manifest with strandness info
+        CompleteManifest.out.complete_manifest,
+        // R script for creating the RSE objects
+        Channel.fromPath("${workflow.projectDir}/scripts/create_count_objects.R")   
+    )
 }
