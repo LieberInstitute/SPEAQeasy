@@ -1695,7 +1695,7 @@ process Coverage {
         path chr_sizes
 
     output:
-        tuple val(prefix), path("${prefix}*.wig"), emit: wig_files
+        path "${prefix}*.wig", emit: wig_files
         path "bam2wig_${prefix}.log"
 
     shell:
@@ -2110,8 +2110,12 @@ workflow {
             BamSort.out.sorted_bams,
             BuildAnnotationObjects.out.chr_sizes.collect()
         )
+        Coverage.out.wig_files
+            .flatten()
+            .map{ file -> tuple(get_prefix(file, false, false), file) }
+            .set{ wig_files }
         WigToBigWig(
-            Coverage.out.wig_files,
+            wig_files,
             BuildAnnotationObjects.out.chr_sizes.collect()
         )
 
