@@ -1689,7 +1689,7 @@ if (do_coverage) {
     process Coverage {
     
         tag "$prefix"
-        publishDir "${params.output}/coverage/wigs",mode:'copy'
+        publishDir "${params.output}/coverage/wigs", mode:'copy'
     
         input:
             path complete_manifest
@@ -1740,7 +1740,7 @@ if (do_coverage) {
     process WigToBigWig {
     
         tag "$prefix"
-        publishDir "${params.output}/coverage/bigWigs", mode:'copy'
+        publishDir "${params.output}/coverage/bigWigs", mode: 'copy'
         
         input:
             tuple val(prefix), path(wig_file)
@@ -1760,19 +1760,18 @@ if (do_coverage) {
     }
     
     // Compute mean coverage across samples by strand
-    
     process MeanCoverage {
     
         tag "Strand: ${read_type}"
-        publishDir "${params.output}/coverage/mean",'mode':'copy'
+        publishDir "${params.output}/coverage/mean", mode: 'copy'
     
         input:
-            tuple val(read_type), path(mean_coverage_bigwig) from coverage_bigwigs
+            tuple val(read_type), path(mean_coverage_bigwig)
             path chr_sizes
             path chunk_apply_script from path "${workflow.projectDir}/scripts/chunk_apply.sh"
     
         output:
-            path "mean*.bw", emit: mean_bigwigs
+            tuple val(read_type), path("mean*.bw"), emit: mean_bigwigs
             path "mean_coverage_${read_type}.log"
     
         shell:
@@ -1819,37 +1818,30 @@ if (do_coverage) {
     }
     
     
-//     if (params.fullCov) {
-      
-//     	/*
-//     	 * Create Full Coverage Objects
-//     	 */
-    
-//         process CoverageObjects {
-            
-//             tag "Strand: ${read_type}"
-//             publishDir "${params.output}/coverage_objects",'mode':'copy'
-    
-//             input:
-//                 path fullCov_script from path "${workflow.projectDir}/scripts/create_fullCov_object.R"
-//                 path complete_manifest
-//                 set val(read_type), path(bigwigs) from coverage_bigwigs
-    
-//             output:
-//                 file "*"
+    process CoverageObjects {
         
-//             shell:
-//                 '''
-//                 !{params.Rscript} !{fullCov_script} \
-//                     -o !{params.reference} \
-//                     -e !{params.experiment} \
-//                     -c !{task.cpus} \
-//                     -s !{read_type}
-                
-//                 cp .command.log coverage_objects.log
-//                 '''
-//         }
-//     }
+        tag "Strand: ${read_type}"
+        publishDir "${params.output}/coverage_objects", mode: 'copy'
+
+        input:
+            path fullCov_script
+            path complete_manifest
+            tuple val(read_type), path(bigwigs)
+
+        output:
+            file "*"
+    
+        shell:
+            '''
+            !{params.Rscript} !{fullCov_script} \
+                -o !{params.reference} \
+                -e !{params.experiment} \
+                -c !{task.cpus} \
+                -s !{read_type}
+            
+            cp .command.log coverage_objects.log
+            '''
+    }
 
 
 //     /*
@@ -2143,7 +2135,15 @@ workflow {
         MeanCoverage(
             coverage_bigwigs,
             BuildAnnotationObjects.out.chr_sizes.collect()
-            Channel.fromPath("${workflow.projectDir}/scripts/chunk_apply.sh")
+            Channel.fromPath("${workflow.projectDir}/scripts/chunk_apply.sh").collect()
         )
+
+        if (params.fullCov) {
+            CoverageObjects(
+                Channel.fromPath("${workflow.projectDir}/scripts/create_fullCov_object.R").collect(),
+                CompleteManifest.out.complete_manifest.collect(),
+                coverage_bigwigs
+            )
+        }
     }
 }
