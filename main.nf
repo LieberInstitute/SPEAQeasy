@@ -286,13 +286,6 @@ if (params.small_test) {
 // Define reference-dependent variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Variant calling is only enabled for human
-if (params.reference_type == "human") {
-    perform_variant_calling = true
-} else {
-    perform_variant_calling = false
-}
-
 if (params.custom_anno != "") {
     params.anno_suffix = params.custom_anno + "_custom_build"
     params.anno_version = "custom"
@@ -725,7 +718,7 @@ process BuildSalmonIndex {
         path "salmon_index_${anno_suffix}/*", emit: salmon_index
         path "build_salmon_index_${anno_suffix}.log"
 
-    script:
+    shell:
         if (params.reference == "rat") {
             gencode_flag = ""
         } else {
@@ -742,7 +735,7 @@ process BuildSalmonIndex {
         !{params.salmon} index \
             -t !{transcript_fa} \
             -i salmon_index_!{anno_suffix} \
-            -p $task.cpus \
+            -p !{task.cpus} \
             !{gencode_flag} \
             !{params.salmon_index_args}
         
@@ -1619,98 +1612,81 @@ process CountObjects {
         '''
 }
 
-
-// if (perform_variant_calling) {
-
-//     /*
-//      * Call Variants
-//      */
-      
-//     if (params.custom_anno != "") {
-//         snvbed = Channel.fromPath("${params.annotation}/*.bed")
-//     } else {
-//         snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
-//     }
+process VariantCalls {
+    tag "$prefix"
+    publishDir "${params.output}/variant_calls",'mode':'copy'
     
-//     sorted_bams
-//         .combine(snvbed)
-//         .combine(reference_fasta)
-//         .set{ variant_calls }
-
-//     process VariantCalls {
-//         tag "$variant_bams_prefix"
-//         publishDir "${params.output}/variant_calls",'mode':'copy'
+    input:
+        tuple val(prefix), path(sorted_bams_file), path(variant_calls_bai)
+        path snv_bed
+        path reference_fasta
+    
+    output:
+        path "${prefix}.vcf.gz", emit: compressed_variant_calls
+        path "${prefix}.vcf.gz.tbi", emit: compressed_variant_calls_tbi
+    
+    shell:
+        '''
+        !{params.samtools} mpileup \
+            -l !{snv_bed} \
+            !{params.samtools_args} \
+            -u \
+            -f !{reference_fasta} \
+            !{sorted_bams_file} \
+            -o !{prefix}_tmp.vcf
         
-//         input:
-//             set val(variant_bams_prefix), path(sorted_bams_file), path(variant_calls_bai), path(snv_bed), path(reference_fasta_file) from variant_calls
+        !{params.bcftools} call \
+            !{params.bcftools_args} \
+            !{prefix}_tmp.vcf \
+            > !{prefix}.vcf.gz
         
-//         output:
-//             path "${variant_bams_prefix}.vcf.gz", emit: compressed_variant_calls
-//             path "${variant_bams_prefix}.vcf.gz.tbi", emit: compressed_variant_calls_tbi
+        !{params.tabix} -p vcf !{prefix}.vcf.gz
+        '''
+}
+
+
+/*
+ * Merge Variant Calls
+ */
+
+process VariantsMerge {
+
+    tag "Multi-sample vcf creation"
+    publishDir "${params.output}/merged_variants",'mode':'copy'
+
+    input:
+        path chunk_apply_script
+        path collected_variants
+        path collected_variants_tbi
+
+    output:
+        path "mergedVariants.vcf.gz"
+        path "variants_merge.log"
+
+    shell:
+        '''
+        file_regex='.*\\.vcf\\.gz$'
+        command="!{params.bcftools} merge [files] | !{params.bgzip} -c > temp[index].vcf.gz; !{params.tabix} -p vcf temp[index].vcf.gz"
+
+        #   Break the 'bcftools merge' command into chunks (necessary for large
+        #   datasets where the number of open file handles may be exceeded)
+        bash !{chunk_apply_script} !{params.variants_merge_batch_size} "$file_regex" "$command"
         
-//         shell:
-//             '''
-//             !{params.samtools} mpileup \
-//                 -l !{snv_bed} \
-//                 !{params.samtools_args} \
-//                 -u \
-//                 -f !{reference_fasta_file} \
-//                 !{sorted_bams_file} \
-//                 -o !{variant_bams_prefix}_tmp.vcf
-            
-//             !{params.bcftools} call \
-//                 !{params.bcftools_args} \
-//                 !{variant_bams_prefix}_tmp.vcf \
-//                 > !{variant_bams_prefix}.vcf.gz
-            
-//             !{params.tabix} -p vcf !{variant_bams_prefix}.vcf.gz
-//             '''
-//     }
+        file_list=$(ls -1 | grep -E "$file_regex")
+        num_files=$(echo "$file_list" | wc -l)
+        if [[ $num_files -gt 1 ]]; then
+            #   If more than one file is left, merge everything to produce the
+            #   final output
+            echo "Performing a final merge of all VCF files..."
+            !{params.bcftools} merge $file_list | !{params.bgzip} -c > mergedVariants.vcf.gz
+        else
+            #   There's only one file, so rename it
+            mv $file_list mergedVariants.vcf.gz
+        fi
 
-
-// 	/*
-// 	 * Merge Variant Calls
-// 	 */
-
-// 	process VariantsMerge {
-	
-// 		tag "Multi-sample vcf creation"
-// 		publishDir "${params.output}/merged_variants",'mode':'copy'
-
-// 		input:
-//         path chunk_apply_script from path "${workflow.projectDir}/scripts/chunk_apply.sh"
-// 		path collected_variants from compressed_variant_calls.collect()
-// 		path collected_variants_tbi from compressed_variant_calls_tbi.collect()
-
-// 		output:
-// 		path "mergedVariants.vcf.gz"
-//         path "variants_merge.log"
-
-// 		shell:
-// 		'''
-//         file_regex='.*\\.vcf\\.gz$'
-//         command="!{params.bcftools} merge [files] | !{params.bgzip} -c > temp[index].vcf.gz; !{params.tabix} -p vcf temp[index].vcf.gz"
-
-//         #   Break the 'bcftools merge' command into chunks (necessary for large
-//         #   datasets where the number of open file handles may be exceeded)
-// 		bash !{chunk_apply_script} !{params.variants_merge_batch_size} "$file_regex" "$command"
-        
-//         file_list=$(ls -1 | grep -E "$file_regex")
-//         num_files=$(echo "$file_list" | wc -l)
-//         if [[ $num_files -gt 1 ]]; then
-//             #   If more than one file is left, merge everything to produce the
-//             #   final output
-//             echo "Performing a final merge of all VCF files..."
-//             !{params.bcftools} merge $file_list | !{params.bgzip} -c > mergedVariants.vcf.gz
-//         else
-//             #   There's only one file, so rename it
-//             mv $file_list mergedVariants.vcf.gz
-//         fi
-
-//         cp .command.log variants_merge.log
-// 		'''
-// 	}
-// }
+        cp .command.log variants_merge.log
+        '''
+}
 
 
 // if (do_coverage) {
@@ -1953,6 +1929,11 @@ workflow {
             .first()
             .collect()
         ercc_index = Channel.fromPath("${params.annotation}/*.idx").collect()
+
+        // Variant calling is only enabled for human
+        if (params.reference_type == "human") {
+            snv_bed = Channel.fromPath("${params.annotation}/*.bed").collect()
+        }
     } else {
         PullAssemblyFasta()
         PullGtf()
@@ -1963,6 +1944,9 @@ workflow {
         reference_gtf = PullGtf.out.reference_gtf.collect()
         transcript_fa = PullTranscriptFasta.out.transcript_fa.collect()
         ercc_index = Channel.fromPath("${params.annotation}/ERCC/ERCC92.idx").collect()
+
+        // Note that variant calling is only performed for human
+        snv_bed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed").collect()
     }
 
     BuildAnnotationObjects(
@@ -2138,4 +2122,16 @@ workflow {
         // R script for creating the RSE objects
         Channel.fromPath("${workflow.projectDir}/scripts/create_count_objects.R")   
     )
+    if (params.reference_type == "human") {
+        VariantCalls(
+            BamSort.out.sorted_bams,
+            snv_bed,
+            reference_fasta
+        )
+        VariantsMerge(
+            Channel.fromPath("${workflow.projectDir}/scripts/chunk_apply.sh"),
+            VariantCalls.out.compressed_variant_calls.collect(),
+            VariantCalls.out.compressed_variant_calls_tbi.collect()
+        )
+    }
 }
