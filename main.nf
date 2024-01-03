@@ -261,10 +261,6 @@ if (params.qsva != "" && ! qsva_file.exists()) {
     exit 1, "File passed via '--qsva' argument does not exist."
 }
 
-// Create a global variable to handle the situation where params.fullCov is
-// included but maybe not params.coverage
-do_coverage = params.coverage || params.fullCov
-
 // Get species name from genome build name
 if (params.reference == "hg19" || params.reference == "hg38") {
     params.reference_type = "human"
@@ -1689,149 +1685,138 @@ process VariantsMerge {
 }
 
 
-// if (do_coverage) {
-//     process Coverage {
+if (do_coverage) {
+    process Coverage {
     
-//         tag "$coverage_prefix"
-//         publishDir "${params.output}/coverage/wigs",mode:'copy'
+        tag "$prefix"
+        publishDir "${params.output}/coverage/wigs",mode:'copy'
     
-//         input:
-//             path complete_manifest
-//             set val(coverage_prefix), path(sorted_coverage_bam), path(sorted_bam_index) from sorted_bams
-//             path chr_sizes
+        input:
+            path complete_manifest
+            tuple val(prefix), path(sorted_bam), path(sorted_bam_index)
+            path chr_sizes
     
-//         output:
-//             path "${coverage_prefix}*.wig", emit: wig_files_temp
-//             path "bam2wig_${coverage_prefix}.log"
+        output:
+            tuple val(prefix), path("${prefix}*.wig"), emit: wig_files
+            path "bam2wig_${prefix}.log"
     
-//         shell:
-//             '''
-//             ( set -o posix ; set ) > bash_vars.txt
+        shell:
+            '''
+            ( set -o posix ; set ) > bash_vars.txt
             
-//             #  Find this sample's strandness and determine strand flag
-//             strand=$(cat samples_complete.manifest | grep " !{coverage_prefix} " | awk -F ' ' '{print $NF}')
-//             if [ $strand == 'forward' ]; then
-//                 if [ !{params.sample} == "paired" ]; then
-//                     strand_flag='-d 1++,1--,2+-,2-+'
-//                 else
-//                     strand_flag='-d ++,--'
-//                 fi
-//             elif [ $strand == 'reverse' ]; then
-//                 if [ !{params.sample} == "paired" ]; then
-//                     strand_flag='-d 1+-,1-+,2++,2--'
-//                 else
-//                     strand_flag='-d +-,-+'
-//                 fi
-//             else
-//                 strand_flag=""
-//             fi
+            #  Find this sample's strandness and determine strand flag
+            strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+            if [ $strand == 'forward' ]; then
+                if [ !{params.sample} == "paired" ]; then
+                    strand_flag='-d 1++,1--,2+-,2-+'
+                else
+                    strand_flag='-d ++,--'
+                fi
+            elif [ $strand == 'reverse' ]; then
+                if [ !{params.sample} == "paired" ]; then
+                    strand_flag='-d 1+-,1-+,2++,2--'
+                else
+                    strand_flag='-d +-,-+'
+                fi
+            else
+                strand_flag=""
+            fi
     
-//             python3 $(which bam2wig.py) \
-//                 -s !{chr_sizes} \
-//                 -i !{sorted_coverage_bam} \
-//                 !{params.bam2wig_args} \
-//                 -o !{coverage_prefix} \
-//                 $strand_flag
+            python3 $(which bam2wig.py) \
+                -s !{chr_sizes} \
+                -i !{sorted_bam} \
+                !{params.bam2wig_args} \
+                -o !{prefix} \
+                $strand_flag
     
-//             cp .command.log bam2wig_!{coverage_prefix}.log
+            cp .command.log bam2wig_!{prefix}.log
             
-//             temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2-|| true)
-//             echo "$temp" > bash_vars.txt
-//             '''
-//     }
+            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2-|| true)
+            echo "$temp" > bash_vars.txt
+            '''
+    }
     
-//     // Convert wig files to bigWig format
+    // Convert wig files to bigWig format    
+    process WigToBigWig {
     
-//     wig_files_temp
-//         .flatten()
-//         .map{ file -> tuple(get_prefix(file, false, false), file) }
-//         .set{ wig_files }
-    
-//     process WigToBigWig {
-    
-//         tag "$wig_prefix"
-//         publishDir "${params.output}/coverage/bigWigs",mode:'copy'
+        tag "$prefix"
+        publishDir "${params.output}/coverage/bigWigs", mode:'copy'
         
-//         input:
-//             set val(wig_prefix), path(wig_file) from wig_files
-//             path chr_sizes
+        input:
+            tuple val(prefix), path(wig_file)
+            path chr_sizes
         
-//         output:
-//             path "*.bw", emit: coverage_bigwigs
+        output:
+            path "*.bw", emit: coverage_bigwigs
         
-//         shell:
-//             '''
-//             !{params.wigToBigWig} \
-//                 !{params.wigToBigWig_args} \
-//                 !{wig_file} \
-//                 !{chr_sizes} \
-//                 !{wig_prefix}.bw
-//             '''
-//     }
+        shell:
+            '''
+            !{params.wigToBigWig} \
+                !{params.wigToBigWig_args} \
+                !{wig_file} \
+                !{chr_sizes} \
+                !{prefix}.bw
+            '''
+    }
     
-//     coverage_bigwigs
-//         .map { f -> tuple(get_read_type(f), f) }
-//         .groupTuple()
-//         .set{ coverage_bigwigs }
+    // Compute mean coverage across samples by strand
     
-//     // Compute mean coverage across samples by strand
+    process MeanCoverage {
     
-//     process MeanCoverage {
+        tag "Strand: ${read_type}"
+        publishDir "${params.output}/coverage/mean",'mode':'copy'
     
-//         tag "Strand: ${read_type}"
-//         publishDir "${params.output}/coverage/mean",'mode':'copy'
+        input:
+            tuple val(read_type), path(mean_coverage_bigwig) from coverage_bigwigs
+            path chr_sizes
+            path chunk_apply_script from path "${workflow.projectDir}/scripts/chunk_apply.sh"
     
-//         input:
-//             set val(read_type), path(mean_coverage_bigwig) from coverage_bigwigs
-//             path chr_sizes
-//             path chunk_apply_script from path "${workflow.projectDir}/scripts/chunk_apply.sh"
+        output:
+            path "mean*.bw", emit: mean_bigwigs
+            path "mean_coverage_${read_type}.log"
     
-//         output:
-//             path "mean*.bw", emit: mean_bigwigs
-//             path "mean_coverage_${read_type}.log"
-    
-//         shell:
-//             '''
-//             ( set -o posix ; set ) > bash_vars.txt
+        shell:
+            '''
+            ( set -o posix ; set ) > bash_vars.txt
             
-//             if [ !{read_type} == "unstranded" ] ; then
-//                 outwig="mean"
-//             elif [ !{read_type} == "forward" ]; then
-//                 outwig="mean.forward"
-//             else
-//                 outwig="mean.reverse"
-//             fi
+            if [ !{read_type} == "unstranded" ] ; then
+                outwig="mean"
+            elif [ !{read_type} == "forward" ]; then
+                outwig="mean.forward"
+            else
+                outwig="mean.reverse"
+            fi
             
-//             precision=8
+            precision=8
             
-//             file_regex='.*\\.(bw|wig)$'
-//             command="!{params.wiggletools} write temp_wig[index].wig sum [files]"
+            file_regex='.*\\.(bw|wig)$'
+            command="!{params.wiggletools} write temp_wig[index].wig sum [files]"
 
-//             #   To compute a mean, we'll sum all files then multiply by the
-//             #   scale factor (reciprocal of number of files)
-//             num_files=$(ls -1 | grep -E "$file_regex" | wc -l)
-//             scale_factor=$(!{params.bc} <<< "scale=${precision};1/$num_files")
-//             echo "Scale factor is $scale_factor."
+            #   To compute a mean, we'll sum all files then multiply by the
+            #   scale factor (reciprocal of number of files)
+            num_files=$(ls -1 | grep -E "$file_regex" | wc -l)
+            scale_factor=$(!{params.bc} <<< "scale=${precision};1/$num_files")
+            echo "Scale factor is $scale_factor."
             
-//             #   Break the summation command into chunks (necessary for large
-//             #   datasets where the number of open file handles may be exceeded)
-//             bash !{chunk_apply_script} !{params.wiggletools_batch_size} "$file_regex" "$command"
+            #   Break the summation command into chunks (necessary for large
+            #   datasets where the number of open file handles may be exceeded)
+            bash !{chunk_apply_script} !{params.wiggletools_batch_size} "$file_regex" "$command"
 
-//             #   Note that even if one file is left, this command is necessary
-//             #   because of the scaling (mean instead of sum)
-//             echo "Computing a mean from the final files..."
-//             file_list=$(ls -1 | grep -E "$file_regex")
-//             !{params.wiggletools} write $outwig.wig scale $scale_factor sum $file_list
-//             echo "Done."
+            #   Note that even if one file is left, this command is necessary
+            #   because of the scaling (mean instead of sum)
+            echo "Computing a mean from the final files..."
+            file_list=$(ls -1 | grep -E "$file_regex")
+            !{params.wiggletools} write $outwig.wig scale $scale_factor sum $file_list
+            echo "Done."
             
-//             !{params.wigToBigWig} $outwig.wig !{chr_sizes} $outwig.bw
+            !{params.wigToBigWig} $outwig.wig !{chr_sizes} $outwig.bw
             
-//             cp .command.log mean_coverage_!{read_type}.log
+            cp .command.log mean_coverage_!{read_type}.log
             
-//             temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-//             echo "$temp" > bash_vars.txt
-//             '''
-//     }
+            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+            echo "$temp" > bash_vars.txt
+            '''
+    }
     
     
 //     if (params.fullCov) {
@@ -2132,6 +2117,33 @@ workflow {
             Channel.fromPath("${workflow.projectDir}/scripts/chunk_apply.sh"),
             VariantCalls.out.compressed_variant_calls.collect(),
             VariantCalls.out.compressed_variant_calls_tbi.collect()
+        )
+    }
+
+    //  Compute coverage by sample and also averaged across samples for each
+    //  strand
+    if (params.coverage || params.fullCov) {
+        //  Produce wig files, and convert to bigwig, starting from the
+        //  alignment BAMs
+        Coverage(
+            CompleteManifest.out.complete_manifest,
+            BamSort.out.sorted_bams,
+            BuildAnnotationObjects.out.chr_sizes.collect()
+        )
+        WigToBigWig(
+            Coverage.out.wig_files,
+            BuildAnnotationObjects.out.chr_sizes.collect()
+        )
+
+        //  Group by strand and compute a mean across samples
+        WigToBigWig.out.coverage_bigwigs
+            .map { f -> tuple(get_read_type(f), f) }
+            .groupTuple()
+            .set{ coverage_bigwigs }
+        MeanCoverage(
+            coverage_bigwigs,
+            BuildAnnotationObjects.out.chr_sizes.collect()
+            Channel.fromPath("${workflow.projectDir}/scripts/chunk_apply.sh")
         )
     }
 }
