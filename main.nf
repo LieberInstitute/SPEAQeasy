@@ -442,7 +442,7 @@ summary_main['Current path']        = "$PWD"
 summary_main['Annotation build'] = params.anno_build
 summary_main['Annotation dir']       = params.annotation
 summary_main['Annotation release'] = params.anno_version
-summary_main['Compute coverage'] = do_coverage
+summary_main['Compute coverage'] = params.fullCov || params.coverage
 summary_main['Custom anno label'] = params.custom_anno
 summary_main['ERCC spike-in'] = params.ercc
 summary_main['Experiment name'] = params.experiment
@@ -1766,7 +1766,7 @@ process MeanCoverage {
     input:
         tuple val(read_type), path(mean_coverage_bigwig)
         path chr_sizes
-        path chunk_apply_script from path "${workflow.projectDir}/scripts/chunk_apply.sh"
+        path chunk_apply_script
 
     output:
         tuple val(read_type), path("mean*.bw"), emit: mean_bigwigs
