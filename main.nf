@@ -842,10 +842,10 @@ if (params.sample == "single") {
 }
 
 //  Copy the processed input channel to channels used by dependent processes
-if (params.ercc) { 
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs; ercc_inputs }
+if (params.ercc) {
+  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; ercc_inputs }
 } else {
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs }
+  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs  }
 }
 
 // Perform pseudoaligment by sample on a subset of reads, and see which strandness
@@ -1169,7 +1169,9 @@ trimming_outputs
     .map{ file -> tuple(get_prefix(file, params.sample == "paired"), file) }
     .ifEmpty{ error "Input channel to alignment process is empty" }
     .groupTuple()
-    .set{ alignment_inputs }
+    .set{ trimmed_fq_inputs }
+
+trimmed_fq_inputs.into{ alignment_inputs; tx_quant_inputs }
 
 if (params.use_star) {
     process AlignStar {
@@ -1542,9 +1544,9 @@ if (params.use_salmon) {
             
             if [ !{params.sample} == "paired" ]; then
                 strand_flag="I$strand_flag"
-                sample_flag="-1 !{prefix}_1.f*q* -2 !{prefix}_2.f*q*"
+                sample_flag="-1 !{prefix}*_1.f*q* -2 !{prefix}*_2.f*q*"
             else
-                sample_flag="-r !{prefix}.f*q*"
+                sample_flag="-r !{prefix}*.f*q*"
             fi
             
             !{params.salmon} quant \
