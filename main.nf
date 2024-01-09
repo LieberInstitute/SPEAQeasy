@@ -2065,7 +2065,9 @@ workflow {
             // Take just the summaries, not sample IDs
             .map{this_tuple -> this_tuple[1] }
             .collect(),
-        QualityTrimmed.out.trimmed_fastqc_outs.collect(),
+        QualityTrimmed.out.trimmed_fastqc_outs
+            .ifEmpty("${workflow.projectDir}/assets/NO_FILE")
+            .collect(),
         // Summaries and BAMs from alignment
         alignment_summaries.collect(),
         BamSort.out.sorted_bams
