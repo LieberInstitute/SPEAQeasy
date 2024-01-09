@@ -2108,7 +2108,7 @@ workflow {
         //  Produce wig files, and convert to bigwig, starting from the
         //  alignment BAMs
         Coverage(
-            CompleteManifest.out.complete_manifest,
+            CompleteManifest.out.complete_manifest.collect(),
             BamSort.out.sorted_bams,
             BuildAnnotationObjects.out.chr_sizes.collect()
         )
