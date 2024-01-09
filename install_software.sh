@@ -61,8 +61,8 @@ if [[ "$1" == "docker" || "$1" == "singularity" ]]; then
     mkdir -p $INSTALL_DIR
     cd $INSTALL_DIR
     
-    #  Install nextflow (20.01.0)
-    curl -L https://github.com/nextflow-io/nextflow/releases/download/v20.01.0/nextflow | bash
+    #  Install nextflow (23.10.0)
+    curl -L https://github.com/nextflow-io/nextflow/releases/download/v23.10.0/nextflow | bash
     cd ..
         
     ###########################################################################
@@ -145,8 +145,8 @@ elif [ "$1" == "local" ]; then
         mkdir -p $INSTALL_DIR
         cd $INSTALL_DIR
         
-        #  Install nextflow (20.01.0)
-        curl -L https://github.com/nextflow-io/nextflow/releases/download/v20.01.0/nextflow | bash
+        #  Install nextflow (23.10.0)
+        curl -L https://github.com/nextflow-io/nextflow/releases/download/v23.10.0/nextflow | bash
     
         #  bc (1.06.95)
         curl -O ftp://alpha.gnu.org/gnu/bc/bc-1.06.95.tar.bz2
