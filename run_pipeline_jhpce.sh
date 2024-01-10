@@ -10,10 +10,10 @@
 #  where SPEAQeasy was installed, and not say "$PWD"
 ORIG_DIR=$PWD
 
-module load nextflow/20.01.0
+module load nextflow/23.10.0
 export _JAVA_OPTIONS="-Xms8g -Xmx10g"
 
-nextflow $ORIG_DIR/main.nf \
+nextflow run $ORIG_DIR/main.nf \
     --sample "paired" \
     --reference "hg38" \
     --strand "forward" \

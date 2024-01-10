@@ -261,10 +261,6 @@ if (params.qsva != "" && ! qsva_file.exists()) {
     exit 1, "File passed via '--qsva' argument does not exist."
 }
 
-// Create a global variable to handle the situation where params.fullCov is
-// included but maybe not params.coverage
-do_coverage = params.coverage || params.fullCov
-
 // Get species name from genome build name
 if (params.reference == "hg19" || params.reference == "hg38") {
     params.reference_type = "human"
@@ -286,13 +282,6 @@ if (params.small_test) {
 // Define reference-dependent variables
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Variant calling is only enabled for human
-if (params.reference_type == "human") {
-    perform_variant_calling = true
-} else {
-    perform_variant_calling = false
-}
-
 if (params.custom_anno != "") {
     params.anno_suffix = params.custom_anno + "_custom_build"
     params.anno_version = "custom"
@@ -308,10 +297,6 @@ if (params.custom_anno != "") {
         params.gtf_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.annotation.gtf.gz"
     }
     params.tx_fa_link = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_${params.anno_version}/gencode.v${params.anno_version}.transcripts.fa.gz"
-
-    // Our extra exon annotation if user defaults to gencode release 25
-    exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
-
 } else if (params.reference == "hg19") {
     if (params.anno_build == "primary") {
         print("Warning: use of 'primary' annotation is not supported for hg19, as GENCODE does not provide a primary .gtf file. Continuing with annotation build 'main'.")
@@ -457,7 +442,7 @@ summary_main['Current path']        = "$PWD"
 summary_main['Annotation build'] = params.anno_build
 summary_main['Annotation dir']       = params.annotation
 summary_main['Annotation release'] = params.anno_version
-summary_main['Compute coverage'] = do_coverage
+summary_main['Compute coverage'] = params.fullCov || params.coverage
 summary_main['Custom anno label'] = params.custom_anno
 summary_main['ERCC spike-in'] = params.ercc
 summary_main['Experiment name'] = params.experiment
@@ -521,149 +506,129 @@ log.info "======================================================================
  * fasta containing all sequences/contigs.
  */
 
-if (params.custom_anno != "") {
-    Channel.fromPath("${params.annotation}/*assembly*.fa*")
-        .ifEmpty{ error "Cannot find assembly fasta in annotation directory (and --custom_anno was specified)" }
-        .first()  // This proves to nextflow that the channel will always hold one value/file
-        .into{ reference_fasta; variant_assembly; annotation_assembly }
-} else {
-    // If any files are not already downloaded/ prepared: download the primary
-    // assembly fasta and create a subsetted fasta of "main" (reference) sequences only
-    process PullAssemblyFasta {
-    
-        tag "Downloading Assembly FA File: ${baseName}"
-        storeDir "${params.annotation}/reference/${params.reference}/assembly/fa"
-            
-        output:
-            file "${out_fasta}" into reference_fasta, variant_assembly, annotation_assembly
-            file "*.fa" // to store the primary and main fastas, regardless of which is used
-    
-        shell:
-            //  Name of the primary assembly fasta after being downloaded and unzipped
-            baseName = file("${params.fa_link}").getName() - ".gz"
-            
-            //  Name the pipeline will use for the primary and main assembly fastas, respectively
-            primaryName = "assembly_${params.anno_suffix}.fa".replaceAll("main", "primary")
-            mainName = "assembly_${params.anno_suffix}.fa".replaceAll("primary", "main")
-            
-            //  Name of fasta to use for this pipeline execution instance
-            out_fasta = "assembly_${params.anno_suffix}.fa"
-            
-            '''
-            ( set -o posix ; set ) > bash_vars.txt
-            
-            #  Pull and unzip primary assembly fasta
-            curl -O "!{params.fa_link}"
-            gunzip "!{baseName}.gz"
-            mv !{baseName} !{primaryName} # rename for consistency with pipeline naming conventions
-            
-            #######################################################################
-            #  Create the "main" fasta of canonical seqs only
-            #######################################################################
-            
-            #  Determine how many chromosomes/seqs to keep
-            if [ !{params.reference_type} == "human" ]; then
-                num_chrs=25
-            elif [ !{params.reference} == "mm10" ]; then
-                num_chrs=22
-            else
-                num_chrs=23
-            fi
-            
-            #  Find the line of the header for the first extra contig (to not
-            #  include in the "main" annotation fasta
-            first_bad_line=$(grep -n ">" !{primaryName} | cut -d : -f 1 | paste -s | cut -f $(($num_chrs + 1)))
-            
-            #  Make a new file out of all the lines up and not including that
-            sed -n "1,$(($first_bad_line - 1))p;${first_bad_line}q" !{primaryName} > !{mainName}
-            
-            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-            echo "$temp" > bash_vars.txt
-            '''
-    }
+// If any files are not already downloaded/ prepared: download the primary
+// assembly fasta and create a subsetted fasta of "main" (reference) sequences only
+process PullAssemblyFasta {
+
+    tag "Downloading Assembly FA File: ${baseName}"
+    storeDir "${params.annotation}/reference/${params.reference}/assembly/fa"
+        
+    output:
+        path "${out_fasta}", emit: reference_fasta
+        path "*.fa" // to store the primary and main fastas, regardless of which is used
+
+    shell:
+        //  Name of the primary assembly fasta after being downloaded and unzipped
+        baseName = file("${params.fa_link}").getName() - ".gz"
+        
+        //  Name the pipeline will use for the primary and main assembly fastas, respectively
+        primaryName = "assembly_${params.anno_suffix}.fa".replaceAll("main", "primary")
+        mainName = "assembly_${params.anno_suffix}.fa".replaceAll("primary", "main")
+        
+        //  Name of fasta to use for this pipeline execution instance
+        out_fasta = "assembly_${params.anno_suffix}.fa"
+        
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
+        #  Pull and unzip primary assembly fasta
+        curl -O "!{params.fa_link}"
+        gunzip "!{baseName}.gz"
+        mv !{baseName} !{primaryName} # rename for consistency with pipeline naming conventions
+        
+        #######################################################################
+        #  Create the "main" fasta of canonical seqs only
+        #######################################################################
+        
+        #  Determine how many chromosomes/seqs to keep
+        if [ !{params.reference_type} == "human" ]; then
+            num_chrs=25
+        elif [ !{params.reference} == "mm10" ]; then
+            num_chrs=22
+        else
+            num_chrs=23
+        fi
+        
+        #  Find the line of the header for the first extra contig (to not
+        #  include in the "main" annotation fasta
+        first_bad_line=$(grep -n ">" !{primaryName} | cut -d : -f 1 | paste -s | cut -f $(($num_chrs + 1)))
+        
+        #  Make a new file out of all the lines up and not including that
+        sed -n "1,$(($first_bad_line - 1))p;${first_bad_line}q" !{primaryName} > !{mainName}
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
 }
 
 
 /*
  * Download reference .gtf (from GENCODE for human/ mouse, ensembl for rat)
  */
+// Uses "storeDir" to download gtf only when it doesn't exist, and output the cached
+// file if it does already exist
+process PullGtf {
 
-if (params.custom_anno != "") {
-    Channel.fromPath("${params.annotation}/*.gtf")
-        .ifEmpty{ error "Cannot find reference gtf in annotation directory (and --custom_anno was specified)" }
-        .first()  // This proves to nextflow that the channel will always hold one value/file
-        .into{ create_counts_gtf; gencode_feature_gtf; annotation_gtf }
-} else {
-    // Uses "storeDir" to download gtf only when it doesn't exist, and output the cached
-    // file if it does already exist
-    process PullGtf {
-    
-        tag "Downloading GTF File: ${baseName}"
-        storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
-    
-        output:
-            file "${out_gtf}" into create_counts_gtf, gencode_feature_gtf, annotation_gtf
-    
-        shell:
-            // Names of gtf file when downloaded + unzipped and after renamed, respectively
-            baseName = file("${params.gtf_link}").getName() - ".gz"
-            out_gtf = "transcripts_${params.anno_suffix}.gtf"
-            '''
-            #  Pull, unzip, and rename transcript gtf
-            curl -O "!{params.gtf_link}"
-            gunzip "!{baseName}.gz"
-            mv !{baseName} !{out_gtf}
-            '''
-    }
+    tag "Downloading GTF File: ${baseName}"
+    storeDir "${params.annotation}/RSeQC/${params.reference}/gtf"
+
+    output:
+        path "${out_gtf}", emit: reference_gtf
+
+    shell:
+        // Names of gtf file when downloaded + unzipped and after renamed, respectively
+        baseName = file("${params.gtf_link}").getName() - ".gz"
+        out_gtf = "transcripts_${params.anno_suffix}.gtf"
+        '''
+        #  Pull, unzip, and rename transcript gtf
+        curl -O "!{params.gtf_link}"
+        gunzip "!{baseName}.gz"
+        mv !{baseName} !{out_gtf}
+        '''
 }
-
 
 /*
  * Build aligner index (HISAT2 by default, or optionally STAR)
  */
 
-if (params.use_star) {
-    process BuildStarIndex {
-        storeDir "${params.annotation}/reference/${params.reference}/assembly/index/star_${params.anno_suffix}"
+process BuildStarIndex {
+    storeDir "${params.annotation}/reference/${params.reference}/assembly/index/star_${params.anno_suffix}"
+    
+    input:
+        path reference_fasta
+        path reference_gtf
         
-        input:
-            file reference_fasta
-            file annotation_gtf
-            
-        output:
-            file "index_dir/*" into star_index
-            
-        shell:
-            '''
-            mkdir index_dir
-            
-            !{params.star} \
-                --runMode genomeGenerate \
-                --genomeDir ./index_dir \
-                --runThreadN !{task.cpus} \
-                --genomeFastaFiles !{reference_fasta} \
-                --sjdbGTFfile !{annotation_gtf}
-            '''
-    }
-} else { // HISAT2 is used as the aligner
-    // Uses "storeDir" to build HISAT2 index only when it doesn't exist, and output the cached
-    // files if they do already exist
-    process BuildHisatIndex {	
-        tag "Building HISAT2 Index: ${hisat_prefix}"
-        storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
-    
-        input:
-            file reference_fasta
-    
-        output:
-            file("${hisat_prefix}.*") into hisat_index
-    
-        shell:
-            hisat_prefix = "hisat2_assembly_${params.anno_suffix}"
-            '''
-            !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{hisat_prefix}
-            '''
-    }
+    output:
+        path "index_dir/*", emit: star_index
+        
+    shell:
+        '''
+        mkdir index_dir
+        
+        !{params.star} \
+            --runMode genomeGenerate \
+            --genomeDir ./index_dir \
+            --runThreadN !{task.cpus} \
+            --genomeFastaFiles !{reference_fasta} \
+            --sjdbGTFfile !{reference_gtf}
+        '''
+}
+
+process BuildHisatIndex {	
+    tag "Building HISAT2 Index: ${hisat_prefix}"
+    storeDir "${params.annotation}/reference/${params.reference}/assembly/index"
+
+    input:
+        path reference_fasta
+
+    output:
+        path "${hisat_prefix}.*", emit: hisat_index
+
+    shell:
+        hisat_prefix = "hisat2_assembly_${params.anno_suffix}"
+        '''
+        !{params.hisat2build} -p !{task.cpus} !{reference_fasta} !{hisat_prefix}
+        '''
 }
 
 
@@ -673,69 +638,62 @@ if (params.use_star) {
 // the pipeline.
 process BuildAnnotationObjects {
 
-  storeDir "${params.annotation}/junction_txdb"
-  
-  input:
-      file annotation_assembly
-      file annotation_gtf
-      file build_ann_script from file("${workflow.projectDir}/scripts/build_annotation_objects.R")
-      
-  output:
-      file "junction_annotation_${params.anno_suffix}.rda" into junction_annotation
-      file "feature_to_Tx_${params.anno_suffix}.rda" into feature_to_tx_gencode
-      file "chrom_sizes_${params.anno_suffix}" into chr_sizes
-      
-  shell:
-      '''
-      !{params.Rscript} !{build_ann_script} -r !{params.reference} -s !{params.anno_suffix}
-      '''
+    storeDir "${params.annotation}/junction_txdb"
+
+    input:
+        path reference_fasta
+        path reference_gtf
+        path build_ann_script
+
+    output:
+        path "junction_annotation_${params.anno_suffix}.rda", emit: junction_annotation
+        path "feature_to_Tx_${params.anno_suffix}.rda", emit: feature_to_tx_gencode
+        path "chrom_sizes_${params.anno_suffix}", emit: chr_sizes
+
+    shell:
+        '''
+        !{params.Rscript} !{build_ann_script} -r !{params.reference} -s !{params.anno_suffix}
+        '''
 }
 
 /*
  * Download transcript FASTA
  */
-
-if (params.custom_anno != "") {
-    Channel.fromPath("${params.annotation}/*transcripts*.fa*")
-        .ifEmpty{ error "Cannot find transcripts fasta in annotation directory (and --custom_anno was specified)" }
-        .first()  // This proves to nextflow that the channel will always hold one value/file
-        .set{ transcript_fa }
-} else {			
-    // Uses "storeDir" to download files only when they don't exist, and output the cached
-    // files if they do already exist
-    process PullTranscriptFasta {
-    			
-        tag "Downloading TX FA File: ${baseName}"
-        storeDir "${params.annotation}/reference/${params.reference}/transcripts/fa"
-        
-        input:
-            file subset_script from file("${workflow.projectDir}/scripts/subset_rat_fasta.R")
-
-        output:
-            file baseName into transcript_fa
+			
+// Uses "storeDir" to download files only when they don't exist, and output the cached
+// files if they do already exist
+process PullTranscriptFasta {
+            
+    tag "Downloading TX FA File: ${baseName}"
+    storeDir "${params.annotation}/reference/${params.reference}/transcripts/fa"
     
-        shell:
-            //  For human and mouse, only the "main" transcripts FASTA is
-            //  available. These means the output FASTA won't differ between
-            //  "main" and "primary" runs for these species. For rat, only a
-            //  "primary" FASTA is available, so the output will differ
-            if (params.reference == 'rat') {
-                baseName = "transcripts_${params.anno_suffix}.fa"
-            } else {
-                baseName = file("${params.tx_fa_link}").getName() - ".gz"
-            }
+    input:
+        path subset_script
 
-            '''
-            curl -o !{baseName}.gz !{params.tx_fa_link}
-            gunzip !{baseName}.gz
+    output:
+        path baseName, emit: transcript_fa
 
-            #   For rat, the only transcripts FASTA available includes "primary"
-            #   transcripts. Subset if the user selects "main" build
-            if [[ (!{params.reference} == 'rat') && (!{params.anno_build} == "main") ]]; then
-                !{params.Rscript} !{subset_script}
-            fi
-            '''
-    }
+    shell:
+        //  For human and mouse, only the "main" transcripts FASTA is
+        //  available. These means the output FASTA won't differ between
+        //  "main" and "primary" runs for these species. For rat, only a
+        //  "primary" FASTA is available, so the output will differ
+        if (params.reference == 'rat') {
+            baseName = "transcripts_${params.anno_suffix}.fa"
+        } else {
+            baseName = file("${params.tx_fa_link}").getName() - ".gz"
+        }
+
+        '''
+        curl -o !{baseName}.gz !{params.tx_fa_link}
+        gunzip !{baseName}.gz
+
+        #   For rat, the only transcripts FASTA available includes "primary"
+        #   transcripts. Subset if the user selects "main" build
+        if [[ (!{params.reference} == 'rat') && (!{params.anno_build} == "main") ]]; then
+            !{params.Rscript} !{subset_script}
+        fi
+        '''
 }
 
 /*
@@ -744,43 +702,41 @@ if (params.custom_anno != "") {
 
 // Uses "storeDir" to build the index only if the built file is not present; outputs
 // this cached file otherwise
-if (params.use_salmon) {
-    process BuildSalmonIndex {
-    
-        tag "Building Salmon Index: salmon_index_${anno_suffix}"
-        storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon/${anno_suffix}"
-    
-        input:
-            file transcript_fa
-    
-        output:
-            file("salmon_index_${anno_suffix}/*") into salmon_index
-            file("build_salmon_index_${anno_suffix}.log")
-    
-        script:
-          if (params.reference == "rat") {
-              gencode_flag = ""
-          } else {
-              gencode_flag = "--gencode"
-          }
+process BuildSalmonIndex {
 
-          // Use of main/primary doesn't affect transcripts for human and mouse
-          if ((params.custom_anno == "") || (params.reference == "rat")) {
-              anno_suffix = params.anno_suffix - "_${params.anno_build}"
-          } else {
-              anno_suffix = params.anno_suffix
-          }
-          '''
-          !{params.salmon} index \
-              -t !{transcript_fa} \
-              -i salmon_index_!{anno_suffix} \
-              -p $task.cpus \
-              !{gencode_flag} \
-              !{params.salmon_index_args}
-          
-          cp .command.log build_salmon_index_!{anno_suffix}.log
-          '''
-    }
+    tag "Building Salmon Index: salmon_index_${anno_suffix}"
+    storeDir "${params.annotation}/reference/${params.reference}/transcripts/salmon/${anno_suffix}"
+
+    input:
+        path transcript_fa
+
+    output:
+        path "salmon_index_${anno_suffix}/*", emit: salmon_index
+        path "build_salmon_index_${anno_suffix}.log"
+
+    shell:
+        if (params.reference == "rat") {
+            gencode_flag = ""
+        } else {
+            gencode_flag = "--gencode"
+        }
+
+        // Use of main/primary doesn't affect transcripts for human and mouse
+        if ((params.custom_anno == "") || (params.reference == "rat")) {
+            anno_suffix = params.anno_suffix - "_${params.anno_build}"
+        } else {
+            anno_suffix = params.anno_suffix
+        }
+        '''
+        !{params.salmon} index \
+            -t !{transcript_fa} \
+            -i salmon_index_!{anno_suffix} \
+            -p !{task.cpus} \
+            !{gencode_flag} \
+            !{params.salmon_index_args}
+        
+        cp .command.log build_salmon_index_!{anno_suffix}.log
+        '''
 }
 
 process BuildKallistoIndex {
@@ -788,11 +744,11 @@ process BuildKallistoIndex {
     storeDir "${params.annotation}/reference/${params.reference}/transcripts/kallisto"
     
     input:
-        file transcript_fa
+        path transcript_fa
 
     output:
-        file "kallisto_index_${anno_suffix}" into kallisto_index
-        file "build_kallisto_index_${anno_suffix}.log"
+        path "kallisto_index_${anno_suffix}", emit: kallisto_index
+        path "build_kallisto_index_${anno_suffix}.log"
 
     shell:
         // Use of main/primary doesn't affect transcripts for human and mouse
@@ -816,29 +772,19 @@ process BuildKallistoIndex {
 //  in the manifest, and create a new manifest for internal use based on these
 //  changes
 
-// Extract FASTQ file paths from the manifest and place in a channel to pass to
-// PreprocessInputs
-Channel
-    .fromPath(params.input + '/samples.manifest')
-    .splitText()
-    .map{ row -> get_fastq_names(row) }
-    .flatten()
-    .collect()
-    .set{ raw_fastqs }
-
 process PreprocessInputs {
 
     publishDir "${params.output}/preprocessing", mode:'copy', pattern:'*.log'
 
     input:
-        file original_manifest from file("${params.input}/samples.manifest")
-        file merge_script from file("${workflow.projectDir}/scripts/preprocess_inputs.R")
-        file raw_fastqs
+        path original_manifest
+        path merge_script
+        path raw_fastqs
 
     output:
-        path "*.f*q*" into merged_inputs_flat includeInputs true
-        file "samples_processed.manifest" into strandness_manifest
-        file "preprocess_inputs.log"
+        path "*.f*q*", includeInputs: true, emit: merged_inputs_flat
+        path "samples_processed.manifest", emit: strandness_manifest
+        path "preprocess_inputs.log"
 
     shell:
         if (params.sample == "paired") {
@@ -852,31 +798,6 @@ process PreprocessInputs {
         '''
 }
 
-//  Group both reads together for each sample, if paired-end, and assign each sample a prefix
-if (params.sample == "single") {
-
-    merged_inputs_flat
-        .flatten()
-        .map{file -> tuple(get_prefix(file), file) }
-        .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
-        .set{ temp_inputs }
-} else {
-
-    merged_inputs_flat
-        .flatten()
-        .map{file -> tuple(get_prefix(file, true), file) }
-        .groupTuple()
-        .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
-        .set{ temp_inputs }
-}
-
-//  Copy the processed input channel to channels used by dependent processes
-if (params.ercc) { 
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs; ercc_inputs }
-} else {
-  temp_inputs.into{ strandness_inputs; fastqc_untrimmed_inputs; trimming_fqs; tx_quant_inputs }
-}
-
 /*
  * Perform FastQC on the untrimmed reads, as an initial quality gauge
  */
@@ -887,12 +808,12 @@ process QualityUntrimmed {
     publishDir "${params.output}/fastQC/untrimmed", mode:'copy', pattern:'*_fastqc'
 
     input:
-        set val(prefix), file(fastqc_untrimmed_input) from fastqc_untrimmed_inputs 
+        tuple val(prefix), path(fastqc_untrimmed_input)
 
     output:
-        file "${prefix}*_fastqc"
-        file "*_summary.txt" into fastqc_completion_token, quality_reports, count_objects_quality_reports_untrimmed
-        file "*_fastqc_data.txt" into count_objects_quality_metrics_untrimmed
+        path "${prefix}*_fastqc"
+        tuple val(prefix), path("*_summary.txt"), emit: quality_reports
+        path "*_fastqc_data.txt", emit: count_objects_quality_metrics_untrimmed
 
     shell:
         if (params.sample == "single") {
@@ -907,28 +828,7 @@ process QualityUntrimmed {
         !{copy_command}
         !{data_command}
         '''
-}
-
-//  Combine FASTQ files and FastQC result summaries for each sample, to form the input channel for Trimming
-if (params.sample == "single") {
-
-    quality_reports
-        .flatten()
-        .map{ file -> tuple(get_prefix(file), file) }
-        .join(trimming_fqs)
-        .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
-        .set{ trimming_inputs }
-        
-} else { // paired
-
-    quality_reports
-        .flatten()
-        .map{ file -> tuple(get_prefix(file, true), file) }
-        .groupTuple()
-        .join(trimming_fqs)
-        .ifEmpty{ error "All files (fastQC summaries on untrimmed inputs, and the FASTQs themselves) missing from input to trimming channel." }
-        .set{ trimming_inputs }
-}    
+} 
 
 // Perform pseudoaligment by sample on a subset of reads, and see which strandness
 // assumption passed to kallisto results in the largest number of alignments. This
@@ -940,18 +840,17 @@ process InferStrandness {
     publishDir "${params.output}/infer_strandness", mode:'copy'
     
     input:
-        file infer_strand_R from file("${workflow.projectDir}/scripts/infer_strand.R")
-        file infer_strand_sh from file("${workflow.projectDir}/scripts/infer_strand.sh")
-        file kallisto_index
-        set val(prefix), file(fq_file) from strandness_inputs
-        // We don't want failures to infer strandness to crash the pipeline
-        // before FastQC runs, as FastQC output provides richer context to what
-        // might be problematic about specific samples
-        file fastqc_completion_token
+        path infer_strand_R
+        path infer_strand_sh
+        path kallisto_index
+        // The FastQC summary is input here just to ensure FastQC runs before
+        // potential strand-inference errors, where FastQC can provide useful
+        // insight about potential problems
+        tuple val(prefix), path(fastqc_summary), path(fq_file)
         
     output:
-        file "${prefix}_infer_strand.log"
-        file "${prefix}_strandness_pattern.txt" into strandness_patterns
+        path "${prefix}_infer_strand.log"
+        path "${prefix}_strandness_pattern.txt", emit: strandness_patterns
         
     shell:
         '''
@@ -979,12 +878,12 @@ process CompleteManifest {
     publishDir "${params.output}/infer_strandness", mode:'copy'
     
     input:
-        file strandness_files from strandness_patterns.collect()
-        file strandness_manifest
-        file manifest_script from file("${workflow.projectDir}/scripts/complete_manifest.R")
+        path strandness_files
+        path strandness_manifest
+        path manifest_script
         
     output:
-        file "samples_complete.manifest" into complete_manifest_ercc, complete_manifest_feature, complete_manifest_junctions, complete_manifest_cov, complete_manifest_counts, complete_manifest_hisat, complete_manifest_quant, complete_manifest_fullcov
+        path "samples_complete.manifest", emit: complete_manifest
         
     shell:
         '''
@@ -995,64 +894,56 @@ process CompleteManifest {
 /*
  * Run the ERCC process if the --ercc flag is specified
  */
- 
-if (params.ercc) {
-    if (params.custom_anno != "") {
-        erccidx = Channel.fromPath("${params.annotation}/*.idx")
-    } else {
-        erccidx = Channel.fromPath("${params.annotation}/ERCC/ERCC92.idx")
-    }
 
-  process ERCC {
-		
+process ERCC {
+	
     tag "$prefix"
     publishDir "${params.output}/ERCC/${prefix}",'mode':'copy'
 
     input:
-      file erccidx from file("${params.annotation}/ERCC/ERCC92.idx")
-      set val(prefix), file(ercc_input) from ercc_inputs
-      file complete_manifest_ercc
+        path ercc_index
+        tuple val(prefix), path(ercc_input)
+        path complete_manifest
 
     output:
-      file "${prefix}_ercc_abundance.tsv" into ercc_abundances
-      file "ercc_${prefix}.log"
+        path "${prefix}_ercc_abundance.tsv", emit: ercc_abundances
+        path "ercc_${prefix}.log"
 
     shell:
-      if (params.sample == "single") {
-          kallisto_flags = params.kallisto_quant_ercc_single_args
-      } else {
-          kallisto_flags = params.kallisto_quant_ercc_paired_args
-      }
-      '''
-      ( set -o posix ; set ) > bash_vars.txt
-      
-      #  Find this sample's strandness and determine kallisto flags to set
-      strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
-      if [ $strand == 'forward' ]; then
-          kallisto_strand=" --fr-stranded"
-      elif [ $strand == 'reverse' ]; then
-          kallisto_strand=" --rf-stranded"
-      else
-          kallisto_strand=""
-      fi
-      
-      #  Quantify ERCC, and don't throw an error if 0 counts are found
-      !{params.kallisto} quant \
-          -i !{erccidx} \
-          -t !{task.cpus} \
-          !{kallisto_flags} \
-          -o . \
-          $kallisto_strand \
-          !{ercc_input} \
-          || true
-      
-      cp abundance.tsv !{prefix}_ercc_abundance.tsv
-      cp .command.log ercc_!{prefix}.log
-      
-      temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep '>' | cut -d ' ' -f 2- || true)
-      echo "$temp" > bash_vars.txt
-      '''
-  }
+        if (params.sample == "single") {
+            kallisto_flags = params.kallisto_quant_ercc_single_args
+        } else {
+            kallisto_flags = params.kallisto_quant_ercc_paired_args
+        }
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
+
+        #  Find this sample's strandness and determine kallisto flags to set
+        strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+        if [ $strand == 'forward' ]; then
+            kallisto_strand=" --fr-stranded"
+        elif [ $strand == 'reverse' ]; then
+            kallisto_strand=" --rf-stranded"
+        else
+            kallisto_strand=""
+        fi
+
+        #  Quantify ERCC, and don't throw an error if 0 counts are found
+        !{params.kallisto} quant \
+            -i !{ercc_index} \
+            -t !{task.cpus} \
+            !{kallisto_flags} \
+            -o . \
+            $kallisto_strand \
+            !{ercc_input} \
+            || true
+
+        cp abundance.tsv !{prefix}_ercc_abundance.tsv
+        cp .command.log ercc_!{prefix}.log
+
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep '>' | cut -d ' ' -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
 }
 
 /*
@@ -1065,11 +956,11 @@ process Trimming {
     publishDir "${params.output}/trimming", mode:'copy', pattern:'*_trimmed*.f*q{.gz,}'
 
     input:
-        set val(fq_prefix), file(fq_summary), file(fq_file) from trimming_inputs
+        tuple val(fq_prefix), path(fq_summary), path(fq_file)
 
     output:
-        file "${fq_prefix}_trimmed*.f*q{.gz,}" optional true into trimmed_fastqc_inputs_raw
-        file "${fq_prefix}*.f*q{.gz,}" into trimming_outputs
+        tuple val(fq_prefix), path("${fq_prefix}_trimmed*.f*q{.gz,}"), optional: true, emit: trimmed_fastqc_inputs_raw
+        tuple val(fq_prefix), path("${fq_prefix}*.f*q{.gz,}"), emit: trimming_outputs
 
     shell:
         file_ext = get_file_ext(fq_file[0])
@@ -1158,12 +1049,6 @@ process Trimming {
         '''
 }
 
-trimmed_fastqc_inputs_raw
-    .flatten()
-    .map{ file -> tuple(get_prefix(file, params.sample == "paired"), file) }
-    .groupTuple()
-    .set{ trimmed_fastqc_inputs_grouped }
-
 /*
  * Run FastQC Quality Check on Trimmed Files
  */
@@ -1174,12 +1059,11 @@ process QualityTrimmed {
     publishDir "${params.output}/fastQC/trimmed",'mode':'copy', pattern:'*_fastqc'
 
     input:
-        set val(prefix), file(fastqc_trimmed_input) from trimmed_fastqc_inputs_grouped
+        tuple val(prefix), path(fastqc_trimmed_input)
 
     output:
-        file "${prefix}*_fastqc"
-        file "${prefix}*_trimmed_summary.txt" into count_objects_quality_reports_trimmed
-        file "${prefix}*_trimmed_fastqc_data.txt" into count_objects_quality_metrics_trimmed
+        path "${prefix}*_fastqc"
+        path "${prefix}*_trimmed_*.txt", emit: trimmed_fastqc_outs
 
     shell:
         if (params.sample == "single") {
@@ -1200,195 +1084,176 @@ process QualityTrimmed {
  * Alignment (HISAT2 by default, or otherwise STAR)
  */
 
-trimming_outputs
-    .flatten()
-    .map{ file -> tuple(get_prefix(file, params.sample == "paired"), file) }
-    .ifEmpty{ error "Input channel to alignment process is empty" }
-    .groupTuple()
-    .set{ alignment_inputs }
+process AlignStar {
+    tag "$prefix"
+    publishDir "${params.output}/alignment", mode:'copy'
+    
+    input:
+        path star_index
+        tuple val(prefix), path(single_star_input)
+        
+    output:
+        tuple val(prefix), path("*.bam"), emit: alignment_output
+        path "${prefix}_unmapped_*.fastq", optional: true
+        path "*_STAR_alignment.log", emit: alignment_summaries
+        
+    shell:            
+        if (params.sample == "paired" && params.unalign) {
+            unaligned_args = "--outReadsUnmapped Fastx"
+        } else {
+            unaligned_args = ""
+        }
+        '''
+        #  Recreate the index directory (nextflow cannot handle directories
+        #  as channel input). This step is likely sensitive to the STAR
+        #  version used
+        mkdir index_dir
+        mv *.txt index_dir/
+        mv *.tab index_dir/
+        mv SA index_dir/
+        mv SAindex index_dir/
+        mv Genome index_dir/
+        
+        ( set -o posix ; set ) > bash_vars.txt
+        
+        #  Determine file names for input FASTQs
+        if [ !{params.sample} == "paired" ]; then
+            fastq_files="!{prefix}*trimmed*_1.f*q* !{prefix}*trimmed*_2.f*q*"
+        else
+            fastq_files="*.f*q*"
+        fi
+        
+        #  Tell STAR to decompress files if needed 
+        if [ "$(echo $fastq_files | rev | cut -d "." -f 1 | rev)" == "gz" ]; then
+            compress_args='--readFilesCommand gunzip -c'
+        else
+            compress_args=''
+        fi
+        
+        #  Perform alignment
+        !{params.star} \
+            --genomeDir ./index_dir \
+            --runThreadN !{task.cpus} \
+            --readFilesIn ${fastq_files} \
+            --outSAMtype BAM Unsorted \
+            ${compress_args} \
+            !{unaligned_args} \
+            !{params.star_args}
+            
+        #  Adjust file names (make unique)
+        mv Log.final.out !{prefix}_STAR_alignment.log
+        mv Aligned.out.bam !{prefix}.bam
+        if [ -f Unmapped.out.mate1 ]; then
+            mv Unmapped.out.mate1 !{prefix}_unmapped_mate1.fastq
+            mv Unmapped.out.mate2 !{prefix}_unmapped_mate2.fastq
+        fi
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
+}
+        
+process SingleEndHisat {
 
-if (params.use_star) {
-    process AlignStar {
-        tag "$prefix"
-        publishDir "${params.output}/alignment", mode:'copy'
+    tag "$prefix"
+    publishDir "${params.output}/alignment",mode:'copy'
+
+    input:
+        path hisat_index
+        path complete_manifest
+        tuple val(prefix), path(single_hisat_input)
+
+    output:
+        tuple val(prefix), path("${prefix}.bam"), emit: alignment_output
+        path "*_align_summary.txt", emit: alignment_summaries
+
+    shell:
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
         
-        input:
-            file star_index
-            set val(prefix), file(single_star_input) from alignment_inputs
-            
-        output:
-            file "*.bam" into alignment_output
-            file "${prefix}_unmapped_*.fastq" optional true
-            file "*_STAR_alignment.log" into alignment_summaries
-            
-        shell:            
-            if (params.sample == "paired" && params.unalign) {
-                unaligned_args = "--outReadsUnmapped Fastx"
-            } else {
-                unaligned_args = ""
-            }
-            '''
-            #  Recreate the index directory (nextflow cannot handle directories
-            #  as channel input). This step is likely sensitive to the STAR
-            #  version used
-            mkdir index_dir
-            mv *.txt index_dir/
-            mv *.tab index_dir/
-            mv SA index_dir/
-            mv SAindex index_dir/
-            mv Genome index_dir/
-            
-            ( set -o posix ; set ) > bash_vars.txt
-            
-            #  Determine file names for input FASTQs
-            if [ !{params.sample} == "paired" ]; then
-                fastq_files="!{prefix}*trimmed*_1.f*q* !{prefix}*trimmed*_2.f*q*"
-            else
-                fastq_files="*.f*q*"
-            fi
-            
-            #  Tell STAR to decompress files if needed 
-            if [ "$(echo $fastq_files | rev | cut -d "." -f 1 | rev)" == "gz" ]; then
-                compress_args='--readFilesCommand gunzip -c'
-            else
-                compress_args=''
-            fi
-            
-            #  Perform alignment
-            !{params.star} \
-                --genomeDir ./index_dir \
-                --runThreadN !{task.cpus} \
-                --readFilesIn ${fastq_files} \
-                --outSAMtype BAM Unsorted \
-                ${compress_args} \
-                !{unaligned_args} \
-                !{params.star_args}
-                
-            #  Adjust file names (make unique)
-            mv Log.final.out !{prefix}_STAR_alignment.log
-            mv Aligned.out.bam !{prefix}.bam
-            if [ -f Unmapped.out.mate1 ]; then
-                mv Unmapped.out.mate1 !{prefix}_unmapped_mate1.fastq
-                mv Unmapped.out.mate2 !{prefix}_unmapped_mate2.fastq
-            fi
-            
-            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-            echo "$temp" > bash_vars.txt
-            '''
-    }
-} else { // Alignment will be done with HISAT2
-            
-    if (params.sample == "single") {
+        #  Find this sample's strandness and determine strand flag
+        strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+        if [ ${strand} == "unstranded" ]; then
+            hisat_strand=""
+        elif [ ${strand} == "forward" ]; then
+            hisat_strand="--rna-strandness F"
+        else
+            hisat_strand="--rna-strandness R"
+        fi
         
-        process SingleEndHisat {
-    
-            tag "$prefix"
-            publishDir "${params.output}/alignment",mode:'copy'
-    
-            input:
-                file hisat_index
-                file complete_manifest_hisat
-                set val(prefix), file(single_hisat_input) from alignment_inputs
-    
-            output:
-                file "${prefix}.bam" into alignment_output
-                file "*_align_summary.txt" into alignment_summaries
-    
-            shell:
-                '''
-                ( set -o posix ; set ) > bash_vars.txt
-                
-                #  Find this sample's strandness and determine strand flag
-                strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
-                if [ ${strand} == "unstranded" ]; then
-                    hisat_strand=""
-                elif [ ${strand} == "forward" ]; then
-                    hisat_strand="--rna-strandness F"
-                else
-                    hisat_strand="--rna-strandness R"
-                fi
-                
-                #  Run Hisat2
-                !{params.hisat2} \
-                    -p !{task.cpus} \
-                    -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
-                    -U !{single_hisat_input} \
-                    ${hisat_strand} \
-                    !{params.hisat2_args} \
-                    2> !{prefix}_align_summary.txt \
-                | !{params.samtools} view -b -F 4 -o !{prefix}.bam
-                
-                temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-                echo "$temp" > bash_vars.txt
-                '''
-        }
-    } else { // sample is paired-end
-    
-        process PairedEndHisat {
-    
-            tag "$prefix"
-            publishDir "${params.output}/alignment",'mode':'copy'
-    
-            input:
-                file hisat_index
-                file complete_manifest_hisat
-                set val(prefix), file(fq_files) from alignment_inputs
-    
-            output:
-                file "${prefix}.bam" into alignment_output
-                file "*_unpaired*.fastq" optional true
-                file "*_align_summary.txt" into alignment_summaries
-    
-            shell:
-                if (params.unalign) {
-                    unaligned_opt = "--un-conc ${prefix}_discordant.fastq"
-                } else {
-                    unaligned_opt = ""
-                }
-                '''
-                ( set -o posix ; set ) > bash_vars.txt
-                
-                #  Find this sample's strandness and determine strand flag
-                strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
-                if [ ${strand} == "unstranded" ]; then
-                    hisat_strand=""
-                elif [ ${strand} == "forward" ]; then
-                    hisat_strand="--rna-strandness FR"
-                else
-                    hisat_strand="--rna-strandness RF"
-                fi
-                
-                #  If this sample had unpaired trimming outputs, include them
-                if [ "!{params.keep_unpaired}" == "true" ]; then
-                    unpaired_opt='-U !{prefix}_unpaired_1.fastq,!{prefix}_unpaired_2.fastq'
-                else
-                    unpaired_opt=''
-                fi
-                
-                #  Run Hisat2
-                !{params.hisat2} \
-                    -p !{task.cpus} \
-                    -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
-                    -1 !{prefix}*trimmed*_1.f*q* \
-                    -2 !{prefix}*trimmed*_2.f*q* \
-                    ${unpaired_opt} \
-                    ${hisat_strand} \
-                    !{params.hisat2_args} \
-                    !{unaligned_opt} \
-                    2> !{prefix}_align_summary.txt \
-                | !{params.samtools} view -b -F 4 -o !{prefix}.bam
-                
-                temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-                echo "$temp" > bash_vars.txt
-                '''
-        }
-    }
+        #  Run Hisat2
+        !{params.hisat2} \
+            -p !{task.cpus} \
+            -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
+            -U !{single_hisat_input} \
+            ${hisat_strand} \
+            !{params.hisat2_args} \
+            2> !{prefix}_align_summary.txt \
+        | !{params.samtools} view -b -F 4 -o !{prefix}.bam
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
 }
 
-alignment_output
-    .flatten()
-    .map{ file -> tuple(get_prefix(file), file) }
-    .set{ bam_sort_inputs }
+process PairedEndHisat {
+
+    tag "$prefix"
+    publishDir "${params.output}/alignment",'mode':'copy'
+
+    input:
+        path hisat_index
+        path complete_manifest
+        tuple val(prefix), path(fq_files)
+
+    output:
+        tuple val(prefix), path("${prefix}.bam"), emit: alignment_output
+        path "*_unpaired*.fastq" optional true
+        path "*_align_summary.txt", emit: alignment_summaries
+
+    shell:
+        if (params.unalign) {
+            unaligned_opt = "--un-conc ${prefix}_discordant.fastq"
+        } else {
+            unaligned_opt = ""
+        }
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
+        #  Find this sample's strandness and determine strand flag
+        strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+        if [ ${strand} == "unstranded" ]; then
+            hisat_strand=""
+        elif [ ${strand} == "forward" ]; then
+            hisat_strand="--rna-strandness FR"
+        else
+            hisat_strand="--rna-strandness RF"
+        fi
+        
+        #  If this sample had unpaired trimming outputs, include them
+        if [ "!{params.keep_unpaired}" == "true" ]; then
+            unpaired_opt='-U !{prefix}_unpaired_1.fastq,!{prefix}_unpaired_2.fastq'
+        else
+            unpaired_opt=''
+        fi
+        
+        #  Run Hisat2
+        !{params.hisat2} \
+            -p !{task.cpus} \
+            -x !{params.annotation}/reference/!{params.reference}/assembly/index/hisat2_assembly_!{params.anno_suffix} \
+            -1 !{prefix}*trimmed*_1.f*q* \
+            -2 !{prefix}*trimmed*_2.f*q* \
+            ${unpaired_opt} \
+            ${hisat_strand} \
+            !{params.hisat2_args} \
+            !{unaligned_opt} \
+            2> !{prefix}_align_summary.txt \
+        | !{params.samtools} view -b -F 4 -o !{prefix}.bam
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
+}
 
 /*
  * Sort and index the aligned BAM
@@ -1400,10 +1265,10 @@ process BamSort {
     publishDir "${params.output}/alignment/bam_sort",'mode':'copy'
 
     input:
-        set val(prefix), file(input_bam) from bam_sort_inputs
+        tuple val(prefix), path(input_bam)
 
     output:
-        set val(prefix), file("${prefix}_sorted.bam"), file("${prefix}*_sorted.bam.bai") into feature_bam_inputs, alignment_bam_inputs, coverage_bam_inputs, full_coverage_bams, count_objects_bam_files, variant_calls_bam
+        tuple val(prefix), path("${prefix}_sorted.bam"), path("${prefix}*_sorted.bam.bai"), emit: sorted_bams
 
     shell:
         '''
@@ -1412,26 +1277,23 @@ process BamSort {
         '''
 }
 
-feature_bam_inputs
-  .combine(gencode_feature_gtf)
-  .set{ feature_counts_inputs }
-
 /*
  * Quantify genes and exons with FeatureCounts
  */
 
 process FeatureCounts {
 
-    tag "$feature_prefix"
+    tag "$prefix"
     publishDir "${params.output}/counts",'mode':'copy'
 
     input:
-        set val(feature_prefix), file(feature_bam), file(feature_index), file(gencode_gtf_feature) from feature_counts_inputs
-        file complete_manifest_feature
+        tuple val(prefix), path(bam), path(bam_index)
+        path complete_manifest
+        path reference_gtf
 
     output:
-        file "*.{log,summary}"
-        file "*.counts*" into sample_counts
+        path "*.{log,summary}"
+        path "*.counts*", emit: sample_counts
 
     script:
         if (params.sample == "single") {
@@ -1439,13 +1301,13 @@ process FeatureCounts {
         } else {
             sample_option = "-p"
         }
-        feature_out = "${feature_prefix}_${params.anno_suffix}"
+        feature_out = "${prefix}_${params.anno_suffix}"
  
         """
         ( set -o posix ; set ) > bash_vars.txt
         
         #  Find this sample's strandness and determine strand flag
-        strand=\$(cat samples_complete.manifest | grep " ${feature_prefix} " | awk -F ' ' '{print \$NF}')
+        strand=\$(cat samples_complete.manifest | grep " ${prefix} " | awk -F ' ' '{print \$NF}')
         if [ \$strand == 'forward' ]; then
             feature_strand=1
         elif [ \$strand == 'reverse' ]; then
@@ -1460,9 +1322,9 @@ process FeatureCounts {
             $sample_option \
             ${params.feat_counts_gene_args} \
             -T $task.cpus \
-            -a $gencode_gtf_feature \
+            -a $reference_gtf \
             -o ${feature_out}_Genes.counts \
-            $feature_bam
+            $bam
         
         # Exons
         ${params.featureCounts} \
@@ -1470,11 +1332,11 @@ process FeatureCounts {
             $sample_option \
             ${params.feat_counts_exon_args} \
             -T $task.cpus \
-            -a $gencode_gtf_feature \
+            -a $reference_gtf \
             -o ${feature_out}_Exons.counts \
-            $feature_bam
+            $bam
 
-        cp .command.log feature_counts_${feature_prefix}.log
+        cp .command.log feature_counts_${prefix}.log
         
         temp=\$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
         echo "\$temp" > bash_vars.txt
@@ -1487,20 +1349,20 @@ process FeatureCounts {
 
 process PrimaryAlignments {
 
-	tag "$alignment_prefix"
-	publishDir "${params.output}/counts/junction/primary_alignments",'mode':'copy'
+    tag "$alignment_prefix"
+    publishDir "${params.output}/counts/junction/primary_alignments",'mode':'copy'
 
-	input:
-	set val(alignment_prefix), file(alignment_bam), file(alignment_index) from alignment_bam_inputs
+    input:
+        tuple val(alignment_prefix), path(alignment_bam), path(alignment_index)
 
-	output:
-	set val("${alignment_prefix}"), file("${alignment_prefix}.bam"), file("${alignment_prefix}.bam.bai") into primary_alignments
+    output:
+        tuple val("${alignment_prefix}"), path("${alignment_prefix}.bam"), path("${alignment_prefix}.bam.bai"), emit: primary_alignments
 
-	script:
-	"""
-	${params.samtools} view -@ $task.cpus -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
-	${params.samtools} index ${alignment_prefix}.bam
-	"""
+    script:
+        """
+        ${params.samtools} view -@ $task.cpus -bh -F 0x100 $alignment_bam > ${alignment_prefix}.bam
+        ${params.samtools} index ${alignment_prefix}.bam
+        """
 }
 
 /*
@@ -1513,11 +1375,11 @@ process Junctions {
     publishDir "${params.output}/counts/junction",'mode':'copy'
 
     input:
-        set val(prefix), file(alignment_bam), file(alignment_index) from primary_alignments
-        file complete_manifest_junctions
+        tuple val(prefix), path(alignment_bam), path(alignment_index)
+        path complete_manifest
 
     output:
-        file "*.count" into regtools_outputs
+        path "*.count", emit: regtools_outputs
 
     shell:
         outcount = "${prefix}_junctions_primaryOnly_regtools.count"
@@ -1542,181 +1404,122 @@ process Junctions {
 }
 
 
-/*
- * Transcript quantification
- */
+// /*
+//  * Transcript quantification
+//  */
 
-if (params.use_salmon) {
-    process TxQuantSalmon {
-    
-        tag "$prefix"
-        publishDir "${params.output}/salmon_tx/${prefix}",mode:'copy'
-    
-        input:
-            file salmon_index
-            file complete_manifest_quant
-            set val(prefix), file(salmon_inputs) from tx_quant_inputs
-    
-        output:
-            file "${prefix}/*"
-            file "${prefix}_quant.sf" into tx_quants
-            file "tx_quant_${prefix}.log"
-    
-        shell:
-            '''
-            ( set -o posix ; set ) > bash_vars.txt
-            
-            #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
-            if [ $strand == 'forward' ]; then
-                strand_flag="SF"
-            elif [ $strand == 'reverse' ]; then
-                strand_flag="SR"
-            else
-                strand_flag="U"
-            fi
-            
-            if [ !{params.sample} == "paired" ]; then
-                strand_flag="I$strand_flag"
-                sample_flag="-1 !{prefix}_1.f*q* -2 !{prefix}_2.f*q*"
-            else
-                sample_flag="-r !{prefix}.f*q*"
-            fi
-            
-            !{params.salmon} quant \
-                -i $PWD \
-                -p !{task.cpus} \
-                -l ${strand_flag} \
-                ${sample_flag} \
-                -o !{prefix} \
-                !{params.salmon_quant_args}
-    
-            cp !{prefix}/quant.sf !{prefix}_quant.sf
-            cp .command.log tx_quant_!{prefix}.log
-            
-            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-            echo "$temp" > bash_vars.txt
-            '''
-    }
-} else {
-    process TxQuantKallisto {
-    
-        tag "$prefix"
-        publishDir "${params.output}/kallisto_tx/${prefix}", mode:'copy'
-    
-        input:
-            file kallisto_index
-            file complete_manifest_quant
-            set val(prefix), file(fastqs) from tx_quant_inputs
-    
-        output:
-            file "abundance.h5"
-            file "run_info.json"
-            file "tx_quant_${prefix}.log"
-            file "${prefix}_abundance.tsv" into tx_quants
-            
-        shell:
-            '''
-            ( set -o posix ; set ) > bash_vars.txt
-            
-            #  Find this sample's strandness
-            strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
-            if [ $strand == 'forward' ]; then
-                strand_flag="--fr-stranded"
-            elif [ $strand == 'reverse' ]; then
-                strand_flag="--rf-stranded"
-            else
-                strand_flag=""
-            fi
-            
-            #  Run the quantification step
-            if [ !{params.sample} == "paired" ]; then
-                fq1=$(ls *_1.f*q*)
-                fq2=$(ls *_2.f*q*)
-            
-                !{params.kallisto} quant \
-                    -t !{task.cpus} \
-                    $strand_flag \
-                    -i !{kallisto_index} \
-                    -o . \
-                    !{params.kallisto_quant_paired_args} \
-                    $fq1 $fq2
-            else
-                fq=$(ls *.f*q*)
-                
-                !{params.kallisto} quant \
-                    -t !{task.cpus} \
-                    !{params.kallisto_quant_single_args} \
-                    $strand_flag \
-                    -i !{kallisto_index} \
-                    -o . \
-                    $fq
-            fi
-            
-            mv abundance.tsv !{prefix}_abundance.tsv
-            cp .command.log tx_quant_!{prefix}.log
-            
-            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-            echo "$temp" > bash_vars.txt
-            '''
-    }
+process TxQuantSalmon {
+
+    tag "$prefix"
+    publishDir "${params.output}/salmon_tx/${prefix}",mode:'copy'
+
+    input:
+        path salmon_index
+        path complete_manifest
+        tuple val(prefix), path(salmon_inputs)
+
+    output:
+        path "${prefix}/*"
+        path "${prefix}_quant.sf", emit: tx_quants
+        path "tx_quant_${prefix}.log"
+
+    shell:
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
+        #  Find this sample's strandness and determine strand flag
+        strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+        if [ $strand == 'forward' ]; then
+            strand_flag="SF"
+        elif [ $strand == 'reverse' ]; then
+            strand_flag="SR"
+        else
+            strand_flag="U"
+        fi
+        
+        if [ !{params.sample} == "paired" ]; then
+            strand_flag="I$strand_flag"
+            sample_flag="-1 !{prefix}_1.f*q* -2 !{prefix}_2.f*q*"
+        else
+            sample_flag="-r !{prefix}.f*q*"
+        fi
+        
+        !{params.salmon} quant \
+            -i $PWD \
+            -p !{task.cpus} \
+            -l ${strand_flag} \
+            ${sample_flag} \
+            -o !{prefix} \
+            !{params.salmon_quant_args}
+
+        cp !{prefix}/quant.sf !{prefix}_quant.sf
+        cp .command.log tx_quant_!{prefix}.log
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
 }
 
-/*
- * Construct the Counts Objects Input Channel
- */
+process TxQuantKallisto {
 
-if (params.qsva == "") {
-    qsva_tx_list = Channel.empty()
-} else {
-    Channel.fromPath(params.qsva).set{ qsva_tx_list }
-}
+    tag "$prefix"
+    publishDir "${params.output}/kallisto_tx/${prefix}", mode:'copy'
 
-count_objects_bam_files // this puts sorted.bams and bais into the channel
-  .flatten()
-  .mix(count_objects_quality_reports_untrimmed) // this puts sample_XX_summary.txt files into the channel
-  .mix(count_objects_quality_metrics_untrimmed) // this puts sample_XX_fastqc_data.txt into the channel
-  .mix(count_objects_quality_reports_trimmed)
-  .mix(count_objects_quality_metrics_trimmed)
-  .mix(alignment_summaries) // this puts sample_XX_align_summary.txt into the channel
-  .mix(create_counts_gtf) // this puts the transcript .gtf file into the channel
-  .mix(sample_counts) // this puts sample_XX_*_Exons.counts and sample_XX_*_Genes.counts into the channel
-  .mix(regtools_outputs) // this puts the *_junctions_primaryOnly_regtools.count files into the channel
-  .mix(tx_quants)
-  .mix(qsva_tx_list) // file containing list of transcripts, when using --qsva
-  .set{counts_objects_channel_1}
+    input:
+        path kallisto_index
+        path complete_manifest
+        tuple val(prefix), path(fastqs)
 
-if (params.ercc) {
-		
-	counts_objects_channel_1
-	  .mix(ercc_abundances)
-	  .flatten()
-	  .toList()
-	  .set{ counts_inputs }
-} else {
-
-	counts_objects_channel_1
-	  .flatten()
-	  .toList()
-	  .set{ counts_inputs }
-}
-
-/*
- * Construct the Annotation Input Channel
- */
-
-//  Mix with reference-dependent annotation info
-if (params.reference == "hg38" && params.anno_version == "25") {
-    junction_annotation
-        .mix(feature_to_tx_gencode)
-        .mix(exon_maps_by_coord_hg38)
-        .toList()
-        .set{counts_annotations}
-} else {
-    junction_annotation
-        .mix(feature_to_tx_gencode)
-        .toList()
-        .set{counts_annotations}
+    output:
+        path "abundance.h5"
+        path "run_info.json"
+        path "tx_quant_${prefix}.log"
+        path "${prefix}_abundance.tsv", emit: tx_quants
+        
+    shell:
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
+        #  Find this sample's strandness
+        strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+        if [ $strand == 'forward' ]; then
+            strand_flag="--fr-stranded"
+        elif [ $strand == 'reverse' ]; then
+            strand_flag="--rf-stranded"
+        else
+            strand_flag=""
+        fi
+        
+        #  Run the quantification step
+        if [ !{params.sample} == "paired" ]; then
+            fq1=$(ls *_1.f*q*)
+            fq2=$(ls *_2.f*q*)
+        
+            !{params.kallisto} quant \
+                -t !{task.cpus} \
+                $strand_flag \
+                -i !{kallisto_index} \
+                -o . \
+                !{params.kallisto_quant_paired_args} \
+                $fq1 $fq2
+        else
+            fq=$(ls *.f*q*)
+            
+            !{params.kallisto} quant \
+                -t !{task.cpus} \
+                !{params.kallisto_quant_single_args} \
+                $strand_flag \
+                -i !{kallisto_index} \
+                -o . \
+                $fq
+        fi
+        
+        mv abundance.tsv !{prefix}_abundance.tsv
+        cp .command.log tx_quant_!{prefix}.log
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
 }
 
 /*
@@ -1728,18 +1531,41 @@ process CountObjects {
     publishDir "${params.output}/count_objects",'mode':'copy'
 
     input:
-        file counts_inputs
-        file counts_annotations
-        file create_counts from file("${workflow.projectDir}/scripts/create_count_objects.R")
-        file ercc_actual_conc from file("${params.annotation}/ERCC/ercc_actual_conc.txt")
-        file complete_manifest_counts
+        // Reference/ annotation-related files
+        path ercc_reference
+        path exon_maps_by_coord_hg38
+        path reference_gtf
+        path feature_to_tx_gencode
+        path junction_annotation
+        // FastQC summaries before and after trimming
+        path count_objects_quality_metrics_untrimmed
+        path quality_reports
+        path trimmed_fastqc_outs
+        // Summaries and BAMs from alignment
+        path alignment_summaries
+        path bams_and_indices
+        // Gene + exon counts
+        path sample_counts
+        // Junction counts
+        path regtools_outputs
+        // Transcript counts
+        path tx_quants
+        // File containing list of transcripts, when using --qsva
+        path qsva_tx_list
+        // ERCC spike-in counts (if applicable)
+        path ercc_abundances
+        // Manifest with strandness info
+        path complete_manifest
+        // R script for creating the RSE objects
+        path counts_script
+
 
     output:
-        file "*.pdf" optional true
-        file "read_and_alignment_metrics_*.csv"
-        file "*.Rdata"
-        file "*.rda"
-        file "counts.log"
+        path "*.pdf", optional: true
+        path "read_and_alignment_metrics_*.csv"
+        path "*.Rdata"
+        path "*.rda"
+        path "counts.log"
 
     shell:
         if (params.sample == "paired") {
@@ -1764,7 +1590,7 @@ process CountObjects {
             qsva_arg="-q $(basename !{params.qsva})"
         fi
         
-        !{params.Rscript} !{create_counts} \
+        !{params.Rscript} !{counts_script} \
             -o !{params.reference} \
             -e !{params.experiment} \
             -p "!{params.prefix}" \
@@ -1782,81 +1608,65 @@ process CountObjects {
         '''
 }
 
-
-if (perform_variant_calling) {
-
-    /*
-     * Call Variants
-     */
-      
-    if (params.custom_anno != "") {
-        snvbed = Channel.fromPath("${params.annotation}/*.bed")
-    } else {
-        snvbed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed")
-    }
+process VariantCalls {
+    tag "$prefix"
+    publishDir "${params.output}/variant_calls",'mode':'copy'
     
-    variant_calls_bam
-        .combine(snvbed)
-        .combine(variant_assembly)
-        .set{ variant_calls }
-
-    process VariantCalls {
-        tag "$variant_bams_prefix"
-        publishDir "${params.output}/variant_calls",'mode':'copy'
+    input:
+        tuple val(prefix), path(sorted_bams_file), path(variant_calls_bai)
+        path snv_bed
+        path reference_fasta
+    
+    output:
+        path "${prefix}.vcf.gz", emit: compressed_variant_calls
+        path "${prefix}.vcf.gz.tbi", emit: compressed_variant_calls_tbi
+    
+    shell:
+        '''
+        !{params.samtools} mpileup \
+            -l !{snv_bed} \
+            !{params.samtools_args} \
+            -u \
+            -f !{reference_fasta} \
+            !{sorted_bams_file} \
+            -o !{prefix}_tmp.vcf
         
-        input:
-            set val(variant_bams_prefix), file(variant_calls_bam_file), file(variant_calls_bai), file(snv_bed), file(variant_assembly_file) from variant_calls
+        !{params.bcftools} call \
+            !{params.bcftools_args} \
+            !{prefix}_tmp.vcf \
+            > !{prefix}.vcf.gz
         
-        output:
-            file "${variant_bams_prefix}.vcf.gz" into compressed_variant_calls
-            file "${variant_bams_prefix}.vcf.gz.tbi" into compressed_variant_calls_tbi
-        
-        shell:
-            '''
-            !{params.samtools} mpileup \
-                -l !{snv_bed} \
-                !{params.samtools_args} \
-                -u \
-                -f !{variant_assembly_file} \
-                !{variant_calls_bam_file} \
-                -o !{variant_bams_prefix}_tmp.vcf
-            
-            !{params.bcftools} call \
-                !{params.bcftools_args} \
-                !{variant_bams_prefix}_tmp.vcf \
-                > !{variant_bams_prefix}.vcf.gz
-            
-            !{params.tabix} -p vcf !{variant_bams_prefix}.vcf.gz
-            '''
-    }
+        !{params.tabix} -p vcf !{prefix}.vcf.gz
+        '''
+}
 
 
-	/*
-	 * Merge Variant Calls
-	 */
+/*
+ * Merge Variant Calls
+ */
 
-	process VariantsMerge {
-	
-		tag "Multi-sample vcf creation"
-		publishDir "${params.output}/merged_variants",'mode':'copy'
+process VariantsMerge {
 
-		input:
-        file chunk_apply_script from file("${workflow.projectDir}/scripts/chunk_apply.sh")
-		file collected_variants from compressed_variant_calls.collect()
-		file collected_variants_tbi from compressed_variant_calls_tbi.collect()
+    tag "Multi-sample vcf creation"
+    publishDir "${params.output}/merged_variants",'mode':'copy'
 
-		output:
-		file "mergedVariants.vcf.gz"
-        file "variants_merge.log"
+    input:
+        path chunk_apply_script
+        path collected_variants
+        path collected_variants_tbi
 
-		shell:
-		'''
+    output:
+        path "mergedVariants.vcf.gz"
+        path "variants_merge.log"
+
+    shell:
+        '''
         file_regex='.*\\.vcf\\.gz$'
         command="!{params.bcftools} merge [files] | !{params.bgzip} -c > temp[index].vcf.gz; !{params.tabix} -p vcf temp[index].vcf.gz"
 
         #   Break the 'bcftools merge' command into chunks (necessary for large
         #   datasets where the number of open file handles may be exceeded)
-		bash !{chunk_apply_script} !{params.variants_merge_batch_size} "$file_regex" "$command"
+        bash !{chunk_apply_script} !{params.variants_merge_batch_size} "$file_regex" "$command"
         
         file_list=$(ls -1 | grep -E "$file_regex")
         num_files=$(echo "$file_list" | wc -l)
@@ -1871,222 +1681,469 @@ if (perform_variant_calling) {
         fi
 
         cp .command.log variants_merge.log
-		'''
-	}
+        '''
+}
+
+process Coverage {
+
+    tag "$prefix"
+    publishDir "${params.output}/coverage/wigs", mode:'copy'
+
+    input:
+        path complete_manifest
+        tuple val(prefix), path(sorted_bam), path(sorted_bam_index)
+        path chr_sizes
+
+    output:
+        path "${prefix}*.wig", emit: wig_files
+        path "bam2wig_${prefix}.log"
+
+    shell:
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
+        #  Find this sample's strandness and determine strand flag
+        strand=$(cat samples_complete.manifest | grep " !{prefix} " | awk -F ' ' '{print $NF}')
+        if [ $strand == 'forward' ]; then
+            if [ !{params.sample} == "paired" ]; then
+                strand_flag='-d 1++,1--,2+-,2-+'
+            else
+                strand_flag='-d ++,--'
+            fi
+        elif [ $strand == 'reverse' ]; then
+            if [ !{params.sample} == "paired" ]; then
+                strand_flag='-d 1+-,1-+,2++,2--'
+            else
+                strand_flag='-d +-,-+'
+            fi
+        else
+            strand_flag=""
+        fi
+
+        python3 $(which bam2wig.py) \
+            -s !{chr_sizes} \
+            -i !{sorted_bam} \
+            !{params.bam2wig_args} \
+            -o !{prefix} \
+            $strand_flag
+
+        cp .command.log bam2wig_!{prefix}.log
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2-|| true)
+        echo "$temp" > bash_vars.txt
+        '''
+}
+
+// Convert wig files to bigWig format    
+process WigToBigWig {
+
+    tag "$prefix"
+    publishDir "${params.output}/coverage/bigWigs", mode: 'copy'
+    
+    input:
+        tuple val(prefix), path(wig_file)
+        path chr_sizes
+    
+    output:
+        path "*.bw", emit: coverage_bigwigs
+    
+    shell:
+        '''
+        !{params.wigToBigWig} \
+            !{params.wigToBigWig_args} \
+            !{wig_file} \
+            !{chr_sizes} \
+            !{prefix}.bw
+        '''
+}
+
+// Compute mean coverage across samples by strand
+process MeanCoverage {
+
+    tag "Strand: ${read_type}"
+    publishDir "${params.output}/coverage/mean", mode: 'copy'
+
+    input:
+        tuple val(read_type), path(mean_coverage_bigwig)
+        path chr_sizes
+        path chunk_apply_script
+
+    output:
+        tuple val(read_type), path("mean*.bw"), emit: mean_bigwigs
+        path "mean_coverage_${read_type}.log"
+
+    shell:
+        '''
+        ( set -o posix ; set ) > bash_vars.txt
+        
+        if [ !{read_type} == "unstranded" ] ; then
+            outwig="mean"
+        elif [ !{read_type} == "forward" ]; then
+            outwig="mean.forward"
+        else
+            outwig="mean.reverse"
+        fi
+        
+        precision=8
+        
+        file_regex='.*\\.(bw|wig)$'
+        command="!{params.wiggletools} write temp_wig[index].wig sum [files]"
+
+        #   To compute a mean, we'll sum all files then multiply by the
+        #   scale factor (reciprocal of number of files)
+        num_files=$(ls -1 | grep -E "$file_regex" | wc -l)
+        scale_factor=$(!{params.bc} <<< "scale=${precision};1/$num_files")
+        echo "Scale factor is $scale_factor."
+        
+        #   Break the summation command into chunks (necessary for large
+        #   datasets where the number of open file handles may be exceeded)
+        bash !{chunk_apply_script} !{params.wiggletools_batch_size} "$file_regex" "$command"
+
+        #   Note that even if one file is left, this command is necessary
+        #   because of the scaling (mean instead of sum)
+        echo "Computing a mean from the final files..."
+        file_list=$(ls -1 | grep -E "$file_regex")
+        !{params.wiggletools} write $outwig.wig scale $scale_factor sum $file_list
+        echo "Done."
+        
+        !{params.wigToBigWig} $outwig.wig !{chr_sizes} $outwig.bw
+        
+        cp .command.log mean_coverage_!{read_type}.log
+        
+        temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
+        echo "$temp" > bash_vars.txt
+        '''
 }
 
 
-if (do_coverage) {
-    process Coverage {
+process CoverageObjects {
     
-        tag "$coverage_prefix"
-        publishDir "${params.output}/coverage/wigs",mode:'copy'
+    tag "Strand: ${read_type}"
+    publishDir "${params.output}/coverage_objects", mode: 'copy'
+
+    input:
+        path fullCov_script
+        path complete_manifest
+        tuple val(read_type), path(bigwigs)
+
+    output:
+        file "*"
+
+    shell:
+        '''
+        !{params.Rscript} !{fullCov_script} \
+            -o !{params.reference} \
+            -e !{params.experiment} \
+            -c !{task.cpus} \
+            -s !{read_type}
+        
+        cp .command.log coverage_objects.log
+        '''
+}
+
+process ExpressedRegions {
     
-        input:
-            file complete_manifest_cov
-            set val(coverage_prefix), file(sorted_coverage_bam), file(sorted_bam_index) from coverage_bam_inputs
-            file chr_sizes
+    tag "Strand: ${read_type}"
+    publishDir "${params.output}/expressed_regions", mode:'copy'
     
-        output:
-            file "${coverage_prefix}*.wig" into wig_files_temp
-            file "bam2wig_${coverage_prefix}.log"
+    input:
+        path expressed_regions_script
+        path chr_sizes
+        tuple val(read_type), path(mean_bigwigs)
     
-        shell:
-            '''
-            ( set -o posix ; set ) > bash_vars.txt
-            
-            #  Find this sample's strandness and determine strand flag
-            strand=$(cat samples_complete.manifest | grep " !{coverage_prefix} " | awk -F ' ' '{print $NF}')
-            if [ $strand == 'forward' ]; then
-                if [ !{params.sample} == "paired" ]; then
-                    strand_flag='-d 1++,1--,2+-,2-+'
-                else
-                    strand_flag='-d ++,--'
-                fi
-            elif [ $strand == 'reverse' ]; then
-                if [ !{params.sample} == "paired" ]; then
-                    strand_flag='-d 1+-,1-+,2++,2--'
-                else
-                    strand_flag='-d +-,-+'
-                fi
-            else
-                strand_flag=""
-            fi
+    output:
+        file "*"
     
-            python3 $(which bam2wig.py) \
-                -s !{chr_sizes} \
-                -i !{sorted_coverage_bam} \
-                !{params.bam2wig_args} \
-                -o !{coverage_prefix} \
-                $strand_flag
-    
-            cp .command.log bam2wig_!{coverage_prefix}.log
-            
-            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2-|| true)
-            echo "$temp" > bash_vars.txt
-            '''
+    shell:
+        '''
+        for meanfile in ./mean*.bw; do
+            !{params.Rscript} !{expressed_regions_script} \
+                -m ${meanfile} \
+                -o . \
+                -i !{chr_sizes} \
+                -c !{task.cpus}
+        done
+        
+        cp .command.log expressed_regions_!{read_type}.log
+        '''
+}
+
+
+workflow {
+    if (params.reference == "hg38" && params.anno_version == "25") {
+        // Our extra exon annotation if user defaults to gencode release 25
+        exon_maps_by_coord_hg38 = Channel.fromPath("${params.annotation}/junction_txdb/exonMaps_by_coord_hg38_gencode_v25.rda")
+    } else {
+        // Nextflow requires a valid path of length 1: here we just use a random script
+        exon_maps_by_coord_hg38 = Channel.fromPath("${workflow.projectDir}/scripts/style_code.R")
     }
-    
-    // Convert wig files to bigWig format
-    
-    wig_files_temp
+
+    // When using custom annotation, grab the user-provided reference FASTA.
+    // Otherwise, run PullAssemblyFasta to pull it from online
+    if (params.custom_anno != "") {
+        reference_fasta = Channel.fromPath("${params.annotation}/*assembly*.fa*")
+            .ifEmpty{ error "Cannot find assembly fasta in annotation directory (and --custom_anno was specified)" }
+            .first()  // This proves to nextflow that the channel will always hold one value/file
+            .collect()
+        reference_gtf = Channel.fromPath("${params.annotation}/*.gtf")
+            .ifEmpty{ error "Cannot find reference gtf in annotation directory (and --custom_anno was specified)" }
+            .first()
+            .collect()
+        transcript_fa = Channel.fromPath("${params.annotation}/*transcripts*.fa*")
+            .ifEmpty{ error "Cannot find transcripts fasta in annotation directory (and --custom_anno was specified)" }
+            .first()
+            .collect()
+        ercc_index = Channel.fromPath("${params.annotation}/*.idx").collect()
+
+        // Variant calling is only enabled for human
+        if (params.reference_type == "human") {
+            snv_bed = Channel.fromPath("${params.annotation}/*.bed").collect()
+        }
+    } else {
+        PullAssemblyFasta()
+        PullGtf()
+        PullTranscriptFasta(
+            Channel.fromPath("${workflow.projectDir}/scripts/subset_rat_fasta.R")
+        )
+        reference_fasta = PullAssemblyFasta.out.reference_fasta.collect()
+        reference_gtf = PullGtf.out.reference_gtf.collect()
+        transcript_fa = PullTranscriptFasta.out.transcript_fa.collect()
+        ercc_index = Channel.fromPath("${params.annotation}/ERCC/ERCC92.idx").collect()
+
+        // Note that variant calling is only performed for human
+        snv_bed = Channel.fromPath("${params.annotation}/Genotyping/common_missense_SNVs_${params.reference}.bed").collect()
+    }
+
+    BuildAnnotationObjects(
+        reference_fasta,
+        reference_gtf,
+        Channel.fromPath("${workflow.projectDir}/scripts/build_annotation_objects.R")
+    )
+
+    if (params.use_star) {
+        BuildStarIndex(reference_fasta, reference_gtf)
+    } else { // HISAT2 is used as the aligner
+        BuildHisatIndex(reference_fasta)
+    }
+
+    if (params.use_salmon) {
+        BuildSalmonIndex(transcript_fa)
+    }
+    BuildKallistoIndex(transcript_fa) // Needed either way, because of InferStrandness
+
+    // Extract FASTQ file paths from the manifest and place in a channel to pass to
+    // PreprocessInputs
+    original_manifest = Channel.fromPath("${params.input}/samples.manifest")
+    original_manifest
+        .splitText()
+        .map{ row -> get_fastq_names(row) }
         .flatten()
-        .map{ file -> tuple(get_prefix(file, false, false), file) }
-        .set{ wig_files }
-    
-    process WigToBigWig {
-    
-        tag "$wig_prefix"
-        publishDir "${params.output}/coverage/bigWigs",mode:'copy'
-        
-        input:
-            set val(wig_prefix), file(wig_file) from wig_files
-            file chr_sizes
-        
-        output:
-            file "*.bw" into coverage_bigwigs
-        
-        shell:
-            '''
-            !{params.wigToBigWig} \
-                !{params.wigToBigWig_args} \
-                !{wig_file} \
-                !{chr_sizes} \
-                !{wig_prefix}.bw
-            '''
-    }
-    
-    coverage_bigwigs
-        .map { f -> tuple(get_read_type(f), f) }
+        .collect()
+        .set{ raw_fastqs }
+    PreprocessInputs(
+        original_manifest,
+        Channel.fromPath("${workflow.projectDir}/scripts/preprocess_inputs.R"),
+        raw_fastqs
+    )
+
+    PreprocessInputs.out.merged_inputs_flat
+        .flatten()
+        .map{file -> tuple(get_prefix(file, params.sample == "paired"), file) }
         .groupTuple()
-        .into{ mean_coverage_bigwigs; full_coverage_bigwigs }
-    
-    // Compute mean coverage across samples by strand
-    
-    process MeanCoverage {
-    
-        tag "Strand: ${read_type}"
-        publishDir "${params.output}/coverage/mean",'mode':'copy'
-    
-        input:
-            set val(read_type), file(mean_coverage_bigwig) from mean_coverage_bigwigs
-            file chr_sizes from chr_sizes
-            file chunk_apply_script from file("${workflow.projectDir}/scripts/chunk_apply.sh")
-    
-        output:
-            file "mean*.bw" into mean_bigwigs, expressed_regions_mean_bigwigs
-            file "mean_coverage_${read_type}.log"
-    
-        shell:
-            '''
-            ( set -o posix ; set ) > bash_vars.txt
-            
-            if [ !{read_type} == "unstranded" ] ; then
-                outwig="mean"
-            elif [ !{read_type} == "forward" ]; then
-                outwig="mean.forward"
-            else
-                outwig="mean.reverse"
-            fi
-            
-            precision=8
-            
-            file_regex='.*\\.(bw|wig)$'
-            command="!{params.wiggletools} write temp_wig[index].wig sum [files]"
+        .ifEmpty{ error "Input fastq files (after any merging) are missing from the channel"}
+        .set{ untrimmed_fastq_files }
 
-            #   To compute a mean, we'll sum all files then multiply by the
-            #   scale factor (reciprocal of number of files)
-            num_files=$(ls -1 | grep -E "$file_regex" | wc -l)
-            scale_factor=$(!{params.bc} <<< "scale=${precision};1/$num_files")
-            echo "Scale factor is $scale_factor."
-            
-            #   Break the summation command into chunks (necessary for large
-            #   datasets where the number of open file handles may be exceeded)
-            bash !{chunk_apply_script} !{params.wiggletools_batch_size} "$file_regex" "$command"
+    QualityUntrimmed(untrimmed_fastq_files)
+    QualityUntrimmed.out.quality_reports
+        .join(untrimmed_fastq_files)
+        .set{ trimming_inputs }
+    
+    InferStrandness(
+        // The ".collect" is a workaround to make a channel of paths become a
+        // value channel, and thus allow re-use across multiple samples
+        Channel.fromPath("${workflow.projectDir}/scripts/infer_strand.R").collect(),
+        Channel.fromPath("${workflow.projectDir}/scripts/infer_strand.sh").collect(),
+        BuildKallistoIndex.out.kallisto_index.collect(),
+        trimming_inputs
+    )
 
-            #   Note that even if one file is left, this command is necessary
-            #   because of the scaling (mean instead of sum)
-            echo "Computing a mean from the final files..."
-            file_list=$(ls -1 | grep -E "$file_regex")
-            !{params.wiggletools} write $outwig.wig scale $scale_factor sum $file_list
-            echo "Done."
-            
-            !{params.wigToBigWig} $outwig.wig !{chr_sizes} $outwig.bw
-            
-            cp .command.log mean_coverage_!{read_type}.log
-            
-            temp=$(( set -o posix ; set ) | diff bash_vars.txt - | grep ">" | cut -d " " -f 2- || true)
-            echo "$temp" > bash_vars.txt
-            '''
+    CompleteManifest(
+        InferStrandness.out.strandness_patterns.collect(),
+        PreprocessInputs.out.strandness_manifest,
+        Channel.fromPath("${workflow.projectDir}/scripts/complete_manifest.R")
+    )
+
+    if (params.ercc) {
+        ERCC(
+            ercc_index,
+            untrimmed_fastq_files,
+            CompleteManifest.out.complete_manifest.collect()
+        )
+        ercc_abundances = ERCC.out.ercc_abundances
+    } else {
+        // Nextflow requires a valid path of length 1: here we just use a random script
+        ercc_abundances = Channel.fromPath("${workflow.projectDir}/scripts/track_runs.sh")
     }
-    
-    
-    if (params.fullCov) {
-      
-    	/*
-    	 * Create Full Coverage Objects
-    	 */
-    
-        process CoverageObjects {
-            
-            tag "Strand: ${read_type}"
-            publishDir "${params.output}/coverage_objects",'mode':'copy'
-    
-            input:
-                file fullCov_script from file("${workflow.projectDir}/scripts/create_fullCov_object.R")
-                file complete_manifest_fullcov
-                set val(read_type), file(bigwigs) from full_coverage_bigwigs
-    
-            output:
-                file "*"
-        
-            shell:
-                '''
-                !{params.Rscript} !{fullCov_script} \
-                    -o !{params.reference} \
-                    -e !{params.experiment} \
-                    -c !{task.cpus} \
-                    -s !{read_type}
-                
-                cp .command.log coverage_objects.log
-                '''
+
+    Trimming(trimming_inputs)
+    QualityTrimmed(Trimming.out.trimmed_fastqc_inputs_raw)
+
+    if (params.use_star) {
+        AlignStar(
+            BuildStarIndex.out.star_index.collect(),
+            Trimming.out.trimming_outputs
+        )
+        alignment_output_temp = AlignStar.out.alignment_output
+        alignment_summaries = AlignStar.out.alignment_summaries
+    } else {
+        // Then aligning with HISAT2
+        if (params.sample == "single") {
+            SingleEndHisat(
+                BuildHisatIndex.out.hisat_index.collect(),
+                CompleteManifest.out.complete_manifest.collect(),
+                Trimming.out.trimming_outputs
+            )
+            alignment_output_temp = SingleEndHisat.out.alignment_output
+            alignment_summaries = SingleEndHisat.out.alignment_summaries
+        } else {
+            PairedEndHisat(
+                BuildHisatIndex.out.hisat_index.collect(),
+                CompleteManifest.out.complete_manifest.collect(),
+                Trimming.out.trimming_outputs
+            )
+            alignment_output_temp = PairedEndHisat.out.alignment_output
+            alignment_summaries = PairedEndHisat.out.alignment_summaries
         }
     }
 
+    BamSort(alignment_output_temp)
+    FeatureCounts(
+        BamSort.out.sorted_bams,
+        CompleteManifest.out.complete_manifest.collect(),
+        reference_gtf
+    )
 
-    /*
-     * Expressed Regions
-     */
-    
-    process ExpressedRegions {
-        
-        tag "$expressed_regions_mean_bigwigs"
-        publishDir "${params.output}/expressed_regions", mode:'copy'
-        
-        input:
-            file expressed_regions_script from file("${workflow.projectDir}/scripts/find_expressed_regions.R")
-            file chr_sizes
-            file expressed_regions_mean_bigwigs
-        
-        output:
-            file "*"
-        
-        shell:
-            // "strand" is used for naming the log file for this execution of the process
-            strand = expressed_regions_mean_bigwigs.toString().replaceAll("mean.|.bw|bw", "")
-            if (strand.length() > 0) {
-                strand = '_' + strand
-            }
-            '''
-            for meanfile in ./mean*.bw; do
-                !{params.Rscript} !{expressed_regions_script} \
-                    -m ${meanfile} \
-                    -o . \
-                    -i !{chr_sizes} \
-                    -c !{task.cpus}
-            done
-            
-            cp .command.log expressed_regions!{strand}.log
-            '''
+    PrimaryAlignments(BamSort.out.sorted_bams)
+    Junctions(
+        PrimaryAlignments.out.primary_alignments,
+        CompleteManifest.out.complete_manifest.collect()
+    )
+
+    if (params.use_salmon) {
+        TxQuantSalmon(
+            BuildSalmonIndex.out.salmon_index.collect(),
+            CompleteManifest.out.complete_manifest.collect(),
+            untrimmed_fastq_files
+        )
+        tx_quants = TxQuantSalmon.out.tx_quants
+    } else {
+        TxQuantKallisto(
+            BuildKallistoIndex.out.kallisto_index.collect(),
+            CompleteManifest.out.complete_manifest.collect(),
+            untrimmed_fastq_files
+        )
+        tx_quants = TxQuantKallisto.out.tx_quants
+    }
+
+    if (params.qsva == "") {
+        // Nextflow requires a valid path of length 1: here we just use a random script
+        qsva_tx_list = Channel.fromPath("${workflow.projectDir}/scripts/chunk_apply.sh")
+    } else {
+        qsva_tx_list = Channel.fromPath(params.qsva)
+    }
+
+    CountObjects(
+        // Reference/ annotation-related files
+        Channel.fromPath("${params.annotation}/ERCC/ercc_actual_conc.txt"),
+        exon_maps_by_coord_hg38,
+        reference_gtf,
+        BuildAnnotationObjects.out.feature_to_tx_gencode,
+        BuildAnnotationObjects.out.junction_annotation,
+        // FastQC summaries before and after trimming
+        QualityUntrimmed.out.count_objects_quality_metrics_untrimmed.collect(),
+        QualityUntrimmed.out.quality_reports
+            // Take just the summaries, not sample IDs
+            .map{this_tuple -> this_tuple[1] }
+            .collect(),
+        QualityTrimmed.out.trimmed_fastqc_outs
+            .ifEmpty("${workflow.projectDir}/assets/NO_FILE")
+            .collect(),
+        // Summaries and BAMs from alignment
+        alignment_summaries.collect(),
+        BamSort.out.sorted_bams
+            // Take just the .bam and .bam.bai files (not the sample ID)
+            .map{this_tuple -> tuple(this_tuple[1], this_tuple[2]) }
+            .collect(),
+        // Gene + exon counts
+        FeatureCounts.out.sample_counts.collect(),
+        // Junction counts
+        Junctions.out.regtools_outputs.collect(),
+        // Transcript counts
+        tx_quants.collect(),
+        // File containing list of transcripts, when using --qsva
+        qsva_tx_list,
+        // ERCC spike-in counts (if applicable)
+        ercc_abundances.collect(),
+        // Manifest with strandness info
+        CompleteManifest.out.complete_manifest,
+        // R script for creating the RSE objects
+        Channel.fromPath("${workflow.projectDir}/scripts/create_count_objects.R")   
+    )
+    if (params.reference_type == "human") {
+        VariantCalls(
+            BamSort.out.sorted_bams,
+            snv_bed,
+            reference_fasta
+        )
+        VariantsMerge(
+            Channel.fromPath("${workflow.projectDir}/scripts/chunk_apply.sh"),
+            VariantCalls.out.compressed_variant_calls.collect(),
+            VariantCalls.out.compressed_variant_calls_tbi.collect()
+        )
+    }
+
+    //  Compute coverage by sample and also averaged across samples for each
+    //  strand
+    if (params.coverage || params.fullCov) {
+        //  Produce wig files, and convert to bigwig, starting from the
+        //  alignment BAMs
+        Coverage(
+            CompleteManifest.out.complete_manifest.collect(),
+            BamSort.out.sorted_bams,
+            BuildAnnotationObjects.out.chr_sizes.collect()
+        )
+        Coverage.out.wig_files
+            .flatten()
+            .map{ file -> tuple(get_prefix(file, false, false), file) }
+            .set{ wig_files }
+        WigToBigWig(
+            wig_files,
+            BuildAnnotationObjects.out.chr_sizes.collect()
+        )
+
+        //  Group by strand and compute a mean across samples
+        WigToBigWig.out.coverage_bigwigs
+            .map { f -> tuple(get_read_type(f), f) }
+            .groupTuple()
+            .set{ coverage_bigwigs }
+        MeanCoverage(
+            coverage_bigwigs,
+            BuildAnnotationObjects.out.chr_sizes.collect(),
+            Channel.fromPath("${workflow.projectDir}/scripts/chunk_apply.sh").collect()
+        )
+
+        if (params.fullCov) {
+            CoverageObjects(
+                Channel.fromPath("${workflow.projectDir}/scripts/create_fullCov_object.R").collect(),
+                CompleteManifest.out.complete_manifest.collect(),
+                coverage_bigwigs
+            )
+        }
+
+        ExpressedRegions(
+            Channel.fromPath("${workflow.projectDir}/scripts/find_expressed_regions.R").collect(),
+            BuildAnnotationObjects.out.chr_sizes.collect(),
+            MeanCoverage.out.mean_bigwigs
+        )
     }
 }
