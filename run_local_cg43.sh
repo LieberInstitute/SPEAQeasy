@@ -6,7 +6,7 @@
 ## * the output will be in ./results/
 
 ### === edit the following lines as needed:
-EXPNAME='orgn_ds1' ## experiment label (suffix for result files)
+EXPNAME='org_ds5' ## experiment label (suffix for result files)
 STRAND=reverse # "unstranded" , "forward" or "reverse"
 STYPE=paired      # "single" or "paired"
 RESUME=1          # set this to 1 if you want to resume interrupted run
@@ -40,11 +40,12 @@ optResume=""
 if [[ $RESUME == 1 || $RESUME == yes ]]; then
  optResume="-resume"
 fi
+## remove  --strand_mode declare if you want to let SPEAQeasy check the strandness
 nextflow -bg -Dnxf.pool.type=sync run $SPQZ/main.nf \
     --sample $STYPE \
     --annotation "$ANN" $CUSTOM_ANN \
     --reference "$REF" \
-    --strand $STRAND \
+    --strand $STRAND  --strand_mode accept \
     --trim_mode adaptive \
     --use_salmon \
     --input  "$INDIR" \

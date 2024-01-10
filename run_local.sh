@@ -10,6 +10,7 @@
 ## * the output will be in ./results/
 
 ### === edit the following lines as needed:
+EXPNAME='org_ds5n6'
 STRAND=reverse # "unstranded" , "forward" or "reverse"
 STYPE=paired      # "single" or "paired"
 RESUME=1          # change this to 1 if you want to resume interrupted run
@@ -19,12 +20,13 @@ RESUME=1          # change this to 1 if you want to resume interrupted run
 OUTDIR=$(pwd -P)
 INDIR="$OUTDIR" # samples.manifest must be here
 
-export _JAVA_OPTIONS="-Xms8g -Xmx10g"
+#export _JAVA_OPTIONS="-Xms8g -Xmx10g"
+export NXF_JVM_ARGS="-Xms8g -Xmx10g"
+SPQZ=/opt/sw/spqz
 
-SPQZ=/home/gpertea/work/SPEAQeasy
-#SPQZ=/dcs04/lieber/lcolladotor/dbDev_LIBD001/RNAseq/SPEAQeasy
-## /dcl01/lieber/ajaffe/Nick/SPEAQeasy
 SPLOG=$PWD/SPEAQeasy_output.log
+
+PROFILE="localk60"
 
 mkdir -p "$OUTDIR/wrk"
 mkdir -p "$OUTDIR/results"
@@ -33,21 +35,21 @@ if [[ $RESUME == 1 || $RESUME == yes ]]; then
  optResume="-resume"
 fi
 ## running locally with custom annotation example
-ANN=/dbdata/cdb/rnaseq/stemcell_pipeline/spqz_ref
-REF="humanRat"
+ANN=/opt/sw/spqz/Annotation
+REF="hg38"
 nextflow -bg -Dnxf.pool.type=sync run $SPQZ/main.nf \
     --sample $STYPE \
     --annotation "$ANN" \
-    --custom_anno "$REF" \
     --reference "$REF" \
-    --strand $STRAND \
+    --strand $STRAND --strand_mode accept \
     --trim_mode adaptive \
     --input  "$INDIR" \
          -w  "$OUTDIR/wrk" \
     --output "$OUTDIR/results" \
-    -with-report execution_reports/pipeline_report.html \
-    -profile local $optResume
+    --experiment $EXPNAME \
+    -profile $PROFILE $optResume
 
+#    -with-report execution_reports/pipeline_report.html \
 #  Produces a report for each sample tracing the pipeline steps
 #  performed (can be helpful for debugging).
 #
