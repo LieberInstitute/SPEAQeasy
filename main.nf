@@ -1439,9 +1439,9 @@ process TxQuantSalmon {
         
         if [ !{params.sample} == "paired" ]; then
             strand_flag="I$strand_flag"
-            sample_flag="-1 !{prefix}_1.f*q* -2 !{prefix}_2.f*q*"
+            sample_flag="-1 !{prefix}*trimmed*_1.f*q* -2 !{prefix}*trimmed*_2.f*q*"
         else
-            sample_flag="-r !{prefix}.f*q*"
+            sample_flag="-r !{prefix}*.f*q*"
         fi
         
         !{params.salmon} quant \
@@ -1492,26 +1492,21 @@ process TxQuantKallisto {
         
         #  Run the quantification step
         if [ !{params.sample} == "paired" ]; then
-            fq1=$(ls *_1.f*q*)
-            fq2=$(ls *_2.f*q*)
-        
             !{params.kallisto} quant \
                 -t !{task.cpus} \
                 $strand_flag \
                 -i !{kallisto_index} \
                 -o . \
                 !{params.kallisto_quant_paired_args} \
-                $fq1 $fq2
+                !{prefix}*trimmed*_1.f*q* !{prefix}*trimmed*_2.f*q*
         else
-            fq=$(ls *.f*q*)
-            
             !{params.kallisto} quant \
                 -t !{task.cpus} \
                 !{params.kallisto_quant_single_args} \
                 $strand_flag \
                 -i !{kallisto_index} \
                 -o . \
-                $fq
+                *.f*q*
         fi
         
         mv abundance.tsv !{prefix}_abundance.tsv
@@ -1973,10 +1968,13 @@ workflow {
         Channel.fromPath("${workflow.projectDir}/scripts/complete_manifest.R")
     )
 
+    Trimming(trimming_inputs)
+    QualityTrimmed(Trimming.out.trimmed_fastqc_inputs_raw)
+
     if (params.ercc) {
         ERCC(
             ercc_index,
-            untrimmed_fastq_files,
+            Trimming.out.trimming_outputs,
             CompleteManifest.out.complete_manifest.collect()
         )
         ercc_abundances = ERCC.out.ercc_abundances
@@ -1984,9 +1982,6 @@ workflow {
         // Nextflow requires a valid path of length 1: here we just use a random script
         ercc_abundances = Channel.fromPath("${workflow.projectDir}/scripts/track_runs.sh")
     }
-
-    Trimming(trimming_inputs)
-    QualityTrimmed(Trimming.out.trimmed_fastqc_inputs_raw)
 
     if (params.use_star) {
         AlignStar(
@@ -2033,14 +2028,14 @@ workflow {
         TxQuantSalmon(
             BuildSalmonIndex.out.salmon_index.collect(),
             CompleteManifest.out.complete_manifest.collect(),
-            untrimmed_fastq_files
+            Trimming.out.trimming_outputs
         )
         tx_quants = TxQuantSalmon.out.tx_quants
     } else {
         TxQuantKallisto(
             BuildKallistoIndex.out.kallisto_index.collect(),
             CompleteManifest.out.complete_manifest.collect(),
-            untrimmed_fastq_files
+            Trimming.out.trimming_outputs
         )
         tx_quants = TxQuantKallisto.out.tx_quants
     }
