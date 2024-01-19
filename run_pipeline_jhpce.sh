@@ -11,7 +11,7 @@
 ORIG_DIR=$PWD
 
 module load nextflow/23.10.0
-export _JAVA_OPTIONS="-Xms8g -Xmx10g"
+export NXF_JVM_ARGS="-Xms8g -Xmx10g"
 
 nextflow run $ORIG_DIR/main.nf \
     --sample "paired" \
