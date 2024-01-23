@@ -2,6 +2,14 @@
 // workflow. In particular, it includes 'Trimming', FastQC before and after
 // trimming, and ERCC quantification
 
+def get_file_ext(f) {
+    if (f.name.toString().tokenize(".")[-1] == "gz") {
+        return('.fastq.gz')
+    } else {
+        return('.fastq')
+    }
+}
+
 /*
  * Perform FastQC on the untrimmed reads, as an initial quality gauge
  */

@@ -362,14 +362,6 @@ def get_read_type(f) {
   }
 }
 
-def get_file_ext(f) {
-  if (f.name.toString().tokenize(".")[-1] == "gz") {
-    return('.fastq.gz')
-  } else {
-    return('.fastq')
-  }
-}
-
 //  Given a "row" of the 'samples.manifest' file as a string, return the FASTQ
 //  files
 def get_fastq_names(row) {
@@ -464,7 +456,7 @@ include { VariantCalls; VariantsMerge } from "${workflow.projectDir}/modules/var
 include { TxQuantSalmon; TxQuantKallisto } from "${workflow.projectDir}/modules/pseudoalignment"
 include { Coverage; WigToBigWig; MeanCoverage; CoverageObjects; ExpressedRegions } from "${workflow.projectDir}/modules/coverage"
 include { PreprocessInputs } from "${workflow.projectDir}/modules/preprocess_inputs"
-include { PreprocessInputs } from "${workflow.projectDir}/modules/feature_counts"
+include { FeatureCounts } from "${workflow.projectDir}/modules/feature_counts"
 include { CountObjects } from "${workflow.projectDir}/modules/count_objects"
 
 workflow {
