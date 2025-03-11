@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>8 Configuration | SPEAQeasy</title>
   <meta name="description" content="8 Configuration | SPEAQeasy" />
-  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.42 and GitBook 2.6.7" />
 
   <meta property="og:title" content="8 Configuration | SPEAQeasy" />
   <meta property="og:type" content="book" />
@@ -53,6 +53,7 @@
 
 
 <style type="text/css">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
 pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
@@ -310,7 +311,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Time restrictions may also be specified for individual workflow steps. This can be done with the same syntax- suppose you wish to request 30 minutes for a given sample to be trimmed (note process names <a href="pipeline-overview.html#pipeline-overview">here</a>). In the “process” section of your config, find the section labelled “withName: Trimming” as in the example here:</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode groovy"><code class="sourceCode groovy"><span id="cb22-1"><a href="configuration.html#cb22-1" tabindex="-1"></a>withName<span class="op">:</span> Trimming <span class="op">{</span></span>
 <span id="cb22-2"><a href="configuration.html#cb22-2" tabindex="-1"></a>    cpus <span class="op">=</span> <span class="dv">4</span></span>
-<span id="cb22-3"><a href="configuration.html#cb22-3" tabindex="-1"></a>    memory <span class="op">=</span> <span class="fl">16.G</span>B</span>
+<span id="cb22-3"><a href="configuration.html#cb22-3" tabindex="-1"></a>    memory <span class="op">=</span> <span class="fl">16.</span>GB</span>
 <span id="cb22-4"><a href="configuration.html#cb22-4" tabindex="-1"></a>    time <span class="op">=</span> <span class="st">&#39;30m&#39;</span></span>
 <span id="cb22-5"><a href="configuration.html#cb22-5" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 </div>
@@ -394,42 +395,42 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <script>
 gitbook.require(["gitbook"], function(gitbook) {
 gitbook.start({
-"sharing": {
-"github": false,
-"facebook": true,
-"twitter": true,
-"linkedin": false,
-"weibo": false,
-"instapaper": false,
-"vk": false,
-"whatsapp": false,
-"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
-},
-"fontsettings": {
-"theme": "white",
-"family": "sans",
-"size": 2
-},
-"edit": {
-"link": null,
-"text": null
-},
-"history": {
-"link": null,
-"text": null
-},
-"view": {
-"link": null,
-"text": null
-},
-"download": null,
-"search": {
-"engine": "fuse",
-"options": null
-},
-"toc": {
-"collapse": "subsection"
-}
+  "sharing": {
+    "github": false,
+    "facebook": true,
+    "twitter": true,
+    "linkedin": false,
+    "weibo": false,
+    "instapaper": false,
+    "vk": false,
+    "whatsapp": false,
+    "all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+  },
+  "fontsettings": {
+    "theme": "white",
+    "family": "sans",
+    "size": 2
+  },
+  "edit": {
+    "link": null,
+    "text": null
+  },
+  "history": {
+    "link": null,
+    "text": null
+  },
+  "view": {
+    "link": null,
+    "text": null
+  },
+  "download": null,
+  "search": {
+    "engine": "fuse",
+    "options": null
+  },
+  "toc": {
+    "collapse": "subsection"
+  }
 });
 });
 </script>
