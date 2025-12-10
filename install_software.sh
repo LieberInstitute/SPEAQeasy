@@ -85,10 +85,11 @@ if [[ "$1" == "docker" || "$1" == "singularity" ]]; then
         
         $command run \
             -u $(id -u):$(id -g) \
-            -v $(pwd)/scripts:/usr/local/src/scripts/ \
-            -v $(pwd)/test:/usr/local/src/test \
+            -w /opt/app \
+            -v $(pwd)/scripts:/opt/app/scripts \
+            -v $(pwd)/test:/opt/app/test \
             $R_container \
-            Rscript /usr/local/src/scripts/make_test_manifests.R -d $(pwd)
+            Rscript /opt/app/scripts/make_test_manifests.R -d $(pwd)
     else # using singularity
         if [[ "$(singularity version | cut -d '.' -f 1)" -lt 3 ]]; then
             echo "Singularity >= 3 is required."
@@ -110,11 +111,11 @@ if [[ "$1" == "docker" || "$1" == "singularity" ]]; then
         done
         
         singularity exec \
-            --pwd /usr/local/src \
-            -B $(pwd)/scripts:/usr/local/src/scripts/ \
-            -B $(pwd)/test:/usr/local/src/test \
+            --pwd /opt/app \
+            -B $(pwd)/scripts:/opt/app/scripts \
+            -B $(pwd)/test:/opt/app/test \
             docker://$R_container \
-            Rscript /usr/local/src/scripts/make_test_manifests.R -d $(pwd)
+            Rscript /opt/app/scripts/make_test_manifests.R -d $(pwd)
         
         #  Set modules used correctly for JHPCE users
         sed -i "/module = '.*\/.*'/d" conf/jhpce.config
