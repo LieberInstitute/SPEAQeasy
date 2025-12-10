@@ -120,7 +120,7 @@ if [[ "$1" == "docker" || "$1" == "singularity" ]]; then
         #  Set modules used correctly for JHPCE users
         sed -i "/module = '.*\/.*'/d" conf/jhpce.config
         sed -i "s|cache = 'lenient'|cache = 'lenient'\n    module = 'singularity/3.11.4'|" conf/jhpce.config
-        sed -i "s|module load nextflow|module load nextflow\nmodule load singularity/3.11.4|" run_pipeline_jhpce.sh
+        sed -i "s|module load nextflow/\(.*\)|module load nextflow/\1\nmodule load singularity/3.11.4|" run_pipeline_jhpce.sh
     fi
     
     #  Add docker/ singularity configuration to each config profile in
@@ -133,6 +133,7 @@ if [[ "$1" == "docker" || "$1" == "singularity" ]]; then
     sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(pwd)|" run_pipeline_sge.sh
     sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(pwd)|" run_pipeline_local.sh
     sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(pwd)|" run_pipeline_slurm.sh
+    sed -i "s|ORIG_DIR=.*|ORIG_DIR=$(pwd)|" run_pipeline_jhpce.sh
         
 elif [ "$1" == "local" ]; then
 
